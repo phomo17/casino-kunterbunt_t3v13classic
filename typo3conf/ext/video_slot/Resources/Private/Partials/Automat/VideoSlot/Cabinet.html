@@ -1,0 +1,283 @@
+<f:comment>
+	Gehäuse des „Video Slot" — die MINIATUR für den Saal. Nicht zu
+	verwechseln mit Machine/Cabinet.html, dem großen, bedienbaren Gehäuse
+	auf der Automatenseite.
+
+	Vertrag aus casino_startpage/README.md, Abschnitt „Vertrag für das
+	Gehäuse-Partial": genau ein .ck-cabinet, darin genau ein
+	svg.ck-cabinet__drawing mit viewBox-Verhältnis 100 : 160. Breite, Podest,
+	Schattenwurf und Licht von oben liefert der Saal — hier steht nichts davon.
+	Farben ausschließlich über --ck-*-Tokens aus casino_startpage/tokens.css.
+
+	Die Datei benutzt KEINE der beiden Variablen {automat} und {data}, die
+	der Saal übergibt, und holt den Namen direkt aus der Sprachdatei — genau
+	wie beim Reel Slot, aus demselben Grund: sie soll auch dann funktionieren,
+	wenn sie einmal ohne Kontext gerendert wird.
+
+	Ein span, kein div: der Saal setzt das Gehäuse in einen span, und ein div
+	darin wäre ungültiges HTML.
+
+	EIGENER SYMBOLVORRAT, EIGENES ID-PRÄFIX. Die Miniatur bringt ihre neun
+	symbol-Definitionen selbst mit, unter den IDs vs-mini-<symbol>. Sie sind
+	ZEICHENGLEICH zu den neun Definitionen in Machine/Shell.html, nur mit
+	anderem Präfix — beide Ansichten könnten auf derselben Seite liegen, und
+	dokumentweit doppelte IDs wären ungültiges HTML.
+
+	Bewusste Abweichung vom Reel Slot: dessen Miniatur zeichnet ihre drei
+	Symbole von Hand ins Walzenfenster, weil es nur drei sind. Fünfzehn von
+	Hand gezeichnete Symbole wären eine zweite, unabhängig gepflegte Zeichnung
+	derselben neun Motive — die erste Stelle, an der die beiden Ansichten
+	auseinanderlaufen würden. Die doppelte Definition innerhalb EINER
+	Extension ist der kleinere Preis; sie ist mechanisch und wird von
+	Resources/Private/Scripts/verify-cabinet.mjs (Prüfung A-7) gegen die
+	Fassung im großen Gehäuse abgeglichen.
+
+	Die dargestellte Symbolstellung ist DIESELBE wie die Grundstellung des
+	großen Gehäuses (Classes/Rules.php, Rules::DEFAULT_GRID), damit man das
+	Gerät im Saal und auf seiner Seite als dasselbe erkennt. Sie steht hier
+	von Hand ausgeschrieben und wird NICHT aus dem Prozessor geholt: das
+	Partial wird vom Saal gerendert, und der Saal übergibt {machine} nicht.
+</f:comment>
+<span class="ck-cabinet ck-cabinet--video-slot">
+	<f:comment>aria-hidden: die Zeichnung steht im Saal unmittelbar neben dem
+		sichtbaren Namensschild der Kachel. Ein <title> hier gäbe dem Verweis
+		denselben Namen ein zweites Mal (Audit S-01).</f:comment>
+	<svg class="ck-cabinet__drawing" viewBox="0 0 100 160" preserveAspectRatio="xMidYMid meet"
+		focusable="false" aria-hidden="true">
+
+		<defs>
+			<symbol id="vs-mini-kirsche" viewBox="0 0 24 24">
+				<path d="M13.4 4.6 C10.6 8.0 8.4 10.6 7.6 13.6 M13.4 4.6 C15.4 8.2 16.8 10.8 16.9 13.9"
+					fill="none" stroke="var(--ck-fruit-leaf-shade)" stroke-width="1.5" stroke-linecap="round" />
+				<path d="M13.4 4.6 C16.4 2.0 20.2 2.4 21.6 4.9 C19.0 6.7 15.6 6.6 13.4 4.6 Z"
+					fill="var(--ck-fruit-leaf)" stroke="var(--ck-print-ink)" stroke-width="1.2" stroke-linejoin="round" />
+				<g stroke="var(--ck-print-ink)" stroke-width="1.5">
+					<circle cx="7.2" cy="17.4" r="4.6" fill="var(--ck-fruit-cherry-shade)" />
+					<circle cx="16.9" cy="17.8" r="4.2" fill="var(--ck-fruit-cherry-shade)" />
+				</g>
+				<circle cx="8.0" cy="16.5" r="3.4" fill="var(--ck-fruit-cherry)" />
+				<circle cx="17.6" cy="17.0" r="3.1" fill="var(--ck-fruit-cherry)" />
+			</symbol>
+			<symbol id="vs-mini-zitrone" viewBox="0 0 24 24">
+				<g transform="rotate(-16 12 12.6)">
+					<ellipse cx="12" cy="12.6" rx="7.8" ry="5.4"
+						fill="var(--ck-fruit-lemon-shade)" stroke="var(--ck-print-ink)" stroke-width="1.5" />
+					<ellipse cx="11.3" cy="11.6" rx="6.4" ry="4.2" fill="var(--ck-fruit-lemon)" />
+					<path d="M19.8 12.6 l2.2 -0.6 M4.2 12.6 l-2.2 0.6"
+						fill="none" stroke="var(--ck-print-ink)" stroke-width="1.6" stroke-linecap="round" />
+				</g>
+			</symbol>
+			<symbol id="vs-mini-orange" viewBox="0 0 24 24">
+				<circle cx="12" cy="14.0" r="8.0"
+					fill="var(--ck-fruit-orange-shade)" stroke="var(--ck-print-ink)" stroke-width="1.6" />
+				<circle cx="10.9" cy="12.8" r="6.2" fill="var(--ck-fruit-orange)" />
+				<path d="M12 6.2 V3.4" fill="none" stroke="var(--ck-fruit-leaf-shade)"
+					stroke-width="1.5" stroke-linecap="round" />
+				<path d="M12 6.0 C9.6 3.4 6.4 3.0 4.9 4.6 C6.6 7.0 9.8 7.6 12 6.0 Z"
+					fill="var(--ck-fruit-leaf)" stroke="var(--ck-print-ink)" stroke-width="1.2" stroke-linejoin="round" />
+			</symbol>
+			<symbol id="vs-mini-melone" viewBox="0 0 24 24">
+				<path d="M2.6 18.4 A9.4 9.4 0 0 1 21.4 18.4 Z"
+					fill="var(--ck-fruit-leaf-shade)" stroke="var(--ck-print-ink)" stroke-width="1.6" stroke-linejoin="round" />
+				<path d="M4.4 18.4 A7.6 7.6 0 0 1 19.6 18.4 Z" fill="var(--ck-fruit-leaf)" />
+				<path d="M5.8 18.4 A6.2 6.2 0 0 1 18.2 18.4 Z" fill="var(--ck-paper-100)" />
+				<path d="M6.8 18.4 A5.2 5.2 0 0 1 17.2 18.4 Z" fill="var(--ck-fruit-cherry)" />
+				<g fill="var(--ck-print-ink)">
+					<ellipse cx="9.4" cy="15.8" rx="0.8" ry="1.1" />
+					<ellipse cx="12.0" cy="14.7" rx="0.8" ry="1.1" />
+					<ellipse cx="14.6" cy="15.8" rx="0.8" ry="1.1" />
+					<ellipse cx="12.0" cy="17.4" rx="0.8" ry="1.1" />
+				</g>
+				<path d="M2.6 18.4 H21.4" fill="none" stroke="var(--ck-print-ink)"
+					stroke-width="1.6" stroke-linecap="round" />
+			</symbol>
+			<symbol id="vs-mini-glocke" viewBox="0 0 24 24">
+				<path d="M12 3.2 C16.6 3.2 18.2 7.2 18.2 11.4 C18.2 13.6 18.9 14.9 20.0 15.8 H4.0 C5.1 14.9 5.8 13.6 5.8 11.4 C5.8 7.2 7.4 3.2 12 3.2 Z"
+					fill="var(--ck-brass-200)" stroke="var(--ck-print-ink)" stroke-width="1.6" stroke-linejoin="round" />
+				<path d="M12 4.6 C9.8 4.6 8.5 6.2 7.9 8.6 C9.0 6.8 10.4 6.0 12 6.0 Z" fill="var(--ck-brass-100)" />
+				<path d="M15.4 8.0 C15.1 6.2 14.5 5.2 13.7 4.8" fill="none"
+					stroke="var(--ck-brass-300)" stroke-width="1.2" stroke-linecap="round" />
+				<rect x="3.4" y="15.6" width="17.2" height="2.4" rx="1.2"
+					fill="var(--ck-brass-300)" stroke="var(--ck-print-ink)" stroke-width="1.3" />
+				<circle cx="12" cy="20.2" r="2.0"
+					fill="var(--ck-brass-300)" stroke="var(--ck-print-ink)" stroke-width="1.4" />
+			</symbol>
+			<symbol id="vs-mini-sieben" viewBox="0 0 24 24">
+				<path d="M4.2 3.2 H19.8 V7.6 L12.6 21.4 H6.4 L13.4 7.6 H4.2 Z"
+					fill="var(--ck-print-red)" stroke="var(--ck-print-ink)"
+					stroke-width="1.6" stroke-linejoin="round" paint-order="stroke fill" />
+				<path d="M5.6 4.4 H10.6 V6.4 H5.6 Z" fill="var(--ck-paper-100)" opacity="0.85" />
+			</symbol>
+			<symbol id="vs-mini-pflaume" viewBox="0 0 24 24">
+				<path d="M12 6.0 V2.6" fill="none" stroke="var(--ck-fruit-leaf-shade)"
+					stroke-width="1.5" stroke-linecap="round" />
+				<path d="M12 5.6 C9.6 3.0 6.4 2.6 5.0 4.2 C6.6 6.6 9.8 7.2 12 5.6 Z"
+					fill="var(--ck-fruit-leaf)" stroke="var(--ck-print-ink)" stroke-width="1.2" stroke-linejoin="round" />
+				<ellipse cx="12" cy="14.8" rx="7.4" ry="7.6"
+					fill="var(--ck-fruit-plum-shade)" stroke="var(--ck-print-ink)" stroke-width="1.6" />
+				<ellipse cx="10.8" cy="13.6" rx="5.4" ry="5.8" fill="var(--ck-fruit-plum)" />
+				<path d="M12 7.4 C10.5 10.6 10.5 19.0 12 22.2" fill="none"
+					stroke="var(--ck-print-ink)" stroke-width="1.1" stroke-linecap="round" opacity="0.85" />
+			</symbol>
+			<symbol id="vs-mini-weintraube" viewBox="0 0 24 24">
+				<path d="M12 9.0 V4.2" fill="none" stroke="var(--ck-fruit-leaf-shade)"
+					stroke-width="1.5" stroke-linecap="round" />
+				<path d="M12.2 4.8 C14.8 2.2 18.6 2.4 20.0 4.6 C17.6 6.6 14.2 6.6 12.2 4.8 Z"
+					fill="var(--ck-fruit-leaf)" stroke="var(--ck-print-ink)" stroke-width="1.2" stroke-linejoin="round" />
+				<g fill="var(--ck-fruit-grape-shade)" stroke="var(--ck-print-ink)" stroke-width="1.4">
+					<circle cx="7.4" cy="12.4" r="2.8" />
+					<circle cx="12.0" cy="11.8" r="2.8" />
+					<circle cx="16.6" cy="12.4" r="2.8" />
+					<circle cx="9.7" cy="16.6" r="2.8" />
+					<circle cx="14.3" cy="16.6" r="2.8" />
+					<circle cx="12.0" cy="20.6" r="2.8" />
+				</g>
+				<g fill="var(--ck-fruit-grape)">
+					<circle cx="6.8" cy="11.6" r="1.8" />
+					<circle cx="11.4" cy="11.0" r="1.8" />
+					<circle cx="16.0" cy="11.6" r="1.8" />
+					<circle cx="9.1" cy="15.8" r="1.8" />
+					<circle cx="13.7" cy="15.8" r="1.8" />
+					<circle cx="11.4" cy="19.8" r="1.8" />
+				</g>
+			</symbol>
+			<symbol id="vs-mini-scatter" viewBox="0 0 24 24">
+				<g fill="var(--ck-print-red)" stroke="var(--ck-print-ink)"
+					stroke-width="1.2" stroke-linejoin="round">
+					<path d="M12 12.6 L10.3 7.2 L12 2.4 L13.7 7.2 Z" />
+					<path d="M12 12.6 L10.3 7.2 L12 2.4 L13.7 7.2 Z" transform="rotate(45 12 12.6)" />
+					<path d="M12 12.6 L10.3 7.2 L12 2.4 L13.7 7.2 Z" transform="rotate(90 12 12.6)" />
+					<path d="M12 12.6 L10.3 7.2 L12 2.4 L13.7 7.2 Z" transform="rotate(135 12 12.6)" />
+					<path d="M12 12.6 L10.3 7.2 L12 2.4 L13.7 7.2 Z" transform="rotate(180 12 12.6)" />
+					<path d="M12 12.6 L10.3 7.2 L12 2.4 L13.7 7.2 Z" transform="rotate(225 12 12.6)" />
+					<path d="M12 12.6 L10.3 7.2 L12 2.4 L13.7 7.2 Z" transform="rotate(270 12 12.6)" />
+					<path d="M12 12.6 L10.3 7.2 L12 2.4 L13.7 7.2 Z" transform="rotate(315 12 12.6)" />
+				</g>
+				<circle cx="12" cy="12.6" r="4.6"
+					fill="var(--ck-brass-200)" stroke="var(--ck-print-ink)" stroke-width="1.4" />
+				<circle cx="10.8" cy="11.4" r="2.4" fill="var(--ck-brass-100)" />
+				<circle cx="12" cy="12.6" r="1.4" fill="var(--ck-print-ink)" />
+			</symbol>
+		</defs>
+
+		<f:comment>Sockel mit Messingkante</f:comment>
+		<rect x="6" y="148" width="88" height="11" rx="3" fill="var(--ck-wood-500)" />
+		<rect x="6" y="148" width="88" height="2" rx="1" fill="var(--ck-brass-400)" />
+
+		<f:comment>Korpus mit flacher, kantiger Schulter — die Silhouette des
+			Video Slot, nicht die des Reel Slot (CONCEPT.md B.3 Regel 7)</f:comment>
+		<path d="M14 150 V26 Q14 12 26 12 H74 Q86 12 86 26 V150 Z"
+			fill="var(--ck-wood-300)" stroke="var(--ck-wood-500)" stroke-width="2" />
+		<path d="M17.5 148 V27 Q17.5 15.5 27 15.5 H73 Q82.5 15.5 82.5 27 V148"
+			fill="none" stroke="var(--ck-brass-400)" stroke-width="0.7" opacity="0.75" />
+
+		<f:comment>Verchromte Frontplatte mit harten Glanzbändern</f:comment>
+		<path d="M21 144 V28 Q21 19 29 19 H71 Q79 19 79 28 V144 Z"
+			fill="var(--ck-chrome-300)" stroke="var(--ck-chrome-500)" stroke-width="1.2" />
+		<path d="M25 142 V29 Q25 22 34 20 L34 142 Z" fill="var(--ck-chrome-100)" opacity="0.5" />
+		<path d="M63 142 V29 Q63 22 69 20 L69 142 Z" fill="var(--ck-chrome-200)" opacity="0.45" />
+
+		<f:comment>Kopfschild mit dem Namen des Automaten</f:comment>
+		<rect x="27" y="22" width="46" height="13" rx="2"
+			fill="var(--ck-wood-500)" stroke="var(--ck-brass-300)" stroke-width="1.4" />
+		<text x="50" y="31" text-anchor="middle" textLength="36" lengthAdjust="spacingAndGlyphs"
+			font-family="var(--ck-font-display)" font-size="8"
+			fill="var(--ck-brass-100)"><f:translate key="LLL:EXT:video_slot/Resources/Private/Language/locallang.xlf:cabinet.nameplate" /></text>
+
+		<f:comment>Leuchtfenster: fünf mal drei Felder auf dunklem Grund</f:comment>
+		<rect x="24" y="40" width="52" height="36" rx="2.5" fill="var(--ck-chrome-500)" />
+		<rect x="25.6" y="41.4" width="48.8" height="33.2" rx="1.6" fill="var(--ck-nixie-dark)" />
+		<rect x="26.4" y="42.2" width="8.8" height="10" rx="0.8" fill="var(--ck-paper-100)" />
+		<rect x="36" y="42.2" width="8.8" height="10" rx="0.8" fill="var(--ck-paper-100)" />
+		<rect x="45.6" y="42.2" width="8.8" height="10" rx="0.8" fill="var(--ck-paper-100)" />
+		<rect x="55.2" y="42.2" width="8.8" height="10" rx="0.8" fill="var(--ck-paper-100)" />
+		<rect x="64.8" y="42.2" width="8.8" height="10" rx="0.8" fill="var(--ck-paper-100)" />
+		<rect x="26.4" y="53" width="8.8" height="10" rx="0.8" fill="var(--ck-paper-100)" />
+		<rect x="36" y="53" width="8.8" height="10" rx="0.8" fill="var(--ck-paper-100)" />
+		<rect x="45.6" y="53" width="8.8" height="10" rx="0.8" fill="var(--ck-paper-100)" />
+		<rect x="55.2" y="53" width="8.8" height="10" rx="0.8" fill="var(--ck-paper-100)" />
+		<rect x="64.8" y="53" width="8.8" height="10" rx="0.8" fill="var(--ck-paper-100)" />
+		<rect x="26.4" y="63.8" width="8.8" height="10" rx="0.8" fill="var(--ck-paper-100)" />
+		<rect x="36" y="63.8" width="8.8" height="10" rx="0.8" fill="var(--ck-paper-100)" />
+		<rect x="45.6" y="63.8" width="8.8" height="10" rx="0.8" fill="var(--ck-paper-100)" />
+		<rect x="55.2" y="63.8" width="8.8" height="10" rx="0.8" fill="var(--ck-paper-100)" />
+		<rect x="64.8" y="63.8" width="8.8" height="10" rx="0.8" fill="var(--ck-paper-100)" />
+
+		<f:comment>Die fünfzehn Symbole der Grundstellung (Rules::DEFAULT_GRID)</f:comment>
+		<use href="#vs-mini-glocke" x="26.9" y="42.7" width="7.8" height="7.8" />
+		<use href="#vs-mini-orange" x="36.5" y="42.7" width="7.8" height="7.8" />
+		<use href="#vs-mini-sieben" x="46.1" y="42.7" width="7.8" height="7.8" />
+		<use href="#vs-mini-zitrone" x="55.7" y="42.7" width="7.8" height="7.8" />
+		<use href="#vs-mini-melone" x="65.3" y="42.7" width="7.8" height="7.8" />
+		<use href="#vs-mini-sieben" x="26.9" y="53.5" width="7.8" height="7.8" />
+		<use href="#vs-mini-melone" x="36.5" y="53.5" width="7.8" height="7.8" />
+		<use href="#vs-mini-kirsche" x="46.1" y="53.5" width="7.8" height="7.8" />
+		<use href="#vs-mini-weintraube" x="55.7" y="53.5" width="7.8" height="7.8" />
+		<use href="#vs-mini-pflaume" x="65.3" y="53.5" width="7.8" height="7.8" />
+		<use href="#vs-mini-pflaume" x="26.9" y="64.3" width="7.8" height="7.8" />
+		<use href="#vs-mini-weintraube" x="36.5" y="64.3" width="7.8" height="7.8" />
+		<use href="#vs-mini-zitrone" x="46.1" y="64.3" width="7.8" height="7.8" />
+		<use href="#vs-mini-scatter" x="55.7" y="64.3" width="7.8" height="7.8" />
+		<use href="#vs-mini-orange" x="65.3" y="64.3" width="7.8" height="7.8" />
+
+		<f:comment>Gewinnplan hinter Glas, in roter und schwarzer Druckfarbe</f:comment>
+		<rect x="24" y="79" width="52" height="17" rx="2"
+			fill="var(--ck-paper-100)" stroke="var(--ck-brass-400)" stroke-width="1.2" />
+		<path d="M27 83 h46" fill="none" stroke="var(--ck-print-red)" stroke-width="1.6" />
+		<path d="M27 87 h46 M27 91 h46 M27 95 h30" fill="none" stroke="var(--ck-print-ink)" stroke-width="1.3" />
+
+		<f:comment>Nixie-Leiste: vier Anzeigen. Glühen ohne Ziffern — eine
+			gemalte Zahl widerspräche dem echten Stand, sobald der Spieler
+			einwirft.</f:comment>
+		<rect x="24" y="99" width="52" height="12" rx="2" fill="var(--ck-chrome-500)" />
+		<g fill="var(--ck-nixie-dark)">
+			<rect x="26" y="101" width="15" height="8" rx="1" />
+			<rect x="43" y="101" width="7" height="8" rx="1" />
+			<rect x="51.5" y="101" width="7" height="8" rx="1" />
+			<rect x="60" y="101" width="14" height="8" rx="1" />
+		</g>
+		<g fill="var(--ck-nixie-glow)">
+			<rect x="27.4" y="102.8" width="12.2" height="4.4" rx="1" />
+			<rect x="44.4" y="102.8" width="4.2" height="4.4" rx="1" />
+			<rect x="52.9" y="102.8" width="4.2" height="4.4" rx="1" />
+			<rect x="61.4" y="102.8" width="11.2" height="4.4" rx="1" />
+		</g>
+		<g fill="var(--ck-nixie-core)">
+			<rect x="27.4" y="104.4" width="12.2" height="1.2" rx="0.6" />
+			<rect x="44.4" y="104.4" width="4.2" height="1.2" rx="0.6" />
+			<rect x="52.9" y="104.4" width="4.2" height="1.2" rx="0.6" />
+			<rect x="61.4" y="104.4" width="11.2" height="1.2" rx="0.6" />
+		</g>
+
+		<f:comment>Chrom-Bedienleiste mit sechs Bakelit-Drucktasten, eine
+			davon beleuchtet</f:comment>
+		<rect x="22" y="114" width="56" height="12" rx="6"
+			fill="var(--ck-chrome-200)" stroke="var(--ck-chrome-500)" stroke-width="0.8" />
+		<rect x="25" y="115.6" width="50" height="1.8" rx="0.9" fill="var(--ck-chrome-100)" opacity="0.85" />
+		<circle cx="54.2" cy="120" r="5.6" fill="var(--ck-bulb-halo)" opacity="0.5" />
+		<g stroke="var(--ck-chrome-100)" stroke-width="1">
+			<circle cx="29" cy="120" r="3.4" fill="var(--ck-bulb-off)" />
+			<circle cx="37.4" cy="120" r="3.4" fill="var(--ck-bulb-off)" />
+			<circle cx="45.8" cy="120" r="3.4" fill="var(--ck-bulb-off)" />
+			<circle cx="54.2" cy="120" r="3.4" fill="var(--ck-bulb-glow)" />
+			<circle cx="62.6" cy="120" r="3.4" fill="var(--ck-bulb-off)" />
+			<circle cx="71" cy="120" r="3.4" fill="var(--ck-bulb-off)" />
+		</g>
+
+		<f:comment>Münzschlitz und vorstehende Auswurfschale</f:comment>
+		<rect x="43" y="129.5" width="14" height="6" rx="3" fill="var(--ck-chrome-400)" />
+		<rect x="45.6" y="131.6" width="8.8" height="1.8" rx="0.9" fill="var(--ck-chrome-shadow)" />
+		<path d="M33 136 h34 v5 a3 3 0 0 1 -3 3 h-28 a3 3 0 0 1 -3 -3 Z"
+			fill="var(--ck-chrome-300)" />
+		<rect x="35.5" y="137.6" width="29" height="4" rx="2" fill="var(--ck-chrome-shadow)" />
+
+		<f:comment>START-Konsole an der rechten Flanke — dieses Gerät hat
+			keinen Hebel (CONCEPT.md B.8.1/B.8.2)</f:comment>
+		<rect x="83" y="52" width="13" height="22" rx="5"
+			fill="var(--ck-chrome-400)" stroke="var(--ck-chrome-500)" stroke-width="0.8" />
+		<rect x="84.4" y="53.4" width="10.2" height="1.8" rx="0.9" fill="var(--ck-chrome-100)" opacity="0.85" />
+		<circle cx="89.5" cy="64" r="5" fill="var(--ck-chrome-300)" />
+		<circle cx="89.5" cy="64" r="3.8" fill="var(--ck-bakelite-red)" />
+		<circle cx="88.2" cy="62.7" r="1.3" fill="var(--ck-bakelite-red-light)" opacity="0.9" />
+	</svg>
+</span>

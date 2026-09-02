@@ -1,0 +1,31 @@
+<f:comment>
+	Inhaltselement „Video Slot" — der Automat auf seiner eigenen Seite.
+
+	Das Element hat keine Einstellungen und wertet keinen Datenbankwert aus.
+	Es stellt das Gerät auf, mehr nicht.
+
+	f:asset.css meldet das Stylesheet beim AssetCollector an. Dadurch wird es
+	nur auf Seiten geladen, auf denen dieses Element wirklich steht — anders
+	als page.includeCSS, das auf jeder Seite lädt. Der Core gibt die Dateien
+	des Sammlers nach den includeCSS-Dateien aus, also nach tokens.css und
+	base.css; die Kaskade stimmt damit von allein.
+
+	ck-room-fill ist der Vertrag aus casino_startpage/README.md, Abschnitt
+	„Vertrag für ein bildschirmfüllendes Gerät": der Saal ordnet sich zu
+	genau einer Bildschirmhöhe an und übergibt den ganzen Rest unter dem
+	Wandband an dieses Element. Erst dadurch ist das Gehäuse auf jedem
+	Bildschirm vollständig sichtbar, ohne dass irgendwo gescrollt wird
+	(CONCEPT.md B.10, Phase 5, Abnahme 2). Dieses Element rechnet NICHT
+	selbst mit den Maßen des Saals.
+
+	{machine} kommt aus dem CabinetProcessor und enthält das Sichtfeld, die
+	fünf Gewinnlinien und die Zeilen des Gewinnplans nach Anhang D.
+</f:comment>
+<f:asset.css identifier="videoSlotMachine"
+	href="EXT:video_slot/Resources/Public/Css/machine.css" />
+<f:asset.module identifier="@phomo17/video-slot/video-slot.js" />
+
+<div class="vs-machine ck-room-fill">
+	<f:render partial="Automat/VideoSlot/Machine/Cabinet"
+		arguments="{machine: machine}" />
+</div>

@@ -1,0 +1,19 @@
+<f:comment>
+	Die Inhaltsspalte der Seite.
+
+	{layout} entscheidet, wie die Elemente gestellt werden, und wird vom
+	Seiten-Template immer mitgegeben:
+	  'devices'  Aufstellung im Saal — 4 / 2 / 1 Geräte pro Reihe
+	  'plain'    gewöhnlicher Inhaltsfluss
+
+	Das Raster gehört an diesen Container und nicht an das einzelne
+	Inhaltselement: ein Element weiß nicht, wie viele Geschwister es hat, und
+	könnte deshalb gar nicht entscheiden, wie breit es sein darf.
+</f:comment>
+<f:if condition="{records}">
+	<div class="ck-hall__content ck-hall__content--{layout}">
+		<f:for each="{records}" as="record">
+			<f:cObject typoscriptObjectPath="{record.mainType}" table="{record.mainType}" data="{record}" />
+		</f:for>
+	</div>
+</f:if>

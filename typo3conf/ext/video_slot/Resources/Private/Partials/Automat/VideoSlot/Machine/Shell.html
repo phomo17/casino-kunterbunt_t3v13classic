@@ -1,0 +1,422 @@
+<f:comment>
+	Die feste Zeichnung des Gehäuses. Alles hier ändert sich nie — deshalb
+	SVG und nicht HTML. Was einen Zustand hat, liegt als HTML darüber
+	(siehe Cabinet.html).
+
+	viewBox 0 0 100 160, Maßraster siehe Kopf von machine.css.
+	Farben ausschließlich über --ck-*-Tokens aus casino_startpage.
+
+	preserveAspectRatio ist unkritisch, weil der umgebende Kasten exakt
+	dasselbe Seitenverhältnis hat; es steht trotzdem da, damit die Zeichnung
+	auch bei einem Rundungsfehler nie verzerrt.
+
+	Die zehn IDs in <defs> sind dokumentweit und tragen deshalb den
+	Präfix „vs-". Zwei Gehäuse desselben Geräts auf einer Seite erzeugen
+	trotzdem doppelte IDs; sichtbar ist das nicht, weil die Definitionen
+	zeichengleich sind, gültiges HTML ist es aber nicht. Die Saal-Miniatur
+	benutzt aus genau diesem Grund den eigenen Präfix „vs-mini-".
+</f:comment>
+<svg class="vs-cabinet__shell" viewBox="0 0 100 160"
+	preserveAspectRatio="xMidYMid meet" focusable="false">
+	<title><f:translate key="LLL:EXT:video_slot/Resources/Private/Language/locallang.xlf:automat.title" /></title>
+
+	<defs>
+		<f:comment>
+			Abnutzung. CONCEPT.md verlangt „leicht abgegriffen wirkend". Ein
+			feines, unregelmäßiges Sprenkelmuster über Papier und Druck
+			erledigt das, ohne den flachen Volltoncharakter zu zerstören.
+			Zeichengleiche Kopie des rs-wear-Musters aus reel_slot.
+		</f:comment>
+		<pattern id="vs-wear" width="9" height="9" patternUnits="userSpaceOnUse">
+			<circle cx="1.6" cy="2.3" r="0.35" fill="var(--ck-print-ink)" opacity="0.10" />
+			<circle cx="6.2" cy="5.1" r="0.28" fill="var(--ck-print-ink)" opacity="0.08" />
+			<circle cx="3.7" cy="7.6" r="0.22" fill="var(--ck-paper-200)" opacity="0.55" />
+			<circle cx="8.1" cy="1.2" r="0.30" fill="var(--ck-print-ink)" opacity="0.06" />
+			<circle cx="5.0" cy="3.4" r="0.18" fill="var(--ck-paper-200)" opacity="0.40" />
+		</pattern>
+
+		<f:comment>
+			Die neun Symbole aus CONCEPT.md B.8.3, genau einmal definiert.
+			Jede Zelle des Sichtfelds und jede Gewinnplanzeile ist nur ein
+			use-Verweis darauf — rund 40 Verwendungen gegen neun
+			Definitionen.
+
+			SECHS davon sind zeichengleich aus reel_slot übernommen
+			(kirsche, zitrone, orange, melone, glocke, sieben), mit genau
+			einer Änderung: id="rs-sym-…" wurde zu id="vs-sym-…". Kein Pfad,
+			keine Farbe, keine Strichstärke ist angefasst. B.8.3 verlangt
+			ausdrücklich, dass diese sechs weiterverwendet werden.
+
+			Warum kopiert und nicht geteilt: Ein gemeinsamer Symbolvorrat
+			müsste entweder in casino_startpage liegen — dann kennte das Site
+			Package Gerätemotive und die Trennung wäre aufgeweicht — oder
+			video_slot müsste aus reel_slot lesen, was den
+			Architektur-Grundsatz 1 („ohne Änderung an anderen Extensions
+			installier- und DEINSTALLIERBAR") bricht: das Entfernen des Reel
+			Slot machte den Video Slot blind. Die Kopie ist der Preis für
+			zwei wirklich unabhängige Geräte. Sie ist mechanisch und wird
+			von Resources/Private/Scripts/verify-cabinet.mjs (Prüfung A-6)
+			gegen das Original abgeglichen.
+
+			Der BAR-Block wird NICHT kopiert — er bleibt dem Reel Slot
+			vorbehalten (B.8.3).
+
+			DREI Symbole sind neu: pflaume, weintraube, scatter. Stil nach
+			DESIGNBRIEF.md Abschnitt 3 und nach dem Vorbild der sechs
+			übernommenen: dicke, gleichmäßige Volltonkonturen, kleine flache
+			Palette, zwei Tonstufen (erst die Schattenform mit Kontur, dann
+			eine leicht kleinere, nach links oben versetzte Lichtform),
+			keine Verläufe, kein Glanz. Aller Glanz gehört auf das Metall
+			des Gehäuses, nie auf die Symbole.
+		</f:comment>
+
+		<f:comment>Kirsche: zwei Volltonrots, grüner Stiel mit Blatt.</f:comment>
+		<symbol id="vs-sym-kirsche" viewBox="0 0 24 24">
+			<path d="M13.4 4.6 C10.6 8.0 8.4 10.6 7.6 13.6 M13.4 4.6 C15.4 8.2 16.8 10.8 16.9 13.9"
+				fill="none" stroke="var(--ck-fruit-leaf-shade)" stroke-width="1.5" stroke-linecap="round" />
+			<path d="M13.4 4.6 C16.4 2.0 20.2 2.4 21.6 4.9 C19.0 6.7 15.6 6.6 13.4 4.6 Z"
+				fill="var(--ck-fruit-leaf)" stroke="var(--ck-print-ink)" stroke-width="1.2" stroke-linejoin="round" />
+			<g stroke="var(--ck-print-ink)" stroke-width="1.5">
+				<circle cx="7.2" cy="17.4" r="4.6" fill="var(--ck-fruit-cherry-shade)" />
+				<circle cx="16.9" cy="17.8" r="4.2" fill="var(--ck-fruit-cherry-shade)" />
+			</g>
+			<circle cx="8.0" cy="16.5" r="3.4" fill="var(--ck-fruit-cherry)" />
+			<circle cx="17.6" cy="17.0" r="3.1" fill="var(--ck-fruit-cherry)" />
+		</symbol>
+
+		<f:comment>Zitrone: Vollton-Gelb, dunklere Schattenkontur, zwei
+			spitze Nubben.</f:comment>
+		<symbol id="vs-sym-zitrone" viewBox="0 0 24 24">
+			<g transform="rotate(-16 12 12.6)">
+				<ellipse cx="12" cy="12.6" rx="7.8" ry="5.4"
+					fill="var(--ck-fruit-lemon-shade)" stroke="var(--ck-print-ink)" stroke-width="1.5" />
+				<ellipse cx="11.3" cy="11.6" rx="6.4" ry="4.2" fill="var(--ck-fruit-lemon)" />
+				<path d="M19.8 12.6 l2.2 -0.6 M4.2 12.6 l-2.2 0.6"
+					fill="none" stroke="var(--ck-print-ink)" stroke-width="1.6" stroke-linecap="round" />
+			</g>
+		</symbol>
+
+		<f:comment>Orange: Orangerot, dunklere Kontur, kleiner grüner Kelch.</f:comment>
+		<symbol id="vs-sym-orange" viewBox="0 0 24 24">
+			<circle cx="12" cy="14.0" r="8.0"
+				fill="var(--ck-fruit-orange-shade)" stroke="var(--ck-print-ink)" stroke-width="1.6" />
+			<circle cx="10.9" cy="12.8" r="6.2" fill="var(--ck-fruit-orange)" />
+			<path d="M12 6.2 V3.4" fill="none" stroke="var(--ck-fruit-leaf-shade)"
+				stroke-width="1.5" stroke-linecap="round" />
+			<path d="M12 6.0 C9.6 3.4 6.4 3.0 4.9 4.6 C6.6 7.0 9.8 7.6 12 6.0 Z"
+				fill="var(--ck-fruit-leaf)" stroke="var(--ck-print-ink)" stroke-width="1.2" stroke-linejoin="round" />
+		</symbol>
+
+		<f:comment>Melone: Wassermelonenscheibe, grün-cremefarben gestreift
+			(DESIGNBRIEF.md Abschnitt 3 – auf Walzenbändern der 30er bis 50er
+			häufiger als die Pflaume). Vier Materialien, nicht vier
+			Schattenstufen: Schale außen, Schale innen, weißes Fleisch,
+			rotes Fleisch.</f:comment>
+		<symbol id="vs-sym-melone" viewBox="0 0 24 24">
+			<path d="M2.6 18.4 A9.4 9.4 0 0 1 21.4 18.4 Z"
+				fill="var(--ck-fruit-leaf-shade)" stroke="var(--ck-print-ink)" stroke-width="1.6" stroke-linejoin="round" />
+			<path d="M4.4 18.4 A7.6 7.6 0 0 1 19.6 18.4 Z" fill="var(--ck-fruit-leaf)" />
+			<path d="M5.8 18.4 A6.2 6.2 0 0 1 18.2 18.4 Z" fill="var(--ck-paper-100)" />
+			<path d="M6.8 18.4 A5.2 5.2 0 0 1 17.2 18.4 Z" fill="var(--ck-fruit-cherry)" />
+			<g fill="var(--ck-print-ink)">
+				<ellipse cx="9.4" cy="15.8" rx="0.8" ry="1.1" />
+				<ellipse cx="12.0" cy="14.7" rx="0.8" ry="1.1" />
+				<ellipse cx="14.6" cy="15.8" rx="0.8" ry="1.1" />
+				<ellipse cx="12.0" cy="17.4" rx="0.8" ry="1.1" />
+			</g>
+			<path d="M2.6 18.4 H21.4" fill="none" stroke="var(--ck-print-ink)"
+				stroke-width="1.6" stroke-linecap="round" />
+		</symbol>
+
+		<f:comment>Glocke aus seit den frühen Läutwerk-Automaten das klassische Hochwertsymbol: Vollton-Messing
+			mit zwei flachen Glanzfacetten.</f:comment>
+		<symbol id="vs-sym-glocke" viewBox="0 0 24 24">
+			<path d="M12 3.2 C16.6 3.2 18.2 7.2 18.2 11.4 C18.2 13.6 18.9 14.9 20.0 15.8 H4.0 C5.1 14.9 5.8 13.6 5.8 11.4 C5.8 7.2 7.4 3.2 12 3.2 Z"
+				fill="var(--ck-brass-200)" stroke="var(--ck-print-ink)" stroke-width="1.6" stroke-linejoin="round" />
+			<path d="M12 4.6 C9.8 4.6 8.5 6.2 7.9 8.6 C9.0 6.8 10.4 6.0 12 6.0 Z" fill="var(--ck-brass-100)" />
+			<path d="M15.4 8.0 C15.1 6.2 14.5 5.2 13.7 4.8" fill="none"
+				stroke="var(--ck-brass-300)" stroke-width="1.2" stroke-linecap="round" />
+			<rect x="3.4" y="15.6" width="17.2" height="2.4" rx="1.2"
+				fill="var(--ck-brass-300)" stroke="var(--ck-print-ink)" stroke-width="1.3" />
+			<circle cx="12" cy="20.2" r="2.0"
+				fill="var(--ck-brass-300)" stroke="var(--ck-print-ink)" stroke-width="1.4" />
+		</symbol>
+
+		<f:comment>Rote Sieben, das seltene Jackpot-Symbol. Fette
+			Slab-Serif-Form als Pfad, Vollton-Rot, schwarze Kontur, kleines
+			weißes Eckenlicht. paint-order legt die Kontur hinter die
+			Füllung, damit die Linie außen sauber und gleichmäßig bleibt.</f:comment>
+		<symbol id="vs-sym-sieben" viewBox="0 0 24 24">
+			<path d="M4.2 3.2 H19.8 V7.6 L12.6 21.4 H6.4 L13.4 7.6 H4.2 Z"
+				fill="var(--ck-print-red)" stroke="var(--ck-print-ink)"
+				stroke-width="1.6" stroke-linejoin="round" paint-order="stroke fill" />
+			<path d="M5.6 4.4 H10.6 V6.4 H5.6 Z" fill="var(--ck-paper-100)" opacity="0.85" />
+		</symbol>
+
+		<f:comment>Pflaume: rotviolettes Vollton-Oval mit sichtbarer Naht, Stiel
+			und Blatt. Zwei Tonstufen wie bei allen Fruchtsymbolen.</f:comment>
+		<symbol id="vs-sym-pflaume" viewBox="0 0 24 24">
+			<path d="M12 6.0 V2.6" fill="none" stroke="var(--ck-fruit-leaf-shade)"
+				stroke-width="1.5" stroke-linecap="round" />
+			<path d="M12 5.6 C9.6 3.0 6.4 2.6 5.0 4.2 C6.6 6.6 9.8 7.2 12 5.6 Z"
+				fill="var(--ck-fruit-leaf)" stroke="var(--ck-print-ink)" stroke-width="1.2" stroke-linejoin="round" />
+			<ellipse cx="12" cy="14.8" rx="7.4" ry="7.6"
+				fill="var(--ck-fruit-plum-shade)" stroke="var(--ck-print-ink)" stroke-width="1.6" />
+			<ellipse cx="10.8" cy="13.6" rx="5.4" ry="5.8" fill="var(--ck-fruit-plum)" />
+			<path d="M12 7.4 C10.5 10.6 10.5 19.0 12 22.2" fill="none"
+				stroke="var(--ck-print-ink)" stroke-width="1.1" stroke-linecap="round" opacity="0.85" />
+		</symbol>
+
+		<f:comment>Weintraube: sechs Beeren in blauviolettem Vollton, dieselbe
+			Zweitonwirkung wie bei der Kirsche — erst die Schattenkreise mit
+			Kontur, dann die kleineren, nach links oben versetzten Lichtkreise.</f:comment>
+		<symbol id="vs-sym-weintraube" viewBox="0 0 24 24">
+			<path d="M12 9.0 V4.2" fill="none" stroke="var(--ck-fruit-leaf-shade)"
+				stroke-width="1.5" stroke-linecap="round" />
+			<path d="M12.2 4.8 C14.8 2.2 18.6 2.4 20.0 4.6 C17.6 6.6 14.2 6.6 12.2 4.8 Z"
+				fill="var(--ck-fruit-leaf)" stroke="var(--ck-print-ink)" stroke-width="1.2" stroke-linejoin="round" />
+			<g fill="var(--ck-fruit-grape-shade)" stroke="var(--ck-print-ink)" stroke-width="1.4">
+				<circle cx="7.4" cy="12.4" r="2.8" />
+				<circle cx="12.0" cy="11.8" r="2.8" />
+				<circle cx="16.6" cy="12.4" r="2.8" />
+				<circle cx="9.7" cy="16.6" r="2.8" />
+				<circle cx="14.3" cy="16.6" r="2.8" />
+				<circle cx="12.0" cy="20.6" r="2.8" />
+			</g>
+			<g fill="var(--ck-fruit-grape)">
+				<circle cx="6.8" cy="11.6" r="1.8" />
+				<circle cx="11.4" cy="11.0" r="1.8" />
+				<circle cx="16.0" cy="11.6" r="1.8" />
+				<circle cx="9.1" cy="15.8" r="1.8" />
+				<circle cx="13.7" cy="15.8" r="1.8" />
+				<circle cx="11.4" cy="19.8" r="1.8" />
+			</g>
+		</symbol>
+
+		<f:comment>Der Scatter. Er hat kein Vorbild in dieser Form (CONCEPT.md
+			B.8.3), und er darf keins haben: B.3 Regel 5 verbietet jedes
+			Herstellerzeichen — kein Wappen, keine lachende Sonne, kein Kreisabzeichen.
+			Deshalb ein reines Geometriezeichen aus dem Formenvokabular der Epoche
+			(B.3 Regel 2, Googie-Geometrie): acht gleiche Strahlen in Druckrot um
+			eine Messingscheibe, mit einem Tintenpunkt in der Mitte. Kein Gesicht,
+			keine Schrift, kein Emblem.
+
+			Die acht Strahlen sind EIN Pfad, achtmal um denselben Punkt gedreht.
+			Das ist exakt und spart sieben von Hand gerechnete Spitzen.
+			Strahlenlänge 10,2 ab Mittelpunkt (12 / 12,6) — damit bleibt das Zeichen
+			in allen Richtungen innerhalb der 24 × 24 des viewBox.</f:comment>
+		<symbol id="vs-sym-scatter" viewBox="0 0 24 24">
+			<g fill="var(--ck-print-red)" stroke="var(--ck-print-ink)"
+				stroke-width="1.2" stroke-linejoin="round">
+				<path d="M12 12.6 L10.3 7.2 L12 2.4 L13.7 7.2 Z" />
+				<path d="M12 12.6 L10.3 7.2 L12 2.4 L13.7 7.2 Z" transform="rotate(45 12 12.6)" />
+				<path d="M12 12.6 L10.3 7.2 L12 2.4 L13.7 7.2 Z" transform="rotate(90 12 12.6)" />
+				<path d="M12 12.6 L10.3 7.2 L12 2.4 L13.7 7.2 Z" transform="rotate(135 12 12.6)" />
+				<path d="M12 12.6 L10.3 7.2 L12 2.4 L13.7 7.2 Z" transform="rotate(180 12 12.6)" />
+				<path d="M12 12.6 L10.3 7.2 L12 2.4 L13.7 7.2 Z" transform="rotate(225 12 12.6)" />
+				<path d="M12 12.6 L10.3 7.2 L12 2.4 L13.7 7.2 Z" transform="rotate(270 12 12.6)" />
+				<path d="M12 12.6 L10.3 7.2 L12 2.4 L13.7 7.2 Z" transform="rotate(315 12 12.6)" />
+			</g>
+			<circle cx="12" cy="12.6" r="4.6"
+				fill="var(--ck-brass-200)" stroke="var(--ck-print-ink)" stroke-width="1.4" />
+			<circle cx="10.8" cy="11.4" r="2.4" fill="var(--ck-brass-100)" />
+			<circle cx="12" cy="12.6" r="1.4" fill="var(--ck-print-ink)" />
+		</symbol>
+	</defs>
+
+	<f:comment>=== 1 Sockel / Chromblende ============================
+		Zeichengleich zum Reel Slot: dieselbe Bauform derselben
+		Gerätefamilie (CONCEPT.md B.8.1).</f:comment>
+	<rect x="2" y="134" width="80" height="26" rx="3"
+		fill="var(--ck-chrome-300)" stroke="var(--ck-chrome-500)" stroke-width="0.8" />
+	<rect x="4" y="135.4" width="76" height="1.6" rx="0.8" fill="var(--ck-chrome-100)" opacity="0.9" />
+	<rect x="4" y="139.4" width="76" height="0.8" rx="0.4" fill="var(--ck-chrome-100)" opacity="0.4" />
+	<rect x="4" y="157.2" width="76" height="1.4" rx="0.7" fill="var(--ck-chrome-500)" opacity="0.55" />
+
+	<f:comment>=== 2 Korpus ==========================================
+		Dunkler Nussbaum, Goldlinierung, Maserung an den Flanken.
+
+		Flachere, kantigere Schulter als beim Reel Slot (Radius 8 statt 10,
+		Scheitel auf y 20 statt 24): das ist die „nächste Gerätegeneration"
+		aus B.8.1 und zugleich die Silhouettenprobe aus B.3 Regel 7 — die
+		beiden Geräte des Hauses dürfen sich nicht decken.</f:comment>
+	<path d="M6 136 V28 Q6 20 14 20 H70 Q78 20 78 28 V136 Z"
+		fill="var(--ck-wood-300)" stroke="var(--ck-wood-500)" stroke-width="1.4" />
+	<path d="M8.6 135 V28.6 Q8.6 22.4 14.6 22.4 H69.4 Q75.4 22.4 75.4 28.6 V135"
+		fill="none" stroke="var(--ck-brass-400)" stroke-width="0.5" opacity="0.7" />
+	<g fill="none" stroke="var(--ck-wood-grain)" stroke-width="0.35" opacity="0.85">
+		<path d="M7.2 40 V132 M7.9 34 V130.4 M76.4 40 V132 M77.1 34 V130.4" />
+	</g>
+
+	<f:comment>=== 3 Verchromte Zinkdruckguss-Frontplatte =============
+		DESIGNBRIEF.md Abschnitt 4: Chrom braucht harte, schmale Glanzbänder,
+		die sich zwei- bis dreimal über die Fläche wiederholen — nicht ein
+		weiches Highlight. Vier Bänder, davon eines dunkel, auf die neue
+		Höhe umgerechnet.</f:comment>
+	<path d="M9 133 V29 Q9 23 15 23 H69 Q75 23 75 29 V133 Z"
+		fill="var(--ck-chrome-300)" stroke="var(--ck-chrome-500)" stroke-width="0.9" />
+	<path d="M13 133 V29 Q13 25.4 17.5 24.2 L17.5 133 Z" fill="var(--ck-chrome-100)" opacity="0.5" />
+	<path d="M44 133 V23.2 L47 23.2 L47 133 Z" fill="var(--ck-chrome-100)" opacity="0.28" />
+	<path d="M56 133 V24.6 L58.6 24.0 L58.6 133 Z" fill="var(--ck-chrome-500)" opacity="0.22" />
+	<path d="M66 133 V27 Q66 24.6 70 23.6 L70 133 Z" fill="var(--ck-chrome-200)" opacity="0.45" />
+
+	<f:comment>=== 4 Kopfschild / Leuchtkasten =======================
+		Ein hinterleuchteter Kasten der Videogeneration, kein bemaltes
+		Blech — deshalb ist der warme Lichtabfall mit 0,16 etwas kräftiger
+		als am Reel Slot (dort 0,13).</f:comment>
+	<path d="M14 20 V6 Q14 2 18 2 H66 Q70 2 70 6 V20 Z"
+		fill="var(--ck-wood-400)" stroke="var(--ck-brass-300)" stroke-width="1.3" />
+	<path d="M16 19 V6.4 Q16 4 18.4 4 H65.6 Q68 4 68 6.4 V19"
+		fill="none" stroke="var(--ck-brass-100)" stroke-width="0.4" opacity="0.8" />
+	<path d="M16 19 V6.4 Q16 4 18.4 4 H65.6 Q68 4 68 6.4 V19 Z"
+		fill="var(--ck-bulb-halo)" opacity="0.16" />
+	<text x="42" y="12.6" text-anchor="middle" textLength="40" lengthAdjust="spacingAndGlyphs"
+		font-family="var(--ck-font-display)" font-size="7.2"
+		fill="var(--ck-brass-100)"><f:translate
+		key="LLL:EXT:video_slot/Resources/Private/Language/locallang.xlf:machine.nameplate.line1" /></text>
+	<text x="42" y="18.2" text-anchor="middle" textLength="26" lengthAdjust="spacingAndGlyphs"
+		font-family="var(--ck-font-display)" font-size="4.8"
+		fill="var(--ck-brass-200)"><f:translate
+		key="LLL:EXT:video_slot/Resources/Private/Language/locallang.xlf:machine.nameplate.line2" /></text>
+
+	<f:comment>=== 5 Gewinnplan-Karte hinter Glas ====================
+		Gedruckte Karte auf cremefarbenem Papier, rote und schwarze
+		Druckfarbe. Neun Zeilen in zwei Hälften; die Koordinaten rechnet
+		der CabinetProcessor aus Rules::PAYTABLE.</f:comment>
+	<rect x="11" y="24" width="62" height="23" rx="1.4"
+		fill="var(--ck-paper-100)" stroke="var(--ck-brass-400)" stroke-width="1.1" />
+	<rect x="11" y="24" width="62" height="23" rx="1.4" fill="url(#vs-wear)" opacity="0.6" />
+	<text x="42" y="27.4" text-anchor="middle" textLength="56" lengthAdjust="spacingAndGlyphs"
+		font-family="var(--ck-font-display)" font-size="2.4"
+		fill="var(--ck-print-red)"><f:translate
+		key="LLL:EXT:video_slot/Resources/Private/Language/locallang.xlf:machine.paytable.title" /></text>
+	<path d="M12.5 28.6 H71.5" fill="none" stroke="var(--ck-print-red)" stroke-width="0.5" />
+
+	<f:comment>=== 6 Spaltenköpfe ====================================
+		Die drei Kettenlängen über den Wertespalten, je Hälfte einmal.
+		Die Ziffern stehen als Literal im Markup und nicht in der
+		Sprachdatei: eine Zahl ist keine Sprache. Was sie bedeuten — drei,
+		vier oder fünf gleiche Symbole — sagt die Titelzeile darüber.</f:comment>
+	<g font-family="var(--ck-font-display)" font-size="2.0" text-anchor="end"
+		fill="var(--ck-print-ink)">
+		<text x="30.5" y="31.4">3</text>
+		<text x="35.5" y="31.4">4</text>
+		<text x="40.5" y="31.4">5</text>
+		<text x="61.5" y="31.4">3</text>
+		<text x="66.5" y="31.4">4</text>
+		<text x="71.5" y="31.4">5</text>
+	</g>
+
+	<f:comment>=== 7 Gewinnplan-Zeilen ===============================
+		Die Koordinaten rechnet der CabinetProcessor aus Rules::PAYTABLE
+		aus; hier steht nur, wie eine Zeile aussieht.
+
+		Zwei Sonderfälle statt Punktführung: die Kirsche zahlt schon ab zwei
+		gleichen, der Scatter zahlt überall im Feld (Anhang D). Beide tragen
+		deshalb einen kurzen gedruckten Hinweis an der Stelle, an der sonst die
+		Punkte stehen. Der Text kommt aus der Sprachdatei; der Prozessor liefert
+		nur den Schlüssel.
+
+		Ein leerer Wert wird als Gedankenstrich gedruckt. Anhang D legt die
+		Rangfolge fest, die Zahlen aber erst mit den Walzenbändern in Phase 6 —
+		eine vorläufige Zahl auf einer gedruckten Karte wäre eine sichtbare
+		Falschaussage. Denselben Kunstgriff benutzt das Kassenfenster.</f:comment>
+	<g class="vs-paytable">
+		<f:for each="{machine.paytable}" as="row">
+			<g>
+				<use href="#vs-sym-{row.symbol}" x="{row.symbolX}" y="{row.y}"
+					width="{row.symbolSize}" height="{row.symbolSize}" />
+				<f:if condition="{row.leader}">
+					<f:then>
+						<path d="{row.leader}" stroke="var(--ck-print-ink)" stroke-width="0.3"
+							stroke-dasharray="0.4 0.9" opacity="0.55" />
+					</f:then>
+					<f:else>
+						<text x="{row.noteX}" y="{row.noteY}" font-family="var(--ck-font-display)"
+							font-size="1.7" fill="var(--ck-print-ink)"><f:translate
+							key="LLL:EXT:video_slot/Resources/Private/Language/locallang.xlf:{row.noteKey}"
+							arguments="{0: '{row.noteValue}'}" /></text>
+					</f:else>
+				</f:if>
+				<f:for each="{row.values}" as="val">
+					<text x="{val.x}" y="{val.y}" text-anchor="end"
+						font-family="var(--ck-font-display)" font-size="2.4"
+						fill="var(--ck-print-red)"><f:if condition="{val.value}"><f:then>{val.value}</f:then><f:else>&#8211;</f:else></f:if></text>
+				</f:for>
+			</g>
+		</f:for>
+	</g>
+
+	<f:comment>=== 8 Diagonaler Schimmer auf der Gewinnplan-Scheibe ===</f:comment>
+	<path d="M11 24 L24 24 L13.6 47 L11 47 Z" fill="var(--ck-chrome-100)" opacity="0.13" />
+
+	<f:comment>=== 9 Chrom-Augenbraue über dem Fenster ===============</f:comment>
+	<path d="M13 49.6 Q42 47.4 71 49.6" fill="none"
+		stroke="var(--ck-chrome-100)" stroke-width="1.8" stroke-linecap="round" />
+	<path d="M13 50.6 Q42 48.5 71 50.6" fill="none"
+		stroke="var(--ck-chrome-500)" stroke-width="0.6" stroke-linecap="round" opacity="0.65" />
+
+	<f:comment>=== 10 Fensterrahmen ==================================
+		Rahmen, Innenrahmen und dunkles Feld. Der dunkle Grund liegt
+		zwischen den Leuchtfeldern und ist genau das, was die 5 × 3-Rasterung
+		sichtbar macht — es braucht keine gezeichneten Stege.</f:comment>
+	<rect x="10.5" y="50.5" width="63" height="45" rx="2.2" fill="var(--ck-chrome-500)" />
+	<rect x="11.7" y="51.2" width="60.6" height="43.6" rx="1.4" fill="var(--ck-wood-500)" />
+	<rect x="12" y="52" width="60" height="42" fill="var(--ck-nixie-dark)" />
+
+	<f:comment>=== 11 Nixie-Chromplatte mit Röhrensockel =============
+		Zeichengleich zum Reel Slot; die Platte sitzt an derselben Stelle.</f:comment>
+	<rect x="10.4" y="98.6" width="63.2" height="16.6" rx="2"
+		fill="var(--ck-chrome-300)" stroke="var(--ck-chrome-500)" stroke-width="0.7" />
+	<rect x="12" y="99.3" width="60" height="1.1" rx="0.55" fill="var(--ck-chrome-100)" opacity="0.7" />
+	<rect x="11" y="113" width="62" height="1.6" rx="0.8" fill="var(--ck-chrome-500)" />
+
+	<f:comment>=== 12 Bedienleiste: Chromplatte mit hartem Glanzband ==</f:comment>
+	<rect x="9" y="118.5" width="66" height="14.5" rx="3.4"
+		fill="var(--ck-chrome-200)" stroke="var(--ck-chrome-500)" stroke-width="0.7" />
+	<rect x="11" y="119.4" width="62" height="1.4" rx="0.7" fill="var(--ck-chrome-100)" opacity="0.9" />
+
+	<f:comment>=== 13 START-Konsole ==================================
+		Dieses Gerät hat KEINEN Hebel (CONCEPT.md B.8.1: „Geräte dieser
+		Bauart hatten keinen"). An seiner Stelle sitzt die START-Taste auf
+		dieser Chrom-Konsole an der rechten Flanke (B.8.2). Sie überlappt
+		die Holzflanke (x 76–78) und wirkt dadurch angeschraubt — dieselbe
+		Bauform wie das Lagergehäuse des Hebels am Reel Slot, an genau
+		derselben Stelle. Die Taste selbst liegt als HTML darüber.</f:comment>
+	<rect x="76" y="56" width="20" height="32" rx="6"
+		fill="var(--ck-chrome-400)" stroke="var(--ck-chrome-500)" stroke-width="0.8" />
+	<rect x="77.6" y="57.6" width="16.8" height="2" rx="1" fill="var(--ck-chrome-100)" opacity="0.85" />
+	<rect x="77.6" y="85" width="16.8" height="1.2" rx="0.6" fill="var(--ck-chrome-500)" opacity="0.6" />
+	<circle cx="86" cy="70" r="8.4" fill="var(--ck-chrome-shadow)" opacity="0.45" />
+
+	<f:comment>=== 14 Sockel: eingelassene Felder ====================
+		Die beiden dunklen Felder sind die Vertiefungen, in denen
+		Einsatzwahl und Ton-Schalter sitzen (als HTML darüber).</f:comment>
+	<rect x="7.2" y="136.2" width="43.6" height="11.1" rx="1.8" fill="var(--ck-chrome-500)" opacity="0.5" />
+	<rect x="54.2" y="136.2" width="22.6" height="11.1" rx="1.8" fill="var(--ck-chrome-500)" opacity="0.5" />
+
+	<f:comment>=== 15 Münzschlitz ====================================
+		Zugleich der Absendeknopf des Einwurfs: der unsichtbare button
+		liegt als HTML genau darüber.</f:comment>
+	<rect x="30" y="148.5" width="7" height="5.5" rx="1.6"
+		fill="var(--ck-chrome-400)" stroke="var(--ck-chrome-100)" stroke-width="0.5" />
+	<rect x="32.6" y="149.6" width="1.8" height="3.4" rx="0.9" fill="var(--ck-chrome-shadow)" />
+
+	<f:comment>=== 16 Kassenfenster (Fassung) ========================
+		Gezeichnet ist nur die Fassung: Chromrahmen, dunkles Fenster,
+		Glasschatten oben. Der Wert selbst liegt als HTML darüber
+		(.vs-bank), weil er einen Zustand hat.</f:comment>
+	<rect x="38.8" y="147.9" width="25.4" height="6" rx="1.2"
+		fill="var(--ck-chrome-400)" stroke="var(--ck-chrome-100)" stroke-width="0.5" />
+	<rect x="39.6" y="148.6" width="23.8" height="4.6" rx="0.8"
+		fill="var(--ck-nixie-dark)" />
+	<rect x="39.6" y="148.6" width="23.8" height="1" rx="0.5"
+		fill="var(--ck-chrome-shadow)" opacity="0.5" />
+
+	<f:comment>=== 17 Auswurfschale ==================================
+		Zugleich die Fläche der Taste CASH OUT (B.5.2).</f:comment>
+	<path d="M20 154.8 H66 V157 Q66 159.6 62.4 159.6 H23.6 Q20 159.6 20 157 Z"
+		fill="var(--ck-chrome-300)" stroke="var(--ck-chrome-500)" stroke-width="0.7" />
+	<rect x="22" y="155.6" width="42" height="2.4" rx="1.2" fill="var(--ck-chrome-shadow)" opacity="0.6" />
+	<rect x="22" y="155.2" width="42" height="0.6" rx="0.3" fill="var(--ck-chrome-100)" opacity="0.75" />
+</svg>

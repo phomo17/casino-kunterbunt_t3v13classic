@@ -1,0 +1,3 @@
+name: phomo17/casino-kunterbunt
+dependencies:
+  - typo3/fluid-styled-content

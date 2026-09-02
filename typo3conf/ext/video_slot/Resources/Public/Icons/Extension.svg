@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+	Icon der Extension im Erweiterungs-Modul.
+
+	AUSNAHME VON DER TOKEN-REGEL: hier stehen ausgeschriebene Hexwerte. Ein
+	Backend-Icon wird von TYPO3 ausserhalb des Frontend-Dokuments eingebunden;
+	dort sind die Custom Properties aus tokens.css nicht definiert und ein
+	var(…) bliebe farblos. reel_slot macht es genauso. Damit beide Geraete
+	trotzdem aus derselben Palette kommen, sind die Werte aus tokens.css
+	abgeschrieben; der Tokenname steht je Wert daneben. Er ist ohne die
+	beiden fuehrenden Bindestriche notiert, weil zwei Bindestriche in einem
+	XML-Kommentar nicht erlaubt sind.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img">
+	<title>Video Slot</title>
+	<rect width="64" height="64" rx="10" fill="#2b0f1d"/><!-- ck-wall-base -->
+	<path d="M12 54V22a8 8 0 0 1 8-8h20a8 8 0 0 1 8 8v32z" fill="#452b19"/><!-- ck-wood-300 -->
+	<path d="M16 52V23a5 5 0 0 1 5-5h18a5 5 0 0 1 5 5v29z" fill="#aab5bd"/><!-- ck-chrome-300 -->
+	<rect x="18" y="15" width="24" height="7" rx="2" fill="#33200f"/><!-- ck-wood-400 -->
+	<rect x="18" y="24" width="24" height="6" rx="1" fill="#f0e6d2" stroke="#8c6a1f" stroke-width="0.8"/><!-- ck-paper-100 / ck-brass-400 -->
+	<path d="M20 26h20M20 28h13" stroke="#a8251a" stroke-width="0.8"/><!-- ck-print-red -->
+	<rect x="17" y="32" width="26" height="14" rx="1.4" fill="#2b1509"/><!-- ck-nixie-dark -->
+	<g fill="#f0e6d2"><!-- ck-paper-100: fuenfzehn Leuchtfelder, 5 Spalten x 3 Zeilen -->
+		<rect x="18" y="33" width="4.2" height="3.8" rx="0.5"/>
+		<rect x="23" y="33" width="4.2" height="3.8" rx="0.5"/>
+		<rect x="28" y="33" width="4.2" height="3.8" rx="0.5"/>
+		<rect x="33" y="33" width="4.2" height="3.8" rx="0.5"/>
+		<rect x="38" y="33" width="4.2" height="3.8" rx="0.5"/>
+		<rect x="18" y="37.4" width="4.2" height="3.8" rx="0.5"/>
+		<rect x="23" y="37.4" width="4.2" height="3.8" rx="0.5"/>
+		<rect x="28" y="37.4" width="4.2" height="3.8" rx="0.5"/>
+		<rect x="33" y="37.4" width="4.2" height="3.8" rx="0.5"/>
+		<rect x="38" y="37.4" width="4.2" height="3.8" rx="0.5"/>
+		<rect x="18" y="41.8" width="4.2" height="3.8" rx="0.5"/>
+		<rect x="23" y="41.8" width="4.2" height="3.8" rx="0.5"/>
+		<rect x="28" y="41.8" width="4.2" height="3.8" rx="0.5"/>
+		<rect x="33" y="41.8" width="4.2" height="3.8" rx="0.5"/>
+		<rect x="38" y="41.8" width="4.2" height="3.8" rx="0.5"/>
+	</g>
+	<rect x="17" y="47" width="26" height="4" rx="1" fill="#2b1509"/><!-- ck-nixie-dark -->
+	<rect x="19" y="48.2" width="22" height="1.8" rx="0.9" fill="#ff8c1f"/><!-- ck-nixie-glow -->
+	<g fill="#4a3a2b"><!-- ck-bulb-off -->
+		<circle cx="21" cy="53.6" r="1.6"/>
+		<circle cx="26" cy="53.6" r="1.6"/>
+		<circle cx="36" cy="53.6" r="1.6"/>
+		<circle cx="41" cy="53.6" r="1.6"/>
+	</g>
+	<circle cx="31" cy="53.6" r="1.6" fill="#ffb753"/><!-- ck-bulb-glow -->
+	<rect x="12" y="56" width="36" height="5" rx="2" fill="#1a0f08"/><!-- ck-wood-500 -->
+	<rect x="48" y="28" width="10" height="16" rx="4.6" fill="#78838c"/><!-- ck-chrome-400: START-Konsole statt Hebel -->
+	<circle cx="53" cy="36" r="4.6" fill="#aab5bd"/><!-- ck-chrome-300 -->
+	<circle cx="53" cy="36" r="3.4" fill="#b7291b"/><!-- ck-bakelite-red -->
+	<circle cx="51.8" cy="34.8" r="1.2" fill="#e0563a"/><!-- ck-bakelite-red-light -->
+</svg>

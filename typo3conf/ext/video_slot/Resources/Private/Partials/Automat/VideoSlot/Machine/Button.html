@@ -1,0 +1,58 @@
+<f:comment>
+	Eine runde Bakelit-Drucktaste im Chromring, dahinter eine Glühlampe
+	(DESIGNBRIEF.md Abschnitt 6).
+
+	{key}           Wert für data-vs-button; spätere Phasen greifen darauf zu
+	{labelKey}      Schlüssel der sichtbaren Beschriftung; leer bei den
+	                beiden unbeschrifteten Risiko-Tasten
+	{ariaLabelKey}  Schlüssel des erreichbaren Namens; nur gesetzt, wenn die
+	                Taste keine sichtbare Beschriftung hat. CONCEPT.md B.1
+	                verlangt ihn für die neuen Bedienteile dieses Geräts —
+	                eine Taste ohne Namen ist für ein Hilfsmittel ein
+	                namenloser Knopf.
+	{lamp}          1, wenn über der Taste ein Lichtfeld sitzt
+
+	Der Platzhalter .vs-btn__lamp-slot ist immer da, auch leer. Nur so
+	sitzen alle sechs Kappen auf einer Linie, obwohl nur zwei ein Lichtfeld
+	tragen.
+
+	Das Lichtfeld liegt IM button: wer darauf tippt, hat die Taste
+	darunter gedrückt — genau so ist die Risiko-Leiter gemeint. Alle Kinder
+	sind span, weil der Inhalt eines button nur Phrasing Content sein darf.
+
+	Ein button ohne Ereignis tut nichts. Das ist in Phase 5 richtig: das
+	Gerät ist statisch, aber das Element ist das semantisch korrekte für
+	eine Bedientaste und muss später nicht ausgetauscht werden.
+
+	WARUM ZWEI VOLLSTÄNDIGE ZWEIGE statt eines einzigen button mit einem
+	bedingten Attribut: ein aria-label steht als gewöhnliches HTML-Attribut
+	im Markup und wird von Fluid immer ausgegeben — auch dann, wenn sein
+	Inhalt leer bleibt. Ein leeres aria-label="" überschreibt aber den
+	sichtbaren Namen mit nichts, und die vier beschrifteten Tasten wären für
+	ein Hilfsmittel namenlos. Doppeltes Markup ist hier der kleinere Preis.
+</f:comment>
+<f:if condition="{ariaLabelKey}">
+	<f:then>
+		<f:variable name="vsButtonAriaLabel"><f:translate
+			key="LLL:EXT:video_slot/Resources/Private/Language/locallang.xlf:{ariaLabelKey}" /></f:variable>
+		<button type="button" class="vs-btn vs-btn--{key}" data-vs-button="{key}"
+			aria-label="{vsButtonAriaLabel}">
+			<span class="vs-btn__lamp-slot"><f:if condition="{lamp}">
+				<span class="vs-lamp" data-vs-lamp="{key}"></span>
+			</f:if></span>
+			<span class="vs-btn__cap"></span>
+			<span class="vs-btn__label"><f:if condition="{labelKey}"><f:translate
+				key="LLL:EXT:video_slot/Resources/Private/Language/locallang.xlf:{labelKey}" /></f:if></span>
+		</button>
+	</f:then>
+	<f:else>
+		<button type="button" class="vs-btn vs-btn--{key}" data-vs-button="{key}">
+			<span class="vs-btn__lamp-slot"><f:if condition="{lamp}">
+				<span class="vs-lamp" data-vs-lamp="{key}"></span>
+			</f:if></span>
+			<span class="vs-btn__cap"></span>
+			<span class="vs-btn__label"><f:if condition="{labelKey}"><f:translate
+				key="LLL:EXT:video_slot/Resources/Private/Language/locallang.xlf:{labelKey}" /></f:if></span>
+		</button>
+	</f:else>
+</f:if>

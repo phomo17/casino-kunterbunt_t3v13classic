@@ -1,0 +1,60 @@
+<f:comment>
+	Guthaben-Leuchtschild im Saal.
+
+	CONCEPT.md Abschnitt 3.1: das Guthaben hängt als Leuchtschild im Saal,
+	nicht als Textfeld daneben. Aufgeladen wird am Schild selbst — die drei
+	Schnellwerte und das Feld für einen freien Betrag sitzen auf der
+	Chromleiste des Schildes, nicht in einem Kasten daneben.
+
+	Das ES-Modul wird genau hier angefordert und damit nur auf Seiten
+	geladen, die tatsächlich ein Schild zeigen. f:asset.module schreibt in
+	den AssetCollector; wo im Template das Tag steht, ist gleichgültig, weil
+	der Core den Sammler erst nach dem Rendern der Seite ausliest. Die
+	TypoScript-Eigenschaft page.includeJSModule gibt es in TYPO3 13.4 nicht.
+
+	Die deutschen Rückmeldungen reist das Schild als data-message-* mit, damit
+	sie aus der XLIFF-Datei kommen und nicht im JavaScript stehen.
+</f:comment>
+<f:asset.module identifier="@phomo17/casino-startpage/credit-display.js" />
+
+<div class="ck-credit" data-ck-credit=""
+	data-message-invalid="{f:translate(key: 'LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:hall.credit.message.invalid')}"
+	data-message-capped="{f:translate(key: 'LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:hall.credit.message.capped')}">
+
+	<f:comment>Die gezeichnete Tafel trägt aria-hidden: für ein Hilfsmittel
+		wären Wort, Zahl und Einheit drei lose Textbrocken ohne Zusammenhang,
+		und eine Änderung der Zahl käme gar nicht an. Angesagt wird stattdessen
+		der eine vollständige Satz im Bereich darunter.</f:comment>
+	<div class="ck-credit__board" aria-hidden="true">
+		<span class="ck-credit__label"><f:translate key="LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:hall.credit.label" /></span>
+		<span class="ck-credit__value" data-ck-credit-display="">&#8211;</span>
+		<span class="ck-credit__unit"><f:translate key="LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:hall.credit.unit" /></span>
+	</div>
+
+	<f:comment>Der Ansagebereich. Er wird LEER ausgeliefert und erst vom Modul
+		gefüllt: ein Live-Bereich, den ein Skript anlegt UND füllt, wird nicht
+		angesagt. Der Satzbau steht als data-Attribut aus der Sprachdatei da,
+		{0} ist der Platz der Zahl.</f:comment>
+	<span class="ck-credit__announce" data-ck-credit-announce="" role="status"
+		data-ck-text-credit="{f:translate(key: 'LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:hall.credit.announce')}"></span>
+
+	<form class="ck-credit__slot" data-ck-credit-form="">
+		<button type="button" class="ck-credit__coin" data-ck-credit-add="10"><f:translate key="LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:hall.credit.add.10" /></button>
+		<button type="button" class="ck-credit__coin" data-ck-credit-add="50"><f:translate key="LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:hall.credit.add.50" /></button>
+		<button type="button" class="ck-credit__coin" data-ck-credit-add="100"><f:translate key="LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:hall.credit.add.100" /></button>
+
+		<label class="ck-credit__custom">
+			<span class="ck-credit__custom-label"><f:translate key="LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:hall.credit.custom" /></span>
+			<input type="number" class="ck-credit__input" data-ck-credit-input="" inputmode="numeric" min="1" max="999999999" step="1" value="" />
+		</label>
+
+		<button type="submit" class="ck-credit__insert"><f:translate key="LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:hall.credit.insert" /></button>
+	</form>
+
+	<p class="ck-credit__status" data-ck-credit-status=""></p>
+
+	<f:comment>Der Setz-Bedienteil aus B.5.1. Eigenes Partial, weil er in
+		Stufe 3 ersatzlos verschwindet — dann wird diese eine Zeile
+		gelöscht und sonst nichts.</f:comment>
+	<f:render partial="Hall/CreditSet" />
+</div>

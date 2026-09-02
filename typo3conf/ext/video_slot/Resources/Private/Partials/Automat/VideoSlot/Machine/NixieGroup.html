@@ -1,0 +1,50 @@
+<f:comment>
+	Eine beschriftete Gruppe von Nixie-Röhren. Eine Röhre je Ziffer, wie
+	beim Vorbild — eine Nixie zeigt immer genau eine Ziffer.
+
+	{labelKey}    Schlüssel der Beschriftung in locallang.xlf
+	{displayKey}  Name der Gruppe für den Spielkern:
+	              guthaben|einsatz|stufe|gewinn
+	{announceKey} Schlüssel des Satzmusters für den Ansagebereich
+	{tubes}       die Startziffern, eine je Röhre; -1 lässt die Röhre dunkel
+
+	Die Breite der Gruppe ergibt sich aus der Zahl der Röhren; die vier
+	Gruppen werden im Panel per space-between verteilt. Deshalb steht hier
+	keine einzige Koordinate.
+
+	data-vs-display ist reines Namensschild für JavaScript und hat auf die
+	Darstellung keinerlei Einfluss.
+
+	Barrierefreiheit (CONCEPT.md B.1; erprobtes Muster aus dem
+	Audit-Nachlauf am Kassenfenster des Reel Slot):
+
+	1. Die GEZEICHNETE Gruppe — Beschriftung und Röhren — trägt
+	   aria-hidden="true". Für ein Hilfsmittel wären es sonst zwei lose
+	   Textbrocken ohne Zusammenhang, und die Röhren tragen ihre Ziffer
+	   ohnehin nur als Form, nicht als Text.
+	2. Daneben steht EIN unsichtbarer Bereich mit role="status", der
+	   Beschriftung und Wert in EINEM Satz trägt („Guthaben: 250"). Er wird
+	   LEER ausgeliefert; ein Live-Bereich, den ein Skript anlegt UND füllt,
+	   wird nicht angesagt.
+
+	Wer diesen Bereich ab Phase 7 füllt, muss die Ansage entprellen — eine
+	Zählfahrt ändert den Wert dutzendfach in kurzer Folge. Am Kassenfenster
+	des Reel Slot sind es 700 ms: die erste Ansage sofort, danach frühestens
+	nach der Ruhezeit. Die sichtbaren Röhren bleiben unentprellt, weil das
+	Auge mitkommt und das Ohr nicht. Für die Gruppe „stufe" gilt zusätzlich:
+	angesagt wird der Ausgang der Leiter, nicht jede einzelne Stufe.
+</f:comment>
+<div class="vs-nixie-group" data-vs-display="{displayKey}">
+	<span class="vs-nixie-group__drawn" aria-hidden="true">
+		<span class="vs-nixie-group__label"><f:translate
+			key="LLL:EXT:video_slot/Resources/Private/Language/locallang.xlf:{labelKey}" /></span>
+		<span class="vs-nixie-group__tubes">
+			<f:for each="{tubes}" as="startDigit" iteration="tube">
+				<f:render partial="Automat/VideoSlot/Machine/NixieTube"
+					arguments="{digit: startDigit, index: tube.index}" />
+			</f:for>
+		</span>
+	</span>
+	<span class="vs-nixie-group__announce vs-offscreen" data-vs-announce="{displayKey}" role="status"
+		data-vs-text-display="{f:translate(key: 'LLL:EXT:video_slot/Resources/Private/Language/locallang.xlf:{announceKey}')}"></span>
+</div>

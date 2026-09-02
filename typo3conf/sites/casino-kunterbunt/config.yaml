@@ -1,0 +1,58 @@
+rootPageId: 1
+base: 'https://casino-kunterbunt.ddev.site/'
+websiteTitle: 'Casino Kunterbunt'
+dependencies:
+  - phomo17/casino-kunterbunt
+  - typo3/seo-sitemap
+languages:
+  -
+    title: 'Deutsch'
+    enabled: true
+    languageId: 0
+    base: '/'
+    locale: de_DE.UTF-8
+    navigationTitle: 'Deutsch'
+    flag: de
+    websiteTitle: ''
+errorHandling: {}
+routes:
+  -
+    route: robots.txt
+    type: staticText
+    content: |
+      User-agent: *
+      Allow: /
+      Disallow: /typo3/
+
+      Sitemap: https://casino-kunterbunt.ddev.site/sitemap.xml
+  -
+    route: llms.txt
+    type: staticText
+    content: |
+      # Casino Kunterbunt
+
+      > Casino Kunterbunt ist ein Spielsaal, in dem die Automaten vollständig im
+      > Browser entstehen: Gehäuse, Walzen und Anzeigen aus CSS und eingebettetem
+      > SVG, die Geräusche aus der Web-Audio-Schnittstelle des Browsers. Es gibt
+      > kein einziges Bild, keine Schriftdatei und keine Einbindung von außen.
+      > Gespielt wird mit Spielgeld — ohne Anmeldung, ohne Zahlung, ohne echten
+      > Einsatz. Die Seite ist eine lokale Vorführung und kein Glücksspielangebot.
+
+      ## Seiten
+      - [Saal](https://casino-kunterbunt.ddev.site/): die Aufstellung aller Automaten
+      - [Reel Slot](https://casino-kunterbunt.ddev.site/reel-slot): klassischer Drei-Walzen-Automat mit Risiko-Leiter
+
+      ## Technik
+      - TYPO3 13.4, klassische Installation
+      - Frontend ohne Bauschritt: ES-Module, CSS Custom Properties, eingebettetes SVG, Web Audio
+  -
+    route: favicon.ico
+    type: asset
+    asset: 'EXT:casino_startpage/Resources/Public/Icons/Favicon.svg'
+routeEnhancers:
+  PageTypeSuffix:
+    type: PageType
+    default: ''
+    index: ''
+    map:
+      sitemap.xml: 1533906435

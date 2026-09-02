@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" version="1.2">
+	<file source-language="de" datatype="plaintext" original="EXT:video_slot/Resources/Private/Language/locallang.xlf" date="2026-09-02T00:00:00Z" product-name="video_slot">
+		<header/>
+		<body>
+			<trans-unit id="automat.title">
+				<source>Video Slot</source>
+			</trans-unit>
+			<trans-unit id="automat.description">
+				<source>Fünf-Walzen-Automat mit leuchtendem Fenster, fünf festen Gewinnlinien, Scatter, Risiko-Leiter und Auto-Modus.</source>
+			</trans-unit>
+
+			<trans-unit id="cabinet.nameplate">
+				<source>VIDEO SLOT</source>
+			</trans-unit>
+
+			<!-- Kopfschild des großen Gehäuses, zwei Zeilen -->
+			<trans-unit id="machine.nameplate.line1">
+				<source>VIDEO</source>
+			</trans-unit>
+			<trans-unit id="machine.nameplate.line2">
+				<source>SLOT</source>
+			</trans-unit>
+
+			<!-- Gewinnplan hinter Glas -->
+			<trans-unit id="machine.paytable.title">
+				<source>GEWINNPLAN · 5 LINIEN · GLEICHE VON LINKS · EINSATZ 1</source>
+			</trans-unit>
+			<!-- Sonderzeilen statt Punktführung. %s ist der Platz des Werts:
+			     dieser Text wird von <f:translate arguments="{0: …}"> gesetzt,
+			     und der Kern setzt dort mit sprintf() ein (LocalizationUtility::
+			     translate). sprintf kennt nur %-Platzhalter — ein {0} bliebe
+			     sichtbar stehen (Audit V-02). -->
+			<trans-unit id="machine.paytable.note.kirsche">
+				<source>AB 2 GLEICHE: %s</source>
+			</trans-unit>
+			<trans-unit id="machine.paytable.note.scatter">
+				<source>ÜBERALL IM FELD</source>
+			</trans-unit>
+
+			<!-- Beschriftung der vier Nixie-Anzeigen. Deutsch, weil es
+			     Anzeigen sind; nur die Tastenbeschriftungen bleiben
+			     englisch (CONCEPT.md B.2). -->
+			<trans-unit id="machine.display.guthaben">
+				<source>Guthaben</source>
+			</trans-unit>
+			<trans-unit id="machine.display.einsatz">
+				<source>Einsatz</source>
+			</trans-unit>
+			<trans-unit id="machine.display.stufe">
+				<source>Stufe</source>
+			</trans-unit>
+			<trans-unit id="machine.display.gewinn">
+				<source>Gewinn</source>
+			</trans-unit>
+
+			<!-- Satzmuster der unsichtbaren Ansagebereiche (CONCEPT.md B.1).
+			     Die gezeichneten Röhren tragen aria-hidden; angesagt wird
+			     dieser eine, vollständige Satz. {0} ist der Platz der Zahl,
+			     eingesetzt ab Phase 7. {0} und NICHT %s, weil diese Texte als
+			     data-Attribut ins Dokument reisen und von JavaScript ersetzt
+			     werden (replace('{0}', …)), nicht von Fluid. -->
+			<trans-unit id="machine.display.guthaben.announce">
+				<source>Guthaben: {0}</source>
+			</trans-unit>
+			<trans-unit id="machine.display.einsatz.announce">
+				<source>Einsatz: {0}</source>
+			</trans-unit>
+			<trans-unit id="machine.display.stufe.announce">
+				<source>Stufe: {0}</source>
+			</trans-unit>
+			<trans-unit id="machine.display.gewinn.announce">
+				<source>Gewinn: {0}</source>
+			</trans-unit>
+			<!-- Ansage des Sichtfelds. {0} ist die Aufzählung der sichtbaren
+			     Symbole, eingesetzt ab Phase 6. -->
+			<trans-unit id="machine.grid.announce">
+				<source>Walzen: {0}</source>
+			</trans-unit>
+
+			<!-- Die neun Symbolnamen für die Ansage des Sichtfelds. Reisen
+			     als data-Attribut, damit machine.js sie ohne Fluid in den
+			     einen Ansagesatz einsetzen kann. -->
+			<trans-unit id="machine.symbol.sieben">
+				<source>Sieben</source>
+			</trans-unit>
+			<trans-unit id="machine.symbol.glocke">
+				<source>Glocke</source>
+			</trans-unit>
+			<trans-unit id="machine.symbol.weintraube">
+				<source>Weintraube</source>
+			</trans-unit>
+			<trans-unit id="machine.symbol.melone">
+				<source>Melone</source>
+			</trans-unit>
+			<trans-unit id="machine.symbol.pflaume">
+				<source>Pflaume</source>
+			</trans-unit>
+			<trans-unit id="machine.symbol.orange">
+				<source>Orange</source>
+			</trans-unit>
+			<trans-unit id="machine.symbol.zitrone">
+				<source>Zitrone</source>
+			</trans-unit>
+			<trans-unit id="machine.symbol.kirsche">
+				<source>Kirsche</source>
+			</trans-unit>
+			<trans-unit id="machine.symbol.scatter">
+				<source>Scatter</source>
+			</trans-unit>
+
+			<!-- Die vier Satzmuster der Rundenansage, je nachdem, ob Linien
+			     und/oder der Scatter getroffen haben. {0} ist die Aufzählung
+			     der sichtbaren Symbole, {1} der Gewinnbetrag, {2}/{3} die
+			     getroffenen Linien bzw. den Scatter-Hinweis – alle als
+			     data-Attribut, von JavaScript ersetzt (Audit-Nachlauf: {0}
+			     und NICHT %s). -->
+			<trans-unit id="machine.grid.win">
+				<source>Walzen: {0}. Gewinn {1}, getroffene Linien: {2}</source>
+			</trans-unit>
+			<trans-unit id="machine.grid.winscatter">
+				<source>Walzen: {0}. Gewinn {1}, getroffene Linien: {2}, Scatter: {3}</source>
+			</trans-unit>
+			<trans-unit id="machine.grid.scatteronly">
+				<source>Walzen: {0}. Gewinn {1}, Scatter: {2}</source>
+			</trans-unit>
+			<trans-unit id="machine.grid.blank">
+				<source>Walzen: {0}. Kein Gewinn</source>
+			</trans-unit>
+
+			<!-- Bakelit-Drucktasten. START, AUTO MODE, RISK und REWARD
+			     bleiben englisch: so stehen sie auf den Geräten
+			     (CONCEPT.md B.2). -->
+			<trans-unit id="machine.button.start">
+				<source>START</source>
+			</trans-unit>
+			<trans-unit id="machine.button.stop">
+				<source>STOP</source>
+			</trans-unit>
+			<trans-unit id="machine.button.auto">
+				<source>AUTO MODE</source>
+			</trans-unit>
+			<trans-unit id="machine.button.risk">
+				<source>RISK</source>
+			</trans-unit>
+			<trans-unit id="machine.button.reward">
+				<source>REWARD</source>
+			</trans-unit>
+			<!-- Die beiden Risiko-Tasten tragen keine sichtbare Beschriftung.
+			     Für ein Hilfsmittel brauchen sie trotzdem einen Namen
+			     (CONCEPT.md B.1): sie sind neue Bedienteile. -->
+			<trans-unit id="machine.button.riskLeft">
+				<source>Risiko links</source>
+			</trans-unit>
+			<trans-unit id="machine.button.riskRight">
+				<source>Risiko rechts</source>
+			</trans-unit>
+
+			<!-- Einsatzwahl. Sichtbar steht nur die Ziffer auf der Taste;
+			     als Name eines Bedienteils ist sie allein sinnlos.
+			     %s ist der Platz der Zahl — gesetzt von <f:translate
+			     arguments>, also sprintf-Syntax, nicht {0} (Audit V-01). -->
+			<trans-unit id="machine.bet.label">
+				<source>Einsatz %s</source>
+			</trans-unit>
+
+			<!-- Ton-Schalter am Gehäuse -->
+			<trans-unit id="machine.sound.label">
+				<source>TON</source>
+			</trans-unit>
+
+			<!-- Meldungsschild über dem Sichtfeld. Die Texte reisen als
+			     data-Attribute mit; ab Phase 6 setzt sie ein Modul ein. -->
+			<trans-unit id="machine.message.insufficient">
+				<source>GUTHABEN ZU GERING</source>
+			</trans-unit>
+			<trans-unit id="machine.message.invalid">
+				<source>BETRAG UNGÜLTIG</source>
+			</trans-unit>
+			<trans-unit id="machine.message.capped">
+				<source>KONTO VOLL</source>
+			</trans-unit>
+			<trans-unit id="machine.message.void">
+				<source>RUNDE UNGÜLTIG</source>
+			</trans-unit>
+			<trans-unit id="machine.message.nocash">
+				<source>KASSE ZU GERING</source>
+			</trans-unit>
+			<trans-unit id="machine.message.norng">
+				<source>AUSSER BETRIEB</source>
+			</trans-unit>
+
+			<!-- Geldeinwurf am Sockel (CONCEPT.md B.5.2). Die drei
+			     Schnellwerte stehen als Text auf den Messingknöpfen. -->
+			<trans-unit id="machine.coin.add.10">
+				<source>+10</source>
+			</trans-unit>
+			<trans-unit id="machine.coin.add.50">
+				<source>+50</source>
+			</trans-unit>
+			<trans-unit id="machine.coin.add.100">
+				<source>+100</source>
+			</trans-unit>
+			<trans-unit id="machine.coin.custom">
+				<source>Freier Betrag</source>
+			</trans-unit>
+			<trans-unit id="machine.coin.placeholder">
+				<source>Betrag</source>
+			</trans-unit>
+			<trans-unit id="machine.coin.insert">
+				<source>Einwerfen</source>
+			</trans-unit>
+
+			<!-- Kasse am Gehäuse (CONCEPT.md B.5.1 und B.5.2). -->
+			<trans-unit id="machine.bank.label">
+				<source>Kasse</source>
+			</trans-unit>
+			<trans-unit id="machine.bank.announce">
+				<source>Kasse: {0}</source>
+			</trans-unit>
+			<trans-unit id="machine.cashout.label">
+				<source>CASH OUT</source>
+			</trans-unit>
+		</body>
+	</file>
+</xliff>

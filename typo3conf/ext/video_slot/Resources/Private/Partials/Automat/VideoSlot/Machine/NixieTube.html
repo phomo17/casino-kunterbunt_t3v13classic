@@ -1,0 +1,35 @@
+<f:comment>
+	Eine Nixie-Röhre.
+
+	Aufbau nach DESIGNBRIEF.md Abschnitt 5: zylindrischer Glaskolben, davor
+	ein Drahtgitter als Anode, dahinter ein Stapel geformter Drahtkathoden —
+	eine je Ziffer 0 bis 9, hintereinander in unterschiedlicher Tiefe.
+
+	Die belegte Reihenfolge von vorn nach hinten ist 6 7 5 8 4 3 9 2 0 1,
+	so gewählt, dass unbeleuchtete Ziffern die leuchtende möglichst wenig
+	verdecken. Im Markup stehen sie deshalb RÜCKWÄRTS: das zuletzt
+	geschriebene Element wird zuletzt gemalt und liegt damit vorn.
+	--vs-depth ist der Platz im Stapel (0 = vorderste Kathode) und steuert
+	Deckkraft und Versatz der Drahtkontur.
+
+	Welche Kathode brennt, entscheidet --vs-digit auf dieser Röhre, rein
+	rechnerisch in CSS — siehe machine.css, Abschnitt 3. -1 bedeutet: keine.
+	Phase 7 ändert die Zahl mit
+	    roehre.style.setProperty('--vs-digit', 7);
+	ohne eine einzige Zeile Markup anzufassen.
+
+	--vs-tube ist nur die laufende Nummer der Röhre in ihrer Gruppe. Sie
+	versetzt das Flimmern, damit nicht alle Röhren im Gleichschritt zucken.
+</f:comment>
+<span class="vs-nixie" style="--vs-digit: {digit}; --vs-tube: {index}">
+	<span class="vs-nixie__digit" data-vs-digit="1" style="--vs-cathode: 1; --vs-depth: 9"></span>
+	<span class="vs-nixie__digit" data-vs-digit="0" style="--vs-cathode: 0; --vs-depth: 8"></span>
+	<span class="vs-nixie__digit" data-vs-digit="2" style="--vs-cathode: 2; --vs-depth: 7"></span>
+	<span class="vs-nixie__digit" data-vs-digit="9" style="--vs-cathode: 9; --vs-depth: 6"></span>
+	<span class="vs-nixie__digit" data-vs-digit="3" style="--vs-cathode: 3; --vs-depth: 5"></span>
+	<span class="vs-nixie__digit" data-vs-digit="4" style="--vs-cathode: 4; --vs-depth: 4"></span>
+	<span class="vs-nixie__digit" data-vs-digit="8" style="--vs-cathode: 8; --vs-depth: 3"></span>
+	<span class="vs-nixie__digit" data-vs-digit="5" style="--vs-cathode: 5; --vs-depth: 2"></span>
+	<span class="vs-nixie__digit" data-vs-digit="7" style="--vs-cathode: 7; --vs-depth: 1"></span>
+	<span class="vs-nixie__digit" data-vs-digit="6" style="--vs-cathode: 6; --vs-depth: 0"></span>
+</span>

@@ -1,0 +1,12 @@
+# Casino Kunterbunt – technische Konstanten
+#
+# Bewusst nicht als typisierte Site-Einstellung ausgeführt: dieser Pfad ist ein
+# Entwickler-Schalter, kein Redaktionswert, und hat im Backend nichts zu suchen.
+# Eine spätere Extension kann ihn überschreiben, um eigene Templates einzuhängen.
+
+casinoKunterbunt {
+    view {
+        pageViewRootPath = EXT:casino_startpage/Resources/Private/PageView/
+        contentElementRootPath = EXT:casino_startpage/Resources/Private/ContentElements/
+    }
+}

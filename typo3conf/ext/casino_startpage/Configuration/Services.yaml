@@ -1,0 +1,19 @@
+services:
+  _defaults:
+    autowire: true
+    autoconfigure: true
+    public: false
+
+  Phomo17\CasinoStartpage\:
+    resource: '../Classes/*'
+
+  # Meldet den DataProcessor unter dem kurzen TypoScript-Namen „casino-automat" an.
+  # Der Core sammelt alle so getaggten Dienste in seiner DataProcessorRegistry ein;
+  # öffentlich müssen sie dafür nicht sein.
+  Phomo17\CasinoStartpage\DataProcessing\AutomatProcessor:
+    tags:
+      - { name: 'data.processor', identifier: 'casino-automat' }
+
+  # AutomatItemsProvider braucht keinen Eintrag: die Klasse trägt das Attribut
+  # #[Autoconfigure(public: true)], weil die FormEngine sie über
+  # GeneralUtility::makeInstance() und nicht per Autowiring holt.

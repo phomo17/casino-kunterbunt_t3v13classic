@@ -1,0 +1,35 @@
+<f:comment>
+	Eine Nixie-Röhre.
+
+	Aufbau nach DESIGNBRIEF.md Abschnitt 5: zylindrischer Glaskolben, davor
+	ein Drahtgitter als Anode, dahinter ein Stapel geformter Drahtkathoden —
+	eine je Ziffer 0 bis 9, hintereinander in unterschiedlicher Tiefe.
+
+	Die belegte Reihenfolge von vorn nach hinten ist 6 7 5 8 4 3 9 2 0 1,
+	so gewählt, dass unbeleuchtete Ziffern die leuchtende möglichst wenig
+	verdecken. Im Markup stehen sie deshalb RÜCKWÄRTS: das zuletzt
+	geschriebene Element wird zuletzt gemalt und liegt damit vorn.
+	--rs-depth ist der Platz im Stapel (0 = vorderste Kathode) und steuert
+	Deckkraft und Versatz der Drahtkontur.
+
+	Welche Kathode brennt, entscheidet --rs-digit auf dieser Röhre, rein
+	rechnerisch in CSS — siehe machine.css, Abschnitt 3. -1 bedeutet: keine.
+	Phase 7 ändert die Zahl mit
+	    roehre.style.setProperty('--rs-digit', 7);
+	ohne eine einzige Zeile Markup anzufassen.
+
+	--rs-tube ist nur die laufende Nummer der Röhre in ihrer Gruppe. Sie
+	versetzt das Flimmern, damit nicht alle Röhren im Gleichschritt zucken.
+</f:comment>
+<span class="rs-nixie" style="--rs-digit: {digit}; --rs-tube: {index}">
+	<span class="rs-nixie__digit" data-rs-digit="1" style="--rs-cathode: 1; --rs-depth: 9"></span>
+	<span class="rs-nixie__digit" data-rs-digit="0" style="--rs-cathode: 0; --rs-depth: 8"></span>
+	<span class="rs-nixie__digit" data-rs-digit="2" style="--rs-cathode: 2; --rs-depth: 7"></span>
+	<span class="rs-nixie__digit" data-rs-digit="9" style="--rs-cathode: 9; --rs-depth: 6"></span>
+	<span class="rs-nixie__digit" data-rs-digit="3" style="--rs-cathode: 3; --rs-depth: 5"></span>
+	<span class="rs-nixie__digit" data-rs-digit="4" style="--rs-cathode: 4; --rs-depth: 4"></span>
+	<span class="rs-nixie__digit" data-rs-digit="8" style="--rs-cathode: 8; --rs-depth: 3"></span>
+	<span class="rs-nixie__digit" data-rs-digit="5" style="--rs-cathode: 5; --rs-depth: 2"></span>
+	<span class="rs-nixie__digit" data-rs-digit="7" style="--rs-cathode: 7; --rs-depth: 1"></span>
+	<span class="rs-nixie__digit" data-rs-digit="6" style="--rs-cathode: 6; --rs-depth: 0"></span>
+</span>

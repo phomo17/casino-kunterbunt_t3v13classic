@@ -1,0 +1,264 @@
+<f:comment>
+	Das große, bedienbare Gehäuse des Video Slot. Nicht zu verwechseln mit
+	../Cabinet.html — das ist die Miniatur für den Saal.
+
+	Maßraster: viewBox 0 0 100 160. .vs-cabinet ist ein
+	Container-Query-Container mit genau diesem Seitenverhältnis, deshalb
+	gilt in allen Kindern 1cqi = 1 viewBox-Einheit — in beiden Achsen.
+	Ein HTML-Kasten auf left: 12cqi liegt punktgenau über dem
+	SVG-Rechteck x="12". Es gibt genau ein Koordinatensystem; es steht im
+	Kopf von machine.css.
+
+	Die Reihenfolge der Kinder ist die Malreihenfolge:
+	Zeichnung, Sichtfeld, Glas, Meldung, Anzeigen, Bedienleiste, START,
+	Sockelreihe, Geldreihe, Kasse, Auszahlung.
+
+	Dieses Gerät hat KEINEN Hebel (CONCEPT.md B.8.1: „Geräte dieser Bauart
+	hatten keinen"). An seiner Stelle sitzt die START-Taste auf einer
+	Chrom-Konsole an der rechten Flanke (B.8.2).
+
+	Phase 5 setzt keine einzige dieser Klassen — es gibt kein JavaScript.
+	Alle Zustände sind ausschließlich über CSS-Klassen auslösbar; der
+	vollständige Katalog steht im Kopf von machine.css.
+</f:comment>
+<div class="vs-cabinet">
+
+	<f:comment>Feste Zeichnung: Korpus, Chrom, Kopfschild, Gewinnplan,
+		Fensterrahmen, Nixie-Platte, Bedienleiste, START-Konsole, Sockel —
+		und die neun Symbol-Definitionen.</f:comment>
+	<f:render partial="Automat/VideoSlot/Machine/Shell"
+		arguments="{machine: machine}" />
+
+	<f:comment>Das leuchtende Fenster: fünf Walzen zu je drei Feldern und
+		die fünf festen Gewinnlinien aus Anhang D.</f:comment>
+	<f:render partial="Automat/VideoSlot/Machine/Grid"
+		arguments="{machine: machine}" />
+
+	<f:comment>Die Scheibe vor dem Sichtfeld. Eigenes Element, weil sie über
+		den Leuchtfeldern liegen muss — im Hintergrund-SVG läge sie darunter.
+		Sie trägt zugleich die feine waagerechte Zeilenstruktur des
+		Bildschirms; die gehört über die Symbole, nicht darunter.</f:comment>
+	<span class="vs-grid__glass"></span>
+
+	<f:comment>Meldungsschild über dem Sichtfeld. Verborgen, bis ein Modul ab
+		Phase 6 .vs-message--shown setzt.
+
+		Die fünf Texte reisen als data-Attribute mit, damit sie aus der
+		Sprachdatei kommen und nicht im JavaScript stehen. Dasselbe Verfahren
+		benutzen casino_startpage am Leuchtschild und der Reel Slot an seiner
+		Tafel.
+
+		role="status" macht das Schild zu einem Live-Bereich: ein
+		Bildschirmleser liest jede neue Meldung von selbst vor. Am Video Slot
+		ist das keine Ausnahme, sondern die Regel — CONCEPT.md B.1 verlangt
+		Barrierefreiheit für alle NEU hinzukommenden Bedienteile, und dieses
+		Gerät ist vollständig neu.
+
+		Das Element ist AUSGELIEFERT LEER — und das ist keine Nachlässigkeit,
+		sondern Bedingung: Ein Live-Bereich, den ein Skript anlegt UND füllt,
+		wird von Hilfsmitteln nicht angesagt. Er muss vor der ersten Meldung
+		dastehen (DECISIONS.md, Audit-Nachlauf 2026-09-02).
+
+		Verborgen wird es später ausschließlich über opacity und
+		pointer-events, nie über visibility oder display — beide nähmen den
+		Live-Bereich aus dem Barrierebaum und machten das role="status"
+		wirkungslos. machine.css hält das fest.</f:comment>
+	<p class="vs-message" data-vs-message role="status"
+		data-vs-text-insufficient="{f:translate(key: 'LLL:EXT:video_slot/Resources/Private/Language/locallang.xlf:machine.message.insufficient')}"
+		data-vs-text-invalid="{f:translate(key: 'LLL:EXT:video_slot/Resources/Private/Language/locallang.xlf:machine.message.invalid')}"
+		data-vs-text-capped="{f:translate(key: 'LLL:EXT:video_slot/Resources/Private/Language/locallang.xlf:machine.message.capped')}"
+		data-vs-text-void="{f:translate(key: 'LLL:EXT:video_slot/Resources/Private/Language/locallang.xlf:machine.message.void')}"
+		data-vs-text-nocash="{f:translate(key: 'LLL:EXT:video_slot/Resources/Private/Language/locallang.xlf:machine.message.nocash')}"
+		data-vs-text-norng="{f:translate(key: 'LLL:EXT:video_slot/Resources/Private/Language/locallang.xlf:machine.message.norng')}"></p>
+
+	<f:comment>Nixie-Anzeigen. GUTHABEN und STUFE starten dunkel
+		(--vs-digit: -1): eine gemalte Zahl wäre eine sichtbare Lüge, sobald
+		der Spieler einwirft, und eine Stufe null gibt es nicht. EINSATZ 01
+		und GEWINN 00000 sind dagegen wahr: Einsatz 1 ist vorgewählt, ein
+		Gewinn liegt nicht vor.
+
+		ACHTUNG, geerbte Falle: Fluid kann in einem Inline-Array KEIN
+		negatives Literal lesen. {0: -1} verwirft stillschweigend das ganze
+		Array und die Gruppe erschiene ohne eine einzige Röhre. Negative
+		Zahlen gehören dort immer in Anführungszeichen: {0: '-1'}.
+
+		displayKey ist das Namensschild, über das der Spielkern ab Phase 6
+		die richtige Gruppe findet. announceKey benennt das Satzmuster des
+		unsichtbaren Ansagebereichs dieser Gruppe.</f:comment>
+	<div class="vs-nixie-panel">
+		<f:render partial="Automat/VideoSlot/Machine/NixieGroup"
+			arguments="{labelKey: 'machine.display.guthaben', displayKey: 'guthaben', announceKey: 'machine.display.guthaben.announce', tubes: {0: '-1', 1: '-1', 2: '-1', 3: '-1', 4: '-1', 5: '-1'}}" />
+		<f:render partial="Automat/VideoSlot/Machine/NixieGroup"
+			arguments="{labelKey: 'machine.display.einsatz', displayKey: 'einsatz', announceKey: 'machine.display.einsatz.announce', tubes: {0: 0, 1: 1}}" />
+		<f:render partial="Automat/VideoSlot/Machine/NixieGroup"
+			arguments="{labelKey: 'machine.display.stufe', displayKey: 'stufe', announceKey: 'machine.display.stufe.announce', tubes: {0: '-1', 1: '-1'}}" />
+		<f:render partial="Automat/VideoSlot/Machine/NixieGroup"
+			arguments="{labelKey: 'machine.display.gewinn', displayKey: 'gewinn', announceKey: 'machine.display.gewinn.announce', tubes: {0: 0, 1: 0, 2: 0, 3: 0, 4: 0}}" />
+	</div>
+
+	<f:comment>Bedienleiste. Sechs Tasten in einem Sechserraster; die
+		beiden unbeschrifteten Risiko-Tasten stehen links und rechts von
+		RISK und tragen je ein Lichtfeld über sich. Die vier anderen
+		bekommen einen leeren Platzhalter derselben Höhe, damit alle Kappen
+		auf einer Linie sitzen.
+
+		START steht NICHT hier, sondern an der rechten Flanke — dort, wo am
+		Reel Slot der Hebel sitzt (CONCEPT.md B.8.2).
+
+		Die beiden Risiko-Tasten haben keine sichtbare Beschriftung und
+		bekommen deshalb einen Namen über ariaLabelKey. Am Reel Slot durften
+		sie namenlos bleiben (altes Bedienteil, Nicht-Ziel); hier ist alles
+		neu, und CONCEPT.md B.1 verlangt für neue Bedienteile eine
+		erreichbare Beschriftung.</f:comment>
+	<div class="vs-rail">
+		<f:render partial="Automat/VideoSlot/Machine/Button"
+			arguments="{key: 'stop', labelKey: 'machine.button.stop', ariaLabelKey: '', lamp: 0}" />
+		<f:render partial="Automat/VideoSlot/Machine/Button"
+			arguments="{key: 'auto', labelKey: 'machine.button.auto', ariaLabelKey: '', lamp: 0}" />
+		<f:render partial="Automat/VideoSlot/Machine/Button"
+			arguments="{key: 'risk-left', labelKey: '', ariaLabelKey: 'machine.button.riskLeft', lamp: 1}" />
+		<f:render partial="Automat/VideoSlot/Machine/Button"
+			arguments="{key: 'risk', labelKey: 'machine.button.risk', ariaLabelKey: '', lamp: 0}" />
+		<f:render partial="Automat/VideoSlot/Machine/Button"
+			arguments="{key: 'risk-right', labelKey: '', ariaLabelKey: 'machine.button.riskRight', lamp: 1}" />
+		<f:render partial="Automat/VideoSlot/Machine/Button"
+			arguments="{key: 'reward', labelKey: 'machine.button.reward', ariaLabelKey: '', lamp: 0}" />
+	</div>
+
+	<f:comment>Die START-Taste auf der Chrom-Konsole an der rechten Flanke —
+		genau dort, wo am Reel Slot der Hebel sitzt (CONCEPT.md B.8.2). Sie
+		ist die größte Taste des Geräts, weil sie die Handlung ist, die man
+		am häufigsten macht; die gezeichnete Konsole steht im Shell-SVG.
+
+		Eigene Bauform statt eines siebten Fachs in der Leiste: sieben Fächer
+		verkleinerten alle Kappen, und der Zug gehört an die Flanke, nicht in
+		die Reihe der Spieltasten. Dieselbe Denkweise wie beim Münzschlitz,
+		der zugleich der Absendeknopf ist.
+
+		Die Beschriftung steht sichtbar unter der Kappe und ist zugleich der
+		Name, den ein Hilfsmittel vorliest — deshalb kein zusätzliches
+		aria-label. Alle Kinder sind span, weil der Inhalt eines button nur
+		Phrasing Content sein darf.</f:comment>
+	<button type="button" class="vs-start" data-vs-button="start">
+		<span class="vs-start__cap"></span>
+		<span class="vs-start__label"><f:translate
+			key="LLL:EXT:video_slot/Resources/Private/Language/locallang.xlf:machine.button.start" /></span>
+	</button>
+
+	<f:comment>Sockelreihe: Einsatzwahl und Ton-Schalter. Der Ton ist laut
+		CONCEPT.md Abschnitt 3.7 standardmäßig eingeschaltet, deshalb trägt
+		der Schalter von Anfang an vs-sound--on und aria-pressed="true" — so
+		stimmt die Anzeige auch dann, wenn kein JavaScript läuft.
+
+		Die vier Einsatztasten sind eine Gruppe, aus der genau eine gewählt
+		ist. Ausgedrückt wird das über aria-pressed, nicht über eine
+		Radiogruppe: eine Radiogruppe verlangt Pfeiltastensteuerung mit
+		wanderndem tabindex, also JavaScript — und diese Phase hat keines.
+		aria-pressed ist ohne eine Zeile Skript korrekt und bleibt es auch,
+		wenn Phase 7 die Wahl beweglich macht.
+
+		Sichtbar steht auf der Taste nur die Ziffer. Als Name eines
+		Bedienteils ist eine nackte „1" sinnlos, deshalb das aria-label aus
+		der Sprachdatei.</f:comment>
+	<div class="vs-base-row">
+		<div class="vs-bets">
+			<button type="button" class="vs-bet vs-bet--selected" data-vs-bet="1" aria-pressed="true"
+				aria-label="{f:translate(key: 'LLL:EXT:video_slot/Resources/Private/Language/locallang.xlf:machine.bet.label', arguments: {0: 1})}"><span class="vs-bet__value">1</span></button>
+			<button type="button" class="vs-bet" data-vs-bet="2" aria-pressed="false"
+				aria-label="{f:translate(key: 'LLL:EXT:video_slot/Resources/Private/Language/locallang.xlf:machine.bet.label', arguments: {0: 2})}"><span class="vs-bet__value">2</span></button>
+			<button type="button" class="vs-bet" data-vs-bet="5" aria-pressed="false"
+				aria-label="{f:translate(key: 'LLL:EXT:video_slot/Resources/Private/Language/locallang.xlf:machine.bet.label', arguments: {0: 5})}"><span class="vs-bet__value">5</span></button>
+			<button type="button" class="vs-bet" data-vs-bet="10" aria-pressed="false"
+				aria-label="{f:translate(key: 'LLL:EXT:video_slot/Resources/Private/Language/locallang.xlf:machine.bet.label', arguments: {0: 10})}"><span class="vs-bet__value">10</span></button>
+		</div>
+		<button type="button" class="vs-sound vs-sound--on" data-vs-sound aria-pressed="true">
+			<span class="vs-sound__lamp"></span>
+			<span class="vs-sound__label"><f:translate
+				key="LLL:EXT:video_slot/Resources/Private/Language/locallang.xlf:machine.sound.label" /></span>
+			<span class="vs-sound__rocker"></span>
+		</button>
+	</div>
+
+	<f:comment>Geldeinwurf am Sockel (CONCEPT.md B.5.2). Der gezeichnete
+		Münzschlitz in der Mitte ist zugleich der Absendeknopf: man wirft
+		ein, indem man in den Schlitz greift, nicht über eine Schaltfläche
+		daneben (CONCEPT.md Abschnitt 3.2). Die Eingabetaste im Feld tut
+		dasselbe, weil das bei einem Formular so gehört.
+
+		Die beiden vs-coinslot__legend sind Beschriftungen für die
+		Dokumentstruktur — jedes Eingabefeld und jeder Knopf braucht eine.
+		Am Gehäuse ist dafür kein Platz, also sind sie nur nicht sichtbar,
+		nicht weggelassen.</f:comment>
+	<form class="vs-coinslot" data-vs-coinslot>
+		<div class="vs-coinslot__quick">
+			<button type="button" class="vs-coinslot__button" data-vs-coin-add="10"><f:translate
+				key="LLL:EXT:video_slot/Resources/Private/Language/locallang.xlf:machine.coin.add.10" /></button>
+			<button type="button" class="vs-coinslot__button" data-vs-coin-add="50"><f:translate
+				key="LLL:EXT:video_slot/Resources/Private/Language/locallang.xlf:machine.coin.add.50" /></button>
+			<button type="button" class="vs-coinslot__button" data-vs-coin-add="100"><f:translate
+				key="LLL:EXT:video_slot/Resources/Private/Language/locallang.xlf:machine.coin.add.100" /></button>
+		</div>
+
+		<button type="submit" class="vs-coinslot__slot" data-vs-coin-insert>
+			<span class="vs-coinslot__legend vs-offscreen"><f:translate
+				key="LLL:EXT:video_slot/Resources/Private/Language/locallang.xlf:machine.coin.insert" /></span>
+		</button>
+
+		<span class="vs-coinslot__coin" data-vs-coin></span>
+
+		<label class="vs-coinslot__custom">
+			<span class="vs-coinslot__legend vs-offscreen"><f:translate
+				key="LLL:EXT:video_slot/Resources/Private/Language/locallang.xlf:machine.coin.custom" /></span>
+			<input type="number" class="vs-coinslot__input" data-vs-coin-input
+				inputmode="numeric" min="1" max="999999999" step="1" value=""
+				placeholder="{f:translate(key: 'LLL:EXT:video_slot/Resources/Private/Language/locallang.xlf:machine.coin.placeholder')}" />
+		</label>
+	</form>
+
+	<f:comment>Das Kassenfenster im Sockel (CONCEPT.md B.5.1). Es zeigt den
+		GESAMTBESTAND — die Kasse —, während die Nixie-Gruppe GUTHABEN darüber
+		den GERÄTEKREDIT zeigt, also das, was in diesem Gerät liegt. Zwei
+		Töpfe, zwei Anzeigen.
+
+		Die Fassung ist gezeichnet (Shell.html); hier steht nur der Inhalt.
+		Der Strich als Anfangswert ist derselbe Kunstgriff wie am Leuchtschild
+		im Saal: eine gemalte Zahl wäre eine sichtbare Lüge, solange
+		JavaScript den echten Stand noch nicht eingesetzt hat.
+
+		Der Bau ist zweigeteilt (Audit A-02, DECISIONS.md 2026-09-02):
+		Beschriftung und Zahl sind GEZEICHNETE Anzeigen und für ein
+		Hilfsmittel zwei lose Textbrocken ohne Zusammenhang — sie tragen
+		deshalb aria-hidden="true". Daneben steht EIN unsichtbarer Bereich
+		mit role="status", der Beschriftung und Wert in EINEM Satz trägt
+		(„Kasse: 250"). Auch er wird leer ausgeliefert.
+
+		Kein id-Attribut und kein aria-labelledby: die Ausweise müssten je
+		Gehäuse eindeutig sein, und der Saal soll auch zwei Geräte auf einer
+		Seite vertragen.</f:comment>
+	<div class="vs-bank">
+		<span class="vs-bank__label" aria-hidden="true"><f:translate
+			key="LLL:EXT:video_slot/Resources/Private/Language/locallang.xlf:machine.bank.label" /></span>
+		<span class="vs-bank__value" data-vs-bank-display aria-hidden="true">&#8211;</span>
+		<span class="vs-bank__announce vs-offscreen" data-vs-bank-announce role="status"
+			data-vs-text-bank="{f:translate(key: 'LLL:EXT:video_slot/Resources/Private/Language/locallang.xlf:machine.bank.announce')}"></span>
+	</div>
+
+	<f:comment>Die Auszahl-Taste CASH OUT (CONCEPT.md B.5.2). Sie bucht den
+		Gerätekredit vollständig in die Kasse zurück.
+
+		Sie SITZT AUF DER AUSWURFSCHALE und nicht in der Tastenleiste: die
+		Leiste ist mit sechs Tasten voll, und die Schale ist der Ort, an dem
+		an einem echten Gerät das Geld herauskommt.
+
+		type="button", nicht submit: sie gehört zu keinem Formular.
+
+		Ist der Gerätekredit 0, trägt sie disabled — sie ist dunkel, nicht
+		anklickbar und wird beim Durchtabben übersprungen. Das Attribut steht
+		schon im Markup, damit die Taste auch ohne JavaScript nicht so
+		aussieht, als täte sie etwas.</f:comment>
+	<button type="button" class="vs-cashout" data-vs-cashout disabled>
+		<span class="vs-cashout__label"><f:translate
+			key="LLL:EXT:video_slot/Resources/Private/Language/locallang.xlf:machine.cashout.label" /></span>
+	</button>
+
+</div>

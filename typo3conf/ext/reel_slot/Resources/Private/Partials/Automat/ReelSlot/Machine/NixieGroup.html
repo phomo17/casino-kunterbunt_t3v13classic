@@ -1,0 +1,55 @@
+<f:comment>
+	Eine beschriftete Gruppe von Nixie-Röhren. Eine Röhre je Ziffer, wie
+	beim Vorbild — eine Nixie zeigt immer genau eine Ziffer.
+
+	{labelKey}    Schlüssel der Beschriftung in locallang.xlf
+	{displayKey}  Name der Gruppe für den Spielkern: guthaben|einsatz|gewinn
+	{announceKey} Schlüssel des Satzmusters für den Ansagebereich
+	{tubes}       die Startziffern, eine je Röhre; -1 lässt die Röhre dunkel
+
+	Die Breite der Gruppe ergibt sich aus der Zahl der Röhren; die drei
+	Gruppen werden im Panel per space-between verteilt. Deshalb steht hier
+	keine einzige Koordinate.
+
+	data-rs-display ist reines Namensschild für JavaScript und hat auf die
+	Darstellung keinerlei Einfluss. Es schließt die einzige Lücke im
+	Haken-Katalog von machine.css: dort steht, WIE eine Ziffer gesetzt wird
+	(--rs-digit je .rs-nixie), aber nicht, wie man die richtige der drei
+	Gruppen findet. Der Zugriff über die Reihenfolge im Gehäuse wäre eine
+	unsichtbare Kopplung. Phase 6 steuert „gewinn", Phase 7 die beiden
+	anderen.
+
+	Barrierefreiheit (CONCEPT.md B.1; erprobtes Muster aus dem
+	Audit-Nachlauf am Kassenfenster dieses Geräts, Audit R-01):
+
+	1. Die GEZEICHNETE Gruppe — Beschriftung und Röhren — trägt
+	   aria-hidden="true". Für ein Hilfsmittel wären es sonst zwei lose
+	   Textbrocken ohne Zusammenhang, und die Röhren tragen ihre Ziffer
+	   ohnehin nur als Form, nicht als Text.
+	2. Daneben steht EIN unsichtbarer Bereich mit role="status", der
+	   Beschriftung und Wert in EINEM Satz trägt („Guthaben: 250"). Er wird
+	   LEER ausgeliefert; ein Live-Bereich, den ein Skript anlegt UND füllt,
+	   wird nicht angesagt.
+
+	Gefüllt wird dieser Bereich von nixie.js — NixieGroup.show() und
+	NixieGroup.clear(), also genau dort, wo auch die Ziffern gesetzt werden.
+	Keine zweite Stelle schreibt hinein. Die Ansage ist entprellt (700 ms wie
+	am Kassenfenster: die erste sofort, danach frühestens nach der Ruhezeit),
+	denn eine Zählfahrt ändert den Wert dutzendfach in kurzer Folge. Die
+	sichtbaren Röhren bleiben unentprellt, weil das Auge mitkommt und das Ohr
+	nicht.
+</f:comment>
+<div class="rs-nixie-group" data-rs-display="{displayKey}">
+	<span class="rs-nixie-group__drawn" aria-hidden="true">
+		<span class="rs-nixie-group__label"><f:translate
+			key="LLL:EXT:reel_slot/Resources/Private/Language/locallang.xlf:{labelKey}" /></span>
+		<span class="rs-nixie-group__tubes">
+			<f:for each="{tubes}" as="startDigit" iteration="tube">
+				<f:render partial="Automat/ReelSlot/Machine/NixieTube"
+					arguments="{digit: startDigit, index: tube.index}" />
+			</f:for>
+		</span>
+	</span>
+	<span class="rs-nixie-group__announce" data-rs-announce="{displayKey}" role="status"
+		data-rs-text-display="{f:translate(key: 'LLL:EXT:reel_slot/Resources/Private/Language/locallang.xlf:{announceKey}')}"></span>
+</div>

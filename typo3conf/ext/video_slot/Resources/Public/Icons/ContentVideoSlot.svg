@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+	Icon des Inhaltselements im Seitenmodul und im Assistenten „Neues
+	Inhaltselement". Dieselbe Ausnahme von der Token-Regel wie bei
+	Extension.svg: Backend-Icons stehen ausserhalb des Frontend-Dokuments und
+	koennen die Custom Properties aus tokens.css nicht benutzen. Die Werte
+	sind von dort abgeschrieben; der Tokenname steht je Wert daneben, ohne
+	die beiden fuehrenden Bindestriche (zwei Bindestriche sind in einem
+	XML-Kommentar nicht erlaubt).
+
+	Bei 16 Bildpunkten bleiben nur Korpus, das gerasterte Fenster (fuenf
+	Spalten, drei Zeilen als drei helle Balken mit vier dunklen Fugen), der
+	orange Nixie-Balken, drei Tastenpunkte, der Sockel und der rote
+	START-Punkt an der rechten Flanke. Einzelne Symbole sind bei dieser
+	Groesse nicht darstellbar.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16">
+	<title>Video Slot</title>
+	<path d="M2.6 14.2V4a2 2 0 0 1 2-2h5.8a2 2 0 0 1 2 2v10.2z" fill="#452b19"/><!-- ck-wood-300 -->
+	<path d="M3.8 13V4.4a1.2 1.2 0 0 1 1.2-1.2h5a1.2 1.2 0 0 1 1.2 1.2V13z" fill="#aab5bd"/><!-- ck-chrome-300 -->
+	<rect x="4.3" y="4" width="6.4" height="1.5" rx="0.3" fill="#f0e6d2"/><!-- ck-paper-100 -->
+	<path d="M4.3 4.8h6.4" stroke="#a8251a" stroke-width="0.35"/><!-- ck-print-red -->
+	<rect x="4.3" y="6.1" width="6.4" height="4.1" rx="0.3" fill="#2b1509"/><!-- ck-nixie-dark -->
+	<g fill="#f0e6d2"><!-- ck-paper-100: drei Zeilen des Leuchtfensters -->
+		<rect x="4.5" y="6.3" width="6" height="1.1" rx="0.2"/>
+		<rect x="4.5" y="7.6" width="6" height="1.1" rx="0.2"/>
+		<rect x="4.5" y="8.9" width="6" height="1.1" rx="0.2"/>
+	</g>
+	<g fill="#2b1509"><!-- ck-nixie-dark: die vier senkrechten Fugen ergeben fuenf Spalten -->
+		<rect x="5.66" y="6.3" width="0.24" height="3.7"/>
+		<rect x="6.86" y="6.3" width="0.24" height="3.7"/>
+		<rect x="8.06" y="6.3" width="0.24" height="3.7"/>
+		<rect x="9.26" y="6.3" width="0.24" height="3.7"/>
+	</g>
+	<rect x="4.3" y="10.7" width="6.4" height="1.1" rx="0.3" fill="#2b1509"/><!-- ck-nixie-dark -->
+	<rect x="4.8" y="11" width="5.4" height="0.5" rx="0.25" fill="#ff8c1f"/><!-- ck-nixie-glow -->
+	<circle cx="5.6" cy="12.6" r="0.6" fill="#4a3a2b"/><!-- ck-bulb-off -->
+	<circle cx="7.5" cy="12.6" r="0.6" fill="#ffb753"/><!-- ck-bulb-glow -->
+	<circle cx="9.4" cy="12.6" r="0.6" fill="#4a3a2b"/><!-- ck-bulb-off -->
+	<rect x="2" y="14.2" width="11" height="1.4" rx="0.5" fill="#1a0f08"/><!-- ck-wood-500 -->
+	<rect x="12.6" y="5.4" width="2.8" height="4.6" rx="1.4" fill="#78838c"/><!-- ck-chrome-400: START-Konsole -->
+	<circle cx="14" cy="7.7" r="1.3" fill="#b7291b"/><!-- ck-bakelite-red -->
+	<circle cx="13.6" cy="7.3" r="0.5" fill="#e0563a"/><!-- ck-bakelite-red-light -->
+</svg>

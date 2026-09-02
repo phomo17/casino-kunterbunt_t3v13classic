@@ -1,0 +1,30 @@
+{
+	"name": "phomo17/casino-startpage",
+	"type": "typo3-cms-extension",
+	"description": "Site Package für das Spaß-Casino Casino Kunterbunt: Vegas-Saal als Startseite, gemeinsame Design-Tokens, geteilte Bausteine (Guthaben, Klang, Risiko-Leiter) und die Grundlage aller Automaten-Extensions.",
+	"license": "AGPL-3.0-or-later",
+	"authors": [
+		{
+			"name": "Phomo17",
+			"email": "phomo17@users.noreply.github.com",
+			"role": "Developer"
+		}
+	],
+	"require": {
+		"php": ">=8.2 <8.5",
+		"typo3/cms-core": "^13.4",
+		"typo3/cms-frontend": "^13.4",
+		"typo3/cms-fluid": "^13.4",
+		"typo3/cms-fluid-styled-content": "^13.4"
+	},
+	"autoload": {
+		"psr-4": {
+			"Phomo17\\CasinoStartpage\\": "Classes/"
+		}
+	},
+	"extra": {
+		"typo3/cms": {
+			"extension-key": "casino_startpage"
+		}
+	}
+}

@@ -1,0 +1,13 @@
+<f:layout name="Default" />
+
+<f:section name="Sign">
+	<f:render partial="Hall/Sign" arguments="{title: settings.casinoKunterbunt.hall.title}" />
+</f:section>
+
+<f:section name="Credit">
+	<f:render partial="Hall/Credit" />
+</f:section>
+
+<f:section name="Main">
+	<f:render partial="Content/Column" arguments="{records: content.main.records, layout: 'devices'}" />
+</f:section>

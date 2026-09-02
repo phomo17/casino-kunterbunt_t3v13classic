@@ -1,0 +1,10 @@
+categories:
+  casinoKunterbunt: ~
+  casinoKunterbunt.hall:
+    parent: casinoKunterbunt
+
+settings:
+  casinoKunterbunt.hall.title:
+    type: string
+    default: 'CASINO KUNTERBUNT'
+    category: casinoKunterbunt.hall

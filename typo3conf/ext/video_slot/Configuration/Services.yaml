@@ -1,0 +1,15 @@
+services:
+  _defaults:
+    autowire: true
+    autoconfigure: true
+    public: false
+
+  Phomo17\VideoSlot\:
+    resource: '../Classes/*'
+
+  # Meldet den DataProcessor unter dem kurzen TypoScript-Namen
+  # „video-slot-cabinet" an. Der Name trägt den Automaten im Präfix,
+  # damit ein weiterer Automat ihn nicht überschreiben kann.
+  Phomo17\VideoSlot\DataProcessing\CabinetProcessor:
+    tags:
+      - { name: 'data.processor', identifier: 'video-slot-cabinet' }

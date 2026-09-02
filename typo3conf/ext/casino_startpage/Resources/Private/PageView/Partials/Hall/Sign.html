@@ -1,0 +1,22 @@
+<f:comment>
+	Leuchtreklame über dem Saal.
+
+	{title} kommt aus der typisierten Site-Einstellung
+	casinoKunterbunt.hall.title und wird vom Seiten-Template übergeben.
+
+	Zwei deckungsgleiche Textlagen:
+	  - .ck-sign__text::before zeichnet über content: attr(data-text) die
+	    unbeleuchtete Glasröhre. Sie bleibt beim Flackern stehen.
+	  - .ck-sign__tube liegt darüber und ist die brennende Röhre.
+
+	data-text trägt deshalb denselben Text noch einmal. Fluid maskiert den
+	Wert im Attribut, das ist unbedenklich.
+
+	Das h1 ist die einzige Überschrift erster Ordnung der Seite: der Name
+	des Hauses steht auf dem Schild.
+</f:comment>
+<div class="ck-sign">
+	<div class="ck-sign__board">
+		<h1 class="ck-sign__text" data-text="{title}"><span class="ck-sign__tube">{title}</span></h1>
+	</div>
+</div>

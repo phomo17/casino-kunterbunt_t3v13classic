@@ -1,0 +1,101 @@
+# Casino Kunterbunt – Seitenrendering
+
+page = PAGE
+page {
+    typeNum = 0
+
+    # PAGEVIEW rendert die ganze Seite mit Fluid und wählt die Template-Datei
+    # anhand des Backend-Layouts der Seite: Pages/<Backend-Layout>.html.
+    # Das Backend-Layout "startseite" führt also auf Pages/Startseite.html,
+    # eine Seite ohne eigenes Layout auf Pages/Default.html.
+    10 = PAGEVIEW
+    10 {
+        paths {
+            100 = {$casinoKunterbunt.view.pageViewRootPath}
+        }
+        dataProcessing {
+            # Holt alle Inhaltselemente der Seite, gruppiert nach den in
+            # page.tsconfig vergebenen Spalten-Bezeichnern (hier: "main").
+            # Ergebnis im Template: {content.main.records}
+            10 = page-content
+            10.as = content
+        }
+    }
+
+    meta {
+        # Ohne diese Zeile skaliert ein Smartphone die Seite auf Desktop-Breite.
+        # Die geforderte Aufteilung 4 / 2 / 1 Geräte pro Reihe wäre damit unmöglich.
+        viewport = width=device-width, initial-scale=1
+    }
+
+    includeCSS {
+        # Reihenfolge ist bindend: erst die Design-Tokens (nur Custom Properties),
+        # dann das Stylesheet, das sie benutzt.
+        casinoTokens = EXT:casino_startpage/Resources/Public/Css/tokens.css
+        casinoBase = EXT:casino_startpage/Resources/Public/Css/base.css
+    }
+
+    # Das Symbol im Browser-Reiter. Ein selbst gezeichnetes SVG — CONCEPT.md
+    # lässt keine heruntergeladenen Bestände und keine Bilddateien zu, und ein
+    # SVG ist Text. Ohne diese Zeile fragt der Browser von sich aus
+    # /favicon.ico an und bekommt 404 (Audit G-02).
+    shortcutIcon = EXT:casino_startpage/Resources/Public/Icons/Favicon.svg
+}
+
+config {
+    # Erzeugt absolute Pfade ab Site-Root, unabhängig davon, in welchem
+    # Unterverzeichnis die Installation liegt.
+    absRefPrefix = auto
+    doctype = html5
+    # Unterdrückt die stdWrap-Eigenschaft prefixComment, also die HTML-Kommentare,
+    # mit denen einzelne Inhaltselemente im Quelltext eingerahmt werden können.
+    # NICHT der TYPO3-Copyright-Kommentar im <head> - der kommt aus Typo3Information
+    # und lässt sich in 13.4 nicht per TypoScript abschalten.
+    disablePrefixComment = 1
+}
+
+# --------------------------------------------------------------------------
+# Inhaltselement „Casino-Automat" (CType casino_automat)
+# --------------------------------------------------------------------------
+# Der Core stellt "tt_content = CASE" mit key.field = CType als Default-TypoScript
+# bereit; hier kommt nur der Zweig für unseren eigenen Typ dazu.
+#
+# partialRootPaths.10 sind die Partials dieses Site Packages, darunter das
+# Platzhalter-Gehäuse. Ab Index 100 hängen die Automaten-Extensions ihre
+# eigenen Partial-Verzeichnisse an — das erledigt AutomatRegistry::register()
+# über ExtensionManagementUtility::addTypoScriptSetup(). Deren Zeilen werden
+# vor diesem Set eingelesen; die Zuweisung "= FLUIDTEMPLATE" löscht keine
+# bereits gesetzten Unterschlüssel, die höheren Indizes bleiben also erhalten.
+# WICHTIG: tt_content.casino_automat niemals mit ">" leeren — das würde sie
+# entfernen.
+#
+# Kein layoutRootPaths: das Template benutzt kein Fluid-Layout.
+
+tt_content.casino_automat = FLUIDTEMPLATE
+tt_content.casino_automat {
+    templateName = CasinoAutomat
+    templateRootPaths {
+        10 = {$casinoKunterbunt.view.contentElementRootPath}
+    }
+    partialRootPaths {
+        10 = {$casinoKunterbunt.view.pageViewRootPath}Partials/
+    }
+    dataProcessing {
+        10 = casino-automat
+        10.as = automat
+    }
+}
+
+# Zwei Hilfsobjekte für den Seitenkopf einer Unterseite (Pages/Default.html).
+#
+# rootPageUid liefert die Seiten-uid der obersten Ebene des Rootlines — also
+# den Saal, egal wie tief die aktuelle Seite hängt. Deshalb "leveluid : 0"
+# und keine feste Nummer: eine feste 1 wäre in dem Augenblick falsch, in dem
+# jemand die Seitenstruktur umbaut.
+lib.rootPageUid = TEXT
+lib.rootPageUid.data = leveluid : 0
+
+# Der Titel der aktuellen Seite, maskiert.
+lib.pageTitle = TEXT
+lib.pageTitle.data = page : title
+lib.pageTitle.htmlSpecialChars = 1

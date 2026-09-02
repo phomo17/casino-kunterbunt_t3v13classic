@@ -1,0 +1,29 @@
+# Casino Kunterbunt – Backend-Layouts
+#
+# Ein Backend-Layout beschreibt, welche Inhaltsspalten eine Seite hat, und
+# bestimmt gleichzeitig, welche Fluid-Datei PAGEVIEW im Frontend lädt:
+# der Bezeichner "startseite" führt auf Pages/Startseite.html.
+
+mod.web_layout.BackendLayouts {
+    startseite {
+        title = LLL:EXT:casino_startpage/Resources/Private/Language/locallang_be.xlf:backendLayout.startseite.title
+        config {
+            backend_layout {
+                colCount = 1
+                rowCount = 1
+                rows {
+                    1 {
+                        columns {
+                            1 {
+                                name = LLL:EXT:casino_startpage/Resources/Private/Language/locallang_be.xlf:backendLayout.column.main
+                                colPos = 0
+                                identifier = main
+                                colspan = 1
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

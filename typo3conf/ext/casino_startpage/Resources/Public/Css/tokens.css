@@ -1,0 +1,256 @@
+/*
+ * Casino Kunterbunt – Design-Tokens
+ * =================================
+ *
+ * Die gemeinsame Farb- und Materialgrundlage des gesamten Projekts.
+ * Diese Datei enthält ausschließlich CSS Custom Properties, keine Regeln.
+ * Saal und Automaten benutzen dieselben Namen, damit sie zusammenpassen.
+ *
+ * Namensschema:  --ck-<material>-<abstufung|rolle>
+ * Abstufungen:   100 = hellste, 500 = dunkelste Stufe eines Materials
+ *
+ * WICHTIG: Dies ist die einzige Datei des Projekts, in der ein Farbwert
+ * ausgeschrieben stehen darf. Das gilt auch für die beiden Muster-Kacheln
+ * weiter unten, die als eingebettetes SVG (data-URI) notiert sind: ein
+ * data-URI kann keine Custom Properties lesen, deshalb steht er hier — mit
+ * denselben Werten wie die daneben stehenden Farb-Tokens. Wer eine der
+ * beiden Seiten ändert, muss die andere mitziehen.
+ *
+ * Keine externen Assets: keine Bilddateien, keine Web-Fonts, keine CDN.
+ */
+
+:root {
+	/* --- Poliertes Chrom -------------------------------------------------- */
+	--ck-chrome-100: #f6f9fb;
+	--ck-chrome-200: #dbe3e9;
+	--ck-chrome-300: #aab5bd;
+	--ck-chrome-400: #78838c;
+	--ck-chrome-500: #3d454c;
+	--ck-chrome-shadow: #1b2024;
+	--ck-chrome-polish: linear-gradient(
+		180deg,
+		var(--ck-chrome-200) 0%,
+		var(--ck-chrome-100) 18%,
+		var(--ck-chrome-300) 46%,
+		var(--ck-chrome-500) 62%,
+		var(--ck-chrome-300) 84%,
+		var(--ck-chrome-200) 100%
+	);
+
+	/* --- Dunkles Nussbaumholz --------------------------------------------- */
+	--ck-wood-200: #5d3c24;
+	--ck-wood-300: #452b19;
+	--ck-wood-400: #2e1c10;
+	--ck-wood-500: #1a0f08;
+	--ck-wood-grain: rgba(20, 10, 4, 0.45);
+
+	/* --- Messing ----------------------------------------------------------- */
+	--ck-brass-100: #f6e0a4;
+	--ck-brass-200: #dfb964;
+	--ck-brass-300: #bd9333;
+	--ck-brass-400: #8c6a1f;
+	--ck-brass-500: #5a4213;
+	--ck-brass-polish: linear-gradient(
+		180deg,
+		var(--ck-brass-200) 0%,
+		var(--ck-brass-100) 22%,
+		var(--ck-brass-300) 55%,
+		var(--ck-brass-400) 78%,
+		var(--ck-brass-200) 100%
+	);
+
+	/* --- Bedrucktes Papier und Druckfarben --------------------------------- */
+	/* DESIGNBRIEF.md Abschnitt 3: Walzenbänder und Gewinnpläne der Zeit sind
+	   auf helles, mattes Papier gedruckt — das stärkste einzelne
+	   Erkennungsmerkmal gegenüber modernen Digital-Slots (so auch festgehalten
+	   in DECISIONS.md, „Cremefarbener Walzenband-Untergrund"). Abschnitt 1
+	   nennt als Druckfarben Rot und Schwarz.
+	   Diese Werte stehen hier und nicht in einer Automaten-Extension, weil
+	   jeder Automat mit Walzen oder Gewinnplan sie braucht. */
+	--ck-paper-100: #f0e6d2;
+	--ck-paper-200: #e8dcc0;
+	--ck-print-ink: #1f150d;
+	--ck-print-red: #a8251a;
+
+	/* --- Rotes Bakelit (Hebelknauf, rote Kappen) --------------------------- */
+	/* CONCEPT.md Abschnitt 3.2 und DECISIONS.md vom 2026-09-01: der Kugelgriff
+	   des Hebels ist rot. Ein Material des Projekts, kein Merkmal eines
+	   einzelnen Geräts — deshalb hier. */
+	--ck-bakelite-red: #b7291b;
+	--ck-bakelite-red-light: #e0563a;
+
+	/* --- Cremefarbenes Bakelit (Tastenkappen) ------------------------------ */
+	/* DESIGNBRIEF.md Abschnitt 4 und 6: eine unbeleuchtete Bakelit-Kappe ist
+	   flaches, leicht warmes Cremeweiß, mit dem Alter honigfarben, halbmatt
+	   und nicht spiegelnd — aller Glanz kommt vom Chromring. Bewusst eigene
+	   Namen statt --ck-paper-*: Papier und Kunststoff sind verschiedene
+	   Materialien und dürfen sich getrennt entwickeln. Jedes Gerät mit
+	   Drucktasten braucht sie. */
+	--ck-bakelite-cream: #ecdfc4;
+	--ck-bakelite-cream-shade: #b7a684;
+
+	/* --- Glas (Scheiben vor Gewinnplan, Walzenfenster, Röhren) ------------- */
+	/* DESIGNBRIEF.md Abschnitt 8: halbdurchsichtiger Grundton, diagonaler
+	   Schimmer, Kantenreflexe über helle Innenschatten. Als rgba notiert,
+	   weil Glas ohne Durchsichtigkeit kein Glas ist. */
+	--ck-glass-sheen: rgba(226, 238, 245, 0.18);
+	--ck-glass-edge: rgba(255, 255, 255, 0.34);
+
+	/* --- Druckfarben der Fruchtsymbole ------------------------------------- */
+	/* DESIGNBRIEF.md Abschnitt 3: kleine, flache, gesättigte Palette, je
+	   Symbol zwei Tonstufen (Licht und Schatten), keine Verläufe, keine
+	   Schlagschatten. Das ist ein Satz Druckfarben für bedruckte Walzenbänder
+	   und Gewinnpläne — ein Material des Projekts, kein Merkmal eines
+	   einzelnen Geräts. Grün wird dreifach benutzt: Kirschstiel und -blatt,
+	   Orangenkelch, Melonenschale. Genau so sparsam arbeitete der
+	   Mehrfarbendruck der Zeit. */
+	--ck-fruit-cherry: #c8161d;
+	--ck-fruit-cherry-shade: #8b0f14;
+	--ck-fruit-lemon: #f0c419;
+	--ck-fruit-lemon-shade: #bd8c0d;
+	--ck-fruit-orange: #e2651b;
+	--ck-fruit-orange-shade: #ad400c;
+	--ck-fruit-leaf: #3f8f3a;
+	--ck-fruit-leaf-shade: #22602a;
+	/* Zwei violette Druckfarben, absichtlich verschieden temperiert:
+	   Pflaume rotstichig, Weintraube blaustichig. So bleiben die beiden
+	   Symbole auch klein auseinanderzuhalten, ohne dass die Farbe das
+	   einzige Unterscheidungsmerkmal wäre — ihre Umrisse sind ohnehin
+	   grundverschieden. */
+	--ck-fruit-plum: #8e3a86;
+	--ck-fruit-plum-shade: #5e2059;
+	--ck-fruit-grape: #6a4bb5;
+	--ck-fruit-grape-shade: #402a7d;
+
+	/* --- Glühlampenlicht (Bakelit-Tasten, warmes Gelb-Rot) ----------------- */
+	--ck-bulb-core: #fff4cd;
+	--ck-bulb-glow: #ffb753;
+	--ck-bulb-hot: #ff7326;
+	--ck-bulb-afterglow: #a85325;
+	--ck-bulb-off: #4a3a2b;
+	--ck-bulb-halo: rgba(255, 168, 74, 0.55);
+
+	/* --- Nixie-Orange (glühende Ziffern in Glasröhren) -------------------- */
+	--ck-nixie-core: #ffdda6;
+	--ck-nixie-glow: #ff8c1f;
+	--ck-nixie-deep: #d24a0b;
+	--ck-nixie-dark: #2b1509;
+	--ck-nixie-halo: rgba(255, 140, 31, 0.45);
+	--ck-nixie-glass: rgba(198, 214, 224, 0.16);
+
+	/* Gestapeltes Leuchten für Ziffern. DESIGNBRIEF.md Abschnitt 8: drei bis
+	   fünf Lagen mit wachsendem Radius, von eng/hell nach weit/schwach. */
+	--ck-nixie-glow-text:
+		0 0 0.04em var(--ck-nixie-core),
+		0 0 0.16em var(--ck-nixie-glow),
+		0 0 0.45em var(--ck-nixie-halo),
+		0 0 1.10em var(--ck-nixie-halo);
+
+	/* --- Neon (Leuchtreklame) --------------------------------------------- */
+	/* DESIGNBRIEF.md Abschnitt 7: für die 1950er belegt sind Silber, Gold und
+	   Blau; Pink ist die prägende Vegas-Neonfarbe der Jahrhundertmitte.
+	   Der Schriftzug brennt in Gold, die Umrandung des Schildes in Pink. */
+	--ck-neon-pink: #ff2f97;
+	--ck-neon-gold: #ffc722;
+	--ck-neon-gold-core: #fff3c4;
+	--ck-neon-gold-halo-near: rgba(255, 199, 34, 0.70);
+	--ck-neon-gold-halo-far: rgba(255, 170, 40, 0.24);
+	--ck-neon-tube-off: #2a1018;
+	--ck-neon-tube-glass: rgba(214, 226, 232, 0.30);
+	--ck-neon-halo-near: rgba(255, 47, 151, 0.72);
+	--ck-neon-halo-far: rgba(255, 47, 151, 0.26);
+
+	--ck-sign-glow:
+		0 0 0.03em var(--ck-neon-gold-core),
+		0 0 0.11em var(--ck-neon-gold),
+		0 0 0.32em var(--ck-neon-gold-halo-near),
+		0 0 0.85em var(--ck-neon-gold-halo-far),
+		0 0 2.10em var(--ck-neon-gold-halo-far);
+
+	/* --- Korpus der Leuchtschilder ---------------------------------------- */
+	--ck-sign-board: #140a10;
+	--ck-sign-board-edge: #2a1a22;
+
+	/* --- Teppichboden ------------------------------------------------------ */
+	/* DESIGNBRIEF.md Abschnitt 7: roter Teppich, Messingzierrat, einfacher
+	   Rapport. Die wilden Casinoteppiche kamen erst nach unserer Epoche. */
+	--ck-carpet-base: #3a0e15;
+	--ck-carpet-figure: #4d131b;
+	--ck-carpet-accent: #7d2318;
+	--ck-carpet-gold: #6a4a15;
+	--ck-carpet-shadow: #1a0508;
+	--ck-carpet-weave: rgba(0, 0, 0, 0.14);
+	--ck-carpet-tile: 96px;
+
+	/* Rapport des Teppichs als eingebettetes SVG.
+	   Nahtlos konstruiert: die Rautenecken liegen exakt auf den Kantenmitten
+	   der Kachel, die Eck-Rosetten exakt auf den Kachelecken. Vier benachbarte
+	   Kacheln ergänzen sich damit lückenlos — es kann keine sichtbare Naht
+	   entstehen.
+	   ACHTUNG: Die Farbwerte der Tokens direkt darüber stehen im data:-URI
+	   unten ein zweites Mal ausgeschrieben. Ein data:-URI kann keine Custom
+	   Property lesen — wer hier einen Wert ändert, MUSS ihn im URI mitändern,
+	   sonst laufen Token und Muster auseinander, ohne dass es jemand merkt. */
+	--ck-carpet-pattern: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='96' viewBox='0 0 96 96'%3E%3Crect width='96' height='96' fill='%233a0e15'/%3E%3Cpath d='M48 0 96 48 48 96 0 48Z' fill='%234d131b'/%3E%3Cpath d='M48 0 96 48 48 96 0 48Z' fill='none' stroke='%236a4a15' stroke-width='1.4' stroke-opacity='.55'/%3E%3Ccircle cx='48' cy='48' r='7' fill='%237d2318' fill-opacity='.85'/%3E%3Ccircle cx='48' cy='48' r='2.6' fill='%236a4a15' fill-opacity='.8'/%3E%3Ccircle cx='0' cy='0' r='5' fill='%237d2318' fill-opacity='.55'/%3E%3Ccircle cx='96' cy='0' r='5' fill='%237d2318' fill-opacity='.55'/%3E%3Ccircle cx='0' cy='96' r='5' fill='%237d2318' fill-opacity='.55'/%3E%3Ccircle cx='96' cy='96' r='5' fill='%237d2318' fill-opacity='.55'/%3E%3C/svg%3E");
+
+	/* --- Wand -------------------------------------------------------------- */
+	--ck-wall-base: #2c0b11;
+	--ck-wall-figure: #3d1119;
+	--ck-wall-figure-light: #4a1620;
+	--ck-wall-shade: #0e0406;
+	--ck-wall-tile-w: 72px;
+	--ck-wall-tile-h: 144px;
+
+	/* Wandbespannung als eingebettetes SVG: senkrechte Bahnen mit versetzt
+	   gesetzten Medaillons. Alle Motive liegen vollständig innerhalb der
+	   Kachel, daher ebenfalls nahtlos. */
+	--ck-wall-pattern: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='72' height='144' viewBox='0 0 72 144'%3E%3Crect width='72' height='144' fill='%232c0b11'/%3E%3Crect width='36' height='144' fill='%233d1119'/%3E%3Cellipse cx='18' cy='36' rx='9' ry='15' fill='none' stroke='%234a1620' stroke-width='2'/%3E%3Cellipse cx='54' cy='108' rx='9' ry='15' fill='none' stroke='%234a1620' stroke-width='2'/%3E%3Ccircle cx='18' cy='36' r='2.5' fill='%234a1620'/%3E%3Ccircle cx='54' cy='108' r='2.5' fill='%234a1620'/%3E%3C/svg%3E");
+
+	/* --- Umgebungslicht und Schatten --------------------------------------- */
+	--ck-ambient-warm: rgba(255, 179, 105, 0.16);
+	--ck-ambient-haze: rgba(255, 214, 168, 0.06);
+	--ck-shadow-soft: rgba(0, 0, 0, 0.45);
+	--ck-shadow-hard: rgba(0, 0, 0, 0.78);
+	--ck-shadow-pool: rgba(0, 0, 0, 0.62);
+	--ck-shadow-inset: rgba(0, 0, 0, 0.35);
+
+	/* --- Schrift ----------------------------------------------------------- */
+	--ck-text-primary: #f4e8d4;
+	--ck-text-muted: #b39c80;
+	--ck-text-inverse: #1a0f08;
+
+	/* Nur systemseitig vorhandene Schriften – keine Web-Fonts von außen. */
+	--ck-font-ui: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+	--ck-font-display: "Haettenschweiler", "Arial Narrow", Impact, var(--ck-font-ui);
+	--ck-font-numeric: "DejaVu Sans Mono", "Courier New", monospace;
+
+	--ck-font-size-base: 1rem;
+	--ck-line-height-base: 1.5;
+
+	/* --- Raster und Rundungen ---------------------------------------------- */
+	--ck-space-1: 0.25rem;
+	--ck-space-2: 0.5rem;
+	--ck-space-3: 1rem;
+	--ck-space-4: 1.5rem;
+	--ck-space-5: 2.5rem;
+	--ck-space-6: 4rem;
+
+	--ck-radius-sm: 2px;
+	--ck-radius-md: 6px;
+	--ck-radius-lg: 14px;
+	--ck-radius-pill: 999px;
+
+	/* --- Maße des Saals ---------------------------------------------------- */
+	--ck-hall-max: 80rem;
+	--ck-cabinet-width: clamp(11rem, 15vw, 15rem);
+	--ck-plinth-height: 1.1rem;
+
+	/* --- Zeitverhalten ----------------------------------------------------- */
+	--ck-duration-fast: 90ms;
+	--ck-duration-base: 220ms;
+	--ck-ease-mech: cubic-bezier(0.2, 0.8, 0.2, 1);
+
+	/* Zündvorgang und Ruheatmen der Neonröhre. */
+	--ck-neon-strike-duration: 2.4s;
+	--ck-neon-breathe-duration: 7.5s;
+}

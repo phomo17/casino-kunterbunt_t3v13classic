@@ -1,0 +1,80 @@
+<f:comment>
+	Das leuchtende Fenster mit fünf mal drei Feldern (CONCEPT.md B.8.1).
+
+	Aufbau: fünf Spalten (.vs-reel, je 12 × 42 Einheiten) mit je einem
+	SVG-Band darin. Jede Zelle ist ein helles Leuchtfeld (rect.vs-cell) mit
+	einem Symbol darauf; der dunkle Grund des Fensters scheint in den Fugen
+	durch und macht die Rasterung sichtbar.
+
+	Ab Phase 6 ist jedes Band 50 Zellen lang – zwei Umläufe der 25
+	Rasterpositionen aus Rules::STRIPS. Bei nur einem Umlauf hätte die
+	letzte Position keine Nachfolgerin; zwei Umläufe lassen sich unsichtbar
+	zurücksetzen (machine.css, Kopf, Block „Fenster"). --vs-reel-pos trägt
+	den Zellindex der MITTLEREN Zeile; data-vs-strip trägt die komplette
+	Bandreihenfolge als einzige Symbolquelle für JavaScript (ab Phase 6e/6f).
+	data-vs-cell trägt ab jetzt Walze + Zellindex statt Walze + Zeile: eine
+	Bandzelle hat keine feste Zeile mehr.
+
+	Die fünf Gewinnlinien aus Anhang D liegen als ein einziges Overlay-SVG
+	darüber. Sie sind unsichtbar, bis .vs-payline--win gesetzt wird; die
+	Punktfolgen rechnet der CabinetProcessor aus Rules::LINES. Sie sind
+	Geometrie, keine Spiellogik — deshalb stehen sie schon in dieser Phase da.
+
+	Die Symbole sind nur Verweise auf die neun symbol-Definitionen in
+	Shell.html. Ein symbol mit viewBox 0 0 24 24 wird von use mit
+	width/height 10 auf Zellgröße skaliert und durch x="1" in der 12
+	Einheiten breiten Zelle zentriert.
+
+	Beide SVG tragen aria-hidden: für ein Hilfsmittel sind sie eine Wolke
+	loser Grafiken ohne Zusammenhang. Angesagt wird stattdessen der eine
+	Satz im Bereich darunter — erprobtes Muster aus dem Audit-Nachlauf
+	(Kassenfenster). Er wird leer ausgeliefert, weil ein Live-Bereich, den
+	ein Skript anlegt UND füllt, nicht angesagt wird.
+
+	Die 14 data-vs-text-*/data-vs-name-* Attribute sind bewusst ausgeschrieben
+	statt in einer Fluid-Schleife im Tag-Kopf erzeugt — dieselbe Haltung wie
+	bei den Textattributen des Meldungsschilds. Sie tragen die Satzmuster und
+	Symbolnamen der Ansage: {0}/{1}/… werden von JavaScript ersetzt, NICHT
+	%s — diese Texte reisen als data-Attribut, nicht durch <f:translate
+	arguments>.
+</f:comment>
+<div class="vs-grid">
+	<f:for each="{machine.reels}" as="reel">
+		<div class="vs-reel" data-vs-reel="{reel.index}"
+			style="--vs-reel-pos: {reel.defaultPosition}">
+			<svg class="vs-reel__strip" viewBox="0 0 12 700"
+				preserveAspectRatio="xMidYMid meet" focusable="false" aria-hidden="true"
+				data-vs-strip="{reel.symbolList}">
+				<f:for each="{reel.cells}" as="cell">
+					<rect class="vs-cell" data-vs-cell="{reel.index}-{cell.index}"
+						x="0.4" y="{cell.fieldY}" width="11.2" height="13.2" rx="0.8" />
+					<use href="#vs-sym-{cell.symbol}" x="1" y="{cell.symbolY}"
+						width="10" height="10" />
+				</f:for>
+			</svg>
+		</div>
+	</f:for>
+
+	<svg class="vs-paylines" viewBox="0 0 60 42"
+		preserveAspectRatio="none" focusable="false" aria-hidden="true">
+		<f:for each="{machine.paylines}" as="line">
+			<polyline class="vs-payline" data-vs-line="{line.index}" points="{line.points}" />
+		</f:for>
+	</svg>
+
+	<p class="vs-grid__announce vs-offscreen" data-vs-grid-announce role="status"
+		data-vs-text-grid="{f:translate(key: 'LLL:EXT:video_slot/Resources/Private/Language/locallang.xlf:machine.grid.announce')}"
+		data-vs-text-win="{f:translate(key: 'LLL:EXT:video_slot/Resources/Private/Language/locallang.xlf:machine.grid.win')}"
+		data-vs-text-winscatter="{f:translate(key: 'LLL:EXT:video_slot/Resources/Private/Language/locallang.xlf:machine.grid.winscatter')}"
+		data-vs-text-scatteronly="{f:translate(key: 'LLL:EXT:video_slot/Resources/Private/Language/locallang.xlf:machine.grid.scatteronly')}"
+		data-vs-text-blank="{f:translate(key: 'LLL:EXT:video_slot/Resources/Private/Language/locallang.xlf:machine.grid.blank')}"
+		data-vs-name-sieben="{f:translate(key: 'LLL:EXT:video_slot/Resources/Private/Language/locallang.xlf:machine.symbol.sieben')}"
+		data-vs-name-glocke="{f:translate(key: 'LLL:EXT:video_slot/Resources/Private/Language/locallang.xlf:machine.symbol.glocke')}"
+		data-vs-name-weintraube="{f:translate(key: 'LLL:EXT:video_slot/Resources/Private/Language/locallang.xlf:machine.symbol.weintraube')}"
+		data-vs-name-melone="{f:translate(key: 'LLL:EXT:video_slot/Resources/Private/Language/locallang.xlf:machine.symbol.melone')}"
+		data-vs-name-pflaume="{f:translate(key: 'LLL:EXT:video_slot/Resources/Private/Language/locallang.xlf:machine.symbol.pflaume')}"
+		data-vs-name-orange="{f:translate(key: 'LLL:EXT:video_slot/Resources/Private/Language/locallang.xlf:machine.symbol.orange')}"
+		data-vs-name-zitrone="{f:translate(key: 'LLL:EXT:video_slot/Resources/Private/Language/locallang.xlf:machine.symbol.zitrone')}"
+		data-vs-name-kirsche="{f:translate(key: 'LLL:EXT:video_slot/Resources/Private/Language/locallang.xlf:machine.symbol.kirsche')}"
+		data-vs-name-scatter="{f:translate(key: 'LLL:EXT:video_slot/Resources/Private/Language/locallang.xlf:machine.symbol.scatter')}"></p>
+</div>

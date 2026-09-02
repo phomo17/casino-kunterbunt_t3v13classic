@@ -1,0 +1,136 @@
+<f:comment>
+	Gehäuse des „Reel Slot".
+
+	Vertrag aus casino_startpage/README.md, Abschnitt „Vertrag für das
+	Gehäuse-Partial": genau ein .ck-cabinet, darin genau ein
+	svg.ck-cabinet__drawing mit viewBox-Verhältnis 100 : 160. Breite, Podest,
+	Schattenwurf und Licht von oben liefert der Saal — hier steht nichts davon.
+	Farben ausschließlich über --ck-*-Tokens aus casino_startpage/tokens.css.
+
+	Diese Datei wird an ZWEI Stellen gerendert:
+	  - im Saal, klein, vom Inhaltselement „Casino-Automat" (mit {automat}/{data})
+	  - auf der Automatenseite, groß, von ContentElements/Machine.html (ohne beides)
+	Deshalb benutzt sie keine der beiden Variablen und holt den Namen direkt aus
+	der Sprachdatei. Phase 5 setzt das große, bedienbare Gehäuse daneben; diese
+	Zeichnung bleibt dann die Miniatur für den Saal.
+
+	Aufbau von oben nach unten nach CONCEPT.md Abschnitt 3.2. Ein span, kein div:
+	der Saal setzt das Gehäuse in einen span, und ein div darin wäre ungültiges HTML.
+</f:comment>
+<span class="ck-cabinet ck-cabinet--reel-slot">
+	<f:comment>aria-hidden: die Zeichnung steht im Saal unmittelbar neben dem
+		sichtbaren Namensschild der Kachel. Ein <title> hier gäbe dem Verweis
+		denselben Namen ein zweites Mal (Audit S-01).</f:comment>
+	<svg class="ck-cabinet__drawing" viewBox="0 0 100 160" preserveAspectRatio="xMidYMid meet"
+		focusable="false" aria-hidden="true">
+
+		<f:comment>Sockel mit Messingkante</f:comment>
+		<rect x="6" y="148" width="88" height="11" rx="3" fill="var(--ck-wood-500)" />
+		<rect x="6" y="148" width="88" height="2" rx="1" fill="var(--ck-brass-400)" />
+
+		<f:comment>Korpus mit gerundeter Schulter, dunkles Nussbaumholz, Goldlinierung</f:comment>
+		<path d="M14 150 V44 Q14 12 50 12 Q86 12 86 44 V150 Z"
+			fill="var(--ck-wood-300)" stroke="var(--ck-wood-500)" stroke-width="2" />
+		<path d="M17.5 148 V45 Q17.5 15.5 50 15.5 Q82.5 15.5 82.5 45 V148"
+			fill="none" stroke="var(--ck-brass-400)" stroke-width="0.7" opacity="0.75" />
+
+		<f:comment>Verchromte Zinkdruckguss-Frontplatte mit harten Glanzbändern</f:comment>
+		<path d="M21 144 V47 Q21 19 50 19 Q79 19 79 47 V144 Z"
+			fill="var(--ck-chrome-300)" stroke="var(--ck-chrome-500)" stroke-width="1.2" />
+		<path d="M25 142 V47 Q25 24 34 20 L34 142 Z" fill="var(--ck-chrome-100)" opacity="0.5" />
+		<path d="M55 142 V29 L59 26.5 L59 142 Z" fill="var(--ck-chrome-500)" opacity="0.2" />
+		<path d="M63 142 V44 Q63 26 69 22 L69 142 Z" fill="var(--ck-chrome-200)" opacity="0.45" />
+
+		<f:comment>Kopfschild mit dem Namen des Automaten</f:comment>
+		<rect x="27" y="23" width="46" height="14" rx="3"
+			fill="var(--ck-wood-500)" stroke="var(--ck-brass-300)" stroke-width="1.4" />
+		<text x="50" y="33.4" text-anchor="middle" textLength="34" lengthAdjust="spacingAndGlyphs"
+			font-family="var(--ck-font-display)" font-size="9"
+			fill="var(--ck-brass-100)"><f:translate key="LLL:EXT:reel_slot/Resources/Private/Language/locallang.xlf:cabinet.nameplate" /></text>
+
+		<f:comment>Chrom-Augenbraue über dem Walzenfenster</f:comment>
+		<path d="M26 44.5 Q50 37.5 74 44.5"
+			fill="none" stroke="var(--ck-chrome-100)" stroke-width="2.2" stroke-linecap="round" />
+
+		<f:comment>Walzenfenster: drei Walzen auf cremefarbenem Papier</f:comment>
+		<rect x="26" y="45" width="48" height="31" rx="3" fill="var(--ck-chrome-500)" />
+		<rect x="28" y="47" width="44" height="27" rx="2" fill="var(--ck-nixie-dark)" />
+		<rect x="29.25" y="48" width="13" height="25" rx="1.5" fill="var(--ck-paper-100)" />
+		<rect x="43.5" y="48" width="13" height="25" rx="1.5" fill="var(--ck-paper-100)" />
+		<rect x="57.75" y="48" width="13" height="25" rx="1.5" fill="var(--ck-paper-100)" />
+		<path d="M29.25 53.5 h13 M43.5 53.5 h13 M57.75 53.5 h13 M29.25 68 h13 M43.5 68 h13 M57.75 68 h13"
+			fill="none" stroke="var(--ck-paper-200)" stroke-width="0.7" />
+		<path d="M28 60.5 h44" fill="none" stroke="var(--ck-print-red)" stroke-width="0.7" opacity="0.75" />
+
+		<f:comment>Drei Symbole auf der Gewinnlinie: BAR, Glocke, rote Sieben</f:comment>
+		<rect x="31" y="57.6" width="9.5" height="5.8" rx="1" fill="var(--ck-print-ink)" />
+		<text x="35.75" y="62" text-anchor="middle" textLength="7.6" lengthAdjust="spacingAndGlyphs"
+			font-family="var(--ck-font-display)" font-size="4.6" fill="var(--ck-paper-100)">BAR</text>
+		<path d="M50 55.6 c3.2 0 4.4 2.6 4.4 5.2 0 1.2 0.5 1.9 1 2.4 h-10.8 c0.5 -0.5 1 -1.2 1 -2.4 0 -2.6 1.2 -5.2 4.4 -5.2 Z"
+			fill="var(--ck-brass-200)" stroke="var(--ck-print-ink)" stroke-width="0.8" stroke-linejoin="round" />
+		<circle cx="50" cy="64.6" r="1.1" fill="var(--ck-brass-300)" stroke="var(--ck-print-ink)" stroke-width="0.6" />
+		<text x="64.25" y="64.4" text-anchor="middle" textLength="6" lengthAdjust="spacingAndGlyphs"
+			font-family="var(--ck-font-display)" font-size="11"
+			fill="var(--ck-print-red)" stroke="var(--ck-print-ink)" stroke-width="0.4">7</text>
+		<path d="M28 47 L41 47 L30 74 L28 74 Z" fill="var(--ck-chrome-100)" opacity="0.12" />
+
+		<f:comment>Gewinnplan hinter Glas, in roter und schwarzer Druckfarbe</f:comment>
+		<rect x="26" y="79" width="48" height="19" rx="2"
+			fill="var(--ck-paper-100)" stroke="var(--ck-brass-400)" stroke-width="1.2" />
+		<path d="M29 83 h42" fill="none" stroke="var(--ck-print-red)" stroke-width="1.6" />
+		<path d="M29 87 h42 M29 91 h42 M29 95 h30" fill="none" stroke="var(--ck-print-ink)" stroke-width="1.3" />
+		<path d="M26 79 L36 79 L28 98 L26 98 Z" fill="var(--ck-chrome-100)" opacity="0.14" />
+
+		<f:comment>Nixie-Anzeigen für GUTHABEN, EINSATZ und GEWINN. Glühen ohne
+			Ziffern: eine gemalte Zahl würde dem echten Guthaben widersprechen,
+			sobald der Spieler auflädt. Phase 7 macht sie lebendig.</f:comment>
+		<rect x="26" y="101" width="48" height="12" rx="2" fill="var(--ck-chrome-500)" />
+		<rect x="29.25" y="103" width="13" height="8" rx="1" fill="var(--ck-nixie-dark)" />
+		<rect x="43.5" y="103" width="13" height="8" rx="1" fill="var(--ck-nixie-dark)" />
+		<rect x="57.75" y="103" width="13" height="8" rx="1" fill="var(--ck-nixie-dark)" />
+		<g fill="var(--ck-nixie-glow)">
+			<rect x="32.75" y="104.8" width="6" height="4.4" rx="1" />
+			<rect x="47" y="104.8" width="6" height="4.4" rx="1" />
+			<rect x="61.25" y="104.8" width="6" height="4.4" rx="1" />
+		</g>
+		<g fill="var(--ck-nixie-core)">
+			<rect x="32.75" y="106.4" width="6" height="1.2" rx="0.6" />
+			<rect x="47" y="106.4" width="6" height="1.2" rx="0.6" />
+			<rect x="61.25" y="106.4" width="6" height="1.2" rx="0.6" />
+		</g>
+		<g fill="var(--ck-nixie-glass)">
+			<rect x="29.25" y="103" width="13" height="3" rx="1" />
+			<rect x="43.5" y="103" width="13" height="3" rx="1" />
+			<rect x="57.75" y="103" width="13" height="3" rx="1" />
+		</g>
+
+		<f:comment>Chrom-Bedienleiste mit Bakelit-Drucktasten, eine davon beleuchtet</f:comment>
+		<rect x="22" y="116" width="56" height="12" rx="6"
+			fill="var(--ck-chrome-200)" stroke="var(--ck-chrome-500)" stroke-width="0.8" />
+		<rect x="25" y="117.6" width="50" height="1.8" rx="0.9" fill="var(--ck-chrome-100)" opacity="0.85" />
+		<circle cx="56" cy="122" r="6" fill="var(--ck-bulb-halo)" opacity="0.55" />
+		<g stroke="var(--ck-chrome-100)" stroke-width="1">
+			<circle cx="32" cy="122" r="3.6" fill="var(--ck-bulb-off)" />
+			<circle cx="44" cy="122" r="3.6" fill="var(--ck-bulb-off)" />
+			<circle cx="56" cy="122" r="3.6" fill="var(--ck-bulb-glow)" />
+			<circle cx="68" cy="122" r="3.6" fill="var(--ck-bulb-off)" />
+		</g>
+		<circle cx="56" cy="122" r="1.5" fill="var(--ck-bulb-core)" />
+
+		<f:comment>Münzschlitz und vorstehende Auswurfschale</f:comment>
+		<rect x="43" y="129.5" width="14" height="6" rx="3"
+			fill="var(--ck-chrome-400)" stroke="var(--ck-chrome-100)" stroke-width="0.9" />
+		<rect x="45.6" y="131.6" width="8.8" height="1.8" rx="0.9" fill="var(--ck-chrome-shadow)" />
+		<path d="M33 136 h34 v5 a3 3 0 0 1 -3 3 h-28 a3 3 0 0 1 -3 -3 Z"
+			fill="var(--ck-chrome-300)" stroke="var(--ck-chrome-500)" stroke-width="0.8" />
+		<rect x="35.5" y="137.6" width="29" height="4" rx="2" fill="var(--ck-chrome-shadow)" opacity="0.55" />
+
+		<f:comment>Hebel mit rotem Kugelgriff an der rechten Gehäuseseite</f:comment>
+		<rect x="83.5" y="50" width="7.5" height="11" rx="3.7"
+			fill="var(--ck-chrome-400)" stroke="var(--ck-chrome-500)" stroke-width="0.8" />
+		<path d="M87.5 56 L94.2 78"
+			fill="none" stroke="var(--ck-chrome-200)" stroke-width="2.6" stroke-linecap="round" />
+		<circle cx="94.6" cy="83" r="5.2" fill="var(--ck-bakelite-red)" />
+		<circle cx="92.9" cy="81.3" r="1.9" fill="var(--ck-bakelite-red-light)" opacity="0.9" />
+	</svg>
+</span>

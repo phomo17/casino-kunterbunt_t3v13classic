@@ -1,0 +1,15 @@
+services:
+  _defaults:
+    autowire: true
+    autoconfigure: true
+    public: false
+
+  Phomo17\ReelSlot\:
+    resource: '../Classes/*'
+
+  # Meldet den DataProcessor unter dem kurzen TypoScript-Namen
+  # „reel-slot-machine" an. Der Name trägt den Automaten im Präfix,
+  # damit ein zweiter Automat ihn nicht überschreiben kann.
+  Phomo17\ReelSlot\DataProcessing\MachineProcessor:
+    tags:
+      - { name: 'data.processor', identifier: 'reel-slot-machine' }

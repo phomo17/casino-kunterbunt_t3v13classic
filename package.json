@@ -1,0 +1,16 @@
+{
+  "name": "casino-kunterbunt",
+  "version": "0.1.0",
+  "description": "Casino Kunterbunt — Entwicklungswerkzeuge (Playwright) fuer das TYPO3-Projekt.",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Phomo17",
+  "license": "AGPL-3.0-or-later",
+  "type": "commonjs",
+  "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
+    "@playwright/test": "^1.62.1"
+  },
+  "private": true
+}

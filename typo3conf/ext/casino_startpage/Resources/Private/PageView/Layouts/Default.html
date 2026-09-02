@@ -1,0 +1,26 @@
+<div class="ck-room">
+	<header class="ck-room__marquee">
+		<f:render section="Sign" optional="true" />
+		<f:render section="Credit" optional="true" />
+	</header>
+	<main class="ck-room__hall">
+		<f:render section="Main" />
+	</main>
+</div>
+<f:comment>
+	Quelltexthinweis. Die AGPL verlangt in Abschnitt 13, dass eine betriebene
+	Fassung ihren Nutzern den Quelltext anbietet — ein Link im Impressum genügt
+	dafür nicht, er muss von der laufenden Anwendung selbst kommen. Deshalb
+	steht er hier in der Seite und nicht in einer Seite daneben.
+
+	Er liegt bewusst AUSSERHALB von .ck-room. Auf einer Geräteseite ist der Saal
+	auf genau eine Bildschirmhöhe festgelegt (ck-room-fill, siehe base.css);
+	stünde der Hinweis darin, nähme er dem Gerät Höhe weg und liefe mit ihm
+	ineinander. Außerhalb steht er immer unter allem, was angezeigt wird.
+</f:comment>
+<footer class="ck-colophon">
+	<f:translate key="LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:hall.colophon.source" />
+	<a class="ck-colophon__source" href="{f:translate(key: 'LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:hall.colophon.url')}" rel="noopener">
+		<f:translate key="LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:hall.colophon.linktext" />
+	</a>
+</footer>

@@ -1,0 +1,21 @@
+<f:comment>
+	Seitenkopf einer Unterseite — zum Beispiel der Seite eines Automaten.
+
+	Bewusst KEIN zweites Leuchtschild: die Neonreklame trägt den Namen des
+	Hauses und gehört an genau eine Stelle, den Saal. Hier steht ein
+	Messingschild, wie es an einem Gerät angeschraubt wäre.
+
+	Warum es das überhaupt gibt: die Automatenseite hatte weder eine
+	Überschrift noch einen einzigen Link — auch keinen zurück in den Saal.
+	Für ein Haus, in dem später mehrere Geräte stehen sollen, ist der Weg
+	zurück kein Beiwerk, sondern die Navigation.
+
+	Der Rückweg zielt über lib.rootPageUid auf die oberste Seite des
+	Rootlines und nicht auf eine feste uid — siehe setup.typoscript.
+</f:comment>
+<div class="ck-pagehead">
+	<h1 class="ck-pagehead__title"><f:cObject typoscriptObjectPath="lib.pageTitle" /></h1>
+	<f:link.page class="ck-pagehead__back" pageUid="{f:cObject(typoscriptObjectPath: 'lib.rootPageUid')}">
+		<f:translate key="LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:pagehead.back" default="Zurück in den Saal" />
+	</f:link.page>
+</div>

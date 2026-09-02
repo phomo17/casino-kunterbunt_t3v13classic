@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" version="1.2">
+	<file source-language="de" datatype="plaintext" original="EXT:casino_startpage/Configuration/Sets/CasinoKunterbunt/labels.xlf" date="2026-09-01T00:00:00Z" product-name="casino_startpage">
+		<header/>
+		<body>
+			<trans-unit id="label">
+				<source>Casino Kunterbunt</source>
+			</trans-unit>
+
+			<trans-unit id="categories.casinoKunterbunt">
+				<source>Casino Kunterbunt</source>
+			</trans-unit>
+			<trans-unit id="categories.description.casinoKunterbunt">
+				<source>Einstellungen des Spaß-Casinos.</source>
+			</trans-unit>
+			<trans-unit id="categories.casinoKunterbunt.hall">
+				<source>Spielsaal</source>
+			</trans-unit>
+			<trans-unit id="categories.description.casinoKunterbunt.hall">
+				<source>Einstellungen der Startseite, also des Spielsaals.</source>
+			</trans-unit>
+
+			<trans-unit id="settings.casinoKunterbunt.hall.title">
+				<source>Name auf der Leuchtreklame</source>
+			</trans-unit>
+			<trans-unit id="settings.description.casinoKunterbunt.hall.title">
+				<source>Text, der über dem Spielsaal als Leuchtreklame hängt. Wird ab Phase 3 als Neonschriftzug dargestellt.</source>
+			</trans-unit>
+		</body>
+	</file>
+</xliff>

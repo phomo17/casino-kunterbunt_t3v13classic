@@ -1,0 +1,41 @@
+<f:comment>
+	Inhaltselement „Casino-Automat" — ein Gerät im Saal.
+
+	Variablen:
+	  {automat} - Phomo17\CasinoStartpage\Automat\Automat oder NULL,
+	              geliefert vom DataProcessor „casino-automat"
+	  {data}    - der tt_content-Datensatz als Array
+
+	Ist {automat} NULL, gibt dieses Template nichts aus. Damit ist ein
+	unbekannter oder nachträglich entfernter Automaten-Schlüssel im Frontend
+	folgenlos — kein Fehler, kein Platzhalter, keine Lücke im Quelltext.
+
+	f:link.typolink erzeugt nur dann ein <a>, wenn eine Zielseite hinterlegt ist
+	und diese auflösbar ist; sonst gibt es den Inhalt unverlinkt aus.
+
+	Das Gehäuse zeichnet das Partial der jeweiligen Automaten-Extension. Dessen
+	Verzeichnis hängt AutomatRegistry::register() an die partialRootPaths dieses
+	Inhaltselements an. optional="true" sorgt dafür, dass ein fehlendes Partial
+	keine Ausnahme wirft, sondern eine leere Ausgabe — und dann greift der
+	Kindinhalt als Rückfallebene: das Platzhalter-Gehäuse des Site Packages.
+
+	.ck-slot__stage ist die Standfläche des Geräts: Podest und Schattenwurf
+	werden als Pseudoelemente dieses Kastens gezeichnet, und er legt die
+	Breite des Gehäuses fest. Das Gehäuse-Partial liefert dafür genau ein
+	Element mit der Klasse ck-cabinet und darin ein
+	svg class="ck-cabinet__drawing" mit dem viewBox-Verhältnis 100 : 160.
+</f:comment>
+<f:if condition="{automat}">
+	<div class="ck-slot" data-automat="{automat.identifier}">
+		<f:link.typolink parameter="{data.tx_casinostartpage_target}" class="ck-slot__link">
+			<span class="ck-slot__stage">
+				<f:render partial="{automat.cabinetPartial}" arguments="{automat: automat, data: data}" optional="true">
+					<f:render partial="Hall/CabinetPlaceholder" arguments="{automat: automat}" />
+				</f:render>
+			</span>
+			<span class="ck-slot__plate">
+				<f:translate key="{automat.title}" default="{automat.title}" />
+			</span>
+		</f:link.typolink>
+	</div>
+</f:if>

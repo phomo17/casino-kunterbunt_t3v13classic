@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" version="1.2">
+	<file source-language="de" datatype="plaintext" original="EXT:casino_startpage/Resources/Private/Language/locallang_be.xlf" date="2026-09-01T00:00:00Z" product-name="casino_startpage">
+		<header/>
+		<body>
+			<trans-unit id="backendLayout.startseite.title">
+				<source>Startseite (Spielsaal)</source>
+			</trans-unit>
+			<trans-unit id="backendLayout.column.main">
+				<source>Spielsaal</source>
+			</trans-unit>
+
+			<trans-unit id="tt_content.CType.group.casinoKunterbunt">
+				<source>Casino Kunterbunt</source>
+			</trans-unit>
+
+			<trans-unit id="tt_content.CType.casino_automat">
+				<source>Casino-Automat</source>
+			</trans-unit>
+			<trans-unit id="tt_content.CType.casino_automat.description">
+				<source>Stellt einen installierten Spielautomaten im Saal auf und verlinkt ihn auf seine Spielseite. Name und Ansicht des Geräts kommen aus der Automaten-Extension.</source>
+			</trans-unit>
+
+			<trans-unit id="tt_content.tx_casinostartpage_automat">
+				<source>Automat</source>
+			</trans-unit>
+			<trans-unit id="tt_content.tx_casinostartpage_automat.description">
+				<source>Welcher der installierten Automaten hier im Saal stehen soll. Die Liste füllt sich aus den installierten Automaten-Extensions.</source>
+			</trans-unit>
+			<trans-unit id="tt_content.tx_casinostartpage_automat.none">
+				<source>- bitte wählen -</source>
+			</trans-unit>
+
+			<trans-unit id="tt_content.tx_casinostartpage_target">
+				<source>Zielseite</source>
+			</trans-unit>
+			<trans-unit id="tt_content.tx_casinostartpage_target.description">
+				<source>Die Seite, auf der das Plugin dieses Automaten liegt. Ein Klick auf das Gerät im Saal führt dorthin.</source>
+			</trans-unit>
+			<trans-unit id="tt_content.tx_casinostartpage_target.browserTitle">
+				<source>Spielseite dieses Automaten wählen</source>
+			</trans-unit>
+
+			<trans-unit id="preview.automat.missing">
+				<source>Kein Automat gewählt – dieses Element bleibt im Frontend unsichtbar.</source>
+			</trans-unit>
+			<trans-unit id="preview.automat.unknown">
+				<source>Der Automat „%s“ ist nicht (mehr) installiert – dieses Element wird im Frontend übersprungen.</source>
+			</trans-unit>
+			<trans-unit id="preview.target.missing">
+				<source>Keine Zielseite gewählt – das Gerät wird angezeigt, ist aber nicht anklickbar.</source>
+			</trans-unit>
+			<trans-unit id="preview.target.broken">
+				<source>Die Zielseite ist keine gültige Seitenverknüpfung.</source>
+			</trans-unit>
+			<trans-unit id="preview.target.deleted">
+				<source>Die Zielseite mit der Nummer %d gibt es nicht mehr.</source>
+			</trans-unit>
+			<trans-unit id="preview.target.page">
+				<source>Zielseite: %s (ID %d)</source>
+			</trans-unit>
+		</body>
+	</file>
+</xliff>

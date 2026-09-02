@@ -1,0 +1,997 @@
+/*
+ * Casino Kunterbunt – Der Vegas-Saal
+ * ==================================
+ *
+ * Reihenfolge der Abschnitte:
+ *   1  Grundlagen
+ *   2  Der Raum: Teppich, Wand, Licht
+ *   3  Leuchtreklame
+ *   4  Guthaben-Leuchtschild
+ *   5  Automaten-Reihen
+ *   6  Ein Automat auf seinem Podest
+ *   7  Bewegung (Keyframes)
+ *
+ * Alle Farbwerte kommen aus tokens.css. In dieser Datei steht kein
+ * ausgeschriebener Farbwert.
+ *
+ * Alles ist aus CSS-Verläufen und eingebettetem SVG gebaut. Es wird keine
+ * Bilddatei, keine Schriftdatei und kein fremder Server angefasst.
+ */
+
+
+/* ==========================================================================
+   1  Grundlagen
+   ========================================================================== */
+
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+}
+
+html {
+	/* Der Saal darf niemals waagerecht scrollen (CONCEPT.md Phase 3, Abnahme).
+	   "clip" schneidet ab, ohne — anders als "hidden" — einen zusätzlichen
+	   Scroll-Container zu erzeugen. */
+	overflow-x: clip;
+	-webkit-text-size-adjust: 100%;
+}
+
+body {
+	margin: 0;
+	min-block-size: 100vh;
+	background-color: var(--ck-carpet-base);
+	color: var(--ck-text-primary);
+	font-family: var(--ck-font-ui);
+	font-size: var(--ck-font-size-base);
+	line-height: var(--ck-line-height-base);
+}
+
+img,
+svg {
+	max-inline-size: 100%;
+}
+
+button,
+input {
+	font: inherit;
+	color: inherit;
+}
+
+
+/* ==========================================================================
+   2  Der Raum: Teppich, Wand, Licht
+   ========================================================================== */
+
+.ck-room {
+	position: relative;
+	z-index: 0;
+	overflow-x: clip;
+	min-block-size: 100vh;
+
+	/* Der Teppich. Lagen von oben nach unten:
+	     1  Vignette – die Ränder des Saals liegen im Dunkeln
+	     2  warmer Lichtteppich in der Saalmitte (Glühlampenlicht, kein Tageslicht)
+	     3  feiner Flor – waagerechte Webfäden
+	     4  der Rapport als eingebettete SVG-Kachel
+	   Nur Lage 4 ist gekachelt. Die Lagen 1 und 2 werden nicht wiederholt,
+	   Lage 3 ist ein repeating-Verlauf ohne background-size und füllt damit
+	   die ganze Fläche in einem Stück. Es gibt deshalb keine Kachelgrenze,
+	   an der eine Naht entstehen könnte. */
+	background-color: var(--ck-carpet-base);
+	background-image:
+		radial-gradient(135% 80% at 50% 42%, transparent 34%, var(--ck-carpet-shadow) 100%),
+		radial-gradient(72% 42% at 50% 26%, var(--ck-ambient-haze) 0%, transparent 100%),
+		repeating-linear-gradient(0deg, var(--ck-carpet-weave) 0 1px, transparent 1px 4px),
+		var(--ck-carpet-pattern);
+	background-size:
+		auto,
+		auto,
+		auto,
+		var(--ck-carpet-tile) var(--ck-carpet-tile);
+	background-repeat: no-repeat, no-repeat, repeat, repeat;
+	background-position: center top, center top, 0 0, 0 0;
+	/* Niemals "fixed": das erzwingt bei jedem Scrollschritt ein Neuzeichnen
+	   der gesamten Fläche. */
+	background-attachment: scroll;
+}
+
+/* --- Die Wand ------------------------------------------------------------ */
+
+.ck-room__marquee {
+	position: relative;
+	z-index: 1;
+	/* Auch ohne Inhalt bleibt ein Streifen Wand stehen: der Raum sieht damit
+	   auf jeder Seite wie ein Raum aus, nicht nur auf der Startseite. */
+	min-block-size: 7rem;
+	padding: var(--ck-space-5) var(--ck-space-3) var(--ck-space-6);
+	text-align: center;
+
+	background-color: var(--ck-wall-base);
+	background-image:
+		radial-gradient(42% 78% at 10% 100%, var(--ck-ambient-warm) 0%, transparent 72%),
+		radial-gradient(42% 78% at 90% 100%, var(--ck-ambient-warm) 0%, transparent 72%),
+		linear-gradient(180deg, var(--ck-wall-shade) 0%, transparent 42%),
+		var(--ck-wall-pattern);
+	background-size:
+		auto,
+		auto,
+		auto,
+		var(--ck-wall-tile-w) var(--ck-wall-tile-h);
+	background-repeat: no-repeat, no-repeat, no-repeat, repeat;
+	background-position: 0 0, 0 0, 0 0, center top;
+}
+
+/* Messing-Zierleiste am unteren Wandabschluss (DESIGNBRIEF.md Abschnitt 7:
+   rote Wandbespannung mit Messingzierrat). */
+.ck-room__marquee::before {
+	content: "";
+	position: absolute;
+	inset-inline: 0;
+	inset-block-end: 0;
+	block-size: 0.5rem;
+	background-image: linear-gradient(
+		180deg,
+		var(--ck-brass-100) 0%,
+		var(--ck-brass-200) 22%,
+		var(--ck-brass-400) 58%,
+		var(--ck-brass-500) 100%
+	);
+	box-shadow: 0 0.15rem 0.6rem var(--ck-shadow-hard);
+	pointer-events: none;
+}
+
+/* Der Schatten, den die Wand auf den Teppich wirft – hier trifft Wand auf
+   Boden. Liegt außerhalb der Wand, unmittelbar darunter. */
+.ck-room__marquee::after {
+	content: "";
+	position: absolute;
+	inset-inline: 0;
+	inset-block-start: 100%;
+	block-size: 3rem;
+	background-image: linear-gradient(180deg, var(--ck-shadow-hard) 0%, transparent 100%);
+	pointer-events: none;
+}
+
+/* --- Der Boden, auf dem die Geräte stehen -------------------------------- */
+
+/* Quelltexthinweis am Fuß der Seite (AGPL Abschnitt 13).
+   Liegt AUSSERHALB von .ck-room und steht damit unter allem, was angezeigt
+   wird — auch auf einer Geräteseite, deren Saal auf genau eine Bildschirmhöhe
+   festgelegt ist. Innerhalb hätte er dem Gerät Höhe weggenommen.
+   Bewusst zurückhaltend: er gehört zur Anwendung, nicht zur Kulisse.
+   Farben aus tokens.css, kein ausgeschriebener Wert. */
+.ck-colophon {
+	padding-block: var(--ck-space-3);
+	padding-inline: var(--ck-space-3);
+	border-block-start: 1px solid var(--ck-carpet-shadow);
+	background-color: var(--ck-carpet-base);
+	text-align: center;
+	font-size: 0.8125rem;
+	line-height: 1.5;
+	color: var(--ck-text-muted);
+	text-wrap: balance;
+}
+
+.ck-colophon__source {
+	color: var(--ck-text-primary);
+	text-underline-offset: 0.2em;
+}
+
+.ck-room__hall {
+	position: relative;
+	z-index: 1;
+	max-inline-size: var(--ck-hall-max);
+	min-block-size: 40vh;
+	margin-inline: auto;
+	padding: var(--ck-space-6) var(--ck-space-3);
+}
+
+
+/* --- Vertrag: ein Gerät, das den ganzen Bildschirm beansprucht ------------ */
+/*
+ * Ein Inhaltselement, das die volle Bildschirmhöhe braucht — ein Gerät auf
+ * seiner eigenen Seite, das vollständig sichtbar sein muss und an dem nicht
+ * gescrollt werden darf — setzt die Klasse ck-room-fill auf sein äußerstes
+ * Element. Mehr muss es nicht tun; es rechnet insbesondere NICHT mit den
+ * Maßen des Saals.
+ *
+ * Der Saal ordnet sich daraufhin als Spalte von genau einer Bildschirmhöhe
+ * an: Wandband oben in seiner eigenen Höhe, Boden darunter mit dem ganzen
+ * Rest. Das Gerät bekommt einen Kasten mit fester Höhe und kann sich darin
+ * einpassen.
+ *
+ * svh statt vh: 100vh ist auf dem Telefon die Höhe OHNE eingeblendete
+ * Browserleisten und damit größer als der sichtbare Bereich — 100vh würde
+ * hier zuverlässig eine senkrechte Scrollleiste erzeugen. Deshalb wird auch
+ * die 100vh-Mindesthöhe von body und .ck-room ausdrücklich zurückgenommen.
+ *
+ * Ohne die Klasse ändert sich nichts. Die Startseite ist nicht betroffen.
+ */
+body:has(.ck-room-fill) {
+	min-block-size: 0;
+}
+
+.ck-room:has(.ck-room-fill) {
+	display: flex;
+	flex-direction: column;
+	/* min- statt fester Höhe: Der Saal ist eine Bildschirmhöhe hoch, darf aber
+	   mitwachsen, wenn ein Gerät seine Mindesthöhe nicht weiter unterschreiten
+	   kann. Mit fester Höhe lief das Gerät unten aus dem Saal heraus (gemessen
+	   1280x800: Saal endet bei 800, Gerät bei 813) und schob sich damit unter
+	   den Quelltexthinweis, der danach folgt. */
+	min-block-size: 100svh;
+}
+
+.ck-room:has(.ck-room-fill) .ck-room__marquee {
+	flex: 0 0 auto;
+}
+
+.ck-room:has(.ck-room-fill) .ck-room__hall {
+	display: flex;
+	flex: 1 1 0;
+	/* margin-inline: auto verhindert, dass ein Flex-Element in der Querachse
+	   gestreckt wird — ohne diese Zeile bliebe der Boden so schmal wie sein
+	   Inhalt (gemessen: 32 px) und das Gerät darin hätte die Breite null
+	   — deshalb steht hier `inline-size: 100%`. */
+	inline-size: 100%;
+	/* auto statt 0: Ein Gerät bringt eine eigene Mindesthöhe mit. Mit 0 durfte
+	   der Boden darunter schrumpfen, die Mindesthöhe wurde nicht nach oben
+	   weitergegeben, und das Gerät lief unten aus dem Saal heraus. Mit auto
+	   wächst der Saal stattdessen mit — er bleibt eine Bildschirmhöhe hoch,
+	   solange das Gerät hineinpasst. */
+	min-block-size: auto;
+	padding-block: var(--ck-space-3);
+}
+
+.ck-room:has(.ck-room-fill) .ck-hall__content {
+	display: flex;
+	flex: 1 1 0;
+	min-block-size: auto;
+}
+
+.ck-room-fill {
+	flex: 1 1 0;
+	min-inline-size: 0;
+	min-block-size: 0;
+}
+
+
+/* ==========================================================================
+   3  Leuchtreklame
+   ========================================================================== */
+
+.ck-sign {
+	position: relative;
+	max-inline-size: 64rem;
+	margin-inline: auto;
+}
+
+/* Das Licht, das die Reklame auf die Wand wirft. z-index: -1 setzt diese
+   Lage hinter das Schild, aber vor die Wandbespannung. */
+.ck-sign::before {
+	content: "";
+	position: absolute;
+	z-index: -1;
+	inset: -2.5rem -1.5rem;
+	background-image: radial-gradient(
+		58% 62% at 50% 50%,
+		var(--ck-neon-gold-halo-far) 0%,
+		var(--ck-neon-halo-far) 38%,
+		transparent 72%
+	);
+	filter: blur(1.4rem);
+	pointer-events: none;
+}
+
+/* Die Tafel: dunkles Blech in einem Messingrahmen, innen eine umlaufende
+   pinke Neonröhre. */
+.ck-sign__board {
+	position: relative;
+	display: block;
+	padding: var(--ck-space-4);
+	border: 0.3rem solid var(--ck-brass-400);
+	border-radius: var(--ck-radius-lg);
+	background-image: radial-gradient(
+		120% 150% at 50% 0%,
+		var(--ck-sign-board-edge) 0%,
+		var(--ck-sign-board) 62%
+	);
+	box-shadow:
+		inset 0 0 0 1px var(--ck-neon-pink),
+		inset 0 0 0.8rem var(--ck-neon-halo-near),
+		inset 0 0 2.6rem var(--ck-neon-halo-far),
+		0 0 1.8rem var(--ck-neon-halo-far),
+		0 1.2rem 2.8rem var(--ck-shadow-hard);
+}
+
+/* Der Schriftzug besteht aus zwei deckungsgleichen Lagen:
+     ::before  die unbeleuchtete Glasröhre (dunkel, mit hellem Glaskantenlicht)
+     .ck-sign__tube  die brennende Röhre darüber
+   Nur so bleibt beim Flackern die Röhre sichtbar, statt dass der Schriftzug
+   für einen Moment verschwindet — genau das unterscheidet eine anlaufende
+   Gasröhre von einer Fehlanzeige. */
+.ck-sign__text {
+	position: relative;
+	margin: 0;
+	color: transparent;
+	font-family: var(--ck-font-display);
+	font-size: clamp(1.9rem, 8vw, 5.2rem);
+	font-weight: 700;
+	letter-spacing: 0.09em;
+	line-height: 1.08;
+	text-align: center;
+	text-transform: uppercase;
+	overflow-wrap: break-word;
+	/* Das Ruheatmen setzt erst ein, wenn der Zündvorgang durch ist. */
+	animation: ck-neon-breathe var(--ck-neon-breathe-duration) ease-in-out
+		var(--ck-neon-strike-duration) infinite;
+}
+
+.ck-sign__text::before {
+	/* Der Teil hinter dem Schrägstrich ist der Alternativtext des erzeugten
+	   Inhalts: sichtbar bleibt der Schriftzug, im Barrierebaum steht nichts.
+	   Ohne ihn zählt Chromium den Text ein zweites Mal in den erreichbaren
+	   Namen der Überschrift (Audit S-01). */
+	content: attr(data-text) / "";
+	position: absolute;
+	inset: 0;
+	color: var(--ck-neon-tube-off);
+	-webkit-text-stroke: 0.014em var(--ck-neon-tube-glass);
+	pointer-events: none;
+}
+
+.ck-sign__tube {
+	position: relative;
+	color: var(--ck-neon-gold-core);
+	text-shadow: var(--ck-sign-glow);
+	animation: ck-neon-strike var(--ck-neon-strike-duration) linear 1 both;
+}
+
+
+/* ==========================================================================
+   4  Guthaben-Leuchtschild
+   ========================================================================== */
+
+.ck-credit {
+	position: relative;
+	max-inline-size: min(100%, 30rem);
+	margin: var(--ck-space-5) auto 0;
+	text-align: center;
+}
+
+/* Die obere Hälfte: die Anzeigetafel. */
+.ck-credit__board {
+	display: grid;
+	gap: var(--ck-space-1);
+	justify-items: center;
+	padding: var(--ck-space-3) var(--ck-space-4) var(--ck-space-2);
+	border: 0.22rem solid var(--ck-brass-400);
+	border-block-end: none;
+	border-start-start-radius: var(--ck-radius-md);
+	border-start-end-radius: var(--ck-radius-md);
+	background-image: linear-gradient(
+		180deg,
+		var(--ck-sign-board-edge) 0%,
+		var(--ck-sign-board) 100%
+	);
+	box-shadow:
+		inset 0 0 1.4rem var(--ck-nixie-halo),
+		0 1rem 2rem var(--ck-shadow-hard);
+}
+
+.ck-credit__label {
+	color: var(--ck-brass-200);
+	font-family: var(--ck-font-display);
+	font-size: 0.78rem;
+	letter-spacing: 0.32em;
+	text-transform: uppercase;
+}
+
+/* Die Ziffern glühen in Nixie-Orange – dieselbe Farbe wie später die
+   Anzeigen am Gehäuse, damit Saal und Gerät zusammengehören. */
+.ck-credit__value {
+	color: var(--ck-nixie-core);
+	font-family: var(--ck-font-numeric);
+	font-size: clamp(2.3rem, 9vw, 3.4rem);
+	font-variant-numeric: tabular-nums;
+	line-height: 1;
+	text-shadow: var(--ck-nixie-glow-text);
+	transition: transform var(--ck-duration-fast) var(--ck-ease-mech);
+}
+
+.ck-credit__value--kick {
+	transform: scale(1.09);
+}
+
+.ck-credit__unit {
+	color: var(--ck-text-muted);
+	font-family: var(--ck-font-display);
+	font-size: 0.7rem;
+	letter-spacing: 0.28em;
+	text-transform: uppercase;
+}
+
+/* Nur für Hilfsmittel: Beschriftung, Zahl und Einheit in EINEM Satz, damit die
+   Änderung angesagt wird. Nicht display: none und nicht visibility: hidden —
+   beide nähmen das Element aus dem Barrierebaum und damit aus der Ansage. */
+.ck-credit__announce {
+	position: absolute;
+	inline-size: 1px;
+	block-size: 1px;
+	overflow: hidden;
+	clip-path: inset(50%);
+	white-space: nowrap;
+}
+
+/* Die untere Hälfte: die Chrom-Bedienleiste mit dem Münzeinwurf. */
+.ck-credit__slot {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-end;
+	justify-content: center;
+	gap: var(--ck-space-2);
+	margin: 0;
+	padding: var(--ck-space-3);
+	border: 0.22rem solid var(--ck-brass-400);
+	border-block-start: none;
+	border-end-start-radius: var(--ck-radius-md);
+	border-end-end-radius: var(--ck-radius-md);
+	background-image: var(--ck-chrome-polish);
+	box-shadow: 0 1rem 2rem var(--ck-shadow-hard);
+}
+
+/* Runde Bakelit-Knöpfe im Chromring (DESIGNBRIEF.md Abschnitt 6). */
+.ck-credit__coin {
+	inline-size: 3rem;
+	block-size: 3rem;
+	padding: 0;
+	border: 0.16rem solid var(--ck-chrome-200);
+	border-radius: var(--ck-radius-pill);
+	background-image: radial-gradient(
+		circle at 38% 30%,
+		var(--ck-bulb-core) 0%,
+		var(--ck-bulb-glow) 46%,
+		var(--ck-bulb-hot) 100%
+	);
+	color: var(--ck-text-inverse);
+	font-family: var(--ck-font-display);
+	font-size: 0.95rem;
+	cursor: pointer;
+	box-shadow:
+		0 0.15rem 0.4rem var(--ck-shadow-hard),
+		inset 0 -0.15rem 0.35rem var(--ck-shadow-inset);
+	transition:
+		transform var(--ck-duration-fast) var(--ck-ease-mech),
+		box-shadow var(--ck-duration-fast) var(--ck-ease-mech);
+}
+
+.ck-credit__coin:hover {
+	box-shadow:
+		0 0.15rem 0.4rem var(--ck-shadow-hard),
+		0 0 0.9rem var(--ck-bulb-halo),
+		inset 0 -0.15rem 0.35rem var(--ck-shadow-inset);
+}
+
+.ck-credit__coin:active {
+	transform: translateY(0.1rem);
+	box-shadow: inset 0 0.2rem 0.5rem var(--ck-shadow-inset);
+}
+
+/* Der frei wählbare Betrag – ein eingelassenes Feld in der Chromleiste. */
+.ck-credit__custom {
+	display: inline-flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 0.15rem;
+}
+
+.ck-credit__custom-label {
+	color: var(--ck-chrome-500);
+	font-family: var(--ck-font-display);
+	font-size: 0.66rem;
+	letter-spacing: 0.22em;
+	text-transform: uppercase;
+}
+
+.ck-credit__input {
+	inline-size: 7rem;
+	padding: var(--ck-space-1) var(--ck-space-2);
+	border: 0.14rem solid var(--ck-chrome-500);
+	border-radius: var(--ck-radius-sm);
+	background-color: var(--ck-nixie-dark);
+	color: var(--ck-nixie-core);
+	font-family: var(--ck-font-numeric);
+	font-variant-numeric: tabular-nums;
+	text-align: right;
+	box-shadow: inset 0 0.15rem 0.4rem var(--ck-shadow-hard);
+	appearance: textfield;
+}
+
+.ck-credit__input::-webkit-outer-spin-button,
+.ck-credit__input::-webkit-inner-spin-button {
+	appearance: none;
+	margin: 0;
+}
+
+/* Der Einwurf-Knopf – ein Messingschild. */
+.ck-credit__insert {
+	padding: var(--ck-space-2) var(--ck-space-3);
+	border: 1px solid var(--ck-brass-500);
+	border-radius: var(--ck-radius-sm);
+	background-image: var(--ck-brass-polish);
+	color: var(--ck-text-inverse);
+	font-family: var(--ck-font-display);
+	font-size: 0.9rem;
+	letter-spacing: 0.12em;
+	text-transform: uppercase;
+	cursor: pointer;
+	box-shadow: 0 0.2rem 0.5rem var(--ck-shadow-hard);
+	transition: transform var(--ck-duration-fast) var(--ck-ease-mech);
+}
+
+.ck-credit__insert:active {
+	transform: translateY(0.1rem);
+}
+
+.ck-credit__status {
+	min-block-size: 1.3rem;
+	margin: var(--ck-space-2) 0 0;
+	color: var(--ck-text-muted);
+	font-size: 0.8rem;
+}
+
+/* --------------------------------------------------------------------------
+   Kassenstand von Hand setzen (CONCEPT.md B.5.1)
+
+   Bewusst als abgesetzter Streifen UNTER der Chromleiste, mit eigener
+   Überschrift, eigenem Hinweis und einem gestrichelten Rahmen: es ist ein
+   Werkzeug des Baus, keine Spielhandlung, und es soll auch so aussehen. In
+   Stufe 3 wird dieser ganze Block zusammen mit dem Partial und dem Modul
+   gelöscht.
+   -------------------------------------------------------------------------- */
+
+.ck-credit__set {
+	margin-block-start: var(--ck-space-3);
+	padding: var(--ck-space-3);
+	border: 0.14rem dashed var(--ck-chrome-500);
+	border-radius: var(--ck-radius-sm);
+	text-align: center;
+}
+
+.ck-credit__set-legend {
+	margin: 0 0 var(--ck-space-2);
+	color: var(--ck-brass-200);
+	font-family: var(--ck-font-display);
+	font-size: 0.72rem;
+	letter-spacing: 0.28em;
+	text-transform: uppercase;
+}
+
+.ck-credit__set-form {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: center;
+	gap: var(--ck-space-2);
+	margin: 0;
+}
+
+.ck-credit__set-label {
+	color: var(--ck-text-muted);
+	font-family: var(--ck-font-display);
+	font-size: 0.66rem;
+	letter-spacing: 0.22em;
+	text-transform: uppercase;
+}
+
+/* Dasselbe eingelassene Leuchtfeld wie beim Einwurf darüber – es ist
+   dieselbe Art von Eingabe, nur mit anderer Wirkung. */
+.ck-credit__set-input {
+	inline-size: 8rem;
+	padding: var(--ck-space-1) var(--ck-space-2);
+	border: 0.14rem solid var(--ck-chrome-500);
+	border-radius: var(--ck-radius-sm);
+	background-color: var(--ck-nixie-dark);
+	color: var(--ck-nixie-core);
+	font-family: var(--ck-font-numeric);
+	font-variant-numeric: tabular-nums;
+	text-align: right;
+	box-shadow: inset 0 0.15rem 0.4rem var(--ck-shadow-hard);
+	appearance: textfield;
+}
+
+/* Die Pfeiltasten des Zahlenfelds stören das Bild und werden nicht gebraucht. */
+.ck-credit__set-input::-webkit-outer-spin-button,
+.ck-credit__set-input::-webkit-inner-spin-button {
+	appearance: none;
+	margin: 0;
+}
+
+/* Beanstandetes Feld. Die Farbe ist NICHT das einzige Zeichen — die
+   Statuszeile darunter sagt denselben Sachverhalt in Worten, und
+   credit-set.js setzt zusätzlich aria-invalid. */
+.ck-credit__set-input[aria-invalid='true'] {
+	border-color: var(--ck-print-red);
+}
+
+.ck-credit__set-apply {
+	padding: var(--ck-space-2) var(--ck-space-3);
+	border: 1px solid var(--ck-chrome-500);
+	border-radius: var(--ck-radius-sm);
+	background-image: var(--ck-chrome-polish);
+	color: var(--ck-text-inverse);
+	font-family: var(--ck-font-display);
+	font-size: 0.82rem;
+	letter-spacing: 0.12em;
+	text-transform: uppercase;
+	cursor: pointer;
+	box-shadow: 0 0.2rem 0.5rem var(--ck-shadow-hard);
+	transition: transform var(--ck-duration-fast) var(--ck-ease-mech);
+}
+
+.ck-credit__set-apply:active {
+	transform: translateY(0.1rem);
+}
+
+/* Sichtbarer Tastaturfokus. Ohne ihn wäre nicht zu sehen, wo man mit der
+   Tabulatortaste gerade steht — die einzige Ortsangabe, die ein
+   Tastaturbenutzer hat. Der Glühlampenkern hebt sich sowohl vom dunklen
+   Eingabefeld als auch von der Chromfläche des Knopfes deutlich ab. */
+.ck-credit__set-input:focus-visible,
+.ck-credit__set-apply:focus-visible {
+	outline: 0.18rem solid var(--ck-bulb-core);
+	outline-offset: 0.12rem;
+}
+
+.ck-credit__set-status {
+	min-block-size: 1.3rem;
+	margin: var(--ck-space-2) 0 0;
+	color: var(--ck-text-muted);
+	font-size: 0.8rem;
+}
+
+/* Kein opacity mehr (Audit A-03). Deckkraft mischt die Schrift rechnerisch
+   mit dem Vorhang darunter: aus --ck-text-muted auf rgb(44,10,16) wurde
+   rgb(145,120,100) und damit 4,36:1 — unter der Schwelle von 4,5:1, und aus
+   echten Bildpunkten sogar 3,81:1. Ohne die Deckkraft sind es 6,89:1
+   (gerechnet) bzw. 6,86:1 (aus Bildpunkten, an der Statuszeile mit derselben
+   Farbe auf demselben Grund gemessen). Die Unterordnung des Hinweises trägt
+   die kleinere Schrift, nicht die Blässe. */
+.ck-credit__set-hint {
+	margin: var(--ck-space-1) 0 0;
+	color: var(--ck-text-muted);
+	font-size: 0.72rem;
+}
+
+
+/* ==========================================================================
+   5  Automaten-Reihen
+   ========================================================================== */
+
+/* Gewöhnlicher Inhalt auf einer Seite ohne Saal-Aufstellung.
+   flow-root schließt die Ränder der Kinder ein, mehr braucht es nicht. */
+.ck-hall__content--plain {
+	display: flow-root;
+}
+
+/* Die Aufstellung im Saal. Das Raster sitzt bewusst am Container: ein
+   einzelnes Inhaltselement weiß nicht, wie viele Geschwister es hat, und
+   könnte sich deshalb gar nicht selbst in eine Reihe einordnen.
+   minmax(0, 1fr) statt 1fr, damit ein breites Kind (etwa ein großes SVG)
+   die Spalte niemals aufblähen und dadurch eine waagerechte Scrollleiste
+   erzeugen kann.
+   align-items: end stellt alle Geräte einer Reihe auf dieselbe Bodenlinie,
+   auch wenn ihre Gehäuse unterschiedlich hoch sind. */
+.ck-hall__content--devices {
+	display: grid;
+	grid-template-columns: repeat(1, minmax(0, 1fr));
+	gap: var(--ck-space-6) var(--ck-space-4);
+	align-items: end;
+	justify-items: center;
+}
+
+/* Tablet ab 768px: 2 Geräte pro Reihe. */
+@media (min-width: 48rem) {
+	.ck-hall__content--devices {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
+
+/* Desktop ab 1200px: 4 Geräte pro Reihe. */
+@media (min-width: 75rem) {
+	.ck-hall__content--devices {
+		grid-template-columns: repeat(4, minmax(0, 1fr));
+	}
+}
+
+
+/* ==========================================================================
+   6  Ein Automat auf seinem Podest
+   ========================================================================== */
+
+.ck-slot {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	inline-size: 100%;
+	text-align: center;
+}
+
+/* Das Licht von oben. Bewusst ohne mix-blend-mode: auf dem dunklen Teppich
+   sieht eine schlichte halbdurchsichtige Lage genauso aus, kostet aber
+   keinen eigenen Zeichenkontext je Gerät.
+   z-index: -1 legt den Lichtkegel hinter das Gehäuse. */
+.ck-slot::before {
+	content: "";
+	position: absolute;
+	z-index: -1;
+	inset-block-start: -3.5rem;
+	inset-inline-start: 50%;
+	inline-size: calc(var(--ck-cabinet-width) * 1.9);
+	block-size: calc(var(--ck-cabinet-width) * 2.4);
+	transform: translateX(-50%);
+	background-image: radial-gradient(
+		58% 46% at 50% 0%,
+		var(--ck-ambient-warm) 0%,
+		var(--ck-ambient-haze) 42%,
+		transparent 78%
+	);
+	pointer-events: none;
+}
+
+/* f:link.typolink erzeugt nur dann ein <a>, wenn eine Zielseite hinterlegt
+   ist. Fehlt sie, werden Bühne und Schild direkte Kinder von .ck-slot.
+   Deshalb tragen beide Ebenen dieselbe Flex-Aufstellung. */
+.ck-slot__link {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	inline-size: 100%;
+	color: inherit;
+	text-decoration: none;
+}
+
+.ck-slot__stage {
+	position: relative;
+	display: block;
+	inline-size: min(100%, var(--ck-cabinet-width));
+	margin-inline: auto;
+	padding-block-end: var(--ck-plinth-height);
+}
+
+/* Schattenwurf auf den Teppich. Kurz und dunkel, weil das Licht von oben
+   kommt. */
+.ck-slot__stage::before {
+	content: "";
+	position: absolute;
+	inset-block-end: -0.4rem;
+	inset-inline-start: 50%;
+	inline-size: 138%;
+	block-size: 2.4rem;
+	transform: translateX(-50%);
+	background-image: radial-gradient(
+		50% 50% at 50% 50%,
+		var(--ck-shadow-pool) 0%,
+		var(--ck-shadow-soft) 46%,
+		transparent 72%
+	);
+	filter: blur(2px);
+	pointer-events: none;
+}
+
+/* Das Podest: eine flache Holzstufe mit Messingkante. clip-path macht sie
+   unten breiter als oben – der Blick auf den Saal geht leicht von oben. */
+.ck-slot__stage::after {
+	content: "";
+	position: absolute;
+	inset-block-end: 0;
+	inset-inline-start: 50%;
+	inline-size: 88%;
+	block-size: var(--ck-plinth-height);
+	transform: translateX(-50%);
+	clip-path: polygon(3.5% 0%, 96.5% 0%, 100% 100%, 0% 100%);
+	background-image:
+		linear-gradient(180deg, var(--ck-brass-200) 0 2px, transparent 2px),
+		linear-gradient(
+			180deg,
+			var(--ck-wood-200) 0%,
+			var(--ck-wood-400) 52%,
+			var(--ck-wood-500) 100%
+		);
+	pointer-events: none;
+}
+
+/* Vertrag für Automaten-Extensions: das Gehäuse-Partial liefert genau ein
+   Element mit der Klasse ck-cabinet und darin genau ein <svg> mit der Klasse
+   ck-cabinet__drawing und einem viewBox-Seitenverhältnis von 100 : 160
+   (DESIGNBRIEF.md Abschnitt 1: Standautomaten der Epoche sind rund 1,6-mal so hoch wie
+   breit). Breite und Schatten regelt dann der Saal. */
+.ck-cabinet {
+	position: relative;
+	z-index: 1;
+	display: block;
+}
+
+.ck-cabinet__drawing {
+	display: block;
+	inline-size: 100%;
+	block-size: auto;
+	filter:
+		drop-shadow(0 0.15rem 0.2rem var(--ck-shadow-hard))
+		drop-shadow(0 0.6rem 0.9rem var(--ck-shadow-soft));
+	transition:
+		transform var(--ck-duration-base) var(--ck-ease-mech),
+		filter var(--ck-duration-base) var(--ck-ease-mech);
+}
+
+.ck-slot__link:hover .ck-cabinet__drawing {
+	transform: translateY(-0.25rem);
+	filter:
+		drop-shadow(0 0.2rem 0.25rem var(--ck-shadow-hard))
+		drop-shadow(0 0.9rem 1.4rem var(--ck-shadow-soft))
+		drop-shadow(0 0 1.1rem var(--ck-bulb-halo));
+}
+
+/* Namensschild am Fuß des Geräts – eine gravierte Messingplatte. */
+.ck-slot__plate {
+	display: inline-block;
+	max-inline-size: 100%;
+	margin-block-start: var(--ck-space-3);
+	padding: var(--ck-space-1) var(--ck-space-3);
+	border: 1px solid var(--ck-brass-500);
+	border-radius: var(--ck-radius-sm);
+	background-image: var(--ck-brass-polish);
+	color: var(--ck-text-inverse);
+	font-family: var(--ck-font-display);
+	font-size: 0.95rem;
+	letter-spacing: 0.1em;
+	text-transform: uppercase;
+	text-shadow: 0 1px 0 var(--ck-brass-100);
+	box-shadow: 0 0.25rem 0.6rem var(--ck-shadow-hard);
+}
+
+
+/* ==========================================================================
+   7  Bewegung
+   ========================================================================== */
+
+/*
+ * Der Zündvorgang einer Gasröhre: zwei Fehlzündungen, dann brennt sie.
+ * Läuft genau einmal beim Seitenaufruf; nach rund 1,3 Sekunden steht das
+ * Licht. Es liest sich als anlaufende Röhre, nicht als blinkende
+ * Fehlermeldung.
+ *
+ * ES SIND BEWUSST NUR ZWEI. Die ursprüngliche Fassung hatte vier
+ * Aufhellungen und drängte sie in 517 ms zusammen — gemessen an der
+ * laufenden Animation, mit einem Helligkeitshub von 81,9 % über den
+ * kompletten Schriftzug. Damit lag sie über der Grenze von drei
+ * Lichtwechseln je Sekunde, ab der Blinken bei lichtempfindlichen Menschen
+ * Anfälle auslösen kann. CONCEPT.md Abschnitt 3.4 erklärt diese Grenze für
+ * nicht verhandelbar und nimmt sie ausdrücklich vom Nicht-Ziel
+ * „Barrierefreiheit" aus: sie ist eine Sicherheitsgrenze, keine Komfortfrage.
+ *
+ * Die drei Aufhellungen liegen jetzt bei 7,5 %, 30,5 % und 55 % von 2,4 s,
+ * also bei 180 ms, 732 ms und 1320 ms. Der kleinste Abstand beträgt 552 ms;
+ * in KEINER Sekunde des Ablaufs liegen mehr als zwei Aufhellungen. Wer die
+ * Prozentwerte ändert, muss diese Rechnung neu aufmachen.
+ *
+ * Am Eindruck ändert das wenig: eine echte Gasröhre zündet mit wenigen,
+ * unregelmäßigen Versuchen, nicht mit einem Stroboskop.
+ */
+@keyframes ck-neon-strike {
+	0%,
+	7% {
+		opacity: 0.18;
+		text-shadow: none;
+	}
+	7.5%,
+	10% {
+		opacity: 1;
+		text-shadow: var(--ck-sign-glow);
+	}
+	10.5%,
+	30% {
+		opacity: 0.18;
+		text-shadow: none;
+	}
+	30.5%,
+	33% {
+		opacity: 1;
+		text-shadow: var(--ck-sign-glow);
+	}
+	33.5%,
+	54% {
+		opacity: 0.3;
+		text-shadow: none;
+	}
+	55%,
+	100% {
+		opacity: 1;
+		text-shadow: var(--ck-sign-glow);
+	}
+}
+
+/*
+ * Ruheatmen. Läuft danach dauerhaft, aber sehr flach: die Helligkeit wandert
+ * langsam um wenige Prozent, und zweimal je Umlauf sackt sie für rund 60 ms
+ * ab. Das ist das gelegentliche Zucken einer alten Röhre — kein Blinken.
+ */
+@keyframes ck-neon-breathe {
+	0%,
+	100% {
+		filter: brightness(1);
+	}
+	17% {
+		filter: brightness(0.97);
+	}
+	18.6% {
+		filter: brightness(0.6);
+	}
+	19.4% {
+		filter: brightness(1.03);
+	}
+	41% {
+		filter: brightness(0.94);
+	}
+	58% {
+		filter: brightness(1.02);
+	}
+	76.4% {
+		filter: brightness(1);
+	}
+	77.2% {
+		filter: brightness(0.68);
+	}
+	78% {
+		filter: brightness(1.01);
+	}
+}
+
+/* ---------------------------------------------------------------------------
+   Seitenkopf einer Unterseite
+   ---------------------------------------------------------------------------
+   Ein angeschraubtes Messingschild, kein zweites Leuchtschild. Es sitzt im
+   selben .ck-room__marquee wie die Neonreklame des Saals, tritt aber bewusst
+   zurück: die Seite gehört dem Gerät, nicht ihrer Überschrift.
+
+   Alle Farben kommen aus tokens.css — hier steht kein ausgeschriebener Wert.
+--------------------------------------------------------------------------- */
+.ck-pagehead {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 0.4rem;
+	padding: 0.6rem 1rem 0.2rem;
+	text-align: center;
+}
+
+.ck-pagehead__title {
+	margin: 0;
+	color: var(--ck-brass-200);
+	font-family: var(--ck-font-display);
+	font-size: clamp(1.1rem, 3.2vw, 1.9rem);
+	font-weight: 400;
+	letter-spacing: 0.16em;
+	text-transform: uppercase;
+}
+
+.ck-pagehead__back {
+	color: var(--ck-brass-300);
+	font-family: var(--ck-font-display);
+	font-size: clamp(0.7rem, 1.8vw, 0.85rem);
+	letter-spacing: 0.12em;
+	text-decoration: none;
+	text-transform: uppercase;
+}
+
+.ck-pagehead__back::before {
+	content: "\00AB\00A0";
+}
+
+.ck-pagehead__back:hover,
+.ck-pagehead__back:focus-visible {
+	color: var(--ck-brass-100);
+	text-decoration: underline;
+}

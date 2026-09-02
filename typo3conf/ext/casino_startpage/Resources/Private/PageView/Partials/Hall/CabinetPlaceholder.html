@@ -1,0 +1,59 @@
+<f:comment>
+	Platzhalter-Gehäuse.
+
+	Wird gezeichnet, solange eine Automaten-Extension noch kein eigenes
+	Gehäuse-Partial mitbringt. Bewusst schlicht: die Saal-Optik entsteht in
+	Phase 3, das echte Gehäuse in Phase 5.
+
+	Proportion 1 : 1,6 nach DESIGNBRIEF.md Abschnitt 1 (Standautomaten der 1940er
+	bis 1950er). Alle Farben kommen aus den Design-Tokens in tokens.css.
+</f:comment>
+<span class="ck-cabinet ck-cabinet--placeholder">
+	<f:comment>aria-hidden: die Zeichnung steht im Saal unmittelbar neben dem
+		sichtbaren Namensschild der Kachel. Ein <title> hier gäbe dem Verweis
+		denselben Namen ein zweites Mal (Audit S-01).</f:comment>
+	<svg class="ck-cabinet__drawing" viewBox="0 0 100 160" preserveAspectRatio="xMidYMid meet"
+		focusable="false" aria-hidden="true">
+
+		<f:comment>Sockel</f:comment>
+		<rect x="6" y="146" width="88" height="12" rx="3" fill="var(--ck-wood-500)" />
+
+		<f:comment>Korpus mit gerundeter Schulter, dunkles Nussbaumholz</f:comment>
+		<path d="M14 146 V44 Q14 14 50 14 Q86 14 86 44 V146 Z"
+			fill="var(--ck-wood-300)" stroke="var(--ck-wood-500)" stroke-width="2" />
+
+		<f:comment>Verchromte Frontplatte mit einem harten Glanzband</f:comment>
+		<path d="M22 140 V48 Q22 24 50 24 Q78 24 78 48 V140 Z"
+			fill="var(--ck-chrome-300)" stroke="var(--ck-chrome-500)" stroke-width="1.5" />
+		<path d="M30 138 V48 Q30 30 43 27 L43 138 Z" fill="var(--ck-chrome-100)" opacity="0.5" />
+
+		<f:comment>Walzenfenster mit drei Walzen auf cremefarbenem Papier</f:comment>
+		<rect x="30" y="46" width="40" height="26" rx="3" fill="var(--ck-nixie-dark)" />
+		<rect x="32" y="48" width="11" height="22" rx="2" fill="var(--ck-paper-100)" />
+		<rect x="44.5" y="48" width="11" height="22" rx="2" fill="var(--ck-paper-100)" />
+		<rect x="57" y="48" width="11" height="22" rx="2" fill="var(--ck-paper-100)" />
+		<line x1="30" y1="59" x2="70" y2="59" stroke="var(--ck-nixie-deep)" stroke-width="1" />
+
+		<f:comment>Gewinnplan hinter Glas</f:comment>
+		<rect x="30" y="78" width="40" height="20" rx="2"
+			fill="var(--ck-paper-100)" stroke="var(--ck-brass-400)" stroke-width="1" />
+		<line x1="34" y1="84" x2="66" y2="84" stroke="var(--ck-wood-500)" stroke-width="1.5" />
+		<line x1="34" y1="89" x2="66" y2="89" stroke="var(--ck-wood-500)" stroke-width="1.5" />
+		<line x1="34" y1="94" x2="58" y2="94" stroke="var(--ck-wood-500)" stroke-width="1.5" />
+
+		<f:comment>Chrom-Bedienleiste mit Bakelit-Tasten</f:comment>
+		<rect x="26" y="106" width="48" height="10" rx="5" fill="var(--ck-chrome-400)" />
+		<circle cx="36" cy="111" r="3" fill="var(--ck-bulb-off)" />
+		<circle cx="50" cy="111" r="3" fill="var(--ck-bulb-glow)" />
+		<circle cx="64" cy="111" r="3" fill="var(--ck-bulb-off)" />
+
+		<f:comment>Münzschlitz und Auswurfschale</f:comment>
+		<rect x="46" y="124" width="8" height="3" rx="1.5" fill="var(--ck-chrome-500)" />
+		<path d="M36 132 h28 v6 a4 4 0 0 1 -4 4 h-20 a4 4 0 0 1 -4 -4 Z" fill="var(--ck-chrome-400)" />
+
+		<f:comment>Hebel mit rotem Kugelgriff, rechts am Gehäuse</f:comment>
+		<rect x="84" y="52" width="6" height="10" rx="3" fill="var(--ck-chrome-400)" />
+		<line x1="87" y1="58" x2="94" y2="79" stroke="var(--ck-chrome-300)" stroke-width="3" stroke-linecap="round" />
+		<circle cx="94" cy="84" r="5" fill="var(--ck-nixie-deep)" />
+	</svg>
+</span>

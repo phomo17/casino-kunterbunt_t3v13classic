@@ -1,0 +1,29 @@
+<f:comment>
+	Eine runde Bakelit-Drucktaste im Chromring, dahinter eine Glühlampe
+	(DESIGNBRIEF.md Abschnitt 6).
+
+	{key}       Wert für data-rs-button; Phase 6 bis 10 greifen darauf zu
+	{labelKey}  Schlüssel der Beschriftung; leer bei den beiden
+	            unbeschrifteten Risiko-Tasten
+	{lamp}      1, wenn über der Taste ein Lichtfeld sitzt
+
+	Der Platzhalter .rs-btn__lamp-slot ist immer da, auch leer. Nur so
+	sitzen alle sechs Kappen auf einer Linie, obwohl nur zwei ein Lichtfeld
+	tragen.
+
+	Das Lichtfeld liegt IM button: wer darauf tippt, hat die Taste
+	darunter gedrückt — genau so ist die Risiko-Leiter gemeint. Alle Kinder
+	sind span, weil der Inhalt eines button nur Phrasing Content sein darf.
+
+	Ein button ohne Ereignis tut nichts. Das ist in Phase 5 richtig: das
+	Gerät ist statisch, aber das Element ist das semantisch korrekte für
+	eine Bedientaste und muss später nicht ausgetauscht werden.
+</f:comment>
+<button type="button" class="rs-btn rs-btn--{key}" data-rs-button="{key}">
+	<span class="rs-btn__lamp-slot"><f:if condition="{lamp}">
+		<span class="rs-lamp" data-rs-lamp="{key}"></span>
+	</f:if></span>
+	<span class="rs-btn__cap"></span>
+	<span class="rs-btn__label"><f:if condition="{labelKey}"><f:translate
+		key="LLL:EXT:reel_slot/Resources/Private/Language/locallang.xlf:{labelKey}" /></f:if></span>
+</button>

@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" version="1.2">
+	<file source-language="de" datatype="plaintext" original="EXT:reel_slot/Resources/Private/Language/locallang.xlf" date="2026-09-01T00:00:00Z" product-name="reel_slot">
+		<header/>
+		<body>
+			<trans-unit id="automat.title">
+				<source>Reel Slot</source>
+			</trans-unit>
+			<trans-unit id="automat.description">
+				<source>Klassischer Drei-Walzen-Automat im Chrom-und-Holz-Gehäuse der 1950er Jahre, mit Hebel, Risiko-Leiter und Auto-Modus.</source>
+			</trans-unit>
+
+			<trans-unit id="cabinet.nameplate">
+				<source>REEL SLOT</source>
+			</trans-unit>
+
+			<!-- Kopfschild des großen Gehäuses, zwei Zeilen -->
+			<trans-unit id="machine.nameplate.line1">
+				<source>REEL</source>
+			</trans-unit>
+			<trans-unit id="machine.nameplate.line2">
+				<source>SLOT</source>
+			</trans-unit>
+
+			<!-- Gewinnplan hinter Glas -->
+			<trans-unit id="machine.paytable.title">
+				<source>GEWINNPLAN · WERTE BEI EINSATZ 1</source>
+			</trans-unit>
+
+			<!-- Beschriftung der vier Nixie-Anzeigen. Deutsch, weil es
+			     Anzeigen sind; nur die Tastenbeschriftungen bleiben
+			     englisch (CONCEPT.md Abschnitt 4). -->
+			<trans-unit id="machine.display.guthaben">
+				<source>Guthaben</source>
+			</trans-unit>
+			<trans-unit id="machine.display.einsatz">
+				<source>Einsatz</source>
+			</trans-unit>
+			<trans-unit id="machine.display.stufe">
+				<source>Stufe</source>
+			</trans-unit>
+			<trans-unit id="machine.display.gewinn">
+				<source>Gewinn</source>
+			</trans-unit>
+
+			<!-- Satzmuster der unsichtbaren Ansagebereiche (Audit R-01). Die
+			     gezeichneten Röhren tragen aria-hidden; angesagt wird dieser
+			     eine, vollständige Satz. {0} ist der Platz der Zahl — die
+			     JavaScript-Syntax, weil der Text als data-Attribut ins Dokument
+			     reist und dort ersetzt wird, nicht über <f:translate arguments>. -->
+			<trans-unit id="machine.display.guthaben.announce">
+				<source>Guthaben: {0}</source>
+			</trans-unit>
+			<trans-unit id="machine.display.einsatz.announce">
+				<source>Einsatz: {0}</source>
+			</trans-unit>
+			<trans-unit id="machine.display.stufe.announce">
+				<source>Stufe: {0}</source>
+			</trans-unit>
+			<trans-unit id="machine.display.gewinn.announce">
+				<source>Gewinn: {0}</source>
+			</trans-unit>
+
+			<!-- Bakelit-Drucktasten. AUTO MODE, RISK und REWARD bleiben
+			     englisch: so stehen sie auf den echten Geräten
+			     (CONCEPT.md Abschnitt 4). -->
+			<trans-unit id="machine.button.stop">
+				<source>STOP</source>
+			</trans-unit>
+			<trans-unit id="machine.button.auto">
+				<source>AUTO MODE</source>
+			</trans-unit>
+			<trans-unit id="machine.button.risk">
+				<source>RISK</source>
+			</trans-unit>
+			<trans-unit id="machine.button.reward">
+				<source>REWARD</source>
+			</trans-unit>
+
+			<!-- Ton-Schalter am Gehäuse -->
+			<trans-unit id="machine.sound.label">
+				<source>TON</source>
+			</trans-unit>
+
+			<!-- Meldungsschild über dem Walzenfenster. Ab Phase 7 sichtbar,
+			     wenn das Guthaben für den gewählten Einsatz nicht reicht
+			     (CONCEPT.md Abschnitt 3.3). -->
+			<trans-unit id="machine.message.insufficient">
+				<source>GUTHABEN ZU GERING</source>
+			</trans-unit>
+			<trans-unit id="machine.message.invalid">
+				<source>BETRAG UNGÜLTIG</source>
+			</trans-unit>
+			<trans-unit id="machine.message.capped">
+				<source>KONTO VOLL</source>
+			</trans-unit>
+			<trans-unit id="machine.message.void">
+				<source>RUNDE UNGÜLTIG</source>
+			</trans-unit>
+			<trans-unit id="machine.message.nocash">
+				<source>KASSE ZU GERING</source>
+			</trans-unit>
+
+			<!-- Geldeinwurf am Sockel (CONCEPT.md Abschnitt 3.6). Die drei
+			     Schnellwerte stehen als Text auf den Messingknöpfen. -->
+			<trans-unit id="machine.coin.add.10">
+				<source>+10</source>
+			</trans-unit>
+			<trans-unit id="machine.coin.add.50">
+				<source>+50</source>
+			</trans-unit>
+			<trans-unit id="machine.coin.add.100">
+				<source>+100</source>
+			</trans-unit>
+			<trans-unit id="machine.coin.custom">
+				<source>Freier Betrag</source>
+			</trans-unit>
+			<trans-unit id="machine.coin.placeholder">
+				<source>Betrag</source>
+			</trans-unit>
+			<trans-unit id="machine.coin.insert">
+				<source>Einwerfen</source>
+			</trans-unit>
+
+			<!-- Kasse am Gehäuse (CONCEPT.md B.5.1 und B.5.2). „Kasse" ist
+			     deutsch, weil es eine Anzeige ist; CASH OUT bleibt englisch,
+			     weil es eine Tastenbeschriftung ist und auf echten Geräten so
+			     dasteht (CONCEPT.md Abschnitt 4). -->
+			<trans-unit id="machine.bank.label">
+				<source>Kasse</source>
+			</trans-unit>
+			<!-- Der Satz, den ein Bildschirmleser hört, wenn sich der
+			     Kassenstand ändert (Audit A-02). {0} ist der Platz der Zahl;
+			     bank.js setzt sie ein. Bewusst ein ganzer, verständlicher
+			     Satzteil und nicht nur die Zahl: er muss auch ohne die
+			     gezeichnete Anzeige daneben eindeutig sein. -->
+			<trans-unit id="machine.bank.announce">
+				<source>Kasse: {0}</source>
+			</trans-unit>
+			<trans-unit id="machine.cashout.label">
+				<source>CASH OUT</source>
+			</trans-unit>
+		</body>
+	</file>
+</xliff>

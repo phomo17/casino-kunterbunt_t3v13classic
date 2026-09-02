@@ -1,0 +1,46 @@
+<f:comment>
+	Kassenstand von Hand setzen — die spätere Bruchstelle.
+
+	CONCEPT.md B.5.1: das freie Setzen ist ein eigener, klar benannter
+	Bedienteil und kein Beiwerk. In Stufe 3 kommt der Wert vom Benutzerkonto,
+	und dann wird genau diese Datei gelöscht, dazu credit-set.js und die eine
+	Renderzeile in Credit.html. Es bleibt nichts zurück.
+
+	Deshalb steht auch die Modulanforderung HIER und nicht in Credit.html:
+	verschwindet das Partial, verschwindet die Anforderung mit.
+
+	Barrierefreiheit der Bedienelemente (ausdrücklicher Auftrag zu dieser
+	Phase, abweichend vom Nicht-Ziel aus Teil A Abschnitt 4):
+	- ein sichtbares label mit for= — die Beschriftung gehört zum Feld und
+	  ist auch mit der Maus anklickbar
+	- aria-describedby verbindet das Feld dauerhaft mit der Statuszeile
+	- role="status" lässt Hilfsmittel eine Rückmeldung von selbst vorlesen;
+	  der Kasten steht deshalb schon leer im Dokument, denn ein erst per
+	  JavaScript erzeugter Bereich wird nicht angesagt
+	- ein echtes button-Element, also von Haus aus mit Eingabe- und
+	  Leertaste bedienbar
+	- die Ausweise sind fest, weil dieser Bedienteil je Seite genau einmal
+	  vorkommt
+
+	min="0": anders als beim Einwurf ist 0 hier ein gültiger Wert — das freie
+	Setzen darf den Bestand verringern, bis auf null.
+</f:comment>
+<f:asset.module identifier="@phomo17/casino-startpage/credit-set.js" />
+
+<div class="ck-credit__set" data-ck-credit-set=""
+	data-message-invalid="{f:translate(key: 'LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:hall.credit.set.message.invalid')}"
+	data-message-done="{f:translate(key: 'LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:hall.credit.set.message.done')}">
+
+	<p class="ck-credit__set-legend"><f:translate key="LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:hall.credit.set.legend" /></p>
+
+	<form class="ck-credit__set-form" data-ck-credit-set-form="">
+		<label class="ck-credit__set-label" for="ck-credit-set-input"><f:translate key="LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:hall.credit.set.label" /></label>
+		<input type="number" class="ck-credit__set-input" id="ck-credit-set-input"
+			data-ck-credit-set-input="" aria-describedby="ck-credit-set-status"
+			inputmode="numeric" min="0" max="999999999" step="1" value="" />
+		<button type="submit" class="ck-credit__set-apply"><f:translate key="LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:hall.credit.set.apply" /></button>
+	</form>
+
+	<p class="ck-credit__set-status" id="ck-credit-set-status" data-ck-credit-set-status="" role="status"></p>
+	<p class="ck-credit__set-hint"><f:translate key="LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:hall.credit.set.hint" /></p>
+</div>

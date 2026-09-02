@@ -1,0 +1,43 @@
+<f:comment>
+	Inhaltselement „Reel Slot" — der Automat auf seiner
+	eigenen Seite.
+
+	Das Element hat keine Einstellungen und wertet keinen Datenbankwert aus.
+	Es stellt das Gerät auf, mehr nicht.
+
+	f:asset.css meldet das Stylesheet beim AssetCollector an. Dadurch wird es
+	nur auf Seiten geladen, auf denen dieses Element wirklich steht — anders
+	als page.includeCSS, das auf jeder Seite lädt. Der Core gibt die Dateien
+	des Sammlers nach den includeCSS-Dateien aus, also nach tokens.css und
+	base.css; die Kaskade stimmt damit von allein.
+
+	ck-room-fill ist der Vertrag aus casino_startpage/README.md, Abschnitt
+	„Vertrag für ein bildschirmfüllendes Gerät": der Saal ordnet sich zu
+	genau einer Bildschirmhöhe an und übergibt den ganzen Rest unter dem
+	Wandband an dieses Element. Erst dadurch ist das Gehäuse auf jedem
+	Bildschirm vollständig sichtbar, ohne dass irgendwo gescrollt wird
+	(CONCEPT.md Abschnitt 3.2). Dieses Element rechnet NICHT selbst mit den
+	Maßen des Saals.
+
+	{machine} kommt aus dem MachineProcessor und enthält die drei
+	Walzenbänder nach Anhang C.
+
+	f:asset.module meldet den Spielkern beim selben Sammler an und lädt ihn
+	damit ebenfalls nur auf Seiten, auf denen der Automat steht. Der Name
+	ist kein Pfad, sondern ein „bare specifier": aufgelöst wird er über die
+	Import-Map aus Configuration/JavaScriptModules.php. Die
+	TypoScript-Eigenschaft page.includeJSModule gibt es in TYPO3 13.4 nicht
+	(DECISIONS.md, Phase 1).
+
+	Das Modul fasst kein Markup an. Es setzt ausschließlich die Klassen und
+	Custom Properties, die im Kopf von machine.css als Haken für Phase 6
+	aufgeführt sind.
+</f:comment>
+<f:asset.css identifier="reelSlotMachine"
+	href="EXT:reel_slot/Resources/Public/Css/machine.css" />
+<f:asset.module identifier="@phomo17/reel-slot/reel-slot.js" />
+
+<div class="rs-machine ck-room-fill">
+	<f:render partial="Automat/ReelSlot/Machine/Cabinet"
+		arguments="{machine: machine}" />
+</div>

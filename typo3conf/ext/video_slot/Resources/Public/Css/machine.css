@@ -1,0 +1,1440 @@
+/*
+ * Video Slot – das Gehäuse
+ * =======================================
+ *
+ * Wird ausschließlich von Resources/Private/ContentElements/Machine.html über
+ * <f:asset.css> angefordert und deshalb nur auf Seiten geladen, auf denen der
+ * Automat wirklich steht.
+ *
+ * Alle Farben kommen aus casino_startpage/Resources/Public/Css/tokens.css.
+ * In dieser Datei steht kein ausgeschriebener Farbwert. Wo ein Token
+ * durchsichtig gebraucht wird, steht color-mix(… , transparent) statt eines
+ * neuen rgba-Werts.
+ *
+ * Eigener Klassenpräfix „vs-". Geteilt werden nur die Vertragsklassen des
+ * Site Packages: ck-cabinet / ck-cabinet__drawing (Saal-Miniatur, hier nicht
+ * benutzt) und ck-room-fill (bildschirmfüllendes Gerät).
+ *
+ * KEINE Bewegungsdrosselung: prefers-reduced-motion bleibt laut CONCEPT.md
+ * B.1 Nicht-Ziel. Das Fehlen ist Absicht, kein Versehen.
+ *
+ *
+ * DAS MASSRASTER
+ * --------------
+ * Der viewBox der Zeichnung ist 0 0 100 160. .vs-cabinet ist ein
+ * Container-Query-Container mit genau diesem Seitenverhältnis. Damit gilt in
+ * allen Kindern:
+ *
+ *     1cqi = 1 viewBox-Einheit – in BEIDEN Achsen.
+ *
+ * Ein HTML-Kasten auf left: 12cqi; top: 52cqi liegt punktgenau über dem
+ * SVG-Rechteck x="12" y="52". Es gibt genau eine Koordinatentabelle für
+ * das ganze Gerät:
+ *
+ *   Sockel / Chromblende      x  2–82   y 134–160
+ *   Korpus (Nussbaum)         x  6–78   y  20–136   (72 × 116)
+ *   Kopfschild / Leuchtkasten x 14–70   y   2– 20
+ *   Chrom-Frontplatte         x  9–75   y  23–133
+ *   Gewinnplan (Karte)        x 11–73   y  24– 47
+ *     Titel                   Grundlinie y 27,4 · Schrift 2,4
+ *     rote Linie              y 28,6
+ *     Spaltenköpfe            Grundlinie y 31,4 · Schrift 2,0
+ *     Hälfte 1 (5 Zeilen)     Symbol x 12,4 · Hinweis x 15,4 · Werte 30,5 / 35,5 / 40,5
+ *     Hälfte 2 (4 Zeilen)     Symbol x 43,4 · Hinweis x 46,4 · Werte 61,5 / 66,5 / 71,5
+ *     Zeile n                 Oberkante y = 32,4 + n · 2,7 · Symbol 2,4
+ *   Fenster (Rahmen)          x 10,5–73,5  y  50,5– 95,5
+ *     Sichtfeld               x 12–72   y 52–94        (60 × 42)
+ *     Walze c (0…4)           x = 12 + c · 12          (Breite 12)
+ *     Zeile r (0…2)           y = 52 + r · 14          (Höhe 14)
+ *     Band je Walze           viewBox 12 × 700 = 50 Zellen à 14
+ *                             (die 25 Positionen aus Rules::STRIPS, zweimal)
+ *     Leuchtfeld je Zelle k   im Band: x 0,4 · y k·14+0,4 · 11,2 × 13,2
+ *     Symbol je Zelle k       im Band: x 1   · y k·14+2   · 10 × 10
+ *     --vs-reel-pos           Zellindex in der MITTLEREN Zeile, Grundstellung 26;
+ *                             Band um (pos − 1) · 14 Einheiten nach oben geschoben
+ *     Gewinnlinien-Overlay    deckungsgleich mit dem Sichtfeld, viewBox 60 × 42
+ *   Nixie-Chromplatte         x 10,4–73,6  y  98,6–115,2
+ *     Panel (HTML)            x 11,5–72,5  y  99,5–114
+ *     Röhren                  y 102,0–113,0   (3,3 × 11 je Röhre)
+ *     Vier Gruppen            GUTHABEN 6 · EINSATZ 2 · STUFE 2 · GEWINN 5
+ *                             = 15 Röhren, zusammen 53,2 breit; die drei
+ *                             Zwischenräume sind je 2,6.
+ *   Bedienleiste (Platte)     x  9–75   y 118,5–133
+ *     Raster (HTML)           x  9–75   y 115,5–133   (6 Spalten à 11)
+ *     Lichtfelder             Spalte 3 und 5, y 115,5–119,7  (6,4 × 3,4)
+ *     Tastenkappen            y 120,1–129,3   (⌀ 9,2)
+ *     Beschriftungen          y 129,7–131,7   (Schrift 1,7)
+ *   START-Konsole (gezeichnet) x 76–96  y  56– 88
+ *     START-Taste (HTML)      x 77,5–94,5  y  61,5–86
+ *       Kappe                 ⌀ 12,4, Mitte (86 / 70), Chromring 1,4 breit
+ *       Beschriftung          y 82–85,5   (Schrift 2,6)
+ *   Sockel Reihe A (HTML)     x  8–76   y 137–146,5
+ *     Einsatzwahl             x  8–50 (4 Tasten)
+ *     Ton-Schalter            x 55–76 (21 × 9,5)
+ *   Geldreihe (HTML)          x  8–78   y 147,6–154,2
+ *     Aufladeknöpfe           x  8–28
+ *     Münzschlitz             x 30–37   y 148,5–154
+ *     Kassenfenster           x 38,8–64,2  y 147,9–153,9
+ *       Inhalt (HTML)         x 39,8–63,2  y 148,7–153,1
+ *     Feld freier Betrag      x 66–78
+ *   Auswurfschale             x 20–66   y 154,8–159,6
+ *     zugleich CASH OUT       dieselbe Fläche, unsichtbarer button darüber
+ *   Meldungsschild            x 16–68   y  64– 81   (verborgen)
+ *
+ * Dieses Gerät hat KEINEN Hebel (CONCEPT.md B.8.1). Der Platz, an dem er am
+ * Reel Slot sitzt, trägt hier die START-Taste (B.8.2).
+ *
+ *
+ * DIE HAKEN FÜR SPÄTERE PHASEN
+ * ----------------------------
+ * Eine spätere Phase ändert das Aussehen ausschließlich über eine Klasse
+ * oder eine Custom Property – niemals über neues Markup. In Phase 5 setzt
+ * NICHTS davon: das Gerät ist statisch, es gibt kein JavaScript. Jede Zeile
+ * hier ist per Hand über die Entwicklerwerkzeuge auslösbar, und genau das
+ * ist Abnahmekriterium 3.
+ *
+ *   .vs-cell--win        Treffer-Zelle hervorheben                     (P6)
+ *   .vs-payline--win     Gewinnlinie sichtbar machen                    (P6)
+ *   --vs-reel-pos        Zellindex an der Mittelreihe, je .vs-reel      (P6)
+ *   --vs-reel-duration   Dauer des Einlaufens, je .vs-reel             (P6)
+ *   --vs-reel-ease       Kurve des Einlaufens, je .vs-reel             (P6)
+ *   .vs-start--pressed   START gedrückt gehalten                       (P6)
+ *   .vs-start--lit       START leuchtet                                (P6)
+ *   --vs-digit           angezeigte Ziffer, je .vs-nixie               (P7)
+ *   .vs-nixie--strike    Helligkeitseinbruch beim Ziffernwechsel        (P7)
+ *   .vs-nixie-group--overflow  Gruppe blinkt bei Überlauf              (P7)
+ *   .vs-message--shown   Meldungsschild einblenden                      (P7)
+ *   .vs-bet--selected    gewählter Einsatz                              (P7)
+ *   .vs-bets--locked     Einsatzwahl während eines Zuges gesperrt        (P7)
+ *   .vs-coinslot__coin--drop   Münze fällt in den Schlitz               (P7)
+ *   .vs-coinslot__slot--flash  Schlitz leuchtet beim Einwurf            (P7)
+ *   .vs-btn--lit         Taste leuchtet                                 (P7)
+ *   .vs-btn--blink       Taste blinkt                                   (P7)
+ *   .vs-btn--pressed     Taste gedrückt gehalten                        (P6)
+ *   .vs-lamp--on         Lichtfeld an                                   (P7)
+ *   .vs-cashout--lit     CASH OUT leuchtet, weil Gerätekredit da ist    (P7)
+ *   .vs-sound--on        Ton eingeschaltet                              (P7)
+ *
+ * --vs-reel-pos, --vs-reel-duration und --vs-reel-ease haben seit Phase 6
+ * eine Regel (Abschnitt 2, .vs-reel__strip): die Bänder sind jetzt 700cqi
+ * lang, und die Positionierung braucht --vs-reel-pos, um die Grundstellung
+ * überhaupt zu zeigen. --vs-reel-duration und --vs-reel-ease wirken erst,
+ * wenn Phase 6f den Walzenlauf per JavaScript antreibt; bis dahin bleiben
+ * ihre Vorgaben 0s/linear wirkungslos, weil kein Element sie setzt.
+ *
+ * Wem die Bedienteile gehören werden (je Teil genau einer, wie am Reel Slot):
+ *   START, STOP, Sichtfeld       machine.js                       (P6)
+ *   Einsatzwahl, Geldeinwurf     wallet.js / coinslot.js          (P7)
+ *   Kassenfenster, CASH OUT      bank.js                          (P7)
+ *   RISK, REWARD, links, rechts  risk.js                          (P7)
+ *   AUTO MODE                    auto.js                          (P7)
+ *   Ton-Schalter, Klang          sound.js                         (P7)
+ *
+ * Abschnitte:
+ *   1  Bühne und Gehäuse
+ *   2  Das leuchtende Fenster
+ *   3  Nixie-Anzeigen
+ *   4  Bedienleiste: Tasten und Lichtfelder
+ *   5  START
+ *   6  Sockel: Einsatzwahl und Ton-Schalter
+ *   7  Meldungsschild
+ *   8  Geldeinwurf, Kassenfenster und Auszahlung
+ *   9  Fokus und unsichtbare Beschriftungen
+ *  10  Bewegung (Keyframes)
+ */
+
+
+/* ==========================================================================
+   1  Bühne und Gehäuse
+   ========================================================================== */
+
+/*
+ * Die Bühne. ck-room-fill (Vertrag des Site Packages) sorgt dafür, dass
+ * dieser Kasten genau den Platz unter dem Wandband bekommt und die Seite
+ * insgesamt eine Bildschirmhöhe hoch ist.
+ *
+ * container-type: size macht ihn zum Bezug für die Größenrechnung des
+ * Gehäuses. min-block-size ist eine reine Absicherung: sollte :has() einmal
+ * nicht greifen, hätte der Kasten wegen der Größen-Eindämmung sonst die Höhe
+ * null und man sähe gar nichts. Der Wert liegt bewusst unter dem, was der
+ * Vertrag liefert, damit er im Normalfall nie wirkt.
+ *
+ * overflow: clip verhindert, dass Bodenschatten oder Leuchthöfe am Rand eine
+ * senkrechte Scrollleiste erzeugen. „clip" schneidet ab, ohne — anders als
+ * „hidden" — einen Scroll-Container zu erzeugen.
+ */
+.vs-machine {
+	container: vs-stage / size;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	block-size: 100%;
+	min-block-size: calc(100svh - 12rem);
+	overflow: clip;
+}
+
+/*
+ * Das Gehäuse. min(Breite, Höhe / 1,6) ist der genaue Ausdruck für „passt in
+ * beide Richtungen und behält sein Seitenverhältnis" (CONCEPT.md 3.2).
+ * 100cqi und 100cqb sind Breite und Höhe der Bühne.
+ *
+ * Zweiter container-type: size — dadurch ist innerhalb des Gehäuses
+ * 1cqi = 1 viewBox-Einheit. Ein Element ist nie sein eigener Container,
+ * deshalb rechnet die Zeile darüber noch mit der Bühne.
+ */
+.vs-cabinet {
+	container: vs-cabinet / size;
+	position: relative;
+	inline-size: min(100cqi, calc(100cqb / 1.6));
+	aspect-ratio: 100 / 160;
+}
+
+/* Schattenwurf auf den Teppich, damit das Gerät im Raum steht und nicht auf
+   der Seite klebt. Bewusst innerhalb des Gehäusekastens, damit er auch dann
+   sichtbar bleibt, wenn das Gehäuse die Bühne vollständig ausfüllt. */
+.vs-cabinet::after {
+	content: "";
+	position: absolute;
+	z-index: 0;
+	inset-inline: -8%;
+	inset-block-end: 0.5cqi;
+	block-size: 6cqi;
+	background-image: radial-gradient(
+		50% 50% at 50% 50%,
+		var(--ck-shadow-pool) 0%,
+		var(--ck-shadow-soft) 46%,
+		transparent 72%
+	);
+	filter: blur(0.5cqi);
+	pointer-events: none;
+}
+
+/* Die feste Zeichnung füllt den Kasten vollständig aus und liegt unter
+   allen beweglichen Teilen. */
+.vs-cabinet__shell {
+	position: absolute;
+	inset: 0;
+	z-index: 1;
+	inline-size: 100%;
+	block-size: 100%;
+	filter: drop-shadow(0 0.5cqi 0.9cqi var(--ck-shadow-hard));
+}
+
+/* Alle beweglichen Teile liegen über der Zeichnung. Ihre Reihenfolge im
+   Markup ist die Malreihenfolge. */
+.vs-grid,
+.vs-grid__glass,
+.vs-message,
+.vs-nixie-panel,
+.vs-rail,
+.vs-start,
+.vs-base-row,
+.vs-coinslot,
+.vs-bank,
+.vs-cashout {
+	position: absolute;
+	z-index: 2;
+}
+
+/* ==========================================================================
+   2  Das leuchtende Fenster
+   ========================================================================== */
+
+/* Das Sichtfeld. Fünf Spalten nebeneinander, ohne Lücke: die Fugen
+   entstehen aus dem Einzug der Leuchtfelder im Band, nicht aus einem gap.
+   So bleibt die Spaltenbreite genau 12 Einheiten und die Rechnung des
+   Prozessors stimmt. */
+.vs-grid {
+	inset-inline-start: 12cqi;
+	inset-block-start: 52cqi;
+	inline-size: 60cqi;
+	block-size: 42cqi;
+	display: flex;
+}
+
+/* Ein Sichtfenster einer Walze: drei Zellen hoch, alles andere
+   abgeschnitten. „clip" schneidet ab, ohne einen Scroll-Container zu
+   erzeugen. Ab Phase 6 läuft hier ein längeres Band durch. */
+.vs-reel {
+	position: relative;
+	inline-size: 12cqi;
+	block-size: 42cqi;
+	overflow: clip;
+}
+
+/* Das Band selbst ist NICHT 100% seines Sichtfensters hoch, sondern die
+   vollen 700 viewBox-Einheiten (= 700cqi, dieselbe 1cqi = 1 viewBox-Einheit
+   wie überall im Gehäuse) – nur so bleibt jede Zelle exakt 14cqi groß, auch
+   wenn .vs-reel nur 42cqi (drei Zellen) zeigt und den Rest abschneidet.
+   translateY schiebt das Band so, dass --vs-reel-pos in der mittleren Zeile
+   steht (Kopf dieser Datei, Block „Fenster"). transition + die beiden
+   ebenfalls schon im Haken-Katalog stehenden Custom Properties
+   --vs-reel-duration/--vs-reel-ease bestimmen ab Phase 6f, wie der Walzenlauf
+   einläuft; ohne von JavaScript gesetzten Wert wirken ihre Vorgaben 0s/linear
+   – das Band springt dann sofort auf seine Grundstellung, wie es die
+   Sichtfeld-Prüfung aus Phase 5 verlangt. */
+.vs-reel__strip {
+	display: block;
+	inline-size: 12cqi;
+	block-size: 700cqi;
+	transform: translateY(calc((1 - var(--vs-reel-pos)) * 14cqi));
+	transition: transform var(--vs-reel-duration, 0s) var(--vs-reel-ease, linear);
+}
+
+/* Das Leuchtfeld einer Zelle. Cremefarbenes Papierweiß wie auf den
+   bedruckten Bändern des Reel Slot — die Symbole tragen schwarze
+   Volltonkonturen und wären auf dunklem Grund nicht lesbar. */
+.vs-cell {
+	fill: var(--ck-paper-100);
+}
+
+/* Treffer. Der Rahmen ist eine FORM, keine Farbe, und damit auch bei
+   Farbfehlsichtigkeit lesbar (die Gewinnlinie und die Ansage im Live-Bereich
+   sind die beiden weiteren, ebenfalls nicht-farblichen Kanäle). Ohne ihn
+   läge der Kontrast von --ck-bulb-core auf --ck-bulb-glow bei rund 1,1 : 1 –
+   der Treffer wäre praktisch unsichtbar (gefundener Mangel aus Phase 5). */
+.vs-cell--win {
+	fill: var(--ck-bulb-core);
+	stroke: var(--ck-bulb-glow);
+	stroke-width: 0.8;
+}
+
+/* Die fünf festen Gewinnlinien aus Anhang D, deckungsgleich über dem
+   Sichtfeld. preserveAspectRatio="none" ist richtig: der viewBox 60 × 42
+   hat genau das Seitenverhältnis des Kastens, es wird also nichts verzerrt,
+   und die Punktfolgen des Prozessors treffen die Zellmittelpunkte exakt. */
+.vs-paylines {
+	position: absolute;
+	inset: 0;
+	inline-size: 100%;
+	block-size: 100%;
+	pointer-events: none;
+}
+
+.vs-payline {
+	fill: none;
+	stroke: var(--ck-bulb-core);
+	stroke-width: 0.9;
+	stroke-linecap: round;
+	stroke-linejoin: round;
+	opacity: 0;
+}
+
+.vs-payline--win {
+	opacity: 1;
+}
+
+/*
+ * Die Scheibe vor dem Sichtfeld. Sie trägt drei Dinge:
+ *   - die feine waagerechte Zeilenstruktur des Bildschirms,
+ *   - einen schrägen Glasschimmer,
+ *   - den warmen Lichthof, der das Fenster von innen leuchten lässt
+ *     (CONCEPT.md B.8.1: „ein leuchtendes Fenster").
+ * Sie fängt keine Zeiger ab: sie ist Glas, kein Bedienteil.
+ */
+.vs-grid__glass {
+	inset-inline-start: 12cqi;
+	inset-block-start: 52cqi;
+	inline-size: 60cqi;
+	block-size: 42cqi;
+	pointer-events: none;
+	background-image:
+		repeating-linear-gradient(
+			to bottom,
+			transparent 0 0.5cqi,
+			color-mix(in srgb, var(--ck-print-ink) 22%, transparent) 0.5cqi 0.75cqi
+		),
+		linear-gradient(
+			118deg,
+			var(--ck-glass-edge) 0 5%,
+			transparent 20% 80%,
+			var(--ck-glass-sheen) 100%
+		);
+	box-shadow: inset 0 0 3cqi color-mix(in srgb, var(--ck-bulb-halo) 55%, transparent);
+}
+
+/* Der unsichtbare Ansagebereich .vs-grid__announce braucht keine eigene
+   Regel — er trägt vs-offscreen (Abschnitt 9). */
+
+
+/* ==========================================================================
+   3  Nixie-Anzeigen
+   ========================================================================== */
+
+/*
+ * Vier Gruppen, 15 Röhren. gap ist hier ein MINDESTabstand: space-between
+ * verteilt den Rest, aber wenn eine Beschriftung je einmal breiter ausfällt
+ * als gerechnet, rücken die Gruppen nicht ineinander, sondern schieben sich
+ * gegenseitig. Sichtbar falsch ist besser als unsichtbar überlappend.
+ */
+.vs-nixie-panel {
+	inset-inline-start: 11.5cqi;
+	inset-block-start: 99.5cqi;
+	inline-size: 61cqi;
+	block-size: 14.5cqi;
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 1.2cqi;
+}
+
+/* Die gezeichnete Gruppe. Sie ist der ganze sichtbare Inhalt; der
+   Ansagebereich daneben hat keine Ausdehnung. */
+.vs-nixie-group__drawn {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 0.5cqi;
+}
+
+.vs-nixie-group__label {
+	/*
+	 * Dunkel ausgelegte Gravur, nicht Messing: die Beschriftung steht auf der
+	 * hellen Chromplatte, und in Messing erreichte sie nur 1,65:1 (Audit V-03,
+	 * Schwelle 4,5:1). Mit chrome-shadow sind es 7,85:1 gegen die Platte und
+	 * 12,88:1 gegen den Glanzstreifen darueber. chrome-500 waere die uebliche
+	 * Gravurfarbe der Bedienleiste, erreicht hier aber nur 4,67:1 und ist bei
+	 * dieser Schriftgroesse zu knapp.
+	 */
+	color: var(--ck-chrome-shadow);
+	font-family: var(--ck-font-display);
+	font-size: 1.95cqi;
+	/*
+	 * 0,12em statt der 0,18em der uebrigen Beschriftungen: seit Phase 8 stehen
+	 * VIER Gruppen im Panel, und die Beschriftungen von EINSATZ und STUFE sind
+	 * breiter als ihre je zwei Roehren. Gemessen ergaben 0,18em zusammen
+	 * 61,35cqi bei 61cqi Panelbreite - die GEWINN-Gruppe stand 1,7px ueber.
+	 * Mit 0,12em sind es rund 59,9cqi. Der Plan zu Phase 8 nennt genau diesen
+	 * Weg als ersten Schritt, falls P8-02 ueberlaeuft; die Roehren bleiben
+	 * unangetastet.
+	 */
+	letter-spacing: 0.12em;
+	line-height: 1;
+	text-transform: uppercase;
+}
+
+.vs-nixie-group__tubes {
+	display: flex;
+	gap: 0.34cqi;
+}
+
+/*
+ * Eine Röhre: Glaskolben mit gerundeter Kuppe, dunkler Innenraum,
+ * Kantenreflexe über helle Innenschatten.
+ *
+ * Das dauerhafte, sehr flache Helligkeitsatmen ist das „Flimmern" aus
+ * CONCEPT.md Abschnitt 3.2. Der versetzte animation-delay je Röhre sorgt
+ * dafür, dass sie nicht im Gleichschritt zucken — echte Röhren tun das nicht.
+ */
+.vs-nixie {
+	position: relative;
+	display: block;
+	inline-size: 3.3cqi;
+	block-size: 11cqi;
+	border-radius: 1.4cqi 1.4cqi 0.35cqi 0.35cqi;
+	background-color: var(--ck-nixie-dark);
+	box-shadow:
+		inset 0 0 0.5cqi var(--ck-glass-edge),
+		inset 0.35cqi 0 0.7cqi var(--ck-glass-sheen),
+		0 0.2cqi 0.4cqi var(--ck-shadow-hard);
+	overflow: hidden;
+	animation: vs-nixie-shimmer 6.4s ease-in-out infinite;
+	animation-delay: calc(var(--vs-tube, 0) * -0.43s);
+}
+
+/* Das Drahtgitter der Anode: vor den Kathoden, hinter dem Glas
+   (DESIGNBRIEF.md Abschnitt 5, Punkt 2). */
+.vs-nixie::before {
+	content: "";
+	position: absolute;
+	inset: 0;
+	z-index: 2;
+	pointer-events: none;
+	background-image:
+		repeating-linear-gradient(
+			0deg,
+			color-mix(in srgb, var(--ck-chrome-500) 45%, transparent) 0 0.12cqi,
+			transparent 0.12cqi 0.62cqi
+		),
+		repeating-linear-gradient(
+			90deg,
+			color-mix(in srgb, var(--ck-chrome-500) 45%, transparent) 0 0.12cqi,
+			transparent 0.12cqi 0.62cqi
+		);
+	opacity: 0.45;
+}
+
+/* Der Glaskolben: diagonaler Schimmer, ganz vorn. */
+.vs-nixie::after {
+	content: "";
+	position: absolute;
+	inset: 0;
+	z-index: 3;
+	pointer-events: none;
+	background-image: linear-gradient(
+		122deg,
+		var(--ck-glass-sheen) 0%,
+		transparent 40%,
+		transparent 72%,
+		color-mix(in srgb, var(--ck-glass-edge) 45%, transparent) 100%
+	);
+}
+
+/* Eine Kathode. Die zehn Elemente liegen deckungsgleich übereinander; ihr
+   Tiefenversatz kommt aus --vs-depth. */
+.vs-nixie__digit {
+	position: absolute;
+	inset: 0;
+	z-index: 1;
+	display: grid;
+	place-items: center;
+	font-family: var(--ck-font-numeric);
+	font-size: 6.2cqi;
+	font-variant-numeric: tabular-nums;
+	line-height: 1;
+	transform: translate(
+		calc(var(--vs-depth) * 0.1cqi),
+		calc(var(--vs-depth) * -0.07cqi)
+	);
+}
+
+/* Die unbeleuchtete Drahtkathode: nur Kontur, nach hinten schwächer.
+   Das ist der erste der vier Punkte aus DESIGNBRIEF.md Abschnitt 5 und der
+   größte Unterschied zwischen einer echten Nixie und „orangem Text mit
+   Glow". -webkit-text-stroke ist die einzige Eigenschaft, die eine
+   Glyphenkontur ohne Füllung zeichnet; sie ist trotz des Präfixes in allen
+   Engines vorhanden. */
+.vs-nixie__digit::after {
+	content: attr(data-vs-digit);
+	color: transparent;
+	-webkit-text-stroke: 0.14cqi var(--ck-chrome-400);
+	opacity: calc(0.30 - var(--vs-depth) * 0.022);
+}
+
+/*
+ * Die brennende Kathode.
+ *
+ * Welche das ist, entscheidet reine Arithmetik: max(d, -d) ist der Betrag
+ * der Differenz zwischen der Nummer dieser Kathode (--vs-cathode) und der
+ * angezeigten Ziffer (--vs-digit). Ist er 0, wird die Deckkraft 1, sonst 0.
+ * --vs-digit: -1 lässt damit alle Kathoden dunkel — eine unbeschickte
+ * Röhre. Kein JavaScript, kein Markup-Umbau.
+ *
+ * translateY setzt das Leuchten minimal tiefer als die Drahtkontur; das ist
+ * Punkt 4 des Designbriefs und suggeriert Glasdicke.
+ * --ck-nixie-glow-text ist der vierstufige Leuchtstapel aus tokens.css
+ * (Punkt 3: mehrere Unschärfestufen, nicht eine).
+ */
+.vs-nixie__digit::before {
+	content: attr(data-vs-digit);
+	position: absolute;
+	color: var(--ck-nixie-core);
+	text-shadow: var(--ck-nixie-glow-text);
+	transform: translateY(0.09cqi);
+	opacity: calc(1 - min(1, max(
+		calc(var(--vs-cathode) - var(--vs-digit, -1)),
+		calc(var(--vs-digit, -1) - var(--vs-cathode))
+	)));
+}
+
+/* Der kurze Helligkeitseinbruch im Moment des Ziffernwechsels. Laut
+   DESIGNBRIEF.md Abschnitt 5 verkauft er den Effekt weit besser als ein
+   Dauerflackern. Phase 7 setzt die Klasse für rund 200 ms. Das Atmen wird
+   dabei neu gestartet und läuft danach weiter. */
+.vs-nixie--strike {
+	animation:
+		vs-nixie-strike 200ms linear 1,
+		vs-nixie-shimmer 6.4s ease-in-out 200ms infinite;
+}
+
+/*
+ * Überlauf einer Röhrengruppe.
+ *
+ * DECISIONS.md, Phase 5 („Offene Frage an Phase 7 und 8: Überlauf der
+ * Anzeigen"): GUTHABEN hat sechs Röhren und kann bis 999.999, das Konto
+ * sättigt aber erst bei 999.999.999 — es gibt keine Röhrenzahl, die immer
+ * reicht. Empfohlen und hier umgesetzt: alle Röhren auf 9 (das macht
+ * NixieGroup.show() von allein) und die Gruppe blinken lassen. Das ist das
+ * Verhalten einer echten Röhrenanzeige.
+ *
+ * Geblinkt wird nur mit den Röhren, nicht mit dem Namensschild darüber: das
+ * Schild sagt weiterhin ruhig, worum es geht.
+ *
+ * steps(1, end) statt eines weichen Verlaufs — eine Gasentladung kennt kein
+ * Überblenden, sie brennt oder nicht. 1,1 s Periode sind rund ein Wechsel je
+ * Sekunde und liegen damit weit unter der Grenze von drei Lichtwechseln je
+ * Sekunde aus CONCEPT.md Abschnitt 3.4.
+ */
+.vs-nixie-group--overflow .vs-nixie-group__tubes {
+	animation: vs-nixie-overflow 1.1s steps(1, end) infinite;
+}
+
+/* ==========================================================================
+   4  Bedienleiste: Tasten und Lichtfelder
+   ========================================================================== */
+
+/* Sechs gleich breite Spalten à 11 Einheiten. Dadurch braucht keine Taste
+   eine eigene Koordinate. */
+.vs-rail {
+	inset-inline-start: 9cqi;
+	inset-block-start: 115.5cqi;
+	inline-size: 66cqi;
+	block-size: 17.5cqi;
+	display: grid;
+	grid-template-columns: repeat(6, 1fr);
+	align-items: start;
+}
+
+.vs-btn {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 0.4cqi;
+	margin: 0;
+	padding: 0;
+	border: 0;
+	background: none;
+	color: inherit;
+	font: inherit;
+	cursor: pointer;
+	-webkit-tap-highlight-color: transparent;
+}
+
+/* Immer da, auch leer: nur so sitzen alle sechs Kappen auf einer Linie. */
+.vs-btn__lamp-slot {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	block-size: 4.2cqi;
+}
+
+/*
+ * Die Bakelit-Kappe im Chromring. Unbeleuchtet ist Bakelit flaches, leicht
+ * warmes Cremeweiß und halbmatt; aller Glanz kommt vom Ring
+ * (DESIGNBRIEF.md Abschnitt 6). Der Ring ist aus zwei ausgedehnten
+ * box-shadow-Ringen gebaut, damit er exakt rund mitwächst.
+ *
+ * ⌀ 9,2 Einheiten sind auf dem kleinsten geplanten Bildschirm (320 px,
+ * Gehäusebreite 265 px) noch 24 px — mit dem Finger sicher zu treffen. Die
+ * Trefferfläche des button ist mit Lichtfeld und Beschriftung noch größer.
+ */
+.vs-btn__cap {
+	position: relative;
+	inline-size: 9.2cqi;
+	block-size: 9.2cqi;
+	border-radius: 50%;
+	background-image: radial-gradient(
+		circle at 38% 30%,
+		var(--ck-bakelite-cream) 0%,
+		var(--ck-bakelite-cream-shade) 82%
+	);
+	box-shadow:
+		0 0 0 0.55cqi var(--ck-chrome-100),
+		0 0 0 0.95cqi var(--ck-chrome-400),
+		0 0.35cqi 0.6cqi var(--ck-shadow-hard),
+		inset 0 -0.55cqi 0.9cqi var(--ck-shadow-inset);
+	transition:
+		transform var(--ck-duration-fast) var(--ck-ease-mech),
+		box-shadow var(--ck-duration-fast) var(--ck-ease-mech);
+}
+
+/*
+ * Das Licht hinter der Kappe, in zwei Lagen.
+ *
+ * DECISIONS.md, „Nachglühen der Tasten kommt vom Glühfaden": beim
+ * Ausschalten wird das Licht langsam schwächer UND verschiebt sich nach Rot.
+ * Umgesetzt wird das ohne jede Keyframe und ohne JavaScript, allein über
+ * zwei Übergänge unterschiedlicher Dauer:
+ *
+ *   ::after  gelbweiße Lage – stirbt in 200 ms
+ *   ::before rote Lage      – klingt über 900 ms aus
+ *
+ * Wird .vs-btn--lit entfernt, verschwindet zuerst das Gelb und übrig bleibt
+ * für eine knappe Sekunde ein verglühendes Rot. Genau das tut ein
+ * abkühlender Glühfaden. Beim Einschalten laufen beide in 70 ms hoch.
+ *
+ * Das Bakelit selbst leuchtet nicht nach — es streut nur das Licht dahinter.
+ */
+.vs-btn__cap::before,
+.vs-btn__cap::after {
+	content: "";
+	position: absolute;
+	inset: 0;
+	border-radius: inherit;
+	opacity: 0;
+	pointer-events: none;
+}
+
+.vs-btn__cap::before {
+	background-image: radial-gradient(
+		circle at 50% 46%,
+		var(--ck-bulb-hot) 0%,
+		var(--ck-bulb-afterglow) 64%,
+		transparent 92%
+	);
+	box-shadow: 0 0 2.8cqi 0.6cqi var(--ck-bulb-halo);
+	transition: opacity 900ms ease-out;
+}
+
+.vs-btn__cap::after {
+	background-image: radial-gradient(
+		circle at 50% 44%,
+		var(--ck-bulb-core) 0%,
+		var(--ck-bulb-glow) 52%,
+		var(--ck-bulb-hot) 100%
+	);
+	box-shadow: 0 0 1.4cqi 0.2cqi var(--ck-bulb-halo);
+	transition: opacity 200ms ease-out;
+}
+
+.vs-btn--lit .vs-btn__cap::before,
+.vs-btn--lit .vs-btn__cap::after {
+	opacity: 1;
+	transition-duration: 70ms;
+}
+
+/* Blinken. Innerhalb jedes Takts stirbt das Gelb bei 42 %, das Rot erst bei
+   78 % — auch im Blinken klingt der Glühfaden also aus, statt hart
+   abzuschalten. --vs-blink-period bleibt auf dem Vorgabewert von 900 ms:
+   die RISK-Taste blinkt im Angebot mit fester Periode, die Stufenzeiten der
+   Leiter schaltet das Bedienfeld an den Lichtfeldern und nicht an der Taste
+   (siehe Dateikopf). */
+.vs-btn--blink .vs-btn__cap::before {
+	animation: vs-btn-blink-hot var(--vs-blink-period, 900ms) linear infinite;
+}
+
+.vs-btn--blink .vs-btn__cap::after {
+	animation: vs-btn-blink-warm var(--vs-blink-period, 900ms) linear infinite;
+}
+
+
+/* Gedrückt: die Kappe fährt in den Chromring ein. --pressed für das
+   Festhalten aus dem Spielcode, :active für den echten Fingerdruck. */
+.vs-btn--pressed .vs-btn__cap,
+.vs-btn:active .vs-btn__cap {
+	transform: translateY(0.5cqi) scale(0.97);
+	box-shadow:
+		0 0 0 0.55cqi var(--ck-chrome-100),
+		0 0 0 0.95cqi var(--ck-chrome-400),
+		inset 0 0.5cqi 0.9cqi var(--ck-shadow-hard);
+}
+
+.vs-btn__label {
+	color: var(--ck-chrome-500);
+	font-family: var(--ck-font-display);
+	font-size: 1.7cqi;
+	letter-spacing: 0.06em;
+	line-height: 1.15;
+	text-transform: uppercase;
+	white-space: nowrap;
+}
+
+/*
+ * Das Lichtfeld über einer Risiko-Taste.
+ *
+ * Bewusst mit einem sehr kurzen Übergang (80 ms) und ohne Nachglühen: die
+ * Lichtfelder sind das Zeitsignal der Risiko-Leiter. CONCEPT.md Abschnitt
+ * 3.4 kennt „keine Kulanzspanne" — maßgeblich ist der Zustand in genau dem
+ * Moment des Drucks. Ein ausklingendes Feld wäre eine sichtbare Lüge über
+ * den tatsächlichen Zustand.
+ *
+ * Phase 7 schaltet .vs-lamp--on aus ihrer eigenen Zeitsteuerung. Die beiden
+ * Blink-Klassen des Reel Slot sind hier NICHT übernommen: sie sind dort
+ * ausdrücklich als Reserve vermerkt, die keine Phase setzt. Was niemand
+ * braucht, kommt nicht mit.
+ */
+.vs-lamp {
+	position: relative;
+	inline-size: 6.4cqi;
+	block-size: 3.4cqi;
+	border-radius: 0.9cqi;
+	background-color: var(--ck-bulb-off);
+	box-shadow:
+		0 0 0 0.45cqi var(--ck-chrome-400),
+		inset 0 0.3cqi 0.5cqi var(--ck-shadow-hard);
+}
+
+.vs-lamp::before {
+	content: "";
+	position: absolute;
+	inset: 0;
+	border-radius: inherit;
+	background-image: linear-gradient(
+		180deg,
+		var(--ck-bulb-core) 0%,
+		var(--ck-bulb-glow) 55%,
+		var(--ck-bulb-hot) 100%
+	);
+	box-shadow: 0 0 2.4cqi 0.5cqi var(--ck-bulb-halo);
+	opacity: 0;
+	transition: opacity 80ms linear;
+}
+
+.vs-lamp--on::before {
+	opacity: 1;
+}
+
+
+/* ==========================================================================
+   5  START
+   ========================================================================== */
+
+/*
+ * Die START-Taste auf der Chrom-Konsole an der rechten Flanke — dort, wo am
+ * Reel Slot der Hebel sitzt (CONCEPT.md B.8.2). Sie ist mit ⌀ 12,4 Einheiten
+ * die größte Taste des Geräts: sie ist die Handlung, die man am häufigsten
+ * macht, und sie ersetzt eine ganze Mechanik.
+ *
+ * Der Chromring entsteht aus zwei box-shadow-Ringen statt aus einem eigenen
+ * Element — ein Ring hat keinen Zustand und braucht kein Markup.
+ */
+.vs-start {
+	inset-inline-start: 77.5cqi;
+	inset-block-start: 61.5cqi;
+	inline-size: 17cqi;
+	block-size: 24.5cqi;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 1.4cqi;
+	margin: 0;
+	padding: 0;
+	border: 0;
+	background-color: transparent;
+	color: var(--ck-chrome-100);
+	font-family: var(--ck-font-display);
+	font-size: 2.6cqi;
+	line-height: 1;
+	cursor: pointer;
+	-webkit-tap-highlight-color: transparent;
+}
+
+.vs-start__cap {
+	inline-size: 12.4cqi;
+	block-size: 12.4cqi;
+	border-radius: 50%;
+	background-image: radial-gradient(
+		circle at 38% 32%,
+		var(--ck-bakelite-red-light) 0%,
+		var(--ck-bakelite-red) 62%,
+		var(--ck-bakelite-red) 100%
+	);
+	box-shadow:
+		0 0 0 1cqi var(--ck-chrome-300),
+		0 0 0 1.4cqi var(--ck-chrome-500),
+		0 0.6cqi 1cqi var(--ck-shadow-hard),
+		inset 0 -0.8cqi 1.2cqi var(--ck-shadow-inset);
+	transition:
+		transform var(--ck-duration-fast) var(--ck-ease-mech),
+		background-image var(--ck-duration-base) linear;
+}
+
+/* Gedrückt: die Kappe sinkt in den Ring. :active für den Zeiger, die Klasse
+   für alles, was ab Phase 6 die Taste hält. */
+.vs-start:active .vs-start__cap,
+.vs-start--pressed .vs-start__cap {
+	transform: translateY(0.6cqi);
+}
+
+/* Leuchtend: dieselbe Glühlampensprache wie bei den Tasten der Leiste. */
+.vs-start--lit .vs-start__cap {
+	background-image: radial-gradient(
+		circle at 38% 32%,
+		var(--ck-bulb-core) 0%,
+		var(--ck-bulb-glow) 48%,
+		var(--ck-bulb-hot) 100%
+	);
+}
+
+.vs-start__label {
+	text-align: center;
+}
+
+
+/* ==========================================================================
+   6  Sockel: Einsatzwahl und Ton-Schalter
+   ========================================================================== */
+
+.vs-base-row {
+	inset-inline-start: 8cqi;
+	inset-block-start: 137cqi;
+	inline-size: 68cqi;
+	block-size: 9.5cqi;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+}
+
+.vs-bets {
+	display: grid;
+	grid-template-columns: repeat(4, 1fr);
+	gap: 1.2cqi;
+	inline-size: 42cqi;
+}
+
+/* Eckige Bakelit-Taste im Chromrahmen. 9,6 × 9,5 Einheiten sind auf dem
+   kleinsten geplanten Bildschirm (320 px, Gehäusebreite 265 px) noch
+   25 × 25 px — mit dem Finger sicher zu treffen. */
+.vs-bet {
+	display: grid;
+	place-items: center;
+	block-size: 9.5cqi;
+	margin: 0;
+	padding: 0;
+	border: 0;
+	border-radius: 1.4cqi;
+	background-image: linear-gradient(
+		180deg,
+		var(--ck-bakelite-cream) 0%,
+		var(--ck-bakelite-cream-shade) 100%
+	);
+	color: var(--ck-print-ink);
+	font: inherit;
+	cursor: pointer;
+	box-shadow:
+		0 0 0 0.4cqi var(--ck-chrome-400),
+		0 0.3cqi 0.5cqi var(--ck-shadow-hard),
+		inset 0 -0.4cqi 0.6cqi var(--ck-shadow-inset);
+	transition:
+		transform var(--ck-duration-fast) var(--ck-ease-mech),
+		box-shadow var(--ck-duration-fast) var(--ck-ease-mech),
+		background-image var(--ck-duration-fast) linear;
+	-webkit-tap-highlight-color: transparent;
+}
+
+.vs-bet__value {
+	font-family: var(--ck-font-display);
+	font-size: 4.4cqi;
+	line-height: 1;
+}
+
+/* Der gewählte Einsatz: eingerastet und von innen beleuchtet. */
+.vs-bet--selected {
+	background-image: radial-gradient(
+		circle at 50% 40%,
+		var(--ck-bulb-core) 0%,
+		var(--ck-bulb-glow) 58%,
+		var(--ck-bulb-hot) 100%
+	);
+	box-shadow:
+		0 0 0 0.4cqi var(--ck-chrome-100),
+		0 0 2.2cqi var(--ck-bulb-halo),
+		inset 0 0.4cqi 0.7cqi var(--ck-shadow-inset);
+	transform: translateY(0.35cqi);
+}
+
+.vs-bet:active {
+	transform: translateY(0.35cqi);
+}
+
+/* Gesperrt während eines laufenden Zuges (Phase 7). */
+.vs-bets--locked .vs-bet {
+	cursor: not-allowed;
+	filter: saturate(0.45) brightness(0.8);
+}
+
+/* Ton-Schalter: Chromwippe mit Kontrolllampe. CONCEPT.md Abschnitt 3.7
+   sieht ihn standardmäßig eingeschaltet vor, deshalb trägt das Markup
+   vs-sound--on von Anfang an — so stimmt die Anzeige auch ohne JavaScript.
+   Bedienbar wird er in Phase 7. */
+.vs-sound {
+	position: relative;
+	display: flex;
+	align-items: center;
+	gap: 1.2cqi;
+	inline-size: 21cqi;
+	block-size: 9.5cqi;
+	margin: 0;
+	padding: 0 1.4cqi;
+	border: 0;
+	border-radius: 1.4cqi;
+	background-image: var(--ck-chrome-polish);
+	color: var(--ck-chrome-500);
+	font: inherit;
+	cursor: pointer;
+	box-shadow:
+		0 0 0 0.35cqi var(--ck-chrome-500),
+		0 0.3cqi 0.5cqi var(--ck-shadow-hard);
+	-webkit-tap-highlight-color: transparent;
+}
+
+.vs-sound__lamp {
+	inline-size: 2.2cqi;
+	block-size: 2.2cqi;
+	border-radius: 50%;
+	background-color: var(--ck-bulb-off);
+	box-shadow: inset 0 0.2cqi 0.3cqi var(--ck-shadow-hard);
+	transition:
+		background-color var(--ck-duration-fast) linear,
+		box-shadow var(--ck-duration-fast) linear;
+}
+
+.vs-sound__label {
+	font-family: var(--ck-font-display);
+	font-size: 2.6cqi;
+	letter-spacing: 0.2em;
+	text-transform: uppercase;
+}
+
+/* Die Wippe. Sie kippt nach unten, wenn der Ton aus ist, und nach oben,
+   wenn er an ist — dieselbe Bauform wie ein Kippschalter der Zeit. */
+.vs-sound__rocker {
+	position: absolute;
+	inset-block-start: 1.6cqi;
+	inset-inline-end: 1.4cqi;
+	inline-size: 3.4cqi;
+	block-size: 6.3cqi;
+	border-radius: 0.8cqi;
+	background-image: linear-gradient(
+		180deg,
+		var(--ck-chrome-100) 0%,
+		var(--ck-chrome-300) 48%,
+		var(--ck-chrome-500) 100%
+	);
+	box-shadow: 0 0.25cqi 0.4cqi var(--ck-shadow-hard);
+	transform: translateY(0.6cqi) rotate(-6deg);
+	transition: transform var(--ck-duration-base) var(--ck-ease-mech);
+}
+
+.vs-sound--on .vs-sound__lamp {
+	background-color: var(--ck-bulb-glow);
+	box-shadow: 0 0 1.6cqi var(--ck-bulb-halo);
+}
+
+.vs-sound--on .vs-sound__rocker {
+	transform: translateY(-0.6cqi) rotate(6deg);
+}
+
+/* ==========================================================================
+   7  Meldungsschild
+   ========================================================================== */
+
+/*
+ * Das Schild über dem Sichtfeld, nach Art der alten „TILT"-Tafel.
+ * Verborgen, bis eine spätere Phase .vs-message--shown setzt.
+ *
+ * Es liegt bewusst AUF dem Gerät und nicht daneben: CONCEPT.md Abschnitt 3.2
+ * schließt jede Textbox neben dem Automaten aus.
+ *
+ * KEIN visibility: hidden (Audit A-01). Es würde das Schild aus dem
+ * Barrierebaum nehmen, und ein Live-Bereich, der zwischen zwei Meldungen aus
+ * dem Barrierebaum verschwindet, gilt beim nächsten Mal als NEUER Bereich —
+ * neue Live-Bereiche werden nicht angesagt. Das role="status" im Partial wäre
+ * damit wirkungslos. Die Mausereignisse, für die visibility ursprünglich mit
+ * dastand, fängt pointer-events: none ohnehin ab; die Tafel ist zwischen zwei
+ * Meldungen außerdem textlos (das Modul ab Phase 6 räumt sie ab), es steht
+ * also auch im Lesemodus nichts Altes mehr da.
+ */
+.vs-message {
+	inset-inline-start: 16cqi;
+	inset-block-start: 64cqi;
+	inline-size: 52cqi;
+	block-size: 17cqi;
+	display: grid;
+	place-items: center;
+	margin: 0;
+	padding: 0 2cqi;
+	border-radius: 1.2cqi;
+	background-color: color-mix(in srgb, var(--ck-wood-500) 88%, transparent);
+	box-shadow:
+		inset 0 0 0 0.3cqi var(--ck-brass-400),
+		0 0.4cqi 1.2cqi var(--ck-shadow-hard);
+	color: var(--ck-nixie-core);
+	font-family: var(--ck-font-display);
+	font-size: 4cqi;
+	letter-spacing: 0.1em;
+	line-height: 1.15;
+	text-align: center;
+	text-shadow: var(--ck-nixie-glow-text);
+	opacity: 0;
+	pointer-events: none;
+	transition: opacity var(--ck-duration-base) linear;
+}
+
+.vs-message--shown {
+	opacity: 1;
+}
+
+/* ==========================================================================
+   8  Geldeinwurf, Kassenfenster und Auszahlung
+   ========================================================================== */
+
+/*
+ * Der Münzschlitz am Sockel (CONCEPT.md Abschnitt 3.6). Er sitzt in der Reihe,
+ * die Phase 5 dafür freigelassen hat — das Shell-SVG hält den Platz
+ * ausdrücklich frei. Maßraster, wie überall in dieser Datei in
+ * viewBox-Einheiten (1cqi = 1 Einheit):
+ *
+ *   x  8–28    drei Messingknöpfe +10 / +50 / +100
+ *   x 30–37    der gezeichnete Münzschlitz, darüber ein unsichtbarer Knopf
+ *   x 38,8–64,2 das gezeichnete Kassenfenster (B.5.1)
+ *   x 66–78    Feld für den freien Betrag
+ *   y 147,6–154,2  die ganze Reihe, zwischen Sockelreihe (endet 146,5) und
+ *                  Auswurfschale (beginnt 154,8)
+ *
+ * Das Formular selbst fängt keine Zeiger ab. Sonst läge über dem
+ * Kassenfenster und dem freien Chrom eine unsichtbare Fläche, die Klicks
+ * schluckt.
+ *
+ * ZIELGROESSE, dokumentierte Abweichung (Audit V-04): Mittelpunktsabstand ist
+ * (20 + gap) / 3 = 7cqi. Ab 375px Fensterbreite sind das 24,0px und die
+ * Abstandsausnahme von SC 2.5.8 greift; bei 320px sind es 20,2px und sie greift
+ * nicht. 24px verlangten 8,325cqi, also einen Knopfblock von rund 25cqi statt
+ * 20cqi - der schoebe sich in den gezeichneten Muenzschlitz. Nur den gap zu
+ * vergroessern liefe auf 9,7px breite Knoepfe hinaus und waere schlechter.
+ * Behebbar nur durch eine Neuaufteilung der Sockelreihe an BEIDEN Geraeten.
+ */
+.vs-coinslot {
+	inset-inline-start: 8cqi;
+	inset-block-start: 147.6cqi;
+	inline-size: 70cqi;
+	block-size: 6.6cqi;
+	margin: 0;
+	pointer-events: none;
+}
+
+.vs-coinslot > * {
+	pointer-events: auto;
+}
+
+.vs-coinslot__quick {
+	position: absolute;
+	inset-inline-start: 0;
+	inset-block-start: 0.4cqi;
+	inline-size: 20cqi;
+	display: grid;
+	grid-template-columns: repeat(3, 1fr);
+	gap: 1cqi;
+}
+
+/* Gleiche Bauform wie die Einsatztasten darüber, nur kleiner und in Messing
+   statt Bakelit — es sind Münzen, keine Bedientasten. */
+.vs-coinslot__button {
+	display: grid;
+	place-items: center;
+	block-size: 5.8cqi;
+	margin: 0;
+	padding: 0;
+	border: 0;
+	border-radius: 0.9cqi;
+	background-image: var(--ck-brass-polish);
+	color: var(--ck-print-ink);
+	font-family: var(--ck-font-display);
+	font-size: 2.4cqi;
+	line-height: 1;
+	cursor: pointer;
+	box-shadow:
+		0 0 0 0.3cqi var(--ck-brass-500),
+		0 0.25cqi 0.4cqi var(--ck-shadow-hard),
+		inset 0 -0.3cqi 0.5cqi var(--ck-shadow-inset);
+	transition: transform var(--ck-duration-fast) var(--ck-ease-mech);
+	-webkit-tap-highlight-color: transparent;
+}
+
+.vs-coinslot__button:active {
+	transform: translateY(0.3cqi);
+}
+
+/*
+ * Der Schlitz ist gezeichnet (Shell.html, x 30–37 / y 148,5–154); dieser Knopf
+ * liegt nur unsichtbar darüber und macht ihn bedienbar. Er ist der
+ * Absendeknopf des Formulars.
+ */
+.vs-coinslot__slot {
+	position: absolute;
+	inset-inline-start: 21.4cqi;
+	inset-block-start: 0.3cqi;
+	inline-size: 8.2cqi;
+	block-size: 6cqi;
+	margin: 0;
+	padding: 0;
+	border: 0;
+	border-radius: 1.6cqi;
+	background-color: transparent;
+	cursor: pointer;
+	transition: box-shadow var(--ck-duration-fast) linear;
+	-webkit-tap-highlight-color: transparent;
+}
+
+.vs-coinslot__slot:hover,
+.vs-coinslot__slot:active,
+.vs-coinslot__slot--flash {
+	box-shadow: 0 0 1.8cqi var(--ck-bulb-halo);
+}
+
+/*
+ * Die einfallende Münze. z-index 3, damit sie VOR der Chromblende
+ * herunterfällt und nicht dahinter; alles andere am Gehäuse liegt auf 2.
+ * Diese Regel steht nach ".vs-coinslot > *" und gewinnt deshalb bei gleicher
+ * Spezifität — die Münze darf keine Klicks abfangen.
+ */
+.vs-coinslot__coin {
+	position: absolute;
+	inset-inline-start: 23cqi;
+	inset-block-start: 0.5cqi;
+	inline-size: 5cqi;
+	block-size: 5cqi;
+	z-index: 3;
+	border-radius: 50%;
+	background-image: radial-gradient(
+		circle at 36% 30%,
+		var(--ck-brass-100) 0%,
+		var(--ck-brass-300) 55%,
+		var(--ck-brass-500) 100%
+	);
+	box-shadow: inset 0 0 0 0.35cqi var(--ck-brass-400);
+	opacity: 0;
+	pointer-events: none;
+}
+
+.vs-coinslot__coin--drop {
+	animation: vs-coin-drop 460ms var(--ck-ease-mech) 1;
+}
+
+.vs-coinslot__custom {
+	position: absolute;
+	inset-inline-start: 58cqi;
+	inset-block-start: 0.4cqi;
+	inline-size: 12cqi;
+	block-size: 5.8cqi;
+	display: block;
+}
+
+
+/* Ein kleines eingelassenes Leuchtfeld in derselben Sprache wie die Röhren. */
+.vs-coinslot__input {
+	inline-size: 100%;
+	block-size: 100%;
+	margin: 0;
+	padding: 0 0.8cqi;
+	border: 0;
+	border-radius: 0.9cqi;
+	appearance: textfield;
+	background-color: var(--ck-nixie-dark);
+	color: var(--ck-nixie-core);
+	font-family: var(--ck-font-display);
+	font-size: 2.8cqi;
+	text-align: end;
+	text-shadow: var(--ck-nixie-glow-text);
+	box-shadow:
+		0 0 0 0.3cqi var(--ck-chrome-500),
+		inset 0 0.3cqi 0.6cqi var(--ck-shadow-inset);
+}
+
+/* Die Pfeiltasten des Zahlenfelds hätten am Gehäuse keinen Platz. */
+.vs-coinslot__input::-webkit-outer-spin-button,
+.vs-coinslot__input::-webkit-inner-spin-button {
+	appearance: none;
+	margin: 0;
+}
+
+.vs-coinslot__input::placeholder {
+	color: var(--ck-nixie-deep);
+}
+
+/*
+ * Das Kassenfenster (CONCEPT.md B.5.1). Fassung und dunkles Fenster sind
+ * gezeichnet (Shell.html); hier steht nur der Inhalt.
+ *
+ * pointer-events: none — es ist eine Anzeige. Ohne diese Zeile läge über der
+ * Sockelmitte eine unsichtbare Fläche, die Klicks schluckt; genau dieselbe
+ * Vorsichtsmaßnahme wie beim Formular des Einwurfs darüber.
+ *
+ * Die Schriftgröße ist die knappste Stelle des Gehäuses: neun Stellen mit
+ * Tausenderpunkten sind „999.999.999", also elf Zeichen. Läuft die Zeile je
+ * über, ist der erste Schritt dieselbe Maßnahme wie in Phase 8 bei den
+ * Röhrenbeschriftungen — die Schrift schmälern, nicht das Fenster verbreitern.
+ */
+.vs-bank {
+	inset-inline-start: 39.8cqi;
+	inset-block-start: 148.7cqi;
+	inline-size: 23.4cqi;
+	block-size: 4.4cqi;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 0.6cqi;
+	padding: 0 0.8cqi;
+	pointer-events: none;
+}
+
+.vs-bank__label {
+	color: var(--ck-brass-200);
+	font-family: var(--ck-font-display);
+	font-size: 1.7cqi;
+	letter-spacing: 0.1em;
+	line-height: 1;
+	text-transform: uppercase;
+}
+
+/* Dieselbe Nixie-Farbe wie die Röhren darüber und wie das Leuchtschild im
+   Saal: Kasse und Gerätekredit sind zwei Anzeigen derselben Anlage. */
+.vs-bank__value {
+	color: var(--ck-nixie-core);
+	font-family: var(--ck-font-numeric);
+	font-size: 2.3cqi;
+	font-variant-numeric: tabular-nums;
+	line-height: 1;
+	text-shadow: var(--ck-nixie-glow-text);
+}
+
+
+/*
+ * CASH OUT (CONCEPT.md B.5.2).
+ Die Taste liegt unsichtbar über der
+ * gezeichneten Auswurfschale — dieselbe Bauform wie der unsichtbare Knopf über
+ * dem Münzschlitz. Man greift an die Schale, um auszuzahlen.
+ *
+ * Im Grundzustand ist sie dunkel und trägt disabled: das Konzept verlangt
+ * ausdrücklich „dunkel, wenn nichts drin ist". Der Schriftzug bleibt sichtbar,
+ * aber in Chromgrau — er liest sich dann wie eine Gravur auf der Schale und
+ * nicht wie ein Angebot.
+ */
+.vs-cashout {
+	inset-inline-start: 20cqi;
+	inset-block-start: 154.8cqi;
+	inline-size: 46cqi;
+	block-size: 4.8cqi;
+	display: grid;
+	place-items: center;
+	margin: 0;
+	padding: 0;
+	border: 0;
+	border-radius: 1.2cqi;
+	background-color: transparent;
+	color: var(--ck-chrome-500);
+	font: inherit;
+	cursor: not-allowed;
+	transition:
+		color var(--ck-duration-fast) linear,
+		box-shadow var(--ck-duration-fast) linear,
+		transform var(--ck-duration-fast) var(--ck-ease-mech);
+	-webkit-tap-highlight-color: transparent;
+}
+
+.vs-cashout__label {
+	font-family: var(--ck-font-display);
+	font-size: 1.7cqi;
+	letter-spacing: 0.18em;
+	line-height: 1;
+	text-transform: uppercase;
+}
+
+/* Geladen: die Schale ist beleuchtet und die Taste bedienbar. */
+.vs-cashout--lit {
+	color: var(--ck-brass-100);
+	cursor: pointer;
+	box-shadow: 0 0 1.8cqi var(--ck-bulb-halo);
+	text-shadow: 0 0 0.6cqi var(--ck-bulb-halo);
+}
+
+.vs-cashout--lit:hover {
+	box-shadow: 0 0 2.6cqi var(--ck-bulb-halo);
+}
+
+.vs-cashout--lit:active {
+	transform: translateY(0.25cqi);
+}
+
+
+/* ==========================================================================
+   9  Fokus und unsichtbare Beschriftungen
+   ========================================================================== */
+
+/*
+ * Zwei Regeln, die am Reel Slot nur die neuen Bedienteile aus Phase 3 hatten
+ * und hier für das GANZE Gerät gelten: CONCEPT.md B.1 verlangt
+ * Barrierefreiheit für alle NEU hinzukommenden Bedienteile, und dieses Gerät
+ * ist vollständig neu.
+ */
+
+/* Für die Augen nicht da, für Hilfsmittel schon. Genau die Bauform, die am
+   Reel Slot zweimal wortgleich dasteht (Beschriftungen des Einwurfs und
+   Ansagebereich der Kasse) — hier einmal, benutzt von allen sieben
+   unsichtbaren Elementen. Kein display: none und kein visibility: hidden:
+   beide nähmen die Elemente aus dem Barrierebaum. */
+.vs-offscreen {
+	position: absolute;
+	inline-size: 1px;
+	block-size: 1px;
+	overflow: hidden;
+	clip-path: inset(50%);
+	white-space: nowrap;
+}
+
+/* Ein sichtbarer Fokusrahmen für jedes Bedienteil am Gehäuse. Warm und
+   hell, damit er auf Chrom, Bakelit und Messing gleichermaßen steht.
+   :focus-visible statt :focus: der Rahmen erscheint bei Tastaturbedienung
+   und bleibt beim Mausklick aus, wo er als Fehler gelesen würde. */
+.vs-cabinet :focus-visible {
+	outline: 0.5cqi solid var(--ck-bulb-core);
+	outline-offset: 0.3cqi;
+	/* Der Rahmen darf von keinem Nachbarn überdeckt werden. */
+	position: relative;
+	z-index: 4;
+}
+
+
+/* ==========================================================================
+  10  Bewegung
+   ========================================================================== */
+
+/* Sehr flaches Atmen der Nixie-Röhren, mit zwei kurzen Einbrüchen je Umlauf.
+   Das ist das „Flimmern" aus CONCEPT.md 3.2 — kein Dauerflackern, das sich
+   als Defekt läse. */
+@keyframes vs-nixie-shimmer {
+	0%,
+	100% { filter: brightness(1); }
+	23% { filter: brightness(0.985); }
+	46.8% { filter: brightness(1.02); }
+	48.2% { filter: brightness(0.92); }
+	49.2% { filter: brightness(1.01); }
+	71% { filter: brightness(0.99); }
+	84.4% { filter: brightness(1.015); }
+	85.2% { filter: brightness(0.95); }
+	86% { filter: brightness(1); }
+}
+
+/* Der Zündvorgang beim Ziffernwechsel: erhöhte Zündspannung lässt die
+   Ziffer kurz zucken, bevor sie steht (DESIGNBRIEF.md Abschnitt 5). */
+@keyframes vs-nixie-strike {
+	0% { filter: brightness(0.35); }
+	22% { filter: brightness(1.25); }
+	46% { filter: brightness(0.6); }
+	100% { filter: brightness(1); }
+}
+
+/* Blinken einer Taste. Das Gelb stirbt bei 42 %, das Rot erst bei 78 % —
+   auch im Takt kühlt der Glühfaden aus. */
+@keyframes vs-btn-blink-warm {
+	0%,
+	34% { opacity: 1; }
+	42%,
+	100% { opacity: 0; }
+}
+
+@keyframes vs-btn-blink-hot {
+	0%,
+	34% { opacity: 1; }
+	78%,
+	100% { opacity: 0; }
+}
+
+
+/* Die Münze fällt in den Schlitz: sie kippt herein, sackt durch und
+   verschwindet im Inneren. Die Dauer muss ab Phase 7 zu COIN_MS im
+   Einwurfmodul passen (am Reel Slot 480 ms mit Zuschlag). */
+@keyframes vs-coin-drop {
+	0% { opacity: 0; transform: translate(-1.4cqi, -6cqi) rotate(-28deg) scale(1); }
+	18% { opacity: 1; }
+	66% { opacity: 1; transform: translate(0, 0) rotate(6deg) scale(1); }
+	100% { opacity: 0; transform: translate(0, 2cqi) rotate(12deg) scale(0.45); }
+}
+
+/* Übergelaufene Röhrengruppe. Harte Umschaltung, keine Überblendung. */
+@keyframes vs-nixie-overflow {
+	0%,
+	59.9% { filter: brightness(1); }
+	60%,
+	100% { filter: brightness(0.42); }
+}

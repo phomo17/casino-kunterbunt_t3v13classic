@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" version="1.2">
+	<file source-language="de" datatype="plaintext" original="EXT:casino_startpage/Resources/Private/Language/locallang.xlf" date="2026-09-01T00:00:00Z" product-name="casino_startpage">
+		<header/>
+		<body>
+			<trans-unit id="hall.credit.label">
+				<source>Guthaben</source>
+			</trans-unit>
+			<trans-unit id="hall.credit.unit">
+				<source>Kredite</source>
+			</trans-unit>
+
+			<!-- Der Satz, den ein Bildschirmleser hört, wenn sich das Guthaben
+			     ändert (Audit S-02). {0} ist der Platz der Zahl; credit-display.js
+			     setzt sie ein. Bewusst ein ganzer Satz und nicht nur die Zahl:
+			     die gezeichnete Tafel daneben ist für Hilfsmittel nicht da. -->
+			<trans-unit id="hall.credit.announce">
+				<source>Guthaben: {0} Kredite</source>
+			</trans-unit>
+
+			<trans-unit id="hall.credit.add.10">
+				<source>+10</source>
+			</trans-unit>
+			<trans-unit id="hall.credit.add.50">
+				<source>+50</source>
+			</trans-unit>
+			<trans-unit id="hall.credit.add.100">
+				<source>+100</source>
+			</trans-unit>
+
+			<trans-unit id="hall.credit.custom">
+				<source>Betrag</source>
+			</trans-unit>
+			<trans-unit id="hall.credit.insert">
+				<source>Einwerfen</source>
+			</trans-unit>
+
+			<trans-unit id="hall.credit.message.invalid">
+				<source>Bitte einen ganzzahligen Betrag von 1 bis 999.999.999 eingeben.</source>
+			</trans-unit>
+			<trans-unit id="hall.credit.message.capped">
+				<source>Höchststand erreicht – mehr passt nicht ins Schild.</source>
+			</trans-unit>
+
+			<!-- Kassenstand von Hand setzen (CONCEPT.md B.5.1). Diese sechs
+			     Einträge verschwinden in Stufe 3 zusammen mit dem Bedienteil,
+			     dem Partial und dem Modul. -->
+			<trans-unit id="hall.credit.set.legend">
+				<source>Kassenstand setzen</source>
+			</trans-unit>
+			<trans-unit id="hall.credit.set.label">
+				<source>Neuer Stand</source>
+			</trans-unit>
+			<trans-unit id="hall.credit.set.apply">
+				<source>Übernehmen</source>
+			</trans-unit>
+			<trans-unit id="hall.credit.set.hint">
+				<source>Nur für den Bau: sobald es Benutzerkonten gibt, kommt der Kassenstand vom Konto und dieses Feld entfällt.</source>
+			</trans-unit>
+			<trans-unit id="hall.credit.set.message.invalid">
+				<source>Bitte eine ganze Zahl von 0 bis 999.999.999 eingeben.</source>
+			</trans-unit>
+			<trans-unit id="hall.credit.set.message.done">
+				<source>Kassenstand auf {betrag} Kredite gesetzt.</source>
+			</trans-unit>
+
+			<trans-unit id="hall.colophon.source">
+				<source>Casino Kunterbunt ist freie Software unter der AGPL 3.0. Quelltext:</source>
+			</trans-unit>
+			<trans-unit id="hall.colophon.linktext">
+				<source>github.com/phomo17/casino-kunterbunt_t3v13classic</source>
+			</trans-unit>
+			<trans-unit id="hall.colophon.url">
+				<source>https://github.com/phomo17/casino-kunterbunt_t3v13classic</source>
+			</trans-unit>
+			<trans-unit id="pagehead.back">
+				<source>Zurück in den Saal</source>
+			</trans-unit>
+		</body>
+	</file>
+</xliff>
