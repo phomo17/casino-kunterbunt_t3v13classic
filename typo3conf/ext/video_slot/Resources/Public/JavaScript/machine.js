@@ -55,17 +55,12 @@
  * ----------------------------------------------------------------------
  * Der Reel Slot hängt STOP nur an pointerdown; mit der Tastatur ist die Taste
  * dort nicht bedienbar. CONCEPT B.1 verlangt für dieses Gerät volle
- * Barrierefreiheit. wirePressButton() löst das für START und STOP:
- *
- *   - pointerdown (nur event.isPrimary) → Kappe drückt, Aktion SOFORT,
- *     consumeClick = true;
- *   - click → wenn consumeClick gesetzt: zurücksetzen und NICHTS tun; sonst
- *     Aktion (das ist der Tastaturweg: eine per Enter/Leertaste ausgelöste
- *     Schaltfläche feuert click ohne vorheriges pointerdown);
- *   - pointerup/pointercancel/pointerleave → Kappe löst.
- *
- * Damit wirkt die Taste beim Drücken (Gefühl) UND ist mit der Tastatur
- * bedienbar. Der Reel Slot wird in dieser Phase NICHT angefasst.
+ * Barrierefreiheit. Gelöst wird das von wirePressButton() aus press.js:
+ * pointerdown löst SOFORT aus (das Gefühl einer Kappe, die einfährt), ein
+ * click mit detail === 0 ist der Tastaturweg und löst ebenfalls aus.
+ * Seit Phase 7 steht der Helfer in einer eigenen Datei, weil ihn auch
+ * risk.js und auto.js brauchen — und die dürfen machine.js nicht
+ * importieren. Der Reel Slot wird dafür NICHT angefasst.
  *
  *
  * WIE PHASE 7 HIER ANDOCKT
@@ -96,6 +91,7 @@ import { evaluate } from '@phomo17/video-slot/paytable.js';
 import { Reel } from '@phomo17/video-slot/reel.js';
 import { findNixieGroup } from '@phomo17/video-slot/nixie.js';
 import { GridAnnouncer } from '@phomo17/video-slot/grid-announce.js';
+import { wirePressButton } from '@phomo17/video-slot/press.js';
 
 /** Rasterpositionen je Walze (Anhang D). */
 const LAP = 25;
@@ -152,61 +148,6 @@ const MIN_GAP_S = 0.1;
 const DEFAULT_BET = 1;
 
 /**
- * Verdrahtet eine Drucktaste für Zeiger UND Tastatur.
- *
- * @param {?HTMLElement} element
- * @param {string} pressedClass Klasse für die gedrückte Kappe
- * @param {() => void} action
- * @returns {?() => void} Abmelde-Funktion, oder null, wenn element fehlt
- */
-function wirePressButton(element, pressedClass, action) {
-	if (element === null) {
-		return null;
-	}
-
-	let consumeClick = false;
-
-	const onPointerDown = (event) => {
-		if (!event.isPrimary) {
-			return;
-		}
-		element.classList.add(pressedClass);
-		consumeClick = true;
-		action();
-	};
-	const onClick = () => {
-		if (consumeClick) {
-			// Das war der Zeigerweg: pointerdown hat die Aktion schon
-			// ausgelöst, das nachfolgende click wird verworfen.
-			consumeClick = false;
-			return;
-		}
-		// Kein vorheriges pointerdown: eine per Enter/Leertaste ausgelöste
-		// Schaltfläche feuert click ohne pointerdown – das ist der
-		// Tastaturweg.
-		action();
-	};
-	const onRelease = () => {
-		element.classList.remove(pressedClass);
-	};
-
-	element.addEventListener('pointerdown', onPointerDown);
-	element.addEventListener('click', onClick);
-	element.addEventListener('pointerup', onRelease);
-	element.addEventListener('pointercancel', onRelease);
-	element.addEventListener('pointerleave', onRelease);
-
-	return () => {
-		element.removeEventListener('pointerdown', onPointerDown);
-		element.removeEventListener('click', onClick);
-		element.removeEventListener('pointerup', onRelease);
-		element.removeEventListener('pointercancel', onRelease);
-		element.removeEventListener('pointerleave', onRelease);
-		element.classList.remove(pressedClass);
-	};
-}
-
-/**
  * Ein bedienbarer Automat.
  */
 export class Machine {
@@ -256,9 +197,14 @@ export class Machine {
 
 		this.wireSpinRequest();
 
-		// Erste Ansage beim Seitenaufbau, ohne Wartezeit: der Anfangsstand
-		// des Sichtfelds, keine Änderungsmeldung.
-		this.gridAnnouncer.showGrid(this.readGrid());
+		// KEINE Ansage beim Seitenaufbau (Audit N-04, 2026-09-05/06,
+		// übernommen aus fruit_risk/machine.js): der Bereich des Sichtfelds
+		// wird leer ausgeliefert und bleibt es, bis wirklich eine Runde
+		// ausgewertet ist — showResult() unten meldet dann den ersten
+		// echten Satz. Vormals rief der Konstruktor hier
+		// gridAnnouncer.showGrid(this.readGrid()) auf und sagte damit den
+		// Anfangsstand des Sichtfelds an, bevor irgendjemand etwas bedient
+		// hatte.
 	}
 
 	/** Der aktuelle Zustand. */

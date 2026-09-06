@@ -43,6 +43,13 @@ AutomatRegistry::register(new Automat(
  * dataProcessing baut das Sichtfeld (fünf Walzen zu je drei Zellen), die
  * Punktfolgen der fünf Gewinnlinien aus Anhang D und die Zeilen des
  * Gewinnplans. Von Hand geschrieben wären das rund 150 Koordinaten.
+ *
+ * Schritt 20 seit dem GEO-Behebungslauf (Auditbericht 2026-09-05, Befunde
+ * G-01/G-02): casino-device-description ist ein generischer Baustein aus
+ * casino_startpage (DeviceDescriptionProcessor) — er kennt Video Slot nicht,
+ * er bekommt hier nur Text mitgegeben. Er setzt die
+ * <meta name="description"> dieser Seite und einen Game-Eintrag
+ * (strukturierte Daten), beides nur auf DIESER Seite.
  */
 ExtensionManagementUtility::addTypoScriptSetup(sprintf(
     'tt_content.%1$s = FLUIDTEMPLATE
@@ -53,6 +60,9 @@ tt_content.%1$s {
     dataProcessing {
         10 = video-slot-cabinet
         10.as = machine
+        20 = casino-device-description
+        20.title.data = lll:EXT:%2$s/Resources/Private/Language/locallang.xlf:automat.title
+        20.description.data = lll:EXT:%2$s/Resources/Private/Language/locallang.xlf:automat.description
     }
 }',
     VideoSlot::CTYPE,

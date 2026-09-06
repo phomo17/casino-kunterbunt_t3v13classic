@@ -1,0 +1,29 @@
+<f:comment>
+	Inhaltselement „Coin Pusher" — der Automat auf seiner eigenen Seite.
+
+	Das Element hat keine Einstellungen und wertet keinen Datenbankwert aus.
+	Es stellt das Gerät auf, mehr nicht.
+
+	f:asset.css meldet das Stylesheet beim AssetCollector an. Dadurch wird es
+	nur auf Seiten geladen, auf denen dieses Element wirklich steht — anders
+	als page.includeCSS, das auf jeder Seite lädt. Der Core gibt die Dateien
+	des Sammlers nach den includeCSS-Dateien aus, also nach tokens.css und
+	base.css; die Kaskade stimmt damit von allein.
+
+	ck-room-fill ist der Vertrag aus casino_startpage/README.md, Abschnitt
+	„Vertrag für ein bildschirmfüllendes Gerät": der Saal ordnet sich zu
+	genau einer Bildschirmhöhe an und übergibt den ganzen Rest unter dem
+	Wandband an dieses Element. Erst dadurch ist das Gehäuse auf jedem
+	Bildschirm vollständig sichtbar, ohne dass irgendwo gescrollt wird.
+	Dieses Element rechnet NICHT selbst mit den Maßen des Saals.
+
+	Kein DataProcessor: die Maße des Spielfelds stehen in field.js und werden
+	beim Zeichnen ausgerechnet, nicht beim Rendern.
+</f:comment>
+<f:asset.css identifier="coinPusherMachine"
+	href="EXT:coin_pusher/Resources/Public/Css/machine.css" />
+<f:asset.module identifier="@phomo17/coin-pusher/coin-pusher.js" />
+
+<div class="cp-machine ck-room-fill">
+	<f:render partial="Automat/CoinPusher/Machine/Cabinet" />
+</div>

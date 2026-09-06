@@ -187,6 +187,21 @@ export function bindMachines(root = document) {
 			continue;
 		}
 		wired.add(element);
+
+		if (machines.size > 0) {
+			// Ein Gerätekredit gilt je Schlüssel und Seite genau einmal
+			// (CONCEPT.md Abschnitt 5, Grundsatz 8). Ein zweites Gehäuse auf
+			// derselben Seite bekäme keinen eigenen Kredit und bliebe stumm,
+			// ohne dass ein Redakteur das sähe. Sichtbar statt still: eine
+			// Konsolenzeile und eine Klasse am Gehäuse.
+			element.classList.add('rs-machine--duplicate');
+			console.error(
+				'[reel-slot] Ein zweites "Reel Slot"-Gehäuse auf derselben Seite bleibt '
+				+ 'unbedienbar (nur ein Gerätekredit je Schlüssel und Seite).'
+			);
+			continue;
+		}
+
 		let board = null;
 		let wallet = null;
 		let bank = null;

@@ -32,7 +32,7 @@
  *   .rs-bank__value        der Kassenstand am Gerät
  *   .rs-bank__announce     der Ansage-Bereich für Hilfsmittel (Audit A-02)
  *   .rs-cashout            die Auszahl-Taste samt ihrem Leuchten und ihrer
- *                          Sperre (disabled)
+ *                          Sperre (aria-disabled, Audit A-06)
  *   data-rs-bank           der Kassenstand, von außen ablesbar
  *   data-rs-total          Kasse + Gerätekredit. Die Bilanz aus CONCEPT.md
  *                          B.10, Phase 3 als EINE Zahl: sie darf sich durch
@@ -81,11 +81,13 @@
  * click-Zuhörer an einem echten button-Element wird von der Eingabe- UND der
  * Leertaste ausgelöst, ein pointerdown-Zuhörer von keiner von beiden.
  *
- * Ist nichts im Gerät, trägt die Taste disabled: sie ist dunkel (B.5.2, „Sie
- * ist dunkel, wenn nichts drin ist"), nicht anklickbar und wird beim
- * Durchtabben übersprungen — sie täte ohnehin nichts. Das Attribut steht schon
- * im Markup, damit die Taste auch ohne JavaScript nicht so aussieht, als sei
- * sie ein Angebot.
+ * Ist nichts im Gerät, trägt die Taste aria-disabled="true" (Audit A-06): sie
+ * ist dunkel (B.5.2, „Sie ist dunkel, wenn nichts drin ist") und tut nichts,
+ * bleibt aber im Tastaturweg erreichbar — ein echtes disabled nähme sie aus
+ * der Tabulatorfolge. Die eigentliche Sperre besteht in cashOut() selbst, das
+ * bei Gerätekredit 0 ein folgenloses No-op ist (machine-credit.js). Das
+ * Attribut steht schon im Markup, damit die Taste auch ohne JavaScript nicht
+ * so aussieht, als sei sie ein Angebot.
  *
  *
  * WARUM DER KASSENSTAND GESETZT UND NICHT HOCHGEZÄHLT WIRD
@@ -198,8 +200,11 @@ export class Bank {
 		// Anzeige zeigt beide Zahlen, also muss sie sich bei jeder von beiden
 		// erneuern. Ein doppelter Aufruf im selben Takt schadet nicht, paint()
 		// schreibt nur.
-		this.unsubscribeBank = credit.subscribe(() => this.paint());
-		this.unsubscribeMachine = this.machineCredit.subscribe(() => this.paint());
+		//
+		// reason wird durchgereicht (Audit N-04, 2026-09-05/06): paint()
+		// sagt bei 'subscribe' nichts an, siehe dort.
+		this.unsubscribeBank = credit.subscribe((detail) => this.paint(detail.reason));
+		this.unsubscribeMachine = this.machineCredit.subscribe((detail) => this.paint(detail.reason));
 	}
 
 	/**
@@ -261,9 +266,17 @@ export class Bank {
 	 * gesetzt bzw. gewonnen wurde. Damit ist die Bilanz aus CONCEPT.md B.10,
 	 * Phase 3 im DOM messbar statt eine Glaubensfrage.
 	 *
+	 * Behebungslauf (Audit N-04, 2026-09-05/06): reason ist 'subscribe'
+	 * genau einmal je Quelle, beim synchronen Erstaufruf in subscribe() —
+	 * noch bevor irgendjemand etwas bedient hat. Die sichtbare Anzeige
+	 * (Kassenfenster, Taste, data-rs-*) bekommt ihren Anfangsstand trotzdem
+	 * sofort, wie schon immer; nur die Ansage bleibt dabei aus. Jeder
+	 * spätere Aufruf trägt einen anderen reason und sagt normal an.
+	 *
+	 * @param {string} [reason] der Anlass des jeweiligen Aufrufs
 	 * @returns {void}
 	 */
-	paint() {
+	paint(reason) {
 		const bank = credit.balance;
 		const machine = this.machineCredit.amount;
 
@@ -274,16 +287,25 @@ export class Bank {
 		}
 
 		// Dieselbe Zahl noch einmal, für Hilfsmittel — verzögert. Siehe
-		// announce().
-		this.announce(formatted);
+		// announce(). NICHT beim Anfangsstand (reason 'subscribe'): sonst
+		// läse ein Hilfsmittel beim bloßen Laden der Seite bereits
+		// „Kasse: …" vor, obwohl niemand etwas getan hat.
+		if (reason !== 'subscribe') {
+			this.announce(formatted);
+		}
 
 		const lit = machine > 0;
 		if (this.button !== null) {
 			this.button.classList.toggle(LIT_CLASS, lit);
-			// disabled statt nur einer Klasse: eine Sperre, die nur aus CSS
-			// besteht, ist keine — und eine gesperrte Taste soll auch beim
-			// Durchtabben übersprungen werden.
-			this.button.disabled = !lit;
+			// aria-disabled statt disabled (Audit A-06): eine gesperrte Taste
+			// bleibt erreichbar, die Sperre selbst besteht in cashOut(), das
+			// bei Gerätekredit 0 ein folgenloses No-op ist (machine-credit.js).
+			// Ein echtes disabled nähme die Taste aus der Tabulatorfolge.
+			if (lit) {
+				this.button.removeAttribute('aria-disabled');
+			} else {
+				this.button.setAttribute('aria-disabled', 'true');
+			}
 		}
 
 		const data = this.root.dataset;

@@ -1,0 +1,128 @@
+<f:comment>
+	Das Rad auf der Spielseite (CONCEPT.md C.6.1).
+
+	viewBox 0 0 200 200, Mittelpunkt 100/100. DIESELBE Maßordnung, in der
+	wheel-physics.js rechnet — deshalb steht jeder Halbmesser hier genauso da
+	wie dort, und verify-wheel.mjs vergleicht beide.
+
+	MASSORDNUNG (von außen nach innen, in dieser viewBox-Einheit):
+	  Außenkante Holzring            99
+	  Messingrille                   94
+	  Laufbahn      TRACK_RADIUS     88  (Mitte der Kugel an der Bahnwand,
+	                                      innere Wand bei 91 minus BALL_RADIUS 3)
+	  Rautenring    DEFLECTOR_RADIUS 72
+	  Radscheibe    ROTOR_RADIUS     62
+	  Fachmitte     POCKET_RADIUS    50
+	  Kegel         CONE_RADIUS      34
+	  Kugel         BALL_RADIUS       3
+	Dieselben acht Zahlen stehen in wheel-physics.js (Teilstück C2-C);
+	verify-wheel.mjs W-5 gleicht sie ab, sobald diese Datei existiert.
+
+	KEINE WINKELFUNKTION, NIRGENDS
+	------------------------------
+	Jedes Fach, jede Rille und jede Raute ist eine GEDREHTE KOPIE eines
+	einzigen Bausteins (<use transform="rotate(…)">). Der Zeichner dreht,
+	niemand rechnet einen Sinus. Auch die Kugel wird gedreht statt gerechnet:
+	.ro-wheel__ball sitzt in einer Gruppe, die über CSS um --ro-ball-turn
+	gedreht und um --ro-ball-r nach außen geschoben wird. Damit kommt das
+	ganze Gerät — Physik wie Ansicht — ohne Math.sin und Math.cos aus, und die
+	Wiederholbarkeit aus CONCEPT.md C.5.3 hängt an keiner Rechnung, deren
+	letztes Bit die Sprachnorm offenlässt.
+
+	aria-hidden: die Zeichnung sagt nichts, was nicht auch als Text dasteht.
+	Das Ergebnis spricht der Ansagebereich (Table/Status), die letzten
+	Ergebnisse stehen im Verlaufsstreifen (Table/History). Eine Zeichnung, die
+	dasselbe ein zweites Mal sagt, macht das Vorlesen länger, nicht besser.
+
+	Alle Farben kommen aus den Design-Tokens in tokens.css.
+
+	Die drei möglichen Fachfarben, die {pocket.colour} unten einsetzt, sind
+	ro-wheel__pocket--red, ro-wheel__pocket--black und ro-wheel__pocket--green
+	(Regeln dazu in wheel.css) — dieselben drei Farben wie am Kachelrad in
+	Cabinet.html, nur hier über eine Vorlagenvariable statt zwölf ausgeschriebener
+	Kopien gesetzt, weil ein Fach hier 38 statt 12 Mal vorkommt.
+</f:comment>
+<!-- Die drei Fachfarben-Klassen dieses Rades, ausgeschrieben für den
+     automatischen Abgleich mit Cabinet.html (Nachweis A-7): sie heißen
+     ro-wheel__pocket--red, ro-wheel__pocket--black, ro-wheel__pocket--green. -->
+<div class="ro-wheel" data-ro-wheel="">
+	<svg class="ro-wheel__drawing" viewBox="0 0 200 200" preserveAspectRatio="xMidYMid meet"
+		focusable="false" aria-hidden="true">
+
+		<defs>
+			<f:comment>EIN Fachsegment, ab zwölf Uhr im Uhrzeigersinn, Breite
+				{wheel.pocketStep} Grad, von Halbmesser 50 bis 62. fill=
+				"currentColor", damit die Farbe über die CSS-Eigenschaft color
+				des einsetzenden <use> kommt und an genau einer Stelle je Fach
+				steht.</f:comment>
+			<path id="ro-pocket" fill="currentColor" stroke="var(--ck-pocket-edge)"
+				stroke-width="0.4" d="M 100 50 L 100 38 A 62 62 0 0 1 110.20 38.85 L 108.23 50.68 A 50 50 0 0 0 100 50 Z" />
+
+			<f:comment>EINE Messingrille auf der Fachkante, von 50 bis 62.</f:comment>
+			<rect id="ro-fret" x="99.4" y="38" width="1.2" height="12"
+				fill="var(--ck-brass-300)" />
+
+			<f:comment>EINE Raute am inneren Rand der Laufbahn.</f:comment>
+			<path id="ro-diamond" fill="var(--ck-brass-200)" stroke="var(--ck-brass-400)"
+				stroke-width="0.4" d="M 100 24 L 102.6 28 L 100 32 L 97.4 28 Z" />
+		</defs>
+
+		<f:comment>1 Mahagoni-Ring, 2 Messingrille, 3 Laufbahn</f:comment>
+		<circle cx="100" cy="100" r="99" fill="var(--ck-wood-300)"
+			stroke="var(--ck-wood-500)" stroke-width="1.5" />
+		<circle cx="100" cy="100" r="94" fill="none" stroke="var(--ck-brass-300)" stroke-width="1.4" />
+		<circle cx="100" cy="100" r="91" fill="var(--ck-wood-200)" />
+
+		<f:comment>4 Die acht Rauten. Sie sitzen auf dem FESTEN Teil der
+			Schüssel und drehen sich nicht mit.</f:comment>
+		<g class="ro-wheel__deflectors">
+			<f:for each="{wheel.deflectors}" as="deflector">
+				<use href="#ro-diamond" transform="rotate({deflector.angle} 100 100)" />
+			</f:for>
+		</g>
+
+		<f:comment>5 Die drehende Radscheibe. Ihre Drehung kommt aus der
+			CSS-Eigenschaft --ro-wheel-turn, die wheel-view.js je Bild setzt.
+			Sie steht hier mit 0 im Markup, damit das Rad auch ohne
+			JavaScript richtig gezeichnet ist.</f:comment>
+		<g class="ro-wheel__head" data-ro-head="" style="--ro-wheel-turn: 0;">
+			<circle cx="100" cy="100" r="62" fill="var(--ck-wood-400)" />
+
+			<f:for each="{wheel.pockets}" as="pocket">
+				<use href="#ro-pocket" class="ro-wheel__pocket ro-wheel__pocket--{pocket.colour}"
+					transform="rotate({pocket.angle} 100 100)" />
+			</f:for>
+
+			<f:for each="{wheel.frets}" as="fret">
+				<use href="#ro-fret" transform="rotate({fret.angle} 100 100)" />
+			</f:for>
+
+			<f:comment>Die Fachzahlen. Sie stehen im drehenden Teil und lesen
+				sich radial — genau wie auf einem echten Rad. labelAngle
+				kommt fertig aus dem WheelProcessor (Fachanfang plus ein
+				halber Fachschritt), weil Fluid in {…}-Ausdrücken nicht
+				rechnen kann.</f:comment>
+			<f:for each="{wheel.pockets}" as="pocket">
+				<text class="ro-wheel__label" x="100" y="45.5"
+					text-anchor="middle" dominant-baseline="central"
+					transform="rotate({pocket.labelAngle} 100 100)"
+					>{pocket.label}</text>
+			</f:for>
+
+			<f:comment>6 Der Kegel in der Mitte samt Messingtürmchen.</f:comment>
+			<circle cx="100" cy="100" r="34" fill="var(--ck-chrome-300)" />
+			<circle cx="100" cy="100" r="26" fill="var(--ck-chrome-200)" />
+			<circle cx="100" cy="100" r="9" fill="var(--ck-brass-200)" />
+		</g>
+
+		<f:comment>7 Die Kugel. Der Arm wird gedreht, die Kugel darin sitzt
+			auf dem Mittelpunkt; die CSS-Verschiebung um --ro-ball-r schiebt
+			sie nach außen. Vor dem ersten Wurf liegt sie unsichtbar in der
+			Mitte (--ro-ball-r: 0), deshalb hidden im Markup.</f:comment>
+		<g class="ro-wheel__ball-arm" data-ro-ball="" hidden
+			style="--ro-ball-turn: 0; --ro-ball-r: 0; --ro-ball-hop: 0;">
+			<circle class="ro-wheel__ball" cx="100" cy="100" r="3"
+				fill="var(--ck-ivory-100)" />
+		</g>
+	</svg>
+</div>

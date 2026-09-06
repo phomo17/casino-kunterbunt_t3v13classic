@@ -31,7 +31,12 @@
  * WARUM ES SICH VON ALLEIN AUSBLENDET
  * -----------------------------------
  * Nach 2,6 Sekunden geht die Tafel von allein wieder weg; jede erneute
- * Meldung setzt die Uhr zurück.
+ * Meldung setzt die Uhr zurück. Eine Ausnahme: show(key, { sticky: true })
+ * lässt den Ausblend-Zeitgeber aus. Gebraucht wird das für „AUSSER BETRIEB"
+ * (norng, video-slot.js): ein Gehäuse ohne sichere Zufallsquelle bleibt
+ * dauerhaft unbedienbar, und eine Meldung, die sich nach 2,6 Sekunden von
+ * selbst wegnimmt, hinterließe genau das stumme, unerklärte Gehäuse, das
+ * dieser Automat an anderer Stelle „der unangenehmste aller Fehler" nennt.
  *
  *
  * DIE TAFEL IST EIN LIVE-BEREICH
@@ -109,9 +114,12 @@ export class MessageBoard {
 	 * Zeigt eine Meldung und startet die Standzeit neu.
 	 *
 	 * @param {'insufficient'|'invalid'|'capped'|'void'|'nocash'|'norng'} key
+	 * @param {{sticky?: boolean}} [options] sticky unterdrückt den
+	 *        Ausblend-Zeitgeber – für eine Meldung, die stehen bleiben muss,
+	 *        siehe Dateikopf.
 	 * @returns {void}
 	 */
-	show(key) {
+	show(key, { sticky = false } = {}) {
 		if (this.element === null) {
 			return;
 		}
@@ -139,10 +147,12 @@ export class MessageBoard {
 		this.current = key;
 
 		this.clearTimer();
-		this.timer = globalThis.setTimeout(() => {
-			this.timer = 0;
-			this.hide();
-		}, SHOW_MS);
+		if (!sticky) {
+			this.timer = globalThis.setTimeout(() => {
+				this.timer = 0;
+				this.hide();
+			}, SHOW_MS);
+		}
 	}
 
 	/**

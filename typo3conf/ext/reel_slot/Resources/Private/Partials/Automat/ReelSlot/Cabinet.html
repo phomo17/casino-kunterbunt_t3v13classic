@@ -7,12 +7,12 @@
 	Schattenwurf und Licht von oben liefert der Saal — hier steht nichts davon.
 	Farben ausschließlich über --ck-*-Tokens aus casino_startpage/tokens.css.
 
-	Diese Datei wird an ZWEI Stellen gerendert:
-	  - im Saal, klein, vom Inhaltselement „Casino-Automat" (mit {automat}/{data})
-	  - auf der Automatenseite, groß, von ContentElements/Machine.html (ohne beides)
-	Deshalb benutzt sie keine der beiden Variablen und holt den Namen direkt aus
-	der Sprachdatei. Phase 5 setzt das große, bedienbare Gehäuse daneben; diese
-	Zeichnung bleibt dann die Miniatur für den Saal.
+	Miniatur für den Saal, gerendert vom Inhaltselement „Casino-Automat" (mit
+	{automat}/{data}). Seit Phase 5 rendert die Automatenseite ihr eigenes,
+	großes Gehäuse-Partial (Automat/ReelSlot/Machine/Cabinet, aus
+	ContentElements/Machine.html) – diese Zeichnung wird dort nicht mehr
+	verwendet. Deshalb benutzt sie keine der beiden Variablen und holt den
+	Namen direkt aus der Sprachdatei.
 
 	Aufbau von oben nach unten nach CONCEPT.md Abschnitt 3.2. Ein span, kein div:
 	der Saal setzt das Gehäuse in einen span, und ein div darin wäre ungültiges HTML.

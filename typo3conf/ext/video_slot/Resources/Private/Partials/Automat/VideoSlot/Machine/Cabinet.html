@@ -252,11 +252,14 @@
 
 		type="button", nicht submit: sie gehört zu keinem Formular.
 
-		Ist der Gerätekredit 0, trägt sie disabled — sie ist dunkel, nicht
-		anklickbar und wird beim Durchtabben übersprungen. Das Attribut steht
-		schon im Markup, damit die Taste auch ohne JavaScript nicht so
-		aussieht, als täte sie etwas.</f:comment>
-	<button type="button" class="vs-cashout" data-vs-cashout disabled>
+		Ist der Gerätekredit 0, trägt sie aria-disabled="true" (Audit A-06) —
+		sie ist dunkel und tut nichts, bleibt aber im Tastaturweg erreichbar.
+		Ein echtes disabled nähme sie aus der Tabulatorfolge; die eigentliche
+		Sperre besteht in cashOut() selbst, das bei Gerätekredit 0 ein
+		folgenloses No-op ist (machine-credit.js). Das Attribut steht schon
+		im Markup, damit die Taste auch ohne JavaScript nicht so aussieht,
+		als täte sie etwas.</f:comment>
+	<button type="button" class="vs-cashout" data-vs-cashout aria-disabled="true">
 		<span class="vs-cashout__label"><f:translate
 			key="LLL:EXT:video_slot/Resources/Private/Language/locallang.xlf:machine.cashout.label" /></span>
 	</button>

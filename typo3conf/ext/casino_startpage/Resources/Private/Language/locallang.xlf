@@ -3,6 +3,14 @@
 	<file source-language="de" datatype="plaintext" original="EXT:casino_startpage/Resources/Private/Language/locallang.xlf" date="2026-09-01T00:00:00Z" product-name="casino_startpage">
 		<header/>
 		<body>
+			<!-- Sprunglink, ganz am Anfang des Dokuments (Audit A-04): auf der
+			     Startseite liegen sieben Fokusstationen im Leuchtschild, bevor
+			     main mit den Gerätekacheln beginnt. Gilt für alle sechs Seiten,
+			     weil das Seitengerüst geteilt ist (Layouts/Default.html). -->
+			<trans-unit id="hall.skiplink">
+				<source>Zum Hauptinhalt springen</source>
+			</trans-unit>
+
 			<trans-unit id="hall.credit.label">
 				<source>Guthaben</source>
 			</trans-unit>
@@ -75,6 +83,196 @@
 			</trans-unit>
 			<trans-unit id="pagehead.back">
 				<source>Zurück in den Saal</source>
+			</trans-unit>
+
+			<!-- Setzfläche und Rundenablauf eines Spieltisches (CONCEPT.md C.3, C.4).
+			     Teilstück C1-C. Keiner dieser Texte wird großgeschrieben ausgegeben. -->
+			<trans-unit id="table.hint.keyboard">
+				<source>Chip wählen, dann auf ein Feld klicken. Mit der Eingabetaste legen, mit Entf oder Rücktaste den obersten Chip zurücknehmen. Mit der Maus: Umschalt und Klick.</source>
+			</trans-unit>
+			<trans-unit id="table.field.name">
+				<source>{0}, zahlt {1} zu 1, Höchsteinsatz {2} Euro, {3} Euro gesetzt</source>
+			</trans-unit>
+			<trans-unit id="table.field.name.empty">
+				<source>{0}, zahlt {1} zu 1, Höchsteinsatz {2} Euro, nichts gesetzt</source>
+			</trans-unit>
+			<trans-unit id="table.announce.placed">
+				<source>{0} Euro auf {1} gelegt. Gesamteinsatz {2} Euro.</source>
+			</trans-unit>
+			<trans-unit id="table.announce.removed">
+				<source>{0} Euro von {1} zurückgenommen. Gesamteinsatz {2} Euro.</source>
+			</trans-unit>
+			<trans-unit id="table.announce.cleared">
+				<source>Alles zurückgenommen.</source>
+			</trans-unit>
+			<trans-unit id="table.announce.doubled">
+				<source>Alle Einsätze verdoppelt. Gesamteinsatz {0} Euro.</source>
+			</trans-unit>
+			<trans-unit id="table.announce.repeated">
+				<source>Einsätze der letzten Runde wiederholt. Gesamteinsatz {0} Euro.</source>
+			</trans-unit>
+			<trans-unit id="table.announce.fieldmax">
+				<source>Auf {0} sind höchstens {1} Euro erlaubt.</source>
+			</trans-unit>
+			<trans-unit id="table.announce.roundmax">
+				<source>Je Runde sind höchstens {0} Euro erlaubt.</source>
+			</trans-unit>
+			<trans-unit id="table.announce.nochip">
+				<source>Kein Chip zu {0} Euro mehr im Bestand. Am Wechselfeld nachwechseln.</source>
+			</trans-unit>
+			<trans-unit id="table.announce.locked">
+				<source>Die Runde nimmt keine Einsätze mehr an.</source>
+			</trans-unit>
+
+			<!-- Bedienleiste, Wechselfeld, Verlaufsstreifen und Mustertisch
+			     (CONCEPT.md C.3, C.4, C.9). Teilstück C1-D. -->
+			<trans-unit id="table.chip.legend">
+				<source>Chip wählen</source>
+			</trans-unit>
+			<trans-unit id="table.chip.1">
+				<source>1 Euro (weiß)</source>
+			</trans-unit>
+			<trans-unit id="table.chip.5">
+				<source>5 Euro (rot)</source>
+			</trans-unit>
+			<trans-unit id="table.chip.20">
+				<source>20 Euro (gelb)</source>
+			</trans-unit>
+			<trans-unit id="table.chip.25">
+				<source>25 Euro (grün)</source>
+			</trans-unit>
+			<trans-unit id="table.chip.100">
+				<source>100 Euro (schwarz)</source>
+			</trans-unit>
+
+			<trans-unit id="table.undo">
+				<source>Letzten Einsatz zurücknehmen</source>
+			</trans-unit>
+			<trans-unit id="table.clear">
+				<source>Alles zurücknehmen</source>
+			</trans-unit>
+			<trans-unit id="table.repeat">
+				<source>Wiederholen</source>
+			</trans-unit>
+			<trans-unit id="table.double">
+				<source>Verdoppeln</source>
+			</trans-unit>
+
+			<trans-unit id="table.amount">
+				<source>Buy-in</source>
+			</trans-unit>
+			<trans-unit id="table.staked">
+				<source>Gesamteinsatz</source>
+			</trans-unit>
+
+			<trans-unit id="table.buyin.legend">
+				<source>In Chips wechseln</source>
+			</trans-unit>
+			<trans-unit id="table.buyin.add.25">
+				<source>+25</source>
+			</trans-unit>
+			<trans-unit id="table.buyin.add.100">
+				<source>+100</source>
+			</trans-unit>
+			<trans-unit id="table.buyin.add.500">
+				<source>+500</source>
+			</trans-unit>
+			<trans-unit id="table.buyin.label">
+				<source>Betrag</source>
+			</trans-unit>
+			<trans-unit id="table.buyin.apply">
+				<source>Wechseln</source>
+			</trans-unit>
+			<trans-unit id="table.buyin.nocash">
+				<source>Die Kasse reicht nicht — {0} Euro fehlen.</source>
+			</trans-unit>
+			<trans-unit id="table.buyin.invalid">
+				<source>Bitte eine ganze Zahl von 1 bis 999.999.999 eingeben.</source>
+			</trans-unit>
+
+			<trans-unit id="table.cashout">
+				<source>CASH OUT</source>
+			</trans-unit>
+			<trans-unit id="table.cashout.blocked">
+				<source>Auszahlung gesperrt, solange Chips auf dem Tuch liegen.</source>
+			</trans-unit>
+			<trans-unit id="table.cashout.done">
+				<source>{0} Euro ausgezahlt.</source>
+			</trans-unit>
+
+			<trans-unit id="table.exchange.legend">
+				<source>Chips wechseln</source>
+			</trans-unit>
+			<trans-unit id="table.exchange.down">
+				<source>%s Euro kleiner wechseln</source>
+			</trans-unit>
+			<trans-unit id="table.exchange.up">
+				<source>%s Euro größer wechseln</source>
+			</trans-unit>
+
+			<!-- {0} = Stückzahl. Bildet den vollständigen Text des Zähl-Feldes
+			     neben Name und Chipbild in Table/Controls.html. -->
+			<trans-unit id="table.rack.count">
+				<source>{0} im Bestand</source>
+			</trans-unit>
+
+			<!-- {0} = Buy-in in Euro. Angesagt, wenn beim Öffnen des Tisches ein
+			     Absturzrest wiederhergestellt wurde (B.5.2) — sonst bliebe dieser
+			     Vorgang für ein Bildschirmleseprogramm unbemerkt. -->
+			<trans-unit id="table.amount.announce">
+				<source>Buy-in: {0} Euro</source>
+			</trans-unit>
+
+			<!-- „Letzten Einsatz zurücknehmen" nennt keinen Feldnamen: der Zug ist
+			     feldübergreifend, und table-controls.js kennt keine Feldbeschriftungen
+			     (die liegen ausschließlich in table-felt.js). -->
+			<trans-unit id="table.announce.undone">
+				<source>Zuletzt gelegter Chip zurückgenommen. Gesamteinsatz {0} Euro.</source>
+			</trans-unit>
+			<!-- double()/repeat() melden bei Überschreiten eines Limits keinen
+			     Feldnamen und keinen Grenzwert zurück (anders als place()) — die
+			     Meldung bleibt deshalb bewusst allgemein. -->
+			<trans-unit id="table.announce.limit">
+				<source>Das würde ein Limit überschreiten.</source>
+			</trans-unit>
+
+			<trans-unit id="table.history.label">
+				<source>Verlauf</source>
+			</trans-unit>
+			<trans-unit id="table.history.empty">
+				<source>Noch keine Runde gespielt.</source>
+			</trans-unit>
+
+			<!-- Der Mustertisch selbst (CONCEPT.md C.9). -->
+			<trans-unit id="mustertisch.title">
+				<source>Mustertisch</source>
+			</trans-unit>
+			<trans-unit id="mustertisch.description">
+				<source>Der Beispieltisch der geteilten Tisch-Bausteine. Kein Spiel: Chips, Setzfläche, Buy-in und Auszahlung.</source>
+			</trans-unit>
+			<trans-unit id="mustertisch.feld.a">
+				<source>Feld A</source>
+			</trans-unit>
+			<trans-unit id="mustertisch.feld.b">
+				<source>Feld B</source>
+			</trans-unit>
+			<trans-unit id="mustertisch.feld.c">
+				<source>Feld C</source>
+			</trans-unit>
+			<trans-unit id="mustertisch.feld.d">
+				<source>Feld D</source>
+			</trans-unit>
+			<trans-unit id="mustertisch.odds.1">
+				<source>zahlt 1 zu 1</source>
+			</trans-unit>
+			<trans-unit id="mustertisch.odds.2">
+				<source>zahlt 2 zu 1</source>
+			</trans-unit>
+			<trans-unit id="mustertisch.odds.8">
+				<source>zahlt 8 zu 1</source>
+			</trans-unit>
+			<trans-unit id="mustertisch.odds.35">
+				<source>zahlt 35 zu 1</source>
 			</trans-unit>
 		</body>
 	</file>

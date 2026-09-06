@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+	Icon der Extension im Erweiterungs-Modul.
+
+	AUSNAHME VON DER TOKEN-REGEL: hier stehen ausgeschriebene Hexwerte. Ein
+	Backend-Icon wird von TYPO3 ausserhalb des Frontend-Dokuments eingebunden;
+	dort sind die Custom Properties aus tokens.css nicht definiert und ein
+	var(...) bliebe farblos. Die drei vorhandenen Geraete machen es genauso.
+	Damit alle aus derselben Palette kommen, sind die Werte aus tokens.css
+	abgeschrieben; der Tokenname steht je Wert daneben, ohne die beiden
+	fuehrenden Bindestriche.
+
+	Das breite Gehaeuse ist das Erkennungszeichen: ein Korpus, der fast die
+	ganze Kachel ausfuellt, mit abgeschraegten Schultern statt runder, einem
+	Sichtfeld von sechs Spalten und fuenf Zeilen und einer Tastenreihe
+	darunter statt einer Konsole an der Flanke.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img">
+	<title>FruitRisk</title>
+	<rect width="64" height="64" rx="10" fill="#2c0b11"/><!-- ck-wall-base -->
+	<path d="M5 55V17l5-5h44l5 5v38z" fill="#452b19"/><!-- ck-wood-300 -->
+	<path d="M8 53V19l3.5-3.5h41L56 19v34z" fill="#aab5bd"/><!-- ck-chrome-300 -->
+	<rect x="20" y="14" width="24" height="6" rx="1.6" fill="#2e1c10"/><!-- ck-wood-400 -->
+	<rect x="9.5" y="22" width="37" height="21" rx="1.4" fill="#2b1509"/><!-- ck-nixie-dark -->
+	<g fill="#f0e6d2"><!-- ck-paper-100: dreissig Leuchtfelder, 6 Spalten x 5 Zeilen -->
+		<rect x="10.5" y="23" width="5.2" height="3.4" rx="0.4"/>
+		<rect x="16.5" y="23" width="5.2" height="3.4" rx="0.4"/>
+		<rect x="22.5" y="23" width="5.2" height="3.4" rx="0.4"/>
+		<rect x="28.5" y="23" width="5.2" height="3.4" rx="0.4"/>
+		<rect x="34.5" y="23" width="5.2" height="3.4" rx="0.4"/>
+		<rect x="40.5" y="23" width="5.2" height="3.4" rx="0.4"/>
+		<rect x="10.5" y="27" width="5.2" height="3.4" rx="0.4"/>
+		<rect x="16.5" y="27" width="5.2" height="3.4" rx="0.4"/>
+		<rect x="22.5" y="27" width="5.2" height="3.4" rx="0.4"/>
+		<rect x="28.5" y="27" width="5.2" height="3.4" rx="0.4"/>
+		<rect x="34.5" y="27" width="5.2" height="3.4" rx="0.4"/>
+		<rect x="40.5" y="27" width="5.2" height="3.4" rx="0.4"/>
+		<rect x="10.5" y="31" width="5.2" height="3.4" rx="0.4"/>
+		<rect x="16.5" y="31" width="5.2" height="3.4" rx="0.4"/>
+		<rect x="22.5" y="31" width="5.2" height="3.4" rx="0.4"/>
+		<rect x="28.5" y="31" width="5.2" height="3.4" rx="0.4"/>
+		<rect x="34.5" y="31" width="5.2" height="3.4" rx="0.4"/>
+		<rect x="40.5" y="31" width="5.2" height="3.4" rx="0.4"/>
+		<rect x="10.5" y="35" width="5.2" height="3.4" rx="0.4"/>
+		<rect x="16.5" y="35" width="5.2" height="3.4" rx="0.4"/>
+		<rect x="22.5" y="35" width="5.2" height="3.4" rx="0.4"/>
+		<rect x="28.5" y="35" width="5.2" height="3.4" rx="0.4"/>
+		<rect x="34.5" y="35" width="5.2" height="3.4" rx="0.4"/>
+		<rect x="40.5" y="35" width="5.2" height="3.4" rx="0.4"/>
+		<rect x="10.5" y="39" width="5.2" height="3.4" rx="0.4"/>
+		<rect x="16.5" y="39" width="5.2" height="3.4" rx="0.4"/>
+		<rect x="22.5" y="39" width="5.2" height="3.4" rx="0.4"/>
+		<rect x="28.5" y="39" width="5.2" height="3.4" rx="0.4"/>
+		<rect x="34.5" y="39" width="5.2" height="3.4" rx="0.4"/>
+		<rect x="40.5" y="39" width="5.2" height="3.4" rx="0.4"/>
+	</g>
+	<rect x="48" y="22" width="7.5" height="7.5" rx="1.4" fill="#b7291b"/><!-- ck-bakelite-red: START -->
+	<rect x="48" y="31.5" width="7.5" height="7.5" rx="1.4" fill="#ecdfc4"/><!-- ck-bakelite-cream: STOP -->
+	<rect x="9.5" y="44.5" width="46" height="3.6" rx="1" fill="#2b1509"/><!-- ck-nixie-dark -->
+	<rect x="11" y="45.6" width="43" height="1.4" rx="0.7" fill="#ff8c1f"/><!-- ck-nixie-glow -->
+	<g fill="#4a3a2b"><!-- ck-bulb-off: das Bedienfeld unter den Walzen -->
+		<rect x="10" y="49.6" width="5.4" height="3.4" rx="0.8"/>
+		<circle cx="21" cy="51.3" r="1.5"/>
+		<circle cx="25" cy="51.3" r="1.5"/>
+		<circle cx="30.5" cy="51.3" r="1.5"/>
+		<circle cx="34.5" cy="51.3" r="1.5"/>
+		<circle cx="40" cy="51.3" r="1.5"/>
+		<rect x="45.5" y="49.6" width="9" height="3.4" rx="0.8"/>
+	</g>
+	<circle cx="17" cy="51.3" r="1.5" fill="#ffb753"/><!-- ck-bulb-glow: die Taste, die gerade leuchtet -->
+	<rect x="5" y="55" width="54" height="5" rx="2" fill="#1a0f08"/><!-- ck-wood-500 -->
+</svg>

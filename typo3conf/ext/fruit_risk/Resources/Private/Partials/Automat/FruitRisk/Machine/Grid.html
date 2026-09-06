@@ -1,0 +1,65 @@
+<f:comment>
+	Das leuchtende Fenster: sechs laufende Baender zu je fuenf sichtbaren
+	Feldern (CONCEPT.md C.14.7).
+
+	STAND F4a: Aus dreissig fest getippten Zellen sind sechs Baender geworden.
+	Jedes traegt VIERZIG Zellen — zwei volle Umlaeufe der zwanzig
+	Bandpositionen aus Rules::STRIPS. Zelle k zeigt Bandposition k mod 20;
+	deshalb darf das Band um genau zwanzig Zellen zurueckgesetzt werden, ohne
+	dass man es sieht.
+
+	Die Zahlen kommen NICHT mehr aus dem Markup, sondern ueber {machine.reels}
+	aus dem CabinetProcessor und damit aus Classes/Rules.php. Es gibt die
+	Baender damit weiterhin genau einmal (C.14.8). data-fr-strip traegt die
+	zwanzig Symbolnamen einer Walze als einzige Symbolquelle fuer JavaScript;
+	--fr-reel-pos traegt den Zellindex der OBERSTEN sichtbaren Zeile.
+
+	Warum die oberste und nicht die mittlere Zeile: bei fuenf sichtbaren
+	Zeilen gibt es keine Mitte, die ohne Bruch auf drei und fuenf Reihen
+	zugleich passt. Die Oberkante ist die Zeile 0 der Auswertung
+	(paytable.js), und damit rechnet symbolAt(row) ohne Versatz.
+
+	Die dreissig Gewinnlinien liegen als EIN Overlay-SVG darueber. Sie sind
+	unsichtbar, bis .fr-payline--win gesetzt wird. Ihre Punktfolgen rechnet
+	der CabinetProcessor aus Rules::LINES — sie sind Geometrie, keine
+	Spiellogik. Sie sind der zweite, NICHT farbliche Rueckmeldekanal neben
+	dem Zellrahmen und dem Satz im Live-Bereich (CONCEPT.md C.14.12).
+
+	Beide SVG tragen aria-hidden: fuer ein Hilfsmittel waeren zweihundertvierzig
+	lose Grafiken eine Wolke ohne Zusammenhang. Angesagt wird EIN Satz je
+	Runde im Live-Bereich „grid" (Machine/Cabinet.html). Ein fuenfter
+	Live-Bereich wird dafuer NICHT angelegt.
+
+	Die Grundstellung ist damit nicht mehr im Markup abzulesen, sondern
+	ergibt sich aus data-fr-strip und --fr-reel-pos. verify-payout.mjs (P-17)
+	rechnet sie daraus nach und vergleicht sie mit Rules::DEFAULT_GRID und mit
+	der Saal-Miniatur.
+
+	data-fr-cell traegt ab F4a Walze UND ZELLINDEX (0…39) statt Walze und
+	Zeile: Eine Bandzelle hat keine feste Zeile mehr. Das ist eine
+	Bedeutungsaenderung gegenueber F2/F3, siehe DECISIONS.md.
+</f:comment>
+<div class="fr-grid">
+	<f:for each="{machine.reels}" as="reel">
+		<div class="fr-reel" data-fr-reel="{reel.index}"
+			style="--fr-reel-pos: {reel.defaultPosition}">
+			<svg class="fr-reel__strip" viewBox="0 0 15 320"
+				preserveAspectRatio="none" focusable="false" aria-hidden="true"
+				data-fr-strip="{reel.symbolList}">
+				<f:for each="{reel.cells}" as="cell">
+					<rect class="fr-cell" data-fr-cell="{reel.index}-{cell.index}"
+						x="0.4" y="{cell.fieldY}" width="14.2" height="7.2" rx="0.7" />
+					<use href="#fr-sym-{cell.symbol}" x="3.9" y="{cell.symbolY}"
+						width="7.2" height="7.2" />
+				</f:for>
+			</svg>
+		</div>
+	</f:for>
+
+	<svg class="fr-paylines" viewBox="0 0 90 40"
+		preserveAspectRatio="none" focusable="false" aria-hidden="true">
+		<f:for each="{machine.paylines}" as="line">
+			<polyline class="fr-payline" data-fr-line="{line.index}" points="{line.points}" />
+		</f:for>
+	</svg>
+</div>

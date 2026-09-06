@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+	Icon des Inhaltselements im Seitenmodul und im Assistenten „Neues
+	Inhaltselement". Dieselbe Ausnahme von der Token-Regel wie bei
+	Extension.svg: Backend-Icons stehen ausserhalb des Frontend-Dokuments und
+	koennen die Custom Properties aus tokens.css nicht benutzen. Die Werte
+	sind von dort abgeschrieben; der Tokenname steht je Wert daneben.
+
+	Dasselbe Motiv wie Extension.svg — Feldwanne mit drei Muenzen und
+	Abwurfkante —, bei 16 Bildpunkten ergaenzt um einen senkrechten Strich
+	oben in der Mitte als Muenzeinwurfschlitz.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16">
+	<title>Coin Pusher</title>
+	<rect x="2" y="5.4" width="12" height="8.6" rx="1.3" fill="#1b2024" stroke="#3d454c" stroke-width="0.5"/><!-- ck-chrome-shadow / ck-chrome-500 -->
+	<circle cx="5.3" cy="8.1" r="1.5" fill="#b0663a" stroke="#7a4322" stroke-width="0.4"/><!-- ck-copper-200 / ck-copper-400 -->
+	<circle cx="9.2" cy="9" r="1.7" fill="#dfb964" stroke="#8c6a1f" stroke-width="0.4"/><!-- ck-brass-200 / ck-brass-400 -->
+	<circle cx="6.6" cy="11.4" r="1.8" fill="#aab5bd" stroke="#3d454c" stroke-width="0.4"/><!-- ck-chrome-300 / ck-chrome-500 -->
+	<rect x="2" y="13.2" width="12" height="1.1" rx="0.55" fill="#bd9333"/><!-- ck-brass-300 -->
+	<rect x="7.3" y="1.6" width="1.4" height="3.4" rx="0.7" fill="#78838c" stroke="#3d454c" stroke-width="0.3"/><!-- ck-chrome-400 / ck-chrome-500: Muenzeinwurfschlitz -->
+</svg>

@@ -77,6 +77,16 @@
 				<source>REWARD</source>
 			</trans-unit>
 
+			<!-- Die beiden Risiko-Tasten tragen keine sichtbare Beschriftung.
+			     Für ein Hilfsmittel brauchen sie trotzdem einen Namen
+			     (CONCEPT.md B.1, Audit A-01). Nachgezogen aus video_slot. -->
+			<trans-unit id="machine.button.riskLeft">
+				<source>Risiko links</source>
+			</trans-unit>
+			<trans-unit id="machine.button.riskRight">
+				<source>Risiko rechts</source>
+			</trans-unit>
+
 			<!-- Ton-Schalter am Gehäuse -->
 			<trans-unit id="machine.sound.label">
 				<source>TON</source>

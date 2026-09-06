@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+	Icon der Extension im Erweiterungs-Modul.
+
+	AUSNAHME VON DER TOKEN-REGEL: hier stehen ausgeschriebene Hexwerte. Ein
+	Backend-Icon wird von TYPO3 ausserhalb des Frontend-Dokuments eingebunden;
+	dort sind die Custom Properties aus tokens.css nicht definiert und ein
+	var(…) bliebe farblos. Die drei vorhandenen Geraete machen es genauso.
+	Damit alle aus derselben Palette kommen, sind die Werte aus tokens.css
+	abgeschrieben; der Tokenname steht je Wert daneben, ohne die beiden
+	fuehrenden Bindestriche (zwei Bindestriche sind in einem XML-Kommentar
+	nicht erlaubt).
+
+	Motiv: Blick von oben auf ein Rad. Ein Mahagoni-Ring, eine Messing-Rille,
+	ein Kranz aus zwoelf Kreissegmenten (Stellvertreter der 38 Faecher, siehe
+	unten) abwechselnd rot und schwarz mit einem gruenen Segment, ein
+	Chromkegel in der Mitte, ein heller Kugelpunkt auf der Laufbahn. Keine
+	Zahlen (bei dieser Groesse unleserlich).
+
+	Selbst konstruiert aus Grundformen (Kreise und Kreissegmente), nicht
+	nachgezeichnet - CONCEPT.md B.3 Nr. 6. Die zwoelf Kreissegmente sind ein
+	Zeichen, keine Masszeichnung: bei 64 Bildpunkten sind 38 Faecher nicht
+	mehr unterscheidbar (dieselbe Vereinfachung wie beim Fenster des Video
+	Slot bei 16 Bildpunkten). Winkelschritt 30 Grad, Mittelpunkt 32/32,
+	Halbmesser 10 bis 20, mit PHP vorab errechnet (arc(cx,cy,rOuter,rInner,
+	startDeg,endDeg), Start bei -90 Grad).
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img">
+	<title>Roulette</title>
+	<circle cx="32" cy="32" r="31" fill="#452b19"/><!-- ck-wood-300 -->
+	<circle cx="32" cy="32" r="27" fill="none" stroke="#bd9333" stroke-width="1.6"/><!-- ck-brass-300 -->
+	<circle cx="32" cy="32" r="25" fill="#5d3c24"/><!-- ck-wood-200 -->
+	<!-- Faecherkranz: zwoelf Kreissegmente, abwechselnd rot und schwarz, das
+		erste gruen (die Null und die doppelte Null liegen im echten Rad
+		einander gegenueber; bei zwoelf Stellvertreter-Segmenten reicht ein
+		einziges gruenes). -->
+	<path d="M32 12 A20 20 0 0 1 42 14.68 L37 23.34 A10 10 0 0 0 32 22 Z" fill="#0f6b34"/><!-- ck-pocket-green -->
+	<path d="M42 14.68 A20 20 0 0 1 49.32 22 L40.66 27 A10 10 0 0 0 37 23.34 Z" fill="#a3121a"/><!-- ck-pocket-red -->
+	<path d="M49.32 22 A20 20 0 0 1 52 32 L42 32 A10 10 0 0 0 40.66 27 Z" fill="#17130f"/><!-- ck-pocket-black -->
+	<path d="M52 32 A20 20 0 0 1 49.32 42 L40.66 37 A10 10 0 0 0 42 32 Z" fill="#a3121a"/><!-- ck-pocket-red -->
+	<path d="M49.32 42 A20 20 0 0 1 42 49.32 L37 40.66 A10 10 0 0 0 40.66 37 Z" fill="#17130f"/><!-- ck-pocket-black -->
+	<path d="M42 49.32 A20 20 0 0 1 32 52 L32 42 A10 10 0 0 0 37 40.66 Z" fill="#a3121a"/><!-- ck-pocket-red -->
+	<path d="M32 52 A20 20 0 0 1 22 49.32 L27 40.66 A10 10 0 0 0 32 42 Z" fill="#17130f"/><!-- ck-pocket-black -->
+	<path d="M22 49.32 A20 20 0 0 1 14.68 42 L23.34 37 A10 10 0 0 0 27 40.66 Z" fill="#a3121a"/><!-- ck-pocket-red -->
+	<path d="M14.68 42 A20 20 0 0 1 12 32 L22 32 A10 10 0 0 0 23.34 37 Z" fill="#17130f"/><!-- ck-pocket-black -->
+	<path d="M12 32 A20 20 0 0 1 14.68 22 L23.34 27 A10 10 0 0 0 22 32 Z" fill="#a3121a"/><!-- ck-pocket-red -->
+	<path d="M14.68 22 A20 20 0 0 1 22 14.68 L27 23.34 A10 10 0 0 0 23.34 27 Z" fill="#17130f"/><!-- ck-pocket-black -->
+	<path d="M22 14.68 A20 20 0 0 1 32 12 L32 22 A10 10 0 0 0 27 23.34 Z" fill="#a3121a"/><!-- ck-pocket-red -->
+	<circle cx="32" cy="32" r="10" fill="#aab5bd"/><!-- ck-chrome-300 -->
+	<circle cx="32" cy="32" r="4" fill="#dbe3e9"/><!-- ck-chrome-200 -->
+	<circle cx="32" cy="9" r="2.6" fill="#f2ead6"/><!-- ck-ivory-100, die Kugel -->
+</svg>

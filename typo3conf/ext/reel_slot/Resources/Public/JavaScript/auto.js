@@ -521,7 +521,13 @@ export class AutoPlay {
 		this.bound = [];
 
 		this.button?.classList.remove('rs-btn--lit', 'rs-btn--pressed');
-		this.syncAttributes();
+
+		// Zustand des laufenden Betriebs (Kopfkommentar von syncAttributes()) –
+		// nach dem Abräumen gelöscht statt zurückgeschrieben, gleiche Bauform
+		// wie machine.js, bank.js und wallet.js an derselben Stelle.
+		delete this.root.dataset.rsAuto;
+		delete this.root.dataset.rsAutoRounds;
+		delete this.root.dataset.rsAutoPending;
 	}
 }
 

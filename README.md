@@ -1,6 +1,6 @@
 # Casino Kunterbunt
 
-**Version 0.1.0 — alpha.** Frühe Entwicklungsfassung, nichts ist stabil.
+**Version 0.2.0 — alpha.** Frühe Entwicklungsfassung, nichts ist stabil.
 
 Quelltext: <https://github.com/phomo17/casino-kunterbunt_t3v13classic>
 
@@ -24,10 +24,28 @@ Gebaut ist die Welt, in der das Spiel stattfinden wird:
 
 | | Stand |
 |---|---|
-| **Vegas-Saal** als Startseite mit Leuchtreklame, Automatenreihen und Kasse | fertig |
+| **Vegas-Saal** als Startseite mit Leuchtreklame, Automaten- und Tischreihen und Kasse | fertig |
+
+**Vier Automaten:**
+
+| | Stand |
+|---|---|
 | **Reel Slot** — klassischer Drei-Walzen-Automat mit Risiko-Leiter, Auto-Modus und Klang | fertig |
-| **Video Slot** — Fünf-Walzen-Automat mit fünf Gewinnlinien und Scatter | im Bau |
-| Weitere Geräte, Tischspiele, Konten und Lobbys | geplant |
+| **Video Slot** — Fünf-Walzen-Automat mit fünf Gewinnlinien, Scatter, Risiko-Leiter, Auto-Modus und Klang | fertig |
+| **Coin Pusher** — Münzschieber mit eigener 2D-Physik | **eingefroren.** Auf ausdrücklichen Wunsch angehalten, bevor die Maßordnung fertig eingestellt war; wird später zurückgebaut. Drei Prüfungen in `verify-view.mjs` sind bekannt rot und bleiben es bis dahin — siehe die README dieser Extension |
+| **FruitRisk** — breiter Fruchtautomat mit sechs Walzen, 30 Gewinnlinien, festem Einsatz, Gewinn in jeder Runde und drei Risikospielen | fertig |
+
+**Drei Tische:**
+
+| | Stand |
+|---|---|
+| **Roulette** — amerikanisches Rad mit doppelter Null, echter Kugelphysik, vollständigem Tuch und Auszahlung | fertig |
+| **Mustertisch** — kein eigenes Spiel, sondern die Vorlage der Gattung Tisch (Chips, Setzfläche, Bedienleiste, Buy-in), Beleg dafür, dass ein neuer Tisch mit denselben Bausteinen auskommt | fertig als Vorlage |
+| **Blackjack** — Kartenschlitten, Mischverfahren, Regelwerk und Rundenlogik nachgewiesen | **noch ohne Spieloberfläche.** Tuch, Kartenbilder und Bedienleiste kommen erst in der nächsten Phase |
+
+| | Stand |
+|---|---|
+| Konten, Lobbys und weitere Geräte | geplant |
 | Rollen, Regeln, Rundenablauf des Gesellschaftsspiels | geplant |
 
 ## Wie es gebaut ist
@@ -44,6 +62,11 @@ Alles Sichtbare entsteht im Browser: die Gehäuse aus CSS und eingebettetem
 SVG, die Anzeigen aus Custom Properties, die Geräusche aus der
 Web-Audio-Schnittstelle. Ausgeliefert werden ES-Module direkt, über die
 Import-Map von TYPO3.
+
+Jede Seite liefert außerdem strukturierte Daten (JSON-LD), eine
+Meta-Beschreibung und einen Eintrag in `llms.txt` aus — geräteneutral über
+einen gemeinsamen Baustein in `casino_startpage`, damit ein neues Gerät sich
+auch hier nur anmelden statt selbst etwas bauen muss.
 
 ## Installation
 
@@ -88,17 +111,22 @@ Assistenten die Datenbankdaten von DDEV eintragen — Benutzer `db`, Passwort
 einem eigenen Container). Beim Schritt „Was möchten Sie tun?" **„Leere
 Startseite"** wählen.
 
-### 4. Die drei Extensions aktivieren
+### 4. Die sieben Extensions aktivieren
 
 ```bash
 ddev exec php typo3/sysext/core/bin/typo3 extension:activate casino_startpage
 ddev exec php typo3/sysext/core/bin/typo3 extension:activate reel_slot
 ddev exec php typo3/sysext/core/bin/typo3 extension:activate video_slot
+ddev exec php typo3/sysext/core/bin/typo3 extension:activate coin_pusher
+ddev exec php typo3/sysext/core/bin/typo3 extension:activate fruit_risk
+ddev exec php typo3/sysext/core/bin/typo3 extension:activate roulette
+ddev exec php typo3/sysext/core/bin/typo3 extension:activate blackjack
 ddev exec php typo3/sysext/core/bin/typo3 dumpautoload
 ddev exec php typo3/sysext/core/bin/typo3 cache:flush
 ```
 
-Wichtig: `casino_startpage` **zuerst**, die beiden Automaten bauen darauf auf.
+Wichtig: `casino_startpage` **zuerst** — alle sechs Geräte- und Tisch-Extensions
+bauen darauf auf. Untereinander haben die sechs keine Reihenfolge.
 
 ### 5. Seiten und Inhalte anlegen
 
@@ -109,13 +137,19 @@ Installation steht deshalb ein leeres TYPO3 da. Anzulegen im Backend:
 
 | Seite | Inhalt |
 |---|---|
-| **Saal** (Wurzelseite, Backend-Layout „Startseite (Spielsaal)") | je ein Inhaltselement **„Casino-Automat"** pro Gerät, im Feld *Automat* den jeweiligen Automaten und im Feld *Ziel* seine Spielseite wählen |
+| **Saal** (Wurzelseite, Backend-Layout „Startseite (Spielsaal)") | je ein Inhaltselement **„Casino-Automat"** pro Gerät bzw. Tisch (Reel Slot, Video Slot, Coin Pusher, FruitRisk, Roulette, Mustertisch, Blackjack), im Feld *Automat* den jeweiligen Eintrag und im Feld *Ziel* seine Spielseite wählen |
 | **Reel Slot** (Unterseite) | ein Inhaltselement **„Reel Slot"** |
 | **Video Slot** (Unterseite) | ein Inhaltselement **„Video Slot"** |
+| **Coin Pusher** (Unterseite) | ein Inhaltselement **„Coin Pusher"** |
+| **Mustertisch (Testdaten C1-D)** (Unterseite) | ein Inhaltselement **„Mustertisch"** |
+| **Roulette** (Unterseite) | ein Inhaltselement **„Roulette"** |
+| **FruitRisk** (Unterseite) | ein Inhaltselement **„FruitRisk"** |
+| **Blackjack** (Unterseite) | ein Inhaltselement **„Blackjack"** |
 
-Alle drei Elemente stehen im Backend unter der Gruppe **„Casino Kunterbunt"**.
-Die Automaten-Elemente haben keine Einstellungen — alles, was ein Gerät
-braucht, bringt es selbst mit.
+Alle acht Inhaltselement-Typen stehen im Backend unter der Gruppe
+**„Casino Kunterbunt"**. Die Geräte- und Tisch-Elemente haben keine
+Einstellungen — alles, was ein Gerät oder ein Tisch braucht, bringt es
+selbst mit.
 
 Anschließend die mitgelieferte Site-Konfiguration
 (`typo3conf/sites/casino-kunterbunt/`) im Backend unter *Site-Verwaltung*
@@ -124,28 +158,35 @@ anpassen — hinterlegt ist `https://casino-kunterbunt.ddev.site/`.
 
 ### 6. Prüfen
 
-Jede Automaten-Extension bringt Prüfskripte mit, die ohne Abhängigkeiten
-auskommen:
+Jede Geräte- und Tisch-Extension bringt eigene Prüfskripte mit, die ohne
+Abhängigkeiten auskommen, zum Beispiel:
 
 ```bash
 ddev exec node typo3conf/ext/reel_slot/Resources/Private/Scripts/verify-payout.mjs
-ddev exec node typo3conf/ext/video_slot/Resources/Private/Scripts/verify-payout.mjs
+ddev exec node typo3conf/ext/roulette/Resources/Private/Scripts/verify-bets.mjs
 ```
 
-Sie zählen alle Walzenstellungen vollständig aus und enden nur dann mit
-Rückgabewert 0, wenn die Auszahlungsquote im zugesagten Band liegt.
+Je nach Extension zählen sie alle möglichen Stellungen vollständig aus oder
+spielen eine große Zahl an Runden durch, und enden nur dann mit Rückgabewert
+0, wenn das zugesagte Verhalten oder die zugesagte Auszahlungsquote
+zutrifft. Welche Skripte es je Extension gibt und was sie im Einzelnen
+nachweisen, steht im Abschnitt „Prüfskripte" ihrer eigenen `README.md`.
 
 ## Aufbau
 
 | Extension | Aufgabe |
 |---|---|
-| `typo3conf/ext/casino_startpage` | Site Package: der Saal, die Design-Tokens, die geteilten Bausteine (Kasse, Gerätekredit, Klang, Risiko-Leiter) und die Registry, bei der sich jeder Automat anmeldet |
+| `typo3conf/ext/casino_startpage` | Site Package: der Saal, die Design-Tokens, die geteilten Bausteine (Kasse, Gerätekredit, Klang, Risiko-Leiter, Chips, Setzfläche, Rundenablauf, Buy-in) und die Registry, bei der sich jedes Gerät und jeder Tisch anmeldet. Enthält außerdem den Mustertisch als Vorlage der Gattung Tisch |
 | `typo3conf/ext/reel_slot` | der Drei-Walzen-Automat |
 | `typo3conf/ext/video_slot` | der Fünf-Walzen-Automat |
+| `typo3conf/ext/coin_pusher` | der Münzschieber — eingefroren, wird später zurückgebaut |
+| `typo3conf/ext/fruit_risk` | der breite Fruchtautomat mit sechs Walzen und drei Risikospielen |
+| `typo3conf/ext/roulette` | der Roulette-Tisch |
+| `typo3conf/ext/blackjack` | der Blackjack-Tisch — Regelwerk fertig, noch ohne Spieloberfläche |
 
-Ein Automat ist ein eigenständiges Inhaltselement. Das Site Package kennt
-keinen einzelnen Automaten und muss nicht geändert werden, wenn einer
-dazukommt.
+Ein Gerät oder ein Tisch ist ein eigenständiges Inhaltselement. Das Site
+Package kennt keinen einzelnen davon und muss nicht geändert werden, wenn
+ein weiteres dazukommt.
 
 Jede Extension hat ihre eigene `README.md` mit den Einzelheiten.
 
@@ -177,9 +218,10 @@ Es gibt zwei Ebenen, die getrennt gezählt werden:
   des Spiels als Ganzes.
 - **Die einzelnen Extensions** — je eine Version in ihrer `ext_emconf.php`.
 
-Zurzeit stehen alle drei Extensions wie das Projekt auf **0.1.0** im Zustand
-**alpha**. Solange die Spielregeln noch nicht existieren, sagt eine höhere
-Zahl ohnehin nichts aus; die Zählung beginnt bewusst gemeinsam bei null.
+Zurzeit stehen alle sieben Extensions wie das Projekt auf **0.2.0** im
+Zustand **alpha**. Solange die Spielregeln des Gesellschaftsspiels noch nicht
+existieren, sagt eine höhere Zahl ohnehin wenig über Reife aus — sie zählt
+bislang nur mit, wie viele Geräte und Tische dazugekommen sind.
 
 ## Nicht im Repository
 
@@ -197,6 +239,11 @@ TLS-Schlüssel der lokalen Installation.
 
 Nicht im Repository ist auch die **Datenbank** und damit der Seitenbaum —
 siehe Schritt 5 der Installation.
+
+Ebenfalls ausgeschlossen sind die `build-*-structure.php`-Wegwerfskripte im
+Projektstamm, mit denen Seite und Inhaltselemente der einzelnen Geräte und
+Tische einmalig angelegt wurden: einmal gelaufen, nicht wiederverwendbar und
+kein Teil des Aufbauwegs aus Schritt 5.
 
 ## Rechtliches
 

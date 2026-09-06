@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" version="1.2">
+	<file source-language="de" datatype="plaintext" original="EXT:roulette/Resources/Private/Language/locallang.xlf" date="2026-09-04T00:00:00Z" product-name="roulette">
+		<header/>
+		<body>
+			<trans-unit id="automat.title">
+				<source>Roulette</source>
+			</trans-unit>
+			<trans-unit id="automat.description">
+				<source>Amerikanisches Rad mit 38 Fächern und doppelter Null. Die Kugel läuft wirklich – wo sie liegen bleibt, ist das Ergebnis.</source>
+			</trans-unit>
+
+			<!-- Der Auslöser der Runde -->
+			<trans-unit id="wheel.launch">
+				<source>Kugel werfen</source>
+			</trans-unit>
+			<trans-unit id="wheel.launch.hint">
+				<source>Das Rad läuft immer weiter. Ein Druck auf „Kugel werfen" gibt ihm einen neuen Schwung und wirft die Kugel gegenläufig ein.</source>
+			</trans-unit>
+
+			<!-- Ansage im Live-Bereich. {0} Zahl, {1} Farbe -->
+			<trans-unit id="wheel.announce.running">
+				<source>Die Kugel läuft.</source>
+			</trans-unit>
+			<trans-unit id="wheel.announce.evaluating">
+				<source>Die Runde wird ausgewertet.</source>
+			</trans-unit>
+			<trans-unit id="wheel.announce.blocked">
+				<source>Die Kugel läuft noch.</source>
+			</trans-unit>
+			<trans-unit id="wheel.announce.norandom">
+				<source>Dieser Browser stellt keine sichere Zufallsquelle bereit. Der Tisch spielt nicht.</source>
+			</trans-unit>
+
+			<!-- Farbnamen. Farbe ist am Tisch nie die einzige Aussage. -->
+			<trans-unit id="wheel.colour.red">
+				<source>Rot</source>
+			</trans-unit>
+			<trans-unit id="wheel.colour.black">
+				<source>Schwarz</source>
+			</trans-unit>
+			<trans-unit id="wheel.colour.green">
+				<source>Grün</source>
+			</trans-unit>
+
+			<!-- Das Tuch: die Namen der Felder. %1$s ist die Liste der
+				 abgedeckten Zahlen (bei Kolonnen: %1$s die Kolonnennummer,
+				 %2$s die Zahlen). SPRINTF-PLATZHALTER, NICHT {0}-STIL: diese
+				 Namen werden von Felt.html serverseitig über
+				 f:translate(arguments: …) aufgelöst, weil sie schon beim
+				 ersten Aufruf ohne JavaScript vollständig und unterscheidbar
+				 dastehen müssen (WCAG 2.4.6/2.5.3, Prüfung F-4). Fluids
+				 f:translate-Argument „arguments" ruft intern vsprintf() auf
+				 und erwartet deshalb %1$s/%2$s — anders als die {0}/{1}-
+				 Platzhalter bei table.field.name, round.announce.* und
+				 wheel.announce.*, die absichtlich UNAUFGELÖST bleiben und
+				 erst zur Laufzeit von JavaScript ersetzt werden (dort sind
+				 die Werte erst beim Klick bekannt). felt.name.number entfällt
+				 bewusst: ein Zahlenfeld bekommt kein labelKey (es trägt seine
+				 Ziffer sichtbar), ein unbenutzter Schlüssel wäre nur eine
+				 Fehlerquelle ohne Nutzen. -->
+			<trans-unit id="felt.label">
+				<source>Setzfläche</source>
+			</trans-unit>
+			<trans-unit id="felt.group.numbers">
+				<source>Zahlenfeld und Linienwetten</source>
+			</trans-unit>
+			<trans-unit id="felt.group.columns">
+				<source>Kolonnen</source>
+			</trans-unit>
+			<trans-unit id="felt.group.dozens">
+				<source>Dutzende</source>
+			</trans-unit>
+			<trans-unit id="felt.group.even">
+				<source>Einfache Chancen</source>
+			</trans-unit>
+			<trans-unit id="felt.skip">
+				<source>Setzfläche überspringen, weiter zur Bedienleiste</source>
+			</trans-unit>
+
+			<trans-unit id="felt.name.split">
+				<source>Zwei Zahlen %1$s</source>
+			</trans-unit>
+			<trans-unit id="felt.name.street">
+				<source>Dreierreihe %1$s</source>
+			</trans-unit>
+			<trans-unit id="felt.name.trio">
+				<source>Dreierwette %1$s</source>
+			</trans-unit>
+			<trans-unit id="felt.name.corner">
+				<source>Viererblock %1$s</source>
+			</trans-unit>
+			<trans-unit id="felt.name.five">
+				<source>Fünferwette %1$s</source>
+			</trans-unit>
+			<trans-unit id="felt.name.sixline">
+				<source>Sechserreihe %1$s</source>
+			</trans-unit>
+
+			<!-- Die aufgedruckten Aufschriften der äußeren Felder -->
+			<trans-unit id="felt.print.column">
+				<source>2 zu 1</source>
+			</trans-unit>
+			<trans-unit id="felt.print.dozen.1">
+				<source>1. Dutzend</source>
+			</trans-unit>
+			<trans-unit id="felt.print.dozen.2">
+				<source>2. Dutzend</source>
+			</trans-unit>
+			<trans-unit id="felt.print.dozen.3">
+				<source>3. Dutzend</source>
+			</trans-unit>
+			<trans-unit id="felt.print.low">
+				<source>1–18</source>
+			</trans-unit>
+			<trans-unit id="felt.print.even">
+				<source>Gerade</source>
+			</trans-unit>
+			<trans-unit id="felt.print.red">
+				<source>Rot</source>
+			</trans-unit>
+			<trans-unit id="felt.print.black">
+				<source>Schwarz</source>
+			</trans-unit>
+			<trans-unit id="felt.print.odd">
+				<source>Ungerade</source>
+			</trans-unit>
+			<trans-unit id="felt.print.high">
+				<source>19–36</source>
+			</trans-unit>
+
+			<!-- Die Namen der Kolonnen: die aufgedruckte Aufschrift ist bei
+				 allen drei "2 zu 1", deshalb braucht jede Kolonne einen
+				 eigenen, unterscheidenden Namen (WCAG 2.4.6 und 2.5.3). -->
+			<trans-unit id="felt.name.column">
+				<source>Kolonne %1$s, die Zahlen %2$s</source>
+			</trans-unit>
+
+			<!-- Ansage der Runde. EIN Satz je Runde. {0} Zahl, {1} Farbe,
+				 {2} Gewinn, {3} Einsatz, {4} Buy-in danach. Verdrahtet erst
+				 in Teilstück C3d; die Sätze stehen schon jetzt am eigenen
+				 Live-Bereich (Table/Roulette/Status.html).
+				 round.announce.partial (Behebung Review C3, L5): eine Runde
+				 mit TEILRÜCKGABE (0 < credited <= staked, z. B. 20 € auf zwei
+				 Felder verteilt, nur 18 € zurück) ist netto ein Verlust und
+				 darf nicht wie round.announce.win klingen — B.7 verlangt
+				 ausdrücklich, dass keine Verlustrunde wie ein Gewinn klingt. -->
+			<trans-unit id="round.announce.win">
+				<source>Ergebnis: {0}, {1}. Einsatz {3} Euro, Auszahlung {2} Euro. Buy-in jetzt {4} Euro.</source>
+			</trans-unit>
+			<trans-unit id="round.announce.loss">
+				<source>Ergebnis: {0}, {1}. Einsatz {3} Euro verloren. Buy-in jetzt {4} Euro.</source>
+			</trans-unit>
+			<trans-unit id="round.announce.partial">
+				<source>Ergebnis: {0}, {1}. Einsatz {3} Euro, davon {2} Euro zurück. Buy-in jetzt {4} Euro.</source>
+			</trans-unit>
+			<trans-unit id="round.announce.nobet">
+				<source>Ergebnis: {0}, {1}. Es lag kein Einsatz auf dem Tuch.</source>
+			</trans-unit>
+			<trans-unit id="round.announce.nostake">
+				<source>Es liegt kein Chip auf dem Tuch. Legen Sie zuerst einen Einsatz.</source>
+			</trans-unit>
+			<trans-unit id="round.announce.unavailable">
+				<source>Dieser Tisch ist auf dieser Seite bereits offen und kann kein zweites Mal gespielt werden.</source>
+			</trans-unit>
+			<trans-unit id="round.announce.closed">
+				<source>Der Tisch wurde verlassen, diese Runde wird nicht mehr ausgezahlt.</source>
+			</trans-unit>
+
+			<!-- Der Ton-Schalter (Teilstück C3e). sound.label ist der SICHTBARE
+				 Text im Knopf; sound.on/sound.off liefern den vollständigen
+				 Satz für aria-label (enthält "Ton" als Anfang, verletzt WCAG
+				 2.5.3 deshalb nicht) und werden von sound-roulette.js über
+				 data-text-on/data-text-off gelesen. -->
+			<trans-unit id="sound.label">
+				<source>Ton</source>
+			</trans-unit>
+			<trans-unit id="sound.on">
+				<source>Ton ist an</source>
+			</trans-unit>
+			<trans-unit id="sound.off">
+				<source>Ton ist aus</source>
+			</trans-unit>
+		</body>
+	</file>
+</xliff>

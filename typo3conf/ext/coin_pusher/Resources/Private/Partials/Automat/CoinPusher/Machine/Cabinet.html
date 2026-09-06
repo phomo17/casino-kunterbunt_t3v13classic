@@ -1,0 +1,201 @@
+<f:comment>
+	Das große, bedienbare Gehäuse des Coin Pusher. Nicht zu verwechseln mit
+	../Cabinet.html — das ist die Miniatur für den Saal.
+
+	Maßraster: viewBox 0 0 100 160. .cp-cabinet ist ein
+	Container-Query-Container mit genau diesem Seitenverhältnis, deshalb
+	gilt in allen Kindern 1cqi = 1 viewBox-Einheit — in beiden Achsen. Die
+	vollständige Koordinatentabelle steht im Kopf von machine.css.
+
+	Die Reihenfolge der Kinder ist die Malreihenfolge:
+	Zeichnung, Spielfeld, Glas, Meldung, Münzeinwurf, Anzeigen, Münzwahl,
+	Ton, Geldreihe, Kasse, Schale mit Lampe und CASH OUT.
+
+	Lauf 1 dieser Phase setzt von den Zustandsklassen NUR die des Spielfelds
+	und der Lampe. Alle übrigen sind ausschließlich über eine Klasse oder
+	eine Custom Property auslösbar; der vollständige Katalog steht im Kopf
+	von machine.css.
+
+	Barrierefreiheit: CONCEPT.md B.1 hebt das Nicht-Ziel für NEU
+	hinzukommende Bedienteile auf. An diesem Gerät ist jedes Bedienteil neu.
+	Deshalb hat hier jeder Knopf einen erreichbaren Namen, jedes Eingabefeld
+	eine Beschriftung, und jede Meldung steht als Text da, nicht nur als
+	Farbe.
+</f:comment>
+<div class="cp-cabinet">
+
+	<f:render partial="Automat/CoinPusher/Machine/Shell" />
+
+	<f:comment>Das Spielfeld. Die Zeichenfläche wird von view.js bemalt;
+		width und height setzt dieselbe Datei beim Anpassen an die
+		tatsächliche Größe. Die beiden Attribute stehen trotzdem im Markup,
+		damit vor dem ersten Bild kein Element mit der Vorgabegröße 300 × 150
+		steht und springt.
+
+		aria-hidden: eine laufende Draufsicht auf 200 Münzen lässt sich nicht
+		in Worte fassen. Was ein Hilfsmittel braucht, sagen die drei
+		Nixie-Ansagebereiche weiter unten — Guthaben, Münzwert, Zahl der
+		Münzen im Feld.</f:comment>
+	<div class="cp-field" data-cp-field>
+		<canvas class="cp-field__canvas" data-cp-canvas width="840" height="486"
+			aria-hidden="true"></canvas>
+		<span class="cp-field__glass"></span>
+	</div>
+
+	<f:comment>Meldungsschild über dem Feld. Verborgen, bis message.js in
+		Lauf 2 .cp-message--shown setzt. Es wird LEER ausgeliefert und nur
+		über opacity verborgen, nie über display oder visibility — beide
+		nähmen den Live-Bereich aus dem Barrierebaum und machten
+		role="status" wirkungslos (DECISIONS.md, Audit-Nachlauf
+		2026-09-02).</f:comment>
+	<p class="cp-message" data-cp-message role="status"
+		data-cp-text-insufficient="{f:translate(key: 'LLL:EXT:coin_pusher/Resources/Private/Language/locallang.xlf:machine.message.insufficient')}"
+		data-cp-text-nocash="{f:translate(key: 'LLL:EXT:coin_pusher/Resources/Private/Language/locallang.xlf:machine.message.nocash')}"
+		data-cp-text-capped="{f:translate(key: 'LLL:EXT:coin_pusher/Resources/Private/Language/locallang.xlf:machine.message.capped')}"
+		data-cp-text-invalid="{f:translate(key: 'LLL:EXT:coin_pusher/Resources/Private/Language/locallang.xlf:machine.message.invalid')}"
+		data-cp-text-norng="{f:translate(key: 'LLL:EXT:coin_pusher/Resources/Private/Language/locallang.xlf:machine.message.norng')}"></p>
+
+	<f:comment>Der feste Münzeinwurf (CONCEPT.md B.9.2). Er sitzt mittig über
+		dem Feld, unmittelbar über dem gezeichneten Schlitz: man wirft ein,
+		indem man in den Schlitz greift — dieselbe Denkweise wie beim
+		Geldeinwurf der anderen Geräte.
+
+		EINE Taste, kein Formular: hier wird kein Betrag eingegeben. Der Wert
+		steht in der Münzwahl darunter, und gesteuert wird allein der
+		ZEITPUNKT (B.9.2). Eine seitlich verschiebbare Rinne gehört zu einer
+		anderen Gerätefamilie und wird nicht gebaut.
+
+		Der Hinweistext ist unsichtbar und Teil des erreichbaren Namens: er
+		sagt, was die Taste tut, ohne das Gehäuse zu beschriften.</f:comment>
+	<button type="button" class="cp-drop" data-cp-drop>
+		<span class="cp-drop__legend cp-offscreen"><f:translate
+			key="LLL:EXT:coin_pusher/Resources/Private/Language/locallang.xlf:machine.drop.label" /></span>
+		<span class="cp-drop__coin" data-cp-drop-coin></span>
+	</button>
+
+	<f:comment>Die drei Nixie-Gruppen. GUTHABEN startet dunkel
+		(--cp-digit: -1): eine gemalte Zahl wäre eine sichtbare Lüge, sobald
+		der Spieler einwirft. MÜNZWERT 01 ist wahr — der Einser ist
+		vorgewählt. IM FELD startet dunkel, weil die Zahl erst feststeht,
+		wenn der Spielstand geladen ist.
+
+		ACHTUNG, geerbte Falle: Fluid kann in einem Inline-Array KEIN
+		negatives Literal lesen. {0: -1} verwirft stillschweigend das ganze
+		Array. Negative Zahlen gehören dort immer in Anführungszeichen.</f:comment>
+	<div class="cp-nixie-panel">
+		<f:render partial="Automat/CoinPusher/Machine/NixieGroup"
+			arguments="{labelKey: 'machine.display.guthaben', displayKey: 'guthaben', announceKey: 'machine.display.guthaben.announce', tubes: {0: '-1', 1: '-1', 2: '-1', 3: '-1', 4: '-1', 5: '-1'}}" />
+		<f:render partial="Automat/CoinPusher/Machine/NixieGroup"
+			arguments="{labelKey: 'machine.display.muenzwert', displayKey: 'muenzwert', announceKey: 'machine.display.muenzwert.announce', tubes: {0: 0, 1: 1}}" />
+		<f:render partial="Automat/CoinPusher/Machine/NixieGroup"
+			arguments="{labelKey: 'machine.display.feld', displayKey: 'feld', announceKey: 'machine.display.feld.announce', tubes: {0: '-1', 1: '-1', 2: '-1'}}" />
+	</div>
+
+	<f:comment>Die Münzwertwahl (B.9.2). Vier Bakelit-Drucktasten, aus denen
+		genau eine gewählt ist. Ausgedrückt über aria-pressed, nicht über
+		eine Radiogruppe: eine Radiogruppe verlangte Pfeiltastensteuerung mit
+		wanderndem tabindex und damit JavaScript, und die Wahl muss auch ohne
+		Skript richtig dastehen.
+
+		Sichtbar steht auf der Kappe nur die Ziffer. Als Name eines
+		Bedienteils ist eine nackte „5" sinnlos, deshalb das aria-label aus
+		der Sprachdatei.
+
+		Die Kappe trägt zusätzlich eine gezeichnete Münze in der Farbe und
+		der Größe, die dieser Wert im Feld hat — damit die Zuordnung
+		Wert → Münze ohne Erklärung sichtbar ist.</f:comment>
+	<div class="cp-values">
+		<f:render partial="Automat/CoinPusher/Machine/Button"
+			arguments="{value: 1, selected: 1}" />
+		<f:render partial="Automat/CoinPusher/Machine/Button"
+			arguments="{value: 2, selected: 0}" />
+		<f:render partial="Automat/CoinPusher/Machine/Button"
+			arguments="{value: 5, selected: 0}" />
+		<f:render partial="Automat/CoinPusher/Machine/Button"
+			arguments="{value: 10, selected: 0}" />
+	</div>
+
+	<f:comment>Ton-Schalter. Der Ton ist laut CONCEPT.md Abschnitt 3.7
+		standardmäßig eingeschaltet, deshalb trägt der Schalter von Anfang an
+		cp-sound--on und aria-pressed="true" — so stimmt die Anzeige auch
+		dann, wenn kein JavaScript läuft.</f:comment>
+	<button type="button" class="cp-sound cp-sound--on" data-cp-sound aria-pressed="true">
+		<span class="cp-sound__lamp"></span>
+		<span class="cp-sound__label"><f:translate
+			key="LLL:EXT:coin_pusher/Resources/Private/Language/locallang.xlf:machine.sound.label" /></span>
+		<span class="cp-sound__rocker"></span>
+	</button>
+
+	<f:comment>Geldeinwurf am Sockel (CONCEPT.md B.5.2) — der Weg von der
+		KASSE in den GERÄTEKREDIT. Nicht zu verwechseln mit dem
+		Münzeinwurf über dem Feld: der nimmt Geld aus dem GERÄTEKREDIT und
+		macht daraus Spielmaterial (B.5.4).
+
+		Der gezeichnete Geldschlitz in der Mitte ist zugleich der
+		Absendeknopf des Formulars. Die Eingabetaste im Feld tut dasselbe,
+		weil das bei einem Formular so gehört.</f:comment>
+	<form class="cp-coinslot" data-cp-coinslot>
+		<div class="cp-coinslot__quick">
+			<button type="button" class="cp-coinslot__button" data-cp-coin-add="10"><f:translate
+				key="LLL:EXT:coin_pusher/Resources/Private/Language/locallang.xlf:machine.coin.add.10" /></button>
+			<button type="button" class="cp-coinslot__button" data-cp-coin-add="50"><f:translate
+				key="LLL:EXT:coin_pusher/Resources/Private/Language/locallang.xlf:machine.coin.add.50" /></button>
+			<button type="button" class="cp-coinslot__button" data-cp-coin-add="100"><f:translate
+				key="LLL:EXT:coin_pusher/Resources/Private/Language/locallang.xlf:machine.coin.add.100" /></button>
+		</div>
+
+		<button type="submit" class="cp-coinslot__slot" data-cp-coin-insert>
+			<span class="cp-coinslot__legend cp-offscreen"><f:translate
+				key="LLL:EXT:coin_pusher/Resources/Private/Language/locallang.xlf:machine.coin.insert" /></span>
+		</button>
+
+		<span class="cp-coinslot__coin" data-cp-coin></span>
+
+		<label class="cp-coinslot__custom">
+			<span class="cp-coinslot__legend cp-offscreen"><f:translate
+				key="LLL:EXT:coin_pusher/Resources/Private/Language/locallang.xlf:machine.coin.custom" /></span>
+			<input type="number" class="cp-coinslot__input" data-cp-coin-input
+				inputmode="numeric" min="1" max="999999999" step="1" value=""
+				placeholder="{f:translate(key: 'LLL:EXT:coin_pusher/Resources/Private/Language/locallang.xlf:machine.coin.placeholder')}" />
+		</label>
+	</form>
+
+	<f:comment>Das Kassenfenster im Sockel (CONCEPT.md B.5.1). Es zeigt den
+		GESAMTBESTAND — die Kasse —, während die Nixie-Gruppe GUTHABEN die
+		GERÄTEKREDIT zeigt. Zwei Töpfe, zwei Anzeigen.
+
+		Zweigeteilt wie am Video Slot: Beschriftung und Zahl sind gezeichnete
+		Anzeigen und tragen aria-hidden="true"; daneben steht EIN
+		unsichtbarer Bereich mit role="status", der beides in EINEM Satz
+		trägt. Auch er wird leer ausgeliefert.</f:comment>
+	<div class="cp-bank">
+		<span class="cp-bank__label" aria-hidden="true"><f:translate
+			key="LLL:EXT:coin_pusher/Resources/Private/Language/locallang.xlf:machine.bank.label" /></span>
+		<span class="cp-bank__value" data-cp-bank-display aria-hidden="true">&#8211;</span>
+		<span class="cp-bank__announce cp-offscreen" data-cp-bank-announce role="status"
+			data-cp-text-bank="{f:translate(key: 'LLL:EXT:coin_pusher/Resources/Private/Language/locallang.xlf:machine.bank.announce')}"></span>
+	</div>
+
+	<f:comment>Die Auswurfschale. Sie trägt die Lampe, die aufleuchtet, wenn
+		vorn Münzen herunterfallen — und sie ist zugleich die Taste CASH OUT.
+
+		WAS CASH OUT HIER TUT UND WAS NICHT: Sie bucht den GERÄTEKREDIT in
+		die Kasse zurück, also das Geld, das noch NICHT eingeworfen ist. Sie
+		rührt das Feld nicht an. CONCEPT.md B.5.4 verbietet ausdrücklich eine
+		Taste, die das FELD leert und auszahlt — die gibt es hier nicht und
+		wird es nie geben. Liegende Münzen werden erst zu Kredit, wenn sie
+		vorn herunterfallen.
+
+		Ist der Gerätekredit 0, trägt sie aria-disabled="true" — dunkel und
+		wirkungslos, bleibt aber im Tastaturweg erreichbar (Audit A-06,
+		2026-09-05/06: ein echtes disabled nahm die Taste aus der
+		Tabulatorfolge und sperrte damit einen Menschen von seiner
+		Auszahlung aus). Das Attribut steht schon im Markup, damit die Taste
+		auch ohne JavaScript nicht so aussieht, als täte sie etwas.</f:comment>
+	<span class="cp-tray__lamp" data-cp-lamp aria-hidden="true"></span>
+	<button type="button" class="cp-cashout" data-cp-cashout aria-disabled="true">
+		<span class="cp-cashout__label"><f:translate
+			key="LLL:EXT:coin_pusher/Resources/Private/Language/locallang.xlf:machine.cashout.label" /></span>
+	</button>
+
+</div>

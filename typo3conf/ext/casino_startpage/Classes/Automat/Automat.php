@@ -5,7 +5,11 @@ declare(strict_types=1);
 namespace Phomo17\CasinoStartpage\Automat;
 
 /**
- * Ein bei der Registry angemeldeter Spielautomat.
+ * Ein bei der Registry angemeldetes Gerät des Saals — ein Automat oder ein Tisch.
+ *
+ * Der Klassenname stammt aus Teil A, als es nur Automaten gab. Er bleibt, weil
+ * eine Umbenennung die ext_localconf.php aller Geräte-Extensions anfassen
+ * müsste, darunter die des eingefrorenen Münzschiebers. Siehe {@see Gattung}.
  *
  * Unveränderliches Datenobjekt. Eine Automaten-Extension erzeugt genau eine
  * Instanz davon in ihrer ext_localconf.php und übergibt sie an
@@ -28,6 +32,11 @@ namespace Phomo17\CasinoStartpage\Automat;
  *                  Der Name muss extensionsweit eindeutig sein — deshalb immer
  *                  in einen eigenen Unterordner legen, z. B.
  *                  "Automat/MeinAutomat/Cabinet".
+ * - gattung        Automat oder Tisch (CONCEPT.md C.1 Nr. 1). Freiwillig; ohne
+ *                  Angabe ein Automat, damit die vor Teil C angemeldeten Geräte
+ *                  unverändert weiterlaufen. Die Gattung entscheidet allein
+ *                  darüber, wie der Saal die Bühne des Geräts baut und in
+ *                  welcher Gruppe es in der Backend-Auswahlliste steht.
  *
  * Das Partial bekommt beim Rendern zwei Variablen:
  * {automat} — diese Instanz, {data} — der tt_content-Datensatz als Array.
@@ -40,6 +49,7 @@ final readonly class Automat
         public string $description,
         public string $extensionKey,
         public string $cabinetPartial,
+        public Gattung $gattung = Gattung::Automat,
     ) {
         if (preg_match('/^[a-z0-9_]{1,64}$/', $identifier) !== 1) {
             throw new \InvalidArgumentException(

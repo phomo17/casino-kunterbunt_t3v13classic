@@ -1,0 +1,65 @@
+<f:comment>
+	Inhaltselement „Blackjack" — der Spieltisch auf seiner eigenen Seite.
+
+	Das Element hat keine Einstellungen und wertet keinen Datenbankwert aus.
+
+	REIHENFOLGE = TASTATURREIHENFOLGE. Zuerst die Vorräte (Chips und Karten —
+	ein <use> kann nur auf ein <symbol> zeigen, das im Dokument schon steht),
+	dann Hinweis und geteilte Ansage, dann das Tuch mit seinem Sprunglink, dann
+	die Bedienleiste, zuletzt der Verlauf.
+
+	VIER PARTIALS KOMMEN AUS DEM SITE PACKAGE und werden nicht nachgebaut:
+	Table/ChipSprite (die fünf Chips), Table/Status (die geteilte Hinweiszeile
+	und der Ansagebereich der Chips und der Bedienleiste), Table/Controls
+	(Chipwahl, Zurücknehmen, Verdoppeln, Wiederholen, Wechselfeld, CASH OUT und
+	der Rundenauslöser) und Table/History (der Verlaufsstreifen). Fluid findet
+	sie über partialRootPaths.20 aus ext_localconf.php.
+
+	DER RUNDENAUSLÖSER heißt „Geben". Er entsteht dadurch, dass Table/Controls
+	mit einer nicht leeren „go"-Beschriftung aufgerufen wird; connectControls()
+	verdrahtet seinen Klick selbst.
+
+	ZWEI ANSAGEBEREICHE MIT JE EINEM EIGENTÜMER. [data-ck-table-status] (aus
+	dem Site Package) gehört den Chips und der Bedienleiste. Der eigene
+	Ansagebereich der RUNDE (Table/Blackjack/Status) gehört ausschließlich
+	view-blackjack.js und blackjack.js selbst (die drei Absagen, die kein
+	Zustandswechsel sind).
+
+	DIE ZUSTANDSHAKEN data-bj-state UND data-bj-total STEHEN AB JETZT MIT
+	IHREM ANFANGSWERT im ausgelieferten Markup und werden ausschließlich von
+	view-blackjack.js nachgeführt (Prüfung A-12 (c)).
+
+	STAND UMSETZUNGSSTÜCK C5c: die Runde läuft vollständig — geben, Karte,
+	stehen, doppeln, teilen, versichern, Auswertung, Auszahlung.
+</f:comment>
+<f:variable name="chips" value="{0: {value: 100, symbolId: 'ck-chip-100'}, 1: {value: 25, symbolId: 'ck-chip-25'}, 2: {value: 20, symbolId: 'ck-chip-20'}, 3: {value: 5, symbolId: 'ck-chip-5'}, 4: {value: 1, symbolId: 'ck-chip-1'}}" />
+<f:variable name="splittable" value="{0: {value: 100}, 1: {value: 25}, 2: {value: 20}, 3: {value: 5}}" />
+<f:variable name="mergeable" value="{0: {value: 100}, 1: {value: 25}, 2: {value: 20}, 3: {value: 5}}" />
+
+<f:asset.css identifier="ckTable" href="EXT:casino_startpage/Resources/Public/Css/table.css" />
+<f:asset.css identifier="blackjackTable" href="EXT:blackjack/Resources/Public/Css/blackjack.css" />
+<f:asset.css identifier="blackjackFelt" href="EXT:blackjack/Resources/Public/Css/felt.css" />
+<f:asset.css identifier="blackjackCards" href="EXT:blackjack/Resources/Public/Css/cards.css" />
+<f:asset.module identifier="@phomo17/blackjack/blackjack.js" />
+
+<div class="ck-table bj-table ck-room-fill" data-ck-table="" data-ck-table-key="blackjack"
+	data-bj-state="bereit" data-bj-total="0">
+	<f:render partial="Table/ChipSprite" />
+	<f:render partial="Table/Blackjack/CardSprite" />
+	<f:render partial="Table/Status" />
+	<f:render partial="Table/Blackjack/Status" />
+	<f:render partial="Table/Blackjack/SoundSwitch" />
+
+	<div class="bj-table__stage">
+		<f:render partial="Table/Blackjack/Felt" />
+	</div>
+
+	<div id="bj-controls" tabindex="-1">
+		<p class="ck-table__hint" data-bj-hint=""
+			data-text-stake="{f:translate(key: 'LLL:EXT:blackjack/Resources/Private/Language/locallang.xlf:hint.stake')}"></p>
+		<f:render partial="Table/Controls" arguments="{chips: chips, splittable: splittable, mergeable: mergeable, go: '{f:translate(key: \'LLL:EXT:blackjack/Resources/Private/Language/locallang.xlf:round.deal\')}'}" />
+		<f:render partial="Table/Blackjack/Actions" />
+	</div>
+
+	<f:render partial="Table/History" />
+</div>

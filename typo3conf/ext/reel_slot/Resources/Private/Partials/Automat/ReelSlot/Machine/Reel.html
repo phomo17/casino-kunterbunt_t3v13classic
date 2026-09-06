@@ -22,9 +22,15 @@
 	Shell.html. Ein symbol mit viewBox 0 0 24 24 wird von use mit
 	width/height 14 auf Zellgröße skaliert und durch x="2" in der 18
 	Einheiten breiten Zelle zentriert.
+
+	aria-hidden="true" (Audit A-05, 2026-09-04/05): das Band ist Zeichnung,
+	kein Inhalt — für ein Hilfsmittel war es sonst ein namenloses Bild
+	(WCAG 1.1.1). Video Slot und FruitRisk machen es an derselben Stelle
+	bereits so; der Rundenausgang wird ohnehin über das Meldungsschild
+	angesagt (message.js), nicht über die Walzenzeichnung selbst.
 </f:comment>
 <div class="rs-reel" data-rs-reel="{reel.index}" style="--rs-reel-pos: {reel.defaultPosition}">
-	<svg class="rs-reel__strip" viewBox="0 0 18 560" focusable="false"
+	<svg class="rs-reel__strip" viewBox="0 0 18 560" focusable="false" aria-hidden="true"
 		data-rs-strip="{reel.symbolList}">
 		<rect width="18" height="560" fill="var(--ck-paper-100)" />
 		<path d="{reel.rules}" fill="none" stroke="var(--ck-paper-200)" stroke-width="0.6" />

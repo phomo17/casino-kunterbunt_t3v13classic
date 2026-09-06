@@ -68,9 +68,13 @@ gestalterisch beabsichtigt: Saal und Geräte sollen aus demselben Farbvorrat
 leben. Regeln dafür:
 
 - Der Tokenname nennt den **Werkstoff**, nie das Gerät
-  (`--ck-felt-green`, nicht `--ck-roulette-green`).
+  (`--ck-felt-green` — nicht ein Token, das nach dem Gerät benannt ist, das es zuerst
+  gebraucht hat).
 - Farbwerte stehen ausschließlich in `tokens.css`. Keine ausgeschriebene
   Farbe in einer Automaten-Datei.
+- **Ausnahme von der nächsten Zeile:** Solange CONCEPT.md V.6 gilt, wird die
+  Versionsnummer **nicht** erhöht — auch nicht für einen neuen Token. Die
+  Spanne `0.2.0-0.99.99` deckt jeden Zwischenstand ab.
 - Die Minor-Version des Site Packages steigt, und die Automaten-Extension
   hebt ihre Untergrenze in `ext_emconf.php` und `composer.json` mit an.
 
@@ -85,7 +89,44 @@ Automaten-Extensions importieren gemeinsame Module immer über diesen
 Import-Map-Namen, nie über einen relativen Pfad zwischen Extensions. Es gibt
 keinen Build-Schritt.
 
-## Automaten-Registry
+## Geräte-Registry
+
+### Zwei Gattungen: Automat und Tisch
+
+Seit Ausbaustufe 3 (CONCEPT.md C.1 Nr. 1) beherbergt der Saal **zwei Gattungen**, und
+beide werden gleichrangig gezeigt und angeklickt:
+
+| Gattung | `Gattung`-Fall | Bühne im Saal | viewBox des Gehäuse-Partials |
+|---|---|---|---|
+| Automat | `Gattung::Automat` (Vorgabe) | Podest, Schattenwurf, hochkant | `0 0 100 160` |
+| Tisch | `Gattung::Tisch` | kein Podest, breiter Bodenschatten, quer | `0 0 160 100` |
+
+Es gibt **keine zweite Registry**. Ein Tisch meldet sich mit demselben Aufruf an wie ein
+Automat und nennt zusätzlich seine Gattung:
+
+```php
+AutomatRegistry::register(new Automat(
+    identifier: 'mein_tisch',
+    title: 'LLL:EXT:mein_tisch/Resources/Private/Language/locallang.xlf:tisch.title',
+    description: 'LLL:EXT:mein_tisch/Resources/Private/Language/locallang.xlf:tisch.description',
+    extensionKey: 'mein_tisch',
+    cabinetPartial: 'Tisch/MeinTisch/Cabinet',
+    gattung: \Phomo17\CasinoStartpage\Automat\Gattung::Tisch,
+));
+```
+
+`gattung` steht als letztes Argument und hat den Vorgabewert `Gattung::Automat`. Deshalb
+brauchen die vor Teil C angemeldeten Geräte keine Änderung — sie sind Automaten und werden
+als solche geführt.
+
+Alles Übrige gilt für einen Tisch **unverändert**: derselbe Vertrag für das Gehäuse-Partial
+(genau ein `.ck-cabinet`, darin genau ein `svg.ck-cabinet__drawing`, `aria-hidden="true"`,
+kein `<title>`, Farben nur über `--ck-*`), dieselben vier Pflichtdateien, derselbe
+`cache:flush` danach. Der **einzige** Unterschied ist das viewBox-Verhältnis und das eine
+zusätzliche Argument.
+
+Das vollständige, lauffähige Beispiel für einen Tisch ist der **Mustertisch** in dieser
+Extension selbst (siehe Abschnitt „Der Mustertisch").
 
 Die Registry ist die einzige Verbindung zwischen diesem Site Package und einer
 Automaten-Extension. `casino_startpage` kennt keinen einzelnen Automaten.
@@ -130,7 +171,7 @@ AutomatRegistry::register(new Automat(
 
 | Datei | Was hinein muss | Warum |
 |---|---|---|
-| `ext_emconf.php` | `'casino_startpage' => '0.6.0-0.99.99'` unter `constraints.depends` | bestimmt in der klassischen Installation die Ladereihenfolge der `ext_localconf.php`; ohne sie kann die Registry-Anmeldung vor dem Site Package laufen |
+| `ext_emconf.php` | `'casino_startpage' => '0.2.0-0.99.99'` unter `constraints.depends` | bestimmt in der klassischen Installation die Ladereihenfolge der `ext_localconf.php`; ohne sie kann die Registry-Anmeldung vor dem Site Package laufen |
 | `Configuration/JavaScriptModules.php` | `'dependencies' => ['casino_startpage']` **und** das eigene Präfix unter `imports` | ohne den `dependencies`-Eintrag liefert der Kern das Präfix `@phomo17/casino-startpage/` nicht mit aus, und der Browser bricht mit „Failed to resolve module specifier" ab, sobald ein Modul `credit.js` oder `sound.js` importiert |
 | `Configuration/TCA/Overrides/tt_content.php` | eigener `CType` über `ExtensionManagementUtility::addRecordType()`, Gruppe `AutomatContentElement::CTYPE_GROUP` | damit der Automat auf seiner eigenen Seite platziert werden kann |
 | `ext_localconf.php` | zusätzlich zur Registry-Anmeldung ein `addTypoScriptSetup()` mit der Rendering-Definition des eigenen `CType` | ein eigenes Site Set würde die Site-Konfiguration ändern und damit den Grundsatz „ohne Änderung an anderen Stellen installierbar" brechen |
@@ -158,7 +199,7 @@ zeigt der Saal sein Platzhalter-Gehäuse — ohne Fehler.
 
 Das Partial liefert **genau ein** Element mit der Klasse `ck-cabinet` und
 darin **genau ein** `<svg class="ck-cabinet__drawing">` mit einer `viewBox` im
-Seitenverhältnis 100 : 160 (DESIGNBRIEF.md Abschnitt 1). Breite, Podest,
+Seitenverhältnis 100 : 160 (DESIGNBRIEF.md Abschnitt 1) — je nach Gattung, siehe Tabelle oben. Breite, Podest,
 Schattenwurf und das Licht von oben setzt der Saal; das Gehäuse zeichnet nur
 sich selbst. Farben ausschließlich über die `--ck-*`-Tokens.
 
@@ -176,6 +217,55 @@ nötig, damit sein Gehäuse im Saal erscheint bzw. verschwindet.
 
 Weitere Anmeldungen in TypoScript oder in der Site-Konfiguration sind für die
 Saal-Ansicht **nicht** nötig.
+
+#### KI-Auffindbarkeit: die eigene Beschreibung beisteuern
+
+Seit dem GEO-Behebungslauf vom 2026-09-05 (Auditbericht 2026-09-05, Befunde
+G-01/G-02) liefert jede Geräteseite eine `<meta name="description">` und einen
+`Game`-Eintrag in strukturierten Daten (JSON-LD) aus. `casino_startpage` kennt
+dafür kein einziges Gerät — es stellt nur einen generischen, gerätefreien
+DataProcessor bereit, den jede Automaten-Extension an die dataProcessing-Kette
+**ihres eigenen** Inhaltselements hängt:
+
+```typoscript
+tt_content.mein_automat.dataProcessing {
+    20 = casino-device-description
+    20.title.data = lll:EXT:mein_automat/Resources/Private/Language/locallang.xlf:automat.title
+    20.description.data = lll:EXT:mein_automat/Resources/Private/Language/locallang.xlf:automat.description
+    # Nur bei einem Tisch nötig — ohne Angabe gilt "automat":
+    20.gattung = tisch
+}
+```
+
+Diese eine Zeile genügt: `title` und `description` sind ohnehin schon da (dieselben
+Texte, die auch bei `AutomatRegistry::register()` als `title`/`description`
+übergeben werden — hier nur zusätzlich an die eigene Seite ausgeliefert statt nur
+an die Backend-Auswahlliste). `DeviceDescriptionProcessor::process()` setzt daraus
+zur Laufzeit `<meta name="description">` (`PageRenderer::setMetaTag()`, dieselbe
+Kern-API, mit der EXT:seo `pages.description` in ein Meta-Tag verwandelt) und
+fügt ein `<script type="application/ld+json">` mit `@type: Game` in den `<head>`
+ein (`PageRenderer::addHeaderData()`) — beides **nur** auf der Seite, auf der das
+eigene Inhaltselement tatsächlich rendert, weil genau das den Aufruf auslöst.
+Fehlt die Zeile, liefert die Geräteseite schlicht keine Beschreibung — kein Fehler,
+aber ein offener Befund beim nächsten Auffindbarkeits-Audit.
+
+Die Organisation- und Website-Angabe sowie die Brotkrumenspur (`Organization`,
+`WebSite`, `BreadcrumbList`) liefert `casino_startpage` dagegen selbst, auf jeder
+der sieben Seiten — dafür ist keine Anmeldung nötig, das läuft über
+`page.10.dataProcessing` in `setup.typoscript` (`SiteJsonLdProcessor`).
+
+`llms.txt` (`typo3conf/sites/casino-kunterbunt/config.yaml`) ist eine reine
+Textdatei und kann die Registry nicht befragen; sie wird von Hand um jede neue
+Seite ergänzt. `Resources/Private/Scripts/verify-geo.mjs` prüft bei jedem Lauf
+gegen die echte, ausgelieferte Seiten-Sitemap, ob llms.txt vollständig ist, und
+gleichzeitig, ob jede Seite der Sitemap eine Beschreibung und mindestens ein
+gültiges `application/ld+json` ausliefert — Aufruf:
+
+    ddev exec node typo3conf/ext/casino_startpage/Resources/Private/Scripts/verify-geo.mjs
+
+Anders als jedes andere Prüfskript dieser Extension braucht dieses die laufende
+DDEV-Instanz (siehe Kopfkommentar der Datei) — es prüft die ausgelieferte
+Antwort, nicht den Quelltext.
 
 #### Vertrag für ein bildschirmfüllendes Gerät
 
@@ -204,6 +294,90 @@ einpassen will, macht das Element zum Container und rechnet:
 ```
 
 Ohne die Klasse ändert sich nichts. Auf der Startseite wird sie nicht gesetzt.
+
+## Der Mustertisch
+
+Der Beispieltisch aus CONCEPT.md C.9 — „Ein Beispieltisch ohne Spiel lässt sich im
+Saal öffnen" — liegt in dieser Extension selbst, nicht in einer eigenen. Er ist kein
+bestimmtes Gerät, sondern die Vorlage der Gattung Tisch: dasselbe Verhältnis, das das
+Platzhalter-Gehäuse zu den Automaten hat. Er meldet sich über dieselbe Registry an wie
+ein fremdes Gerät (`ext_localconf.php`) und liegt mit seinem Gehäuse-Partial im
+vertraglich vorgeschriebenen Verzeichnis — damit ist er zugleich der Nachweis, dass der
+Vertrag für einen Tisch vollständig ist.
+
+| | |
+|---|---|
+| `CType` | `casino_tisch_muster` |
+| Registry-Schlüssel | `muster_tisch` |
+| Felder | keine — der Mustertisch hat keine Einstellung |
+| Rendering | `tt_content.casino_tisch_muster` (FLUIDTEMPLATE, per `addTypoScriptSetup()` in `ext_localconf.php`) |
+| Template | `Resources/Private/ContentElements/CasinoTischMuster.html` |
+| Saal-Kachel | `Resources/Private/Partials/Table/MustertischCabinet.html` |
+| Tuch | `Resources/Private/PageView/Partials/Table/MusterCloth.html`, vier Felder A–D |
+
+**Was er hat:** die fünf Chips (`table-chips.js`), die Setzfläche als Zustand und
+Ansicht (`table-bets.js`, `table-felt.js`), den Buy-in gegen die Kasse
+(`table-buyin.js`), die Bedienleiste mit Chipwahl, Zurücknehmen, Verdoppeln,
+Wiederholen, Wechselfeld und `CASH OUT` (`table-controls.js`), den Verlaufsstreifen
+(`table-history.js`, leer, weil nie eine Runde endet).
+
+**Was er ausdrücklich nicht hat:** ein Ergebnis, einen Rundenauslöser, einen Klang.
+`table-round.js` wird nicht eingebunden — ein Zustandswerk ohne Ereignis sähe aus wie
+ein Spiel und wäre keines. Es ist unter Node bewiesen (`verify-table-bets.mjs`) und hat
+inzwischen mit dem ersten echten Tischspiel (Phase C2) seinen ersten Browser-Nutzer
+bekommen. Seit Phase C3 hat auch der Auswertungsweg (`bets.settle()` →
+`bank.payout()` → `bets.sweep()`) seinen ersten Nutzer; wie er verdrahtet wird, steht
+im README der Erweiterung, die dieses erste echte Tischspiel enthält, Abschnitt
+„Geld am Tisch".
+
+### So verdrahtet `muster-tisch.js` die Bausteine — die kürzeste vollständige Anleitung
+
+```js
+import { openTableBank } from '@phomo17/casino-startpage/table-buyin.js';
+import { BetTable } from '@phomo17/casino-startpage/table-bets.js';
+import { connectFelt } from '@phomo17/casino-startpage/table-felt.js';
+import { connectControls } from '@phomo17/casino-startpage/table-controls.js';
+import { connectHistory } from '@phomo17/casino-startpage/table-history.js';
+
+const bank = openTableBank('mein_tisch');           // 1. Geld
+const bets = new BetTable({ fields, roundMax });    // 2. Setzfläche (Zustand)
+const history = connectHistory(historyEl, options); // 3. Verlauf (optional)
+const felt = connectFelt(root, bets, {              // 4. Setzfläche (Ansicht)
+    selectedChip: () => controls.selectedChip(),
+    onPlace: (fieldId, value) => bank.placeChip(value),
+    onTakeBack: (fieldId, value) => bank.returnChip(value),
+    announce: (text) => { statusEl.textContent = text; },
+    symbolIdFor: (value) => CHIPS[value]?.symbolId,
+    texts: { /* aus den data-text-*-Attributen von Table/Status.html */ },
+});
+const controls = connectControls(root, { bank, bets, felt, history }); // 5. Bedienleiste
+```
+
+Reihenfolge 1–5 ist bewusst: `felt` braucht `bank` und `bets`, `controls` braucht alle
+vier übrigen. Schlägt ein Schritt fehl (z. B. ein Gehäuse mit falschem Markup), werden
+die schon gebauten Teile in umgekehrter Reihenfolge wieder abgeräumt — dieselbe Machart,
+die schon die bestehenden Geräte-Extensions bei ihrem eigenen Abräumweg benutzen.
+
+Der `pagehide`-Weg liegt in `table-controls.js`, nicht im Geldbaustein: sie meldet
+`pagehide` an und ruft `felt.destroy()` sowie `bank.close()`. **Ein Tisch, der
+`connectControls()` nicht benutzt, muss `bank.close()` beim Verlassen der Seite selbst
+aufrufen** — sonst wandert der Buy-in nicht in die Kasse zurück.
+
+### Vertrag für das Tuch eines Spiels
+
+Ein Feld ist immer ein echter `<button type="button" data-ck-field="…">` mit
+sichtbarer Beschriftung als Text im Knopf — kein `<div>`, kein `role="button"`. Wie das
+Tuch aussieht und wo die Felder liegen, entscheidet das Spiel; `table-felt.js` sucht nur
+`[data-ck-field]` und gleicht die Kennungen gegen die Feldliste ab. Die Bedienleiste
+(`Table/Controls.html`) ist dagegen ein **einziges** Partial ohne Baukasten: die
+Reihenfolge ihrer Bedienteile ist Teil der Bedienbarkeit.
+
+**Felder ohne sichtbare Aufschrift.** Ein Feld, das für seine Aufschrift keinen Platz
+hat — die Linie zwischen zwei Zahlen ist 24 Bildpunkte breit —, nennt seinen Namen in
+`data-ck-field-label` und bringt zusätzlich ein serverseitig gesetztes `aria-label`
+mit, damit es auch ohne JavaScript einen Namen hat. `table-felt.js` bevorzugt
+`data-ck-field-label` vor dem sichtbaren Text und führt den vollständigen Namen wie
+gehabt nach. Fehlt das Attribut, ändert sich nichts.
 
 ## Guthaben-Schnittstelle
 
@@ -720,6 +894,113 @@ der Grenze von drei Lichtwechseln je Sekunde, ab der Blinken bei
 lichtempfindlichen Menschen Anfälle auslösen kann. Diese Grenze ist nicht
 verhandelbar.
 
+### Zwei Kurvenformen
+
+Seit Ausbaustufe 3, Phase F5 kennt `risk-timing.js` zwei Kurvenformen —
+`CURVE_FLAT` (Voreinstellung, siehe oben) und `CURVE_STEEP`:
+
+```
+flach(n) = max(40, round(200 × 0,85^(n+4)))     — ein Schritt je Stufe
+steil(n) = max(40, round(200 × 0,85^(2n+5)))    — zwei Schritte je Stufe
+```
+
+| Stufe | flach | steil |
+|---|---|---|
+| 1 | 89 ms | 64 ms |
+| 2 | 75 ms | 46 ms |
+| 3 | 64 ms | 40 ms |
+| ab 3 (steil) / ab 6 (flach) | — | 40 ms |
+
+Die steile Form tritt als **freiwilliges zweites Argument** an `onMs()`,
+`pauseMs()` und `stepTiming()` heran: `onMs(n)` und `onMs(n, 'flat')` rechnen
+Zeichen für Zeichen dasselbe wie vor Phase F5. Wer keine zweite
+Funktionsfamilie will, sondern dieselbe Sicherheitsklammer für jede Kurve,
+bekommt genau das — `sideMs()` und damit `Math.max(SIDE_MIN_MS, …)` gilt für
+beide Formen gleichermaßen.
+
+### Der volle Umlauf — die Sicherheitsgrenze für beliebig viele Tasten
+
+`cycleMs(level, { sides, curve, pause })` und `flashesPerSecond(level, options)`
+verallgemeinern dieselbe Sicherheitsaussage auf **beliebig viele** Seiten:
+
+```
+cycleMs(n) = sides × 200 + (pause ? pauseMs(n, curve) : 0)
+CYCLE_MIN_MS = 1000 / 3   — kürzester erlaubter voller Umlauf
+```
+
+| Seiten | Pause | Umlauf, Stufe 1 | Blitze je Sekunde (eine Taste) |
+|---|---|---|---|
+| 2 | nein | 400 ms | 2,5 |
+| 4 | ja | 864 ms (Stufe 1) / 846 ms (Stufe 2) / 840 ms (ab Stufe 3) | rund 1,2 |
+
+Eine einzelne Taste blitzt einmal je vollem Umlauf. Ab drei Lichtwechseln je
+Sekunde kann Blinken bei lichtempfindlichen Menschen Anfälle auslösen — mit
+zwei Tasten sind es 2,5, mit vier Tasten rund 1,2, beide weit darunter. Diese
+Grenze gilt für **jede** Leiter, die dieses Haus je bauen wird, nicht nur für
+die mit zwei Tasten.
+
+**Bedingung an das Gerät:** nie zwei Tasten gleichzeitig leuchten oder
+überblenden, keine Übergänge, kein Nachglühen. Begründung: WCAG 2.2 SC 2.3.1
+misst die *gleichzeitig* blitzende Fläche — eine Überblendung zwischen zwei
+Tasten könnte für einen Moment beide teilweise leuchten lassen und damit die
+Fläche verdoppeln, ohne dass eine einzelne Taste ihre eigene Blitzrate
+überschreitet.
+
+### Die Mehrtasten-Leiter
+
+Modul: `@phomo17/casino-startpage/risk-ladder-multi.js`. Die Schwester von
+`risk-ladder.js` — **die liegt seit Phase F5 unverändert daneben**, nicht
+darin: sie wird von mehreren Geräten benutzt, und eine unangetastete Datei
+ist die stärkste Rückwärtskompatibilitätszusage, die es gibt. Welche der
+beiden Leitern ein Gerät benutzt, entscheidet es selbst.
+
+```js
+import { MultiRiskLadder } from '@phomo17/casino-startpage/risk-ladder-multi.js';
+
+const ladder = new MultiRiskLadder({
+    draw:   (anzahl) => drawIndex(anzahl),    // Pflicht: 0 … anzahl−1
+    paint:  (view) => myPanel.render(view),   // Pflicht, muss synchron malen
+    notify: (msg) => myPanel.report(msg),     // freiwillig
+    sides:  4,             // mindestens 2
+    factor: 8,             // mindestens 2, ganzzahlig
+    curve:  'steep',       // 'flat' (Voreinstellung) oder 'steep'
+    order:  'pass',        // 'level' (Voreinstellung) oder 'pass'
+    pause:  true,          // Pause nach jedem vollen Umlauf
+});
+```
+
+| Bauform | Bedeutung |
+|---|---|
+| `sides` | Seitenzahl der Leiter, mindestens 2 |
+| `factor` | Vervielfacher bei Treffer, mindestens 2, ganzzahlig |
+| `curve` | `'flat'` oder `'steep'`, siehe oben |
+| `order` | `'level'` — eine Reihenfolge je Stufe (klassisches Hin und Her bei zwei Seiten) — oder `'pass'` — jeder Umlauf zieht neu |
+| `pause` | ob nach jedem vollen Umlauf eine dunkle Pause liegt |
+
+**Der Unterschied zu `risk-ladder.js`:**
+
+- **Seitennummern statt links/rechts.** `lit` ist eine **Zahl** (`NO_SIDE`
+  oder `0 … sides−1`), keine Zeichenkette — „links" und „oben" sind
+  Geometrie und damit Gerätesache. Mit Nummern trägt dieselbe Datei ein
+  Paar, ein Kreuz aus vier Tasten und jede spätere Anordnung.
+- **`draw(anzahl)` statt `draw()`.** Die Leiter zieht ihre Reihenfolge über
+  Fisher-Yates und braucht dafür Ziehungen mit wechselnder Obergrenze.
+- **Eine gezogene Reihenfolge statt einer gezogenen Startseite**, mit zwei
+  Regeln (`order`).
+- **Eine optionale Pause** nach jedem vollen Umlauf (`pause`).
+- Die Momentaufnahme trägt zusätzlich `sides`, `factor`, `pauseMs`,
+  `cycleMs`. Die **Reihenfolge selbst wird ausdrücklich NICHT
+  herausgereicht** — ein Gerät, das sie sähe, könnte die nächste Seite
+  vorwegnehmen.
+- Die `tick`-Meldung trägt zusätzlich `pass`, damit ein Gerät den
+  Umlaufwechsel sehen kann.
+
+Ansonsten gilt alles, was oben zu `risk-ladder.js` steht, unverändert: die
+drei angemeldeten Funktionen, die Methoden, der Anspruch und seine Kappung
+bei 2^53−1, die Wertung anhand des zuletzt gemalten Feldes statt der Uhr,
+eine `requestAnimationFrame`-Schleife statt eines Zeitgeberstapels, und dass
+`destroy()` einen offenen Gewinn gutschreibt statt ihn zu verwerfen.
+
 ### Nachweis
 
 ```
@@ -730,7 +1011,16 @@ Nur lesend, ändert nichts. Rückgabewert 0 bei Erfolg. Rechnet mit
 `risk-timing.js` **selbst**, nicht mit einer Nachbildung, und weist nach:
 Periode auf jeder Stufe genau 200 ms, die Trefferfenster aus Anhang B auf die
 Millisekunde, nie unter 40 ms, streng monoton fallend bis Stufe 6, ab Stufe 6
-konstant. Verglichen wird ganzzahlig.
+konstant. Verglichen wird ganzzahlig. Seit Phase F5 zusätzlich:
+
+| Block | Weist nach |
+|---|---|
+| RK | die flache Kurve rechnet mit und ohne zweites Argument identisch, und `risk-ladder.js` übergibt an keiner Stelle eines |
+| ST | die steile Kurve liefert 64/46/40 ms und fällt streng bis Stufe 3 |
+| PA | die Pause ist auf jeder Stufe genauso lang wie das Trefferfenster und nie unter 40 ms |
+| UM | über Seiten 2…8, beide Kurvenformen, mit und ohne Pause und Stufen 1…100.000: kein Umlauf unter 1000/3 ms, keine Blitzrate über drei je Sekunde |
+| ML | eine echte `MultiRiskLadder` wird über 30 Sekunden virtueller Uhr gespielt: `lit` ist an jeder gemalten Ansicht ein Skalar (eine Zahl oder `NO_SIDE`), niemals ein Feld oder Set — die eigentliche Zusage „nie zwei Seiten gleichzeitig an" wird erst am DOM erfüllt und dort, in der jeweiligen Geräte-Extension, die diese Leiter benutzt, nachgewiesen; jede Seite kommt je Umlauf genau einmal an die Reihe, die Pause stimmt auf die Millisekunde, der Takt driftet nicht |
+| GL | eine `MultiRiskLadder` mit zwei Seiten läuft an derselben virtuellen Uhr mit derselben Zufallsfolge wie eine echte `RiskLadder` gegenläufig — beide malen über fünf Stufen dieselben Zustände und führen bei denselben Treffern und demselben Fehlgriff zu denselben Beträgen |
 
 ## Inhaltselement „Casino-Automat"
 
@@ -743,21 +1033,77 @@ konstant. Verglichen wird ganzzahlig.
 | Template | `Resources/Private/ContentElements/CasinoAutomat.html` |
 | Backend-Vorschau | `Phomo17\CasinoStartpage\Backend\Preview\AutomatPreviewRenderer` |
 
+## Barrierefreiheit
+
+Behebungslauf 2026-09-05/06 (AUDITREPORT-2026-09-05.md, Befund A-09): die
+Beschriftungen `.ck-table__buyin-legend` und `.ck-table__exchange legend`
+(`table.css`) liegen auf `--ck-chrome-polish` (`.ck-table__controls`), einem
+Verlauf, der in der Mitte bis auf `--ck-chrome-500` abdunkelt.
+`--ck-text-inverse` ist für hellen Untergrund gerechnet und erreichte am
+dunklen Teil des Verlaufs nur 2,72:1 statt der geforderten 4,5:1
+(SC 1.4.3) — derselbe Fehlertyp wie bei den Automaten-Tasten (A-08): eine
+feste Textfarbe kann nicht jede Stelle eines Verlaufs zugleich bestehen.
+Beide Regeln tragen jetzt ein blickdichtes Namensschild
+(`background-color: var(--ck-chrome-100)`), nach demselben Muster, das der
+Behebungslauf zuvor am neuesten Fruchtautomaten des Projekts für dessen
+Tastenbeschriftungen eingeführt hatte. Nachgemessen (`rgb(26, 15, 8)` auf
+`rgb(246, 249, 251)`): **17,8:1**, für beide Beschriftungen gleich.
+
+### Fehlerseite (404)
+
+Behebungslauf 2026-09-05/06 (AUDITREPORT-2026-09-05.md, Befund A-11): die
+Site-Konfiguration führte `errorHandling: {}` — leer. TYPO3 lieferte dadurch
+für jede unbekannte Adresse seine eingebaute Fehlerseite aus: kein
+`<html>`-Element und damit keine Sprachangabe, englischer Text, und die
+einzigen zwei Verweise führten zu `typo3.org`, kein Weg zurück in den Saal.
+
+`typo3conf/sites/casino-kunterbunt/config.yaml` weist `errorCode: 404` jetzt
+einem `Fluid`-Fehlerbehandler zu
+(`Resources/Private/Templates/PageError/PageNotFound.html`). Der Kern ruft
+diesen Behandler über `FluidPageErrorHandler` auf — noch vor jeder
+Seiten- oder TypoScript-Auflösung, ohne PAGEVIEW und ohne `page.meta`.
+Das Template schreibt deshalb ein vollständiges, eigenständiges HTML-Dokument
+(`<!DOCTYPE html>`, `<html lang="de-DE">`, `<head>` mit `<meta name="robots"
+content="noindex, follow">`) und bindet `tokens.css`/`base.css` über feste
+Pfade ein (`/typo3conf/ext/casino_startpage/Resources/Public/Css/…`) —
+dieselben zwei Dateien, mit denen jede andere Seite beginnt, damit Grundfarbe
+und Schrift ohne weiteren Aufwand zum übrigen Saal passen. Der Text ist
+absichtlich ohne `<f:translate>` direkt deutsch geschrieben: das
+Übersetzungssystem ist an diesem sehr frühen Punkt der Anfrageverarbeitung
+nicht zuverlässig aufgebaut, und die Seite führt ohnehin nur eine Sprache.
+Ein Verweis mit dem vertrauten Text „Zurück in den Saal" (`pagehead.back` in
+`locallang.xlf`, hier wortgleich, aber nicht über die XLIFF-Datei bezogen)
+führt zurück zu `/`.
+
 ## Stand
 
-Version 0.1.0 (alpha). Teil A ist vollständig abgeschlossen; aus Teil B sind Phase 2,
-Phase 3, Phase 4 und der Tokenbedarf von Phase 5 eingearbeitet. Die Extension liefert: den Vegas-Saal mit
-Leuchtreklame, Automatenreihen und Guthaben-Schild samt freier Einstellung des
-Kassenstands, die Automaten-Registry samt Inhaltselement „Casino-Automat", die
-gemeinsamen Design-Tokens und **sechs** geteilte Browser-Bausteine — Kasse,
-Gerätekredit, Klangerzeugung, Klangbaukasten, Leerlaufgeräusche und
-Risiko-Leiter. Sie kennt keinen einzelnen Automaten und muss zum Anschließen
-eines weiteren nicht geändert werden — bis auf einen fehlenden Design-Token,
-siehe oben.
+Version 0.2.0 (alpha). Teil A ist vollständig abgeschlossen; aus Teil B sind Phase 2,
+Phase 3, Phase 4 und der Tokenbedarf von Phase 5 eingearbeitet. Aus Teil C ist Phase C1
+„Der Tisch als Gattung" vollständig eingearbeitet — seither haben sich zwei weitere
+Tischspiele bei der Geräte-Registry angemeldet, ohne dass diese Extension dafür
+geändert werden musste. Die Extension liefert: den Vegas-Saal
+mit Leuchtreklame, Automaten- und Tischreihen und Guthaben-Schild samt freier
+Einstellung des Kassenstands, die Geräte-Registry samt den Inhaltselementen
+„Casino-Automat" und „Mustertisch", die gemeinsamen Design-Tokens und **zwölf** geteilte
+Browser-Bausteine — Kasse, Gerätekredit, Klangerzeugung, Klangbaukasten,
+Leerlaufgeräusche, Risiko-Leiter, Mehrtasten-Leiter, Chips und Rack, Setzfläche (Zustand),
+Rundenablauf, Setzfläche (Ansicht) und Buy-in gegen die Kasse. Sie kennt keinen einzelnen Automaten
+und keinen einzelnen Tisch und muss zum Anschließen eines weiteren nicht geändert
+werden — bis auf einen fehlenden Design-Token, siehe oben.
 
-Mit dieser Fassung sind vier Druckfarben dazugekommen — `--ck-fruit-plum`,
-`--ck-fruit-plum-shade`, `--ck-fruit-grape` und `--ck-fruit-grape-shade`. Sie
-gehören zum Satz der Druckfarben für bedruckte Walzenbänder und Gewinnpläne
-und heißen deshalb nach ihrem Werkstoff, nicht nach einem Gerät. Eine
-Automaten-Extension, die sie braucht, verlangt in `ext_emconf.php`
-`'casino_startpage' => '0.1.0-0.99.99'`.
+Der Satz der Druckfarben für bedruckte Walzenbänder und Gewinnpläne umfasst
+inzwischen zehn Farbpaare. Zuletzt sind acht Werte dazugekommen —
+`--ck-fruit-strawberry`, `--ck-fruit-banana`, `--ck-fruit-apple` und
+`--ck-fruit-pineapple`, jeweils mit ihrer Schattenstufe. Wie alle davor heißen
+sie nach ihrem Werkstoff, nicht nach dem Gerät, das sie zuerst gebraucht hat.
+Eine Automaten-Extension, die sie benutzt, verlangt in `ext_emconf.php`
+`'casino_startpage' => '0.2.0-0.99.99'`.
+
+Seit dem GEO-Behebungslauf vom 2026-09-05 liefert das Site Package auf jeder
+Seite `Organization`, `WebSite` und `BreadcrumbList` als strukturierte Daten
+(JSON-LD) sowie eine Meta-Beschreibung der Wurzelseite aus, jeweils
+`SiteJsonLdProcessor` (kennt kein Gerät, zählt nur die Registry nach Gattung).
+Jede Geräteseite liefert zusätzlich ihre eigene Meta-Beschreibung und einen
+`Game`-Eintrag über `DeviceDescriptionProcessor` — siehe „KI-Auffindbarkeit:
+die eigene Beschreibung beisteuern" oben. Ausgenommen ist ausschließlich der
+eingefrorene Münzschieber (dokumentiert in `verify-geo.mjs`).

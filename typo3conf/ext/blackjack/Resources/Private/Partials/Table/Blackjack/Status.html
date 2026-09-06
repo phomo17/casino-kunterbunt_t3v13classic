@@ -1,0 +1,52 @@
+<f:comment>
+	Der Ansagebereich der RUNDE — Eigentümer ist ausschließlich
+	view-blackjack.js (die Zustände 'versicherung'/'spieler'/'geber') sowie
+	blackjack.js selbst für den Rundenausgang und die drei Absagen, die kein
+	Zustandswechsel sind (gesperrt, kein Geld, geschlossen).
+
+	Er steht NEBEN dem geteilten [data-ck-table-status] aus dem Site Package,
+	der weiterhin allein den Chips und der Bedienleiste gehört. Zwei Bereiche
+	mit je einem Eigentümer statt einer mit drei Schreibern: eine Ansage kann
+	so keine andere überschreiben. Dieselbe Aufteilung wie am Roulette-Tisch.
+
+	LEER ausgeliefert. Ein Live-Bereich, den ein Skript anlegt UND füllt, wird
+	von Hilfsmitteln nicht angesagt; einer, der beim Laden schon Text trägt,
+	liest ungefragt vor. Beides wäre falsch.
+
+	role="status" statt role="alert": das Ergebnis einer Runde ist eine
+	Auskunft, keine Warnung. Es soll den Vorlesevorgang nicht unterbrechen,
+	sondern sich einreihen.
+
+	Die deutschen Satzbauten reisen als data-Attribute mit, damit sie aus der
+	XLIFF-Datei kommen und nicht im JavaScript stehen. Keine der Zahlen, die
+	darin eingesetzt werden, steht in der XLIFF-Datei — sie sind Regelwerte und
+	kommen zur Laufzeit aus rules-blackjack.js beziehungsweise aus der
+	laufenden Runde (Prüfung A-11).
+</f:comment>
+<p class="bj-status" data-bj-status="" role="status"
+	data-text-insurance="{f:translate(key: 'LLL:EXT:blackjack/Resources/Private/Language/locallang.xlf:round.announce.insurance')}"
+	data-text-player="{f:translate(key: 'LLL:EXT:blackjack/Resources/Private/Language/locallang.xlf:round.announce.player')}"
+	data-text-player-split="{f:translate(key: 'LLL:EXT:blackjack/Resources/Private/Language/locallang.xlf:round.announce.player.split')}"
+	data-text-dealer="{f:translate(key: 'LLL:EXT:blackjack/Resources/Private/Language/locallang.xlf:round.announce.dealer')}"
+	data-text-dealer-shows="{f:translate(key: 'LLL:EXT:blackjack/Resources/Private/Language/locallang.xlf:round.announce.dealer.shows')}"
+	data-text-win="{f:translate(key: 'LLL:EXT:blackjack/Resources/Private/Language/locallang.xlf:round.announce.win')}"
+	data-text-loss="{f:translate(key: 'LLL:EXT:blackjack/Resources/Private/Language/locallang.xlf:round.announce.loss')}"
+	data-text-push="{f:translate(key: 'LLL:EXT:blackjack/Resources/Private/Language/locallang.xlf:round.announce.push')}"
+	data-text-stake="{f:translate(key: 'LLL:EXT:blackjack/Resources/Private/Language/locallang.xlf:round.announce.stake')}"
+	data-text-blocked="{f:translate(key: 'LLL:EXT:blackjack/Resources/Private/Language/locallang.xlf:round.announce.blocked')}"
+	data-text-nocash="{f:translate(key: 'LLL:EXT:blackjack/Resources/Private/Language/locallang.xlf:round.announce.nocash')}"
+	data-text-closed="{f:translate(key: 'LLL:EXT:blackjack/Resources/Private/Language/locallang.xlf:round.announce.closed')}"
+	data-text-norandom="{f:translate(key: 'LLL:EXT:blackjack/Resources/Private/Language/locallang.xlf:round.announce.norandom')}"
+	data-text-shuffled="{f:translate(key: 'LLL:EXT:blackjack/Resources/Private/Language/locallang.xlf:round.announce.shuffled')}"
+	data-text-hand-total="{f:translate(key: 'LLL:EXT:blackjack/Resources/Private/Language/locallang.xlf:hand.total')}"
+	data-text-hand-total-soft="{f:translate(key: 'LLL:EXT:blackjack/Resources/Private/Language/locallang.xlf:hand.total.soft')}"
+	data-text-hand-stake="{f:translate(key: 'LLL:EXT:blackjack/Resources/Private/Language/locallang.xlf:hand.stake')}"
+	data-text-hand-number="{f:translate(key: 'LLL:EXT:blackjack/Resources/Private/Language/locallang.xlf:hand.number')}"
+	data-text-outcome-win="{f:translate(key: 'LLL:EXT:blackjack/Resources/Private/Language/locallang.xlf:outcome.win')}"
+	data-text-outcome-loss="{f:translate(key: 'LLL:EXT:blackjack/Resources/Private/Language/locallang.xlf:outcome.loss')}"
+	data-text-outcome-push="{f:translate(key: 'LLL:EXT:blackjack/Resources/Private/Language/locallang.xlf:outcome.push')}"
+	data-text-outcome-bust="{f:translate(key: 'LLL:EXT:blackjack/Resources/Private/Language/locallang.xlf:outcome.bust')}"
+	data-text-outcome-blackjack="{f:translate(key: 'LLL:EXT:blackjack/Resources/Private/Language/locallang.xlf:outcome.blackjack')}"
+	data-text-dealer-total="{f:translate(key: 'LLL:EXT:blackjack/Resources/Private/Language/locallang.xlf:dealer.total')}"
+	data-text-card-name="{f:translate(key: 'LLL:EXT:blackjack/Resources/Private/Language/locallang.xlf:card.name')}"
+	data-text-card-facedown="{f:translate(key: 'LLL:EXT:blackjack/Resources/Private/Language/locallang.xlf:card.facedown')}"></p>

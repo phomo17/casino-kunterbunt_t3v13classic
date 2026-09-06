@@ -8,7 +8,7 @@
  *   3  Leuchtreklame
  *   4  Guthaben-Leuchtschild
  *   5  Automaten-Reihen
- *   6  Ein Automat auf seinem Podest
+ *   6  Ein Gerät auf seiner Bühne
  *   7  Bewegung (Keyframes)
  *
  * Alle Farbwerte kommen aus tokens.css. In dieser Datei steht kein
@@ -56,6 +56,32 @@ button,
 input {
 	font: inherit;
 	color: inherit;
+}
+
+/* Sprunglink (Audit A-04, WCAG 2.4.1). Erstes Element im Dokument
+   (Layouts/Default.html), auf allen sechs Seiten gleich. Verborgen über
+   position: absolute außerhalb des sichtbaren Bereichs statt display: none —
+   sonst bekäme er nie den Tastaturfokus. Bei :focus-visible fährt er sichtbar
+   in den Raum ein. */
+.ck-skiplink {
+	position: absolute;
+	z-index: 10;
+	inset-block-start: -3rem;
+	inset-inline-start: 0.5rem;
+	padding: 0.6rem 1rem;
+	background-color: var(--ck-chrome-shadow);
+	color: var(--ck-text-primary);
+	font-family: var(--ck-font-ui);
+	font-size: 0.9rem;
+	text-decoration: none;
+	border-radius: var(--ck-radius-sm);
+	transition: inset-block-start var(--ck-duration-fast) var(--ck-ease-mech);
+}
+
+.ck-skiplink:focus-visible {
+	inset-block-start: 0.5rem;
+	outline: 0.18rem solid var(--ck-bulb-core);
+	outline-offset: 0.12rem;
 }
 
 
@@ -707,7 +733,7 @@ body:has(.ck-room-fill) {
 
 
 /* ==========================================================================
-   6  Ein Automat auf seinem Podest
+   6  Ein Gerät auf seiner Bühne
    ========================================================================== */
 
 .ck-slot {
@@ -803,11 +829,16 @@ body:has(.ck-room-fill) {
 	pointer-events: none;
 }
 
-/* Vertrag für Automaten-Extensions: das Gehäuse-Partial liefert genau ein
+/* Vertrag für Geräte-Extensions: das Gehäuse-Partial liefert genau ein
    Element mit der Klasse ck-cabinet und darin genau ein <svg> mit der Klasse
-   ck-cabinet__drawing und einem viewBox-Seitenverhältnis von 100 : 160
-   (DESIGNBRIEF.md Abschnitt 1: Standautomaten der Epoche sind rund 1,6-mal so hoch wie
-   breit). Breite und Schatten regelt dann der Saal. */
+   ck-cabinet__drawing. Das viewBox-Seitenverhältnis hängt an der Gattung:
+
+     automat   100 : 160   DESIGNBRIEF.md Abschnitt 1 — Standautomaten der
+                           Epoche sind rund 1,6-mal so hoch wie breit
+     tisch     160 : 100   CONCEPT.md C.2 — Sicht von oben auf den Tisch,
+                           breiter als tief
+
+   Breite, Schatten und Podest regelt der Saal, nicht das Gerät. */
 .ck-cabinet {
 	position: relative;
 	z-index: 1;
@@ -832,6 +863,48 @@ body:has(.ck-room-fill) {
 		drop-shadow(0 0.2rem 0.25rem var(--ck-shadow-hard))
 		drop-shadow(0 0.9rem 1.4rem var(--ck-shadow-soft))
 		drop-shadow(0 0 1.1rem var(--ck-bulb-halo));
+}
+
+/* --------------------------------------------------------------------------
+   Die zweite Gattung: ein Tisch (CONCEPT.md C.1 Nr. 1, C.3)
+   --------------------------------------------------------------------------
+   Ein Tisch steht auf Beinen, nicht auf einem Podest, und er ist quer statt
+   hochkant. Drei Unterschiede zur Automatenbühne, mehr nicht:
+
+     1. mehr Breite (--ck-table-width statt --ck-cabinet-width),
+     2. kein Podest — die Stufe aus ::after entfällt ersatzlos,
+     3. ein breiterer, flacherer Schatten, weil eine Tischplatte weiter
+        ausladet als ein Gehäusefuß.
+
+   Das Raster darüber (.ck-hall__content--devices) bleibt unangetastet: es
+   stellt mit align-items: end beide Gattungen auf dieselbe Bodenlinie, und
+   genau deshalb dürfen Tisch und Automat in derselben Reihe stehen, ohne
+   dass eine Sonderregel nötig wäre. */
+
+.ck-slot--tisch .ck-slot__stage {
+	inline-size: min(100%, var(--ck-table-width));
+	/* Kein Podest, also auch kein Platz dafür. */
+	padding-block-end: 0;
+}
+
+/* Die Podeststufe des Automaten wird für einen Tisch abgeschaltet.
+   content: none lässt das Pseudoelement gar nicht erst entstehen;
+   display: none erzeugte es und versteckte es wieder. */
+.ck-slot--tisch .ck-slot__stage::after {
+	content: none;
+}
+
+/* Der Schatten einer Tischplatte: breiter, flacher, dichter am Boden. */
+.ck-slot--tisch .ck-slot__stage::before {
+	inset-block-end: -0.15rem;
+	inline-size: 112%;
+	block-size: 1.7rem;
+}
+
+/* Der Lichtkegel von oben folgt der größeren Breite. */
+.ck-slot--tisch::before {
+	inline-size: calc(var(--ck-table-width) * 1.5);
+	block-size: calc(var(--ck-table-width) * 1.5);
 }
 
 /* Namensschild am Fuß des Geräts – eine gravierte Messingplatte. */
@@ -946,6 +1019,24 @@ body:has(.ck-room-fill) {
 	}
 	78% {
 		filter: brightness(1.01);
+	}
+}
+
+/*
+ * Audit A-10: anders als die Bewegung an den drei Automaten ist das
+ * Ruheatmen der H1 KEINE dokumentierte Ausnahme vom Nicht-Ziel
+ * Barrierefreiheit — es gehört zum Site Package, nicht zu einem Gerät, und
+ * trägt keinen der dortigen Vermerke. Bei prefers-reduced-motion steht der
+ * Schriftzug deshalb im hellsten Ruhezustand der Kurve still
+ * (filter: brightness(1), wie 0 %/100 % und 76,4 % oben), statt sieben
+ * Sekunden lang unbegrenzt weiterzuatmen. Das Zündflackern (ck-neon-strike)
+ * ist davon nicht betroffen: es läuft genau einmal, 2,4 s lang, und bleibt
+ * unter der Fünf-Sekunden-Schwelle von SC 2.2.2.
+ */
+@media (prefers-reduced-motion: reduce) {
+	.ck-sign__text {
+		animation: none;
+		filter: brightness(1);
 	}
 }
 

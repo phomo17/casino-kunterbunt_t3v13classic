@@ -89,6 +89,15 @@
 	--ck-bakelite-cream: #ecdfc4;
 	--ck-bakelite-cream-shade: #b7a684;
 
+	/* --- Kupfer (Münzmetall) ----------------------------------------------- */
+	/* Das vierte Münzmetall neben Chrom/Nickel, Messing und deren Kombination.
+	   Rotbraun und damit von Messing auch bei kleiner Darstellung sicher zu
+	   unterscheiden — CONCEPT.md B.9.2 verlangt Unterscheidbarkeit über Größe
+	   UND Farbe. Ein Werkstoff des Projekts, kein Merkmal eines einzelnen
+	   Geräts: deshalb hier und nicht in einer Automaten-Extension. */
+	--ck-copper-200: #b0663a;
+	--ck-copper-400: #7a4322;
+
 	/* --- Glas (Scheiben vor Gewinnplan, Walzenfenster, Röhren) ------------- */
 	/* DESIGNBRIEF.md Abschnitt 8: halbdurchsichtiger Grundton, diagonaler
 	   Schimmer, Kantenreflexe über helle Innenschatten. Als rgba notiert,
@@ -121,6 +130,152 @@
 	--ck-fruit-plum-shade: #5e2059;
 	--ck-fruit-grape: #6a4bb5;
 	--ck-fruit-grape-shade: #402a7d;
+
+	/* Vier weitere Druckfarben desselben Satzes. Sie kommen dazu, weil ein
+	   Fruchtautomat mit zwölf Motiven mehr Sorten braucht als einer mit neun;
+	   die Motive selbst (Erdbeere, Banane, Apfel, Ananas) sind seit den
+	   Kaugummi-Sorten von 1913 branchenweites Allgemeingut.
+
+	   Jede Farbe ist gegen die schon vorhandenen abgesetzt, damit zwei Sorten
+	   auch klein nicht ineinanderlaufen:
+	     Erdbeere  bläulicher als das Kirschrot
+	     Banane    heller und wärmer als das Zitronengelb
+	     Apfel     gelbgrün, deutlich heller als das Blattgrün der Melonenschale
+	     Ananas    ockerfarben, zwischen Zitrone und Orange, aber matter als beide
+	   Die Farbe ist dabei NIE das einzige Unterscheidungsmerkmal: jedes Motiv
+	   hat einen grundverschiedenen Umriss und eine Kontur in --ck-print-ink.
+	   Das ist derselbe Grundsatz wie bei den Chips (Randkerben) und den Münzen
+	   des Schiebers (Größe UND Farbe). */
+	--ck-fruit-strawberry: #d81f33;
+	--ck-fruit-strawberry-shade: #96101f;
+	--ck-fruit-banana: #f7dc63;
+	--ck-fruit-banana-shade: #c69f22;
+	--ck-fruit-apple: #7fb02b;
+	--ck-fruit-apple-shade: #55771a;
+	--ck-fruit-pineapple: #d99a2b;
+	--ck-fruit-pineapple-shade: #a06a12;
+
+	/* --- Spieltisch: Tuch, Beschriftung ----------------------------------- */
+	/* CONCEPT.md C.2: „grünes Tuch, Messingkanten, Holzrahmen", Sicht von oben.
+	   Die Namen nennen den Werkstoff und nicht das Gerät — es gibt kein
+	   --ck-roulette-green, weil dasselbe Tuch unter allen drei Tischen liegt
+	   (Regel aus casino_startpage/README.md, „Design-Token-Namensschema").
+
+	   Zwei Grüntöne: der dunklere liegt als Rand und als Naht unter dem
+	   helleren, damit ein Tuch nicht wie eine flache Farbfläche wirkt.
+	   --ck-felt-line ist die aufgemalte weiße Beschriftung des Tuchs; sie
+	   erreicht auf --ck-felt-green ein Kontrastverhältnis von 6,3 : 1 und
+	   damit mehr als die 4,5 : 1, die für Text verlangt sind. */
+	--ck-felt-green: #1c5c33;
+	--ck-felt-green-dark: #143f24;
+	--ck-felt-line: #ede4cf;
+	--ck-felt-weave: rgba(0, 0, 0, 0.10);
+
+	/* --- Spielkarten -------------------------------------------------------- */
+	/* Eine Spielkarte ist in diesem Haus bedrucktes Papier: ihre Fläche ist
+	   --ck-paper-100, ihre Druckfarben sind --ck-print-ink und --ck-print-red
+	   (siehe Abschnitt „Bedrucktes Papier und Druckfarben" weiter oben). Neu
+	   sind nur zwei Dinge, die es an keinem anderen Werkstoff gibt: der
+	   bedruckte RÜCKEN und die sichtbare SCHNITTKANTE.
+
+	   Der Rücken ist tiefrot mit goldenem Gitter — die Farbwelt des Saals aus
+	   DESIGNBRIEF.md Abschnitt 7 (roter Teppich, Messingzierrat), nicht die
+	   irgendeines fremden Kartenbildes. Er wird immer von einem hellen
+	   Papierrand umschlossen, denn ohne diesen Rand stünde Tiefrot auf grünem
+	   Tuch bei einem Helligkeitsverhältnis von nur 1,13 : 1 — eine verdeckte
+	   Karte wäre auf dem Tuch dann kaum auszumachen.
+
+	   Nachgerechnete Verhältnisse (WCAG 2.2):
+	     --ck-card-back-line auf --ck-card-back      4,58 : 1
+	     --ck-print-red      auf --ck-paper-100      5,75 : 1
+	     --ck-print-ink      auf --ck-paper-100     14,9  : 1
+	     --ck-card-edge      auf --ck-paper-100      3,37 : 1  (Bauteilgrenze)
+	   Nachgerechnet wird das nicht von Hand, sondern von Prüfung K-9 in
+	   blackjack/…/verify-cards.mjs, die diese Werte aus DIESER Datei liest. */
+	--ck-card-back: #8e1b1b;
+	--ck-card-back-line: #d9b45f;
+	--ck-card-edge: #8a7a5e;
+
+	/* --- Spieltisch: das Rad ----------------------------------------------- */
+	/* Die Fächer eines Rades sind lackiertes Holz, kein Tuch — deshalb eigene
+	   Werte und nicht die des Tuchs. Die Namen nennen das Bauteil und nicht
+	   das Gerät (Regel aus casino_startpage/README.md, „Design-Token-Namens-
+	   schema"); ein zweiter Tisch mit Fächern benutzt dieselben Tokens.
+
+	   --ck-pocket-mark ist die aufgemalte Fachzahl. Nachgerechnete
+	   Kontrastverhältnisse gegen die drei Fachfarben:
+	     auf ck-pocket-red    7,4 : 1
+	     auf ck-pocket-black  16,8 : 1
+	     auf ck-pocket-green  6,0 : 1
+	   Alle drei liegen über den 4,5 : 1, die WCAG 2.2 für Text verlangt.
+	   (Die genauen Zahlen rechnet verify-wheel.mjs nach; weicht sie ab, gilt
+	   die Messung und nicht dieser Kommentar.)
+
+	   --ck-ivory-100 ist die Kugel. Elfenbein ist der Werkstoff, den eine
+	   Roulettekugel historisch hat; heute ist es Kunstharz in derselben
+	   Farbe. */
+	--ck-pocket-red: #a3121a;
+	--ck-pocket-black: #17130f;
+	--ck-pocket-green: #0f6b34;
+	--ck-pocket-mark: #f4efe2;
+	--ck-pocket-edge: rgba(0, 0, 0, 0.45);
+	--ck-ivory-100: #f2ead6;
+
+	/* --- Chips (CONCEPT.md C.4.1) ----------------------------------------- */
+	/* Fünf Werte, fünf Farben, verbindlich und an allen drei Tischen gleich:
+	   weiß 1, rot 5, gelb 20, grün 25, schwarz 100. Ein Chip ist ein Werkstoff
+	   des Projekts wie eine Druckfarbe, kein Merkmal eines einzelnen Geräts.
+
+	   Die Farbe ist AUSDRÜCKLICH NICHT das einzige Unterscheidungsmerkmal:
+	   jeder Chip trägt zusätzlich ein eigenes Randkerbenmuster (C.4.1) und
+	   seinen Wert im Aufdruck. Das ist derselbe Grundsatz wie bei den Münzen
+	   des Münzschiebers (B.9.2) und zugleich die Antwort auf die Frage, warum
+	   Gelb und Grün trotz ihrer Nähe im Wert nicht zu verwechseln sind. */
+	--ck-chip-white: #e8e5da;
+	--ck-chip-red: #a4231c;
+	--ck-chip-yellow: #d9a415;
+	--ck-chip-green: #1f6b3a;
+	--ck-chip-black: #17161a;
+
+	/* Die Markierungsfarbe eines Chips trägt BEIDES: seine Randkerben und
+	   seinen Aufdruck. Sie ist auf hellen Chips dunkel und auf dunklen hell,
+	   weil eine helle Kerbe auf einem weißen Chip unsichtbar wäre.
+	   Nachgerechnet (WCAG-Kontrastverhältnis gegen die jeweilige Chipfarbe;
+	   verlangt sind 3 : 1 für ein grafisches Element):
+	     weiß    #2b2822 auf #e8e5da   11,7 : 1
+	     rot     #f4efe2 auf #a4231c    6,5 : 1
+	     gelb    #2b2822 auf #d9a415    6,5 : 1
+	     grün    #f4efe2 auf #1f6b3a    5,7 : 1
+	     schwarz #f4efe2 auf #17161a   16,0 : 1
+	   Der Nachweis rechnet diese fünf Verhältnisse aus den Werten in dieser
+	   Datei nach (Prüfung C-8) — sie werden nicht geglaubt. */
+	--ck-chip-white-mark: #2b2822;
+	--ck-chip-red-mark: #f4efe2;
+	--ck-chip-yellow-mark: #2b2822;
+	--ck-chip-green-mark: #f4efe2;
+	--ck-chip-black-mark: #f4efe2;
+
+	/* Die cremefarbene Einlage in der Mitte, auf allen fünf Chips gleich. Sie
+	   trägt den Aufdruck des Werts in --ck-print-ink; Kontrastverhältnis
+	   14,0 : 1, also weit über den 4,5 : 1 für Text. Dass die Einlage auf
+	   allen fünf gleich ist, ist Absicht: die Zahl soll überall gleich gut
+	   lesbar sein. Unterschieden wird über Farbring und Kerben. */
+	--ck-chip-inlay: #ede4cf;
+
+	/* Die dunkle Kante des Chipkörpers — kein Werkstoff, sondern der
+	   Schattenrand einer gepressten Scheibe. Deshalb als Schwarzanteil und
+	   nicht als eigene Farbe. */
+	--ck-chip-edge: rgba(0, 0, 0, 0.42);
+
+	/* Maße eines Chips und seines Stapels. Stehen hier und nicht lokal in
+	   table.css, weil diese Datei die einzige Registry für --ck-*-Eigenschaften
+	   des Projekts ist (Nachweis G-6 prüft jeden benutzten var(--ck-…) dagegen).
+	   Eine Tisch-Extension kann --ck-chip-size trotzdem für sich überschreiben,
+	   indem sie es auf einer spezifischeren Auswahl neu setzt — das Überschreiben
+	   von Custom Properties hängt nicht daran, wo die Vorgabe steht. */
+	--ck-chip-size: 2.75rem;      /* 44px: WCAG 2.2 SC 2.5.8 mit Reserve */
+	--ck-chip-stack-step: 0.3rem; /* Versatz je weiterem Chip im Stapel */
+	--ck-chip-stack-max: 8;       /* ab hier wird gezählt statt versetzt */
 
 	/* --- Glühlampenlicht (Bakelit-Tasten, warmes Gelb-Rot) ----------------- */
 	--ck-bulb-core: #fff4cd;
@@ -244,6 +399,12 @@
 	--ck-hall-max: 80rem;
 	--ck-cabinet-width: clamp(11rem, 15vw, 15rem);
 	--ck-plinth-height: 1.1rem;
+	/* Ein Tisch steht quer und braucht mehr Breite als ein Automat. Faktor rund
+	   1,27 gegenüber --ck-cabinet-width: bei gleicher Zeilenhöhe im Raster wirkt
+	   ein 160 : 100 breites Tuch sonst zwergenhaft neben einem 100 : 160 hohen
+	   Gehäuse. Dieselbe clamp()-Bauart, damit beide Gattungen bei jeder
+	   Bildschirmbreite dasselbe Verhalten zeigen. */
+	--ck-table-width: clamp(14rem, 19vw, 19rem);
 
 	/* --- Zeitverhalten ----------------------------------------------------- */
 	--ck-duration-fast: 90ms;

@@ -1,0 +1,87 @@
+<f:comment>
+	Eine selbstleuchtende Bakelit-Taste dieses Geraets.
+
+	{key}           Wert fuer data-fr-button; ab Phase F4 greift der
+	                Spielkern darauf zu. Zugleich der Klassen-Zusatz.
+	{shape}         square | key | round | tab — die vier Bauformen:
+	                  square  START und STOP, viereckig, 19 x 19
+	                  key     AUTO MODE und REWARD, laengliche Kappe 20 x 10
+	                  round   die acht Risiko-Tasten, rund
+	                  tab     die drei Starttasten der Risikogruppen, flache
+	                          Platte 16,8 x 2,6 anstelle der frueheren
+	                          gedruckten Gruppenbeschriftung
+	{labelKey}      Schluessel der SICHTBAREN Aufschrift; leer bei den acht
+	                Risiko-Tasten
+	{ariaLabelKey}  Schluessel des erreichbaren Namens; nur gesetzt, wenn die
+	                Taste keine sichtbare Aufschrift hat
+	{disabled}      ab Phase F5c nur noch fuer den Notfall vorhanden: alle
+	                zwoelf Bedienteile sind verdrahtet, und kein einziger
+	                f:render-Aufruf reicht das Argument noch durch. Bliebe es
+	                unbenutzt entfernt, muesste ein spaeteres, wirklich
+	                gesperrtes Bedienteil den Mechanismus neu erfinden — dafuer
+	                bleibt er stehen. aria-disabled sagt „ist da, tut gerade
+	                nichts" und behaelt den Fokus; ein echtes disabled naehme
+	                die Taste aus der Tabulatorfolge und braeche den
+	                Tastaturweg ueber alle zwoelf Bedienteile (A-16).
+
+	{toggle}        ab Phase F5c: wahr bei AUTO MODE. Ein Umschalter braucht
+	                aria-pressed, damit ein Hilfsmittel „eingeschaltet" bzw.
+	                „ausgeschaltet" mitsagt; ohne das Attribut klaenge er wie
+	                eine gewoehnliche Schaltflaeche, die jedes Mal dasselbe
+	                tut. Es steht bereits im ausgelieferten HTML auf "false" —
+	                und nicht erst, sobald JavaScript laeuft —, weil ein
+	                Umschalter ohne Zustand fuer ein Hilfsmittel schlechter
+	                ist als einer mit dem richtigen Anfangswert. auto.js zieht
+	                den Zustand beim Umschalten sofort nach.
+
+	DIE TASTEN LEUCHTEN SELBST. Es gibt an diesem Geraet KEINE getrennten
+	Lichtfelder ueber oder neben den Tasten — anders als am vorhandenen
+	Fuenf-Walzen-Geraet, wo Lampe und Taste zwei Bauteile sind. Gedrueckt
+	wird die Taste, die in genau diesem Moment leuchtet (CONCEPT.md C.14.5).
+	Das ist unmissverstaendlich und spart acht gezeichnete Bauteile.
+
+	Die Aufschrift liegt AUF der Kappe, nicht darunter: eine leuchtende
+	Taste traegt ihre Beschriftung im Licht.
+
+	WARUM DREI VOLLSTAENDIGE ZWEIGE statt eines button mit bedingten
+	Attributen: ein aria-label bzw. ein aria-pressed steht als gewoehnliches
+	HTML-Attribut im Markup und wird von Fluid immer ausgegeben — auch leer.
+	Ein leeres aria-label="" ueberschreibt den sichtbaren Namen mit nichts,
+	und die vier beschrifteten Tasten waeren fuer ein Hilfsmittel namenlos;
+	ein leeres aria-pressed="" ist ungueltig und macht aus jeder Taste einen
+	kaputten Umschalter. Dreifaches Markup ist hier der kleinere Preis.
+
+	Alle Kinder sind span, weil der Inhalt eines button nur Phrasing Content
+	sein darf.
+</f:comment>
+<f:variable name="frButtonDisabled">{f:if(condition: disabled, then: 'true', else: 'false')}</f:variable>
+<f:if condition="{ariaLabelKey}">
+	<f:then>
+		<f:variable name="frButtonAriaLabel"><f:translate
+			key="LLL:EXT:fruit_risk/Resources/Private/Language/locallang.xlf:{ariaLabelKey}" /></f:variable>
+		<button type="button" class="fr-btn fr-btn--{shape} fr-btn--{key}"
+			data-fr-button="{key}" aria-label="{frButtonAriaLabel}"
+			aria-disabled="{frButtonDisabled}">
+			<span class="fr-btn__cap"></span>
+		</button>
+	</f:then>
+	<f:else>
+		<f:if condition="{toggle}">
+			<f:then>
+				<button type="button" class="fr-btn fr-btn--{shape} fr-btn--{key}"
+					data-fr-button="{key}" aria-pressed="false"
+					aria-disabled="{frButtonDisabled}">
+					<span class="fr-btn__cap"><span class="fr-btn__label"><f:translate
+						key="LLL:EXT:fruit_risk/Resources/Private/Language/locallang.xlf:{labelKey}" /></span></span>
+				</button>
+			</f:then>
+			<f:else>
+				<button type="button" class="fr-btn fr-btn--{shape} fr-btn--{key}"
+					data-fr-button="{key}" aria-disabled="{frButtonDisabled}">
+					<span class="fr-btn__cap"><span class="fr-btn__label"><f:translate
+						key="LLL:EXT:fruit_risk/Resources/Private/Language/locallang.xlf:{labelKey}" /></span></span>
+				</button>
+			</f:else>
+		</f:if>
+	</f:else>
+</f:if>

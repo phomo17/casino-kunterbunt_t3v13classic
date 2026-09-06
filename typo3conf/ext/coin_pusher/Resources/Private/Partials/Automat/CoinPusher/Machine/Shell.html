@@ -1,0 +1,87 @@
+<f:comment>
+	Die feste Zeichnung des Gehäuses. Alles hier ändert sich nie — deshalb
+	SVG und nicht HTML. Was einen Zustand hat oder bedienbar ist, liegt als
+	HTML darüber (siehe Cabinet.html).
+
+	viewBox 0 0 100 160, Maßraster siehe Kopf von machine.css.
+	Farben ausschließlich über --ck-*-Tokens aus casino_startpage.
+
+	Die Zeichnung trägt keinen erreichbaren Namen (aria-hidden="true", kein
+	<title>) — die Bedienteile darüber tragen ihre eigenen (CONCEPT.md B.1).
+
+	Kein Symbolvorrat, keine <defs>: dieses Gerät hat keine Fruchtsymbole.
+	Das ist der Grund, warum diese Datei so kurz bleibt, während sie beim
+	Video Slot 422 Zeilen hat.
+
+	Ausdrücklich verboten in dieser Datei (V.7, B.3): kein Herstellername,
+	kein Modellname, kein Bauartname, kein "©"/"™"/"®", kein Farbwert, kein
+	url(...) nach außen.
+</f:comment>
+<svg class="cp-shell" viewBox="0 0 100 160"
+	preserveAspectRatio="xMidYMid meet" focusable="false" aria-hidden="true">
+
+	<f:comment>=== 1 Podest / Sockelblende ============================</f:comment>
+	<rect x="1" y="147" width="98" height="13" rx="3" fill="var(--ck-wood-500)" />
+	<rect x="1" y="147" width="98" height="2" rx="1" fill="var(--ck-brass-400)" />
+
+	<f:comment>=== 2 Korpus (Nussbaum) ================================</f:comment>
+	<path d="M3 148 V32 Q3 26 9 26 H91 Q97 26 97 32 V148 Z"
+		fill="var(--ck-wood-300)" stroke="var(--ck-wood-500)" stroke-width="1.6" />
+	<path d="M6 147 V32.6 Q6 29 9.4 27.8 H90.6 Q94 29 94 32.6 V147"
+		fill="none" stroke="var(--ck-brass-400)" stroke-width="0.6" opacity="0.7" />
+
+	<f:comment>=== 3 Chromhaube (Schulter), flach, mit zwei harten
+		Glanzbändern (DESIGNBRIEF: nicht ein weiches Highlight) ==========</f:comment>
+	<path d="M3 30 V16 Q3 10 9 10 H91 Q97 10 97 16 V30 Z"
+		fill="var(--ck-chrome-300)" stroke="var(--ck-chrome-500)" stroke-width="0.8" />
+	<path d="M20 10 L28 10 L18 30 L10 30 Z" fill="var(--ck-chrome-100)" opacity="0.55" />
+	<path d="M62 10 L72 10 L64 30 L54 30 Z" fill="var(--ck-chrome-100)" opacity="0.55" />
+
+	<f:comment>=== 4 Kopfschild ========================================</f:comment>
+	<rect x="22" y="12" width="56" height="14" rx="2"
+		fill="var(--ck-wood-500)" stroke="var(--ck-brass-300)" stroke-width="1.4" />
+	<text x="50" y="21.6" text-anchor="middle" textLength="44" lengthAdjust="spacingAndGlyphs"
+		font-family="var(--ck-font-display)" font-size="7"
+		fill="var(--ck-brass-100)"><f:translate
+		key="LLL:EXT:coin_pusher/Resources/Private/Language/locallang.xlf:cabinet.nameplate" /></text>
+
+	<f:comment>=== 5 Münzeinwurfschlitz (Fassung) ======================</f:comment>
+	<rect x="44" y="30.5" width="12" height="5" rx="2.5"
+		fill="var(--ck-chrome-400)" stroke="var(--ck-chrome-100)" stroke-width="0.5" />
+	<rect x="47" y="32" width="6" height="2" rx="1" fill="var(--ck-chrome-shadow)" />
+
+	<f:comment>=== 6 Fensterrahmen =====================================
+		Die dunkle Öffnung ist der Platz der Zeichenfläche; sie bleibt hier
+		dunkel, damit vor dem ersten Bild kein weißes Loch steht.</f:comment>
+	<rect x="5" y="34" width="90" height="57" rx="3" fill="var(--ck-chrome-500)" />
+	<rect x="6.6" y="35.6" width="86.8" height="53.8" rx="2" fill="var(--ck-chrome-300)" />
+	<rect x="8" y="38.4" width="84" height="48.6" fill="var(--ck-chrome-shadow)" />
+
+	<f:comment>=== 7 Nixie-Chromplatte =================================
+		Ein CSS-Verlauf gilt nicht als SVG-fill; --ck-chrome-polish wird
+		deshalb durch zwei übereinanderliegende Rechtecke nachgebildet —
+		dieselbe Technik wie video_slot/Shell.html an dieser Stelle.</f:comment>
+	<rect x="6" y="93" width="88" height="17" rx="2" fill="var(--ck-chrome-500)" />
+	<rect x="7.4" y="94.4" width="85.2" height="14.2" rx="1.4" fill="var(--ck-chrome-300)" />
+	<rect x="9" y="95.6" width="82" height="1.3" rx="0.65" fill="var(--ck-chrome-100)" opacity="0.75" />
+	<rect x="8" y="107.4" width="84" height="1.6" rx="0.8" fill="var(--ck-chrome-500)" opacity="0.5" />
+
+	<f:comment>=== 8 Bedienleistenplatte ===============================</f:comment>
+	<rect x="6" y="112" width="88" height="16" rx="8"
+		fill="var(--ck-chrome-200)" stroke="var(--ck-chrome-500)" stroke-width="0.8" />
+	<rect x="10" y="114" width="80" height="1.8" rx="0.9" fill="var(--ck-chrome-100)" opacity="0.85" />
+
+	<f:comment>=== 9 Geldreihen-Fassung: Geldschlitz und Kassenfenster ==</f:comment>
+	<rect x="30" y="131.5" width="7" height="6.5" rx="3"
+		fill="var(--ck-chrome-400)" stroke="var(--ck-chrome-100)" stroke-width="0.5" />
+	<rect x="32.6" y="132.9" width="1.8" height="3.7" rx="0.9" fill="var(--ck-chrome-shadow)" />
+	<rect x="39" y="130.5" width="27" height="8.5" rx="1.5"
+		fill="var(--ck-nixie-dark)" stroke="var(--ck-brass-400)" stroke-width="1" />
+
+	<f:comment>=== 10 Auswurfschale ====================================
+		Zugleich die Fläche der Taste CASH OUT (B.5.2), und trägt die
+		Lampe, die aufleuchtet, wenn vorn Münzen herunterfallen.</f:comment>
+	<path d="M22 142 H78 v4 a3 3 0 0 1 -3 3 H25 a3 3 0 0 1 -3 -3 Z"
+		fill="var(--ck-chrome-300)" stroke="var(--ck-chrome-500)" stroke-width="0.7" />
+	<rect x="25" y="144.4" width="50" height="3.6" rx="1.8" fill="var(--ck-chrome-shadow)" />
+</svg>

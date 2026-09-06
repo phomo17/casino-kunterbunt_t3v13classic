@@ -1,0 +1,76 @@
+<f:comment>
+	Wechselfeld und Auszahlung am Tischrand (CONCEPT.md C.4).
+
+	Eigenes Partial und nicht Teil von Controls.html, weil es der Bedienteil
+	ist, der am Tisch dem Münzschlitz eines Automaten entspricht — und weil er,
+	wie das freie Setzen am Leuchtschild (B.5.1), derjenige ist, der sich
+	ändert, sobald das Guthaben in Stufe 3 vom Server kommt.
+
+	Das Formular ist ein echtes <form> mit einem <input type="number">. Damit
+	greift die Formularprüfung des Browsers (min, max, step) noch vor der
+	eigenen — dieselbe doppelte Absicherung wie am Leuchtschild, und sie
+	schadet nicht.
+
+	Der Chipbestand steht schon in der Chipwahl (Controls.html); hier stehen
+	nur die zwei Wechselrichtungen. Sie sind ein <fieldset>, weil vier bis
+	zehn Knöpfe ohne Gruppenüberschrift beim Durchgehen als loser Haufen
+	ankommen.
+
+	Aufrufargumente: {splittable} und {mergeable}, je eine Liste von
+	Chipbeschreibungen mit .value (siehe Controls.html).
+</f:comment>
+<div class="ck-table__bank">
+
+	<form class="ck-table__buyin" data-ck-table-buyin-form="">
+		<span class="ck-table__buyin-legend"><f:translate key="LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:table.buyin.legend" /></span>
+		<button type="button" class="ck-table__button" data-ck-table-buyin-add="25">
+			<f:translate key="LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:table.buyin.add.25" />
+		</button>
+		<button type="button" class="ck-table__button" data-ck-table-buyin-add="100">
+			<f:translate key="LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:table.buyin.add.100" />
+		</button>
+		<button type="button" class="ck-table__button" data-ck-table-buyin-add="500">
+			<f:translate key="LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:table.buyin.add.500" />
+		</button>
+		<label class="ck-table__buyin-label">
+			<span><f:translate key="LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:table.buyin.label" /></span>
+			<input type="number" class="ck-table__buyin-input" data-ck-table-buyin-input=""
+				inputmode="numeric" min="1" max="999999999" step="1" value="" />
+		</label>
+		<button type="submit" class="ck-table__button">
+			<f:translate key="LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:table.buyin.apply" />
+		</button>
+	</form>
+
+	<fieldset class="ck-table__exchange">
+		<legend><f:translate key="LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:table.exchange.legend" /></legend>
+		<f:comment>
+			Kleiner UND größer wechseln geht für jeden Chip außer dem Einer:
+			Rack.exchangeDown(x) zerlegt einen x-Chip in die nächstkleineren,
+			Rack.exchangeUp(x) fasst genau diese nächstkleineren wieder zu
+			einem x-Chip zusammen (table-chips.js, CHIP_SPLIT). Der Einer hat
+			keine kleineren Stufen und kann deshalb weder zerlegt noch aus
+			etwas Kleinerem zusammengesetzt werden — er fehlt in BEIDEN
+			Listen. {splittable} und {mergeable} sind hier deshalb dieselbe
+			Menge; sie kommen dennoch getrennt als Argumente herein, weil
+			diese Datei die Chipwerte nicht ein zweites Mal kennen soll.
+		</f:comment>
+		<f:for each="{splittable}" as="chip">
+			<button type="button" class="ck-table__button ck-table__button--small"
+				data-ck-table-exchange-down="{chip.value}">
+				<f:translate key="LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:table.exchange.down" arguments="{0: chip.value}" />
+			</button>
+		</f:for>
+		<f:for each="{mergeable}" as="chip">
+			<button type="button" class="ck-table__button ck-table__button--small"
+				data-ck-table-exchange-up="{chip.value}">
+				<f:translate key="LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:table.exchange.up" arguments="{0: chip.value}" />
+			</button>
+		</f:for>
+	</fieldset>
+
+	<button type="button" class="ck-table__button ck-table__button--cashout"
+		data-ck-table-cashout="" aria-disabled="true">
+		<f:translate key="LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:table.cashout" />
+	</button>
+</div>

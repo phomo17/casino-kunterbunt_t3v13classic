@@ -137,22 +137,62 @@ export const ON_MIN_MS = 40;
 export const ON_DECAY = 0.85;
 
 /**
- * Wie viele dieser Schritte eine Stufe wert ist.
+ * Die beiden Kurvenformen. Sie beschreiben die STEILHEIT einer Leiter, nicht
+ * ein Gerät und keine Taste — dieses Modul kennt weder das eine noch das
+ * andere.
+ *
+ *   flat   ein Schritt je Stufe, vier Schritte Vorsprung  → 89/75/64/54/46/40
+ *   steep  zwei Schritte je Stufe, fünf Schritte Vorsprung → 64/46/40
+ *
+ * Die steile Form ist genau die flache, doppelt so schnell durchlaufen und um
+ * einen halben Schritt versetzt: 0,85^(2n+5) trifft auf Stufe 1 denselben Wert
+ * wie die flache auf Stufe 3. Eine eigene Zahlenreihe wäre eine zweite
+ * Wahrheit über dieselbe Kurve.
+ */
+export const CURVE_FLAT = 'flat';
+export const CURVE_STEEP = 'steep';
+
+export const CURVES = Object.freeze({
+	[CURVE_FLAT]: Object.freeze({ id: CURVE_FLAT, stepsPerLevel: 1, levelOffset: 4 }),
+	[CURVE_STEEP]: Object.freeze({ id: CURVE_STEEP, stepsPerLevel: 2, levelOffset: 5 }),
+});
+
+/** Die Form, die jeder Aufruf ohne zweites Argument bekommt. */
+export const CURVE_DEFAULT = CURVE_FLAT;
+
+/**
+ * Kürzester erlaubter voller Umlauf: 1000/3 ms.
+ *
+ * Das ist dieselbe Grenze wie die 200 ms je Seite, nur für beliebig viele
+ * Seiten ausgesprochen. Eine EINZELNE Taste blitzt einmal je Umlauf; drei
+ * Blitze je Sekunde ist die Schwelle, ab der Blinken bei lichtempfindlichen
+ * Menschen Anfälle auslösen kann. Bei zwei Seiten sind das 400 ms, bei vier
+ * Seiten 840 ms — beide weit darüber.
+ */
+export const CYCLE_MIN_MS = 1000 / 3;
+
+/** Wenigste Seiten, die eine Leiter haben kann. */
+export const SIDES_MIN = 2;
+
+/**
+ * Wie viele dieser Schritte eine Stufe wert ist — abgeleitet aus der flachen
+ * Kurve, damit es nur eine Wahrheit über sie gibt.
  *
  * Einer. Die Leiter wird je Stufe um genau einen Schritt schwerer. Ihre Härte am
  * Anfang kommt nicht aus einer größeren Schrittweite, sondern aus dem Vorsprung
  * darunter.
  */
-export const ON_STEPS_PER_LEVEL = 1;
+export const ON_STEPS_PER_LEVEL = CURVES[CURVE_FLAT].stepsPerLevel;   // 1
 
 /**
- * Der Vorsprung: Stufe 1 beginnt nicht bei Schritt 1, sondern bei Schritt 5.
+ * Der Vorsprung: Stufe 1 beginnt nicht bei Schritt 1, sondern bei Schritt 5 —
+ * abgeleitet aus der flachen Kurve, damit es nur eine Wahrheit über sie gibt.
  *
  * Vier Schritte, deshalb steht im Exponenten n+4. So fordert schon Stufe 1 so viel
  * wie die erste Fassung dieser Kurve auf Stufe 3 (89 ms), ohne dass die Leiter
  * dadurch früher in den Boden von 40 ms läuft — der bleibt auf Stufe 6.
  */
-export const ON_LEVEL_OFFSET = 4;
+export const ON_LEVEL_OFFSET = CURVES[CURVE_FLAT].levelOffset;        // 4
 
 /**
  * Holt einen beliebigen Wert auf eine gültige Stufe.
@@ -187,35 +227,104 @@ export function sideMs(level) {
 }
 
 /**
+ * Holt eine beliebige Seitenzahl auf einen gültigen Wert. Wie
+ * normaliseLevel() die Voraussetzung dafür, dass Math.max unten nie an NaN
+ * scheitert.
+ *
+ * @param {number} sides
+ * @returns {number} ganze Zahl ab SIDES_MIN
+ */
+export function normaliseSides(sides) {
+	if (!Number.isFinite(sides)) { return SIDES_MIN; }
+	return Math.max(SIDES_MIN, Math.trunc(sides));
+}
+
+/** Die Kurvenform zu einem Namen. Unbekanntes fällt auf die flache zurück. */
+function curveOf(curve) {
+	return CURVES[curve] ?? CURVES[CURVE_DEFAULT];
+}
+
+/**
  * Trefferfenster in Millisekunden – wie lange das Lichtfeld wirklich brennt.
  *
  * min(periode, …) ist eine Absicherung gegen einen Rundungsrest und gegen eine
  * spätere Änderung der Konstanten: das Fenster kann nie länger sein als die
  * Periode, in der es liegt.
  *
+ * ERWEITERT, NICHT ERSETZT: das zweite Argument ist freiwillig. onMs(n) ist
+ * Zeichen für Zeichen dieselbe Rechnung wie bisher.
+ *
  * @param {number} level
+ * @param {string} [curve] CURVE_FLAT (Voreinstellung) oder CURVE_STEEP
  * @returns {number} ganze Zahl, nie kleiner als ON_MIN_MS
  */
-export function onMs(level) {
+export function onMs(level, curve = CURVE_DEFAULT) {
 	const step = normaliseLevel(level);
 	const side = sideMs(step);
-	const exponent = ON_STEPS_PER_LEVEL * step + ON_LEVEL_OFFSET;
+	const form = curveOf(curve);
+	const exponent = form.stepsPerLevel * step + form.levelOffset;
 	const shrunk = Math.round(side * ON_DECAY ** exponent);
 	return Math.min(side, Math.max(ON_MIN_MS, shrunk));
 }
 
 /**
- * Alle Zeiten einer Stufe auf einmal.
+ * Die Pause nach einem vollen Umlauf, in Millisekunden.
+ *
+ * Sie ist GENAUSO LANG wie das Trefferfenster derselben Stufe (C.14.9) und
+ * deshalb kein zweiter Zahlenwert, sondern derselbe. Als eigene Funktion steht
+ * sie da, damit an der Aufrufstelle lesbar ist, WOVON die Rede ist — und damit
+ * die Untergrenze von 40 ms auch für die Pause aus derselben Klammer kommt.
  *
  * @param {number} level
+ * @param {string} [curve]
+ * @returns {number} ganze Zahl, nie kleiner als ON_MIN_MS
+ */
+export function pauseMs(level, curve = CURVE_DEFAULT) {
+	return onMs(level, curve);
+}
+
+/**
+ * Ein voller Umlauf: jede Seite einmal, dazu die Pause, wenn es eine gibt.
+ *
+ * DIESE FUNKTION IST DIE SICHERHEITSGRENZE FÜR BELIEBIG VIELE TASTEN. Eine
+ * einzelne Taste blitzt genau einmal je Umlauf; wie oft je Sekunde, sagt
+ * flashesPerSecond() unmittelbar darunter.
+ *
+ * @param {number} level
+ * @param {{sides?: number, curve?: string, pause?: boolean}} [options]
+ * @returns {number} ganze Zahl, nie kleiner als CYCLE_MIN_MS
+ */
+export function cycleMs(level, { sides = SIDES_MIN, curve = CURVE_DEFAULT, pause = false } = {}) {
+	const step = normaliseLevel(level);
+	const count = normaliseSides(sides);
+	return count * sideMs(step) + (pause === true ? pauseMs(step, curve) : 0);
+}
+
+/**
+ * Wie oft eine EINZELNE Taste je Sekunde blitzt.
+ *
+ * @param {number} level
+ * @param {{sides?: number, curve?: string, pause?: boolean}} [options]
+ * @returns {number}
+ */
+export function flashesPerSecond(level, options = {}) {
+	return 1000 / cycleMs(level, options);
+}
+
+/**
+ * Alle Zeiten einer Stufe auf einmal. Zweites Argument freiwillig; ohne es
+ * unverändert.
+ *
+ * @param {number} level
+ * @param {string} [curve] CURVE_FLAT (Voreinstellung) oder CURVE_STEEP
  * @returns {Readonly<{level: number, sideMs: number, onMs: number,
  *                     darkMs: number, dutyFraction: number,
  *                     flashesPerSecond: number}>}
  */
-export function stepTiming(level) {
+export function stepTiming(level, curve = CURVE_DEFAULT) {
 	const step = normaliseLevel(level);
 	const side = sideMs(step);
-	const on = onMs(step);
+	const on = onMs(step, curve);
 	return Object.freeze({
 		level: step,
 		sideMs: side,
@@ -225,9 +334,9 @@ export function stepTiming(level) {
 		// Millisekunden, nicht über einen Anteil. Steht hier nur, weil es sich
 		// gut ablesen lässt.
 		dutyFraction: on / side,
-		// Ein einzelnes Lichtfeld blitzt einmal je vollem Umlauf, und ein voller
-		// Umlauf sind zwei Seiten. Siehe Dateikopf.
-		flashesPerSecond: 1000 / (2 * side),
+		// Aus cycleMs abgeleitet, nicht ein zweites Mal gerechnet: zwei Seiten,
+		// keine Pause — die Bauform, die es vor dieser Phase allein gab.
+		flashesPerSecond: flashesPerSecond(step, { sides: SIDES_MIN, curve }),
 	});
 }
 

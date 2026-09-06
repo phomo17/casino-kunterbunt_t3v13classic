@@ -1,0 +1,35 @@
+<f:comment>
+	Eine Nixie-Röhre.
+
+	Aufbau nach DESIGNBRIEF.md Abschnitt 5: zylindrischer Glaskolben, davor
+	ein Drahtgitter als Anode, dahinter ein Stapel geformter Drahtkathoden —
+	eine je Ziffer 0 bis 9, hintereinander in unterschiedlicher Tiefe.
+
+	Die belegte Reihenfolge von vorn nach hinten ist 6 7 5 8 4 3 9 2 0 1,
+	so gewählt, dass unbeleuchtete Ziffern die leuchtende möglichst wenig
+	verdecken. Im Markup stehen sie deshalb RÜCKWÄRTS: das zuletzt
+	geschriebene Element wird zuletzt gemalt und liegt damit vorn.
+	--cp-depth ist der Platz im Stapel (0 = vorderste Kathode) und steuert
+	Deckkraft und Versatz der Drahtkontur.
+
+	Welche Kathode brennt, entscheidet --cp-digit auf dieser Röhre, rein
+	rechnerisch in CSS — siehe machine.css, Abschnitt 4. -1 bedeutet: keine.
+	Lauf 2 ändert die Zahl mit
+	    roehre.style.setProperty('--cp-digit', 7);
+	ohne eine einzige Zeile Markup anzufassen.
+
+	--cp-tube ist nur die laufende Nummer der Röhre in ihrer Gruppe. Sie
+	versetzt das Flimmern, damit nicht alle Röhren im Gleichschritt zucken.
+</f:comment>
+<span class="cp-nixie" style="--cp-digit: {digit}; --cp-tube: {index}">
+	<span class="cp-nixie__digit" data-cp-digit="1" style="--cp-cathode: 1; --cp-depth: 9"></span>
+	<span class="cp-nixie__digit" data-cp-digit="0" style="--cp-cathode: 0; --cp-depth: 8"></span>
+	<span class="cp-nixie__digit" data-cp-digit="2" style="--cp-cathode: 2; --cp-depth: 7"></span>
+	<span class="cp-nixie__digit" data-cp-digit="9" style="--cp-cathode: 9; --cp-depth: 6"></span>
+	<span class="cp-nixie__digit" data-cp-digit="3" style="--cp-cathode: 3; --cp-depth: 5"></span>
+	<span class="cp-nixie__digit" data-cp-digit="4" style="--cp-cathode: 4; --cp-depth: 4"></span>
+	<span class="cp-nixie__digit" data-cp-digit="8" style="--cp-cathode: 8; --cp-depth: 3"></span>
+	<span class="cp-nixie__digit" data-cp-digit="5" style="--cp-cathode: 5; --cp-depth: 2"></span>
+	<span class="cp-nixie__digit" data-cp-digit="7" style="--cp-cathode: 7; --cp-depth: 1"></span>
+	<span class="cp-nixie__digit" data-cp-digit="6" style="--cp-cathode: 6; --cp-depth: 0"></span>
+</span>

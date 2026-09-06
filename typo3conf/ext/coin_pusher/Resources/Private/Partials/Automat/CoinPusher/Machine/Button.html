@@ -1,0 +1,34 @@
+<f:comment>
+	Eine der vier Münzwert-Tasten: runde Bakelit-Kappe im Chromring, darauf
+	die gezeichnete Münze dieses Werts und darunter die Ziffer.
+
+	{value}     1, 2, 5 oder 10 — zugleich data-cp-value
+	{selected}  1 bei der vorgewählten Taste, sonst 0
+
+	Die gezeichnete Münze macht die Zuordnung Wert → Münze ohne Erklärung
+	sichtbar (CONCEPT.md B.9.2: unterscheidbar über Größe UND Farbe). Größe
+	und Farbe kommen aus machine.css über die Klasse cp-values__coin--{value}
+	— hier steht keine Zahl und keine Farbe.
+
+	aria-pressed statt einer Radiogruppe: eine Radiogruppe verlangte
+	Pfeiltastensteuerung mit wanderndem tabindex und damit JavaScript, und
+	die Wahl muss auch ohne Skript richtig dastehen.
+
+	Der erreichbare Name kommt aus der Sprachdatei, weil eine nackte Ziffer
+	als Name eines Bedienteils nichts aussagt (CONCEPT.md B.1: jedes neue
+	Bedienteil braucht einen erreichbaren Namen).
+
+	Alle Kinder sind span, weil der Inhalt eines button nur Phrasing Content
+	sein darf.
+</f:comment>
+<f:variable name="cpValueLabel"><f:translate
+	key="LLL:EXT:coin_pusher/Resources/Private/Language/locallang.xlf:machine.value.label"
+	arguments="{0: value}" /></f:variable>
+<button type="button" class="cp-value{f:if(condition: selected, then: ' cp-value--selected')}"
+	data-cp-value="{value}" aria-pressed="{f:if(condition: selected, then: 'true', else: 'false')}"
+	aria-label="{cpValueLabel}">
+	<span class="cp-value__cap">
+		<span class="cp-value__coin cp-value__coin--{value}"></span>
+	</span>
+	<span class="cp-value__digits">{value}</span>
+</button>

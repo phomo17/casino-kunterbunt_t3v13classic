@@ -6,6 +6,10 @@ services:
 
   Phomo17\CasinoStartpage\:
     resource: '../Classes/*'
+    # Reine Datenobjekte und Namensschilder, nie aus dem Container geholt –
+    # zwei davon mit privatem Konstruktor. Ohne diese Ausnahme meldete der
+    # Container Dienste an, die es nie geben darf.
+    exclude: '../Classes/Automat/{Automat.php,AutomatContentElement.php,AutomatRegistry.php,Gattung.php,Mustertisch.php}'
 
   # Meldet den DataProcessor unter dem kurzen TypoScript-Namen „casino-automat" an.
   # Der Core sammelt alle so getaggten Dienste in seiner DataProcessorRegistry ein;
@@ -13,6 +17,21 @@ services:
   Phomo17\CasinoStartpage\DataProcessing\AutomatProcessor:
     tags:
       - { name: 'data.processor', identifier: 'casino-automat' }
+
+  # Auditbericht 2026-09-05, GEO-Behebungslauf: Kennwerte der Seite selbst
+  # (Organization, WebSite, BreadcrumbList) — läuft auf jeder der sieben
+  # Seiten über page.10.dataProcessing.
+  Phomo17\CasinoStartpage\DataProcessing\SiteJsonLdProcessor:
+    tags:
+      - { name: 'data.processor', identifier: 'casino-site-jsonld' }
+
+  # Derselbe Behebungslauf: generischer Baustein „beschreibe die Seite, auf
+  # der du stehst", angehängt von jeder Geräte-Extension an die
+  # dataProcessing-Kette IHRES EIGENEN Inhaltselements. casino_startpage
+  # kennt dadurch weiterhin kein Gerät — siehe Kopfkommentar der Klasse.
+  Phomo17\CasinoStartpage\DataProcessing\DeviceDescriptionProcessor:
+    tags:
+      - { name: 'data.processor', identifier: 'casino-device-description' }
 
   # AutomatItemsProvider braucht keinen Eintrag: die Klasse trägt das Attribut
   # #[Autoconfigure(public: true)], weil die FormEngine sie über

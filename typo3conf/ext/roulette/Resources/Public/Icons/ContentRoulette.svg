@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+	Icon des Inhaltselements im Seitenmodul und im Assistenten „Neues
+	Inhaltselement".
+
+	AUSNAHME VON DER TOKEN-REGEL: hier stehen ausgeschriebene Hexwerte, aus
+	demselben Grund wie in Extension.svg (siehe dort). Die Werte sind aus
+	tokens.css abgeschrieben.
+
+	Dasselbe Motiv wie Extension.svg, bei 16 x 16: nur noch Ring, sechs
+	Faecher (eins gruen), Kegel, Kugelpunkt - 38 waeren bei dieser Groesse
+	nicht mehr unterscheidbar. Mittelpunkt 8/8, Halbmesser 3 bis 6,5,
+	Winkelschritt 60 Grad, Start bei -90 Grad, mit PHP vorab errechnet.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16" role="img">
+	<title>Roulette</title>
+	<circle cx="8" cy="8" r="7.5" fill="#452b19"/><!-- ck-wood-300 -->
+	<circle cx="8" cy="8" r="6.7" fill="none" stroke="#bd9333" stroke-width="0.4"/><!-- ck-brass-300 -->
+	<circle cx="8" cy="8" r="6.4" fill="#5d3c24"/><!-- ck-wood-200 -->
+	<!-- Faecherkranz: sechs Kreissegmente, ein gruenes, der Rest abwechselnd
+		rot und schwarz. -->
+	<path d="M8 1.5 A6.5 6.5 0 0 1 13.63 4.75 L10.6 6.5 A3 3 0 0 0 8 5 Z" fill="#0f6b34"/><!-- ck-pocket-green -->
+	<path d="M13.63 4.75 A6.5 6.5 0 0 1 13.63 11.25 L10.6 9.5 A3 3 0 0 0 10.6 6.5 Z" fill="#a3121a"/><!-- ck-pocket-red -->
+	<path d="M13.63 11.25 A6.5 6.5 0 0 1 8 14.5 L8 11 A3 3 0 0 0 10.6 9.5 Z" fill="#17130f"/><!-- ck-pocket-black -->
+	<path d="M8 14.5 A6.5 6.5 0 0 1 2.37 11.25 L5.4 9.5 A3 3 0 0 0 8 11 Z" fill="#a3121a"/><!-- ck-pocket-red -->
+	<path d="M2.37 11.25 A6.5 6.5 0 0 1 2.37 4.75 L5.4 6.5 A3 3 0 0 0 5.4 9.5 Z" fill="#17130f"/><!-- ck-pocket-black -->
+	<path d="M2.37 4.75 A6.5 6.5 0 0 1 8 1.5 L8 5 A3 3 0 0 0 5.4 6.5 Z" fill="#a3121a"/><!-- ck-pocket-red -->
+	<circle cx="8" cy="8" r="3" fill="#aab5bd"/><!-- ck-chrome-300 -->
+	<circle cx="8" cy="8" r="1.2" fill="#dbe3e9"/><!-- ck-chrome-200 -->
+	<circle cx="8" cy="2.6" r="0.8" fill="#f2ead6"/><!-- ck-ivory-100, die Kugel -->
+</svg>

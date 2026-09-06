@@ -6,6 +6,10 @@ services:
 
   Phomo17\ReelSlot\:
     resource: '../Classes/*'
+    # Reine Namensschilder und Spielgrundlagen, nie aus dem Container geholt.
+    # Ohne diese Ausnahme meldete der Container Dienste an, die es nie geben
+    # darf.
+    exclude: '../Classes/{ReelSlot.php,Rules.php}'
 
   # Meldet den DataProcessor unter dem kurzen TypoScript-Namen
   # „reel-slot-machine" an. Der Name trägt den Automaten im Präfix,

@@ -43,6 +43,14 @@ AutomatRegistry::register(new Automat(
  * dataProcessing holt die drei Walzenbänder aus Anhang C (Classes/Rules.php)
  * und legt sie als {machine.reels} ins Template. Von Hand geschrieben wären
  * das 120 Zellen mit ausgerechneten Versätzen.
+ *
+ * Schritt 20 seit dem GEO-Behebungslauf (Auditbericht 2026-09-05, Befunde
+ * G-01/G-02): casino-device-description ist ein generischer Baustein aus
+ * casino_startpage (DeviceDescriptionProcessor) — er kennt Reel Slot nicht,
+ * er bekommt hier nur Text mitgegeben. Er setzt die
+ * <meta name="description"> dieser Seite und einen Game-Eintrag
+ * (strukturierte Daten), beides nur auf DIESER Seite, weil dieses
+ * Inhaltselement nur hier gerendert wird.
  */
 ExtensionManagementUtility::addTypoScriptSetup(sprintf(
     'tt_content.%1$s = FLUIDTEMPLATE
@@ -53,6 +61,9 @@ tt_content.%1$s {
     dataProcessing {
         10 = reel-slot-machine
         10.as = machine
+        20 = casino-device-description
+        20.title.data = lll:EXT:%2$s/Resources/Private/Language/locallang.xlf:automat.title
+        20.description.data = lll:EXT:%2$s/Resources/Private/Language/locallang.xlf:automat.description
     }
 }',
     ReelSlot::CTYPE,

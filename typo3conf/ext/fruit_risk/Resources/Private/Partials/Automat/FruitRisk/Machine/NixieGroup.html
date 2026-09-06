@@ -1,0 +1,46 @@
+<f:comment>
+	Eine beschriftete Gruppe von Nixie-Roehren. Eine Roehre je Ziffer.
+
+	{labelKey}    Schluessel der Beschriftung in locallang.xlf
+	{displayKey}  Name der Gruppe fuer den Spielkern:
+	              guthaben|einsatz|stufe|gewinn
+	{tubes}       die Startziffern, eine je Roehre; -1 laesst die Roehre dunkel
+
+	Die Breite der Gruppe ergibt sich aus der Zahl der Roehren; die vier
+	Gruppen werden im Panel per space-between verteilt. Deshalb steht hier
+	keine einzige Koordinate.
+
+	ACHTUNG, geerbte Falle: Fluid kann in einem Inline-Array KEIN negatives
+	Literal lesen. {0: -1} verwirft stillschweigend das ganze Array und die
+	Gruppe erschiene ohne eine einzige Roehre. Negative Zahlen gehoeren dort
+	immer in Anfuehrungszeichen: {0: '-1'}.
+
+	BARRIEREFREIHEIT — UND DER EINE UNTERSCHIED ZUM VORHANDENEN GERAET:
+	Die gezeichnete Gruppe traegt aria-hidden="true". Fuer ein Hilfsmittel
+	waeren Beschriftung und Roehren sonst zwei lose Textbrocken ohne
+	Zusammenhang, und die Roehren tragen ihre Ziffer ohnehin nur als Form.
+
+	Das vorhandene Fuenf-Walzen-Geraet stellt daneben je Gruppe einen eigenen
+	role="status"-Bereich. HIER NICHT. CONCEPT.md C.14.12 legt die Zahl der
+	Live-Bereiche dieses Geraets auf VIER fest — machine, grid, credit, risk —
+	und sie ist danach fest. Vier weitere kaemen einem Vertragsbruch gleich.
+	Die Werte dieser Gruppen reisen ab Phase F4 durch die vorhandenen
+	Bereiche: GUTHABEN und EINSATZ durch „credit", GEWINN durch „grid",
+	STUFE durch „risk". Wer sie dort einsetzt, sagt EINEN Satz je Ereignis
+	(„Guthaben: 250") und entprellt ihn — eine Zaehlfahrt aendert den Wert
+	dutzendfach in kurzer Folge. Fuer STUFE gilt zusaetzlich: angesagt wird
+	der Ausgang des Risikospiels, nicht jede einzelne Stufe.
+
+	data-fr-display ist reines Namensschild fuer den Spielkern und hat auf
+	die Darstellung keinerlei Einfluss.
+</f:comment>
+<div class="fr-nixie-group" data-fr-display="{displayKey}" aria-hidden="true">
+	<span class="fr-nixie-group__label"><f:translate
+		key="LLL:EXT:fruit_risk/Resources/Private/Language/locallang.xlf:{labelKey}" /></span>
+	<span class="fr-nixie-group__tubes">
+		<f:for each="{tubes}" as="startDigit" iteration="tube">
+			<f:render partial="Automat/FruitRisk/Machine/NixieTube"
+				arguments="{digit: startDigit, index: tube.index}" />
+		</f:for>
+	</span>
+</div>

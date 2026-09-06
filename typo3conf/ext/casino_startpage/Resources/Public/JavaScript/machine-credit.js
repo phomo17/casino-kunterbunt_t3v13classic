@@ -399,16 +399,32 @@ export class MachineCredit {
 	 * jetzt an der Kasse. Sie meldet sich über capped, damit das Gerät
 	 * „KONTO VOLL" zeigen kann. Verschwinden kann dabei nichts.
 	 *
+	 * Reihenfolge: erst aus dem Gerät nehmen (setAmount(0, …) vor dem einzigen
+	 * await), dann der Kasse geben. Zweierlei hängt daran:
+	 *  - ein zweiter Aufruf, der in das Wartefenster fällt (ein zweiter Klick
+	 *    auf CASH OUT, sobald credit.add() einmal eine echte Netzanfrage wird),
+	 *    liest schon this.amount === 0 und bucht nichts nach – kein eigener
+	 *    Merker nötig.
+	 *  - der Spiegel ist damit VOR der Kassenbuchung gelöscht statt danach: ein
+	 *    harter Abbruch dazwischen kann jetzt höchstens noch den Betrag
+	 *    verlieren, nie ihn verdoppeln (CONCEPT.md B.5 erlaubt nur die erste
+	 *    Richtung). Passt nicht alles in die Kasse, wird der Rest hinterher mit
+	 *    setAmount() zurückgeschrieben.
+	 *
 	 * @param {string} [reason] nur für die Zuhörer
 	 * @returns {Promise<{ok: true, moved: number, amount: number, capped: boolean}>}
 	 */
 	async cashOut(reason = 'cashout') {
 		if (this.amount <= 0) {
-			return { ok: true, moved: 0, amount: 0, capped: false };
+			return { ok: true, moved: 0, amount: this.amount, capped: false };
 		}
 		const wanted = this.amount;
+		this.setAmount(0, reason);
 		const result = await credit.add(Math.min(wanted, this.MAX));
-		this.setAmount(wanted - result.credited, reason);
+		const leftover = wanted - result.credited;
+		if (leftover > 0) {
+			this.setAmount(leftover, reason);
+		}
 		return {
 			ok: true,
 			moved: result.credited,
@@ -452,12 +468,20 @@ export class MachineCredit {
 	 * Gekappt wird am Höchststand; capped meldet das zurück, damit das Gerät
 	 * die Wahrheit anzeigen kann statt still zu schlucken.
 	 *
+	 * Nach close() abgelehnt, aus demselben Grund wie bei insert() und
+	 * stake(): eine verspätete Gutschrift legte über setAmount() sonst einen
+	 * neuen Spiegel an, der die Seite überlebt – entgegen B.5.3.
+	 *
 	 * @param {number} amount ganze Zahl ab 1
-	 * @returns {Promise<{ok: true, amount: number, credited: number, capped: boolean}>}
+	 * @returns {Promise<{ok: true, amount: number, credited: number, capped: boolean}
+	 *                  |{ok: false, reason: 'closed', amount: number, credited: 0, capped: false}>}
 	 * @throws {RangeError}
 	 */
 	async award(amount) {
 		requireAmount(amount, 'award');
+		if (this.closed) {
+			return { ok: false, reason: 'closed', amount: this.amount, credited: 0, capped: false };
+		}
 		const credited = Math.min(amount, this.MAX - this.amount);
 		if (credited > 0) {
 			this.setAmount(this.amount + credited, 'award');
@@ -503,6 +527,15 @@ export class MachineCredit {
 	 * Umgekehrt gäbe es ein Zeitfenster, in dem zwei Karten denselben Betrag
 	 * beanspruchen.
 	 *
+	 * Lesen und Löschen sind zwei getrennte Speicherzugriffe. Öffnen zwei
+	 * Registerkarten dasselbe Gerät im selben Augenblick (nach einem
+	 * Browserabsturz der Regelfall, und genau dann liegt auch ein Spiegel
+	 * vor), könnten beide denselben Rest lesen, bevor die erste ihn löscht.
+	 * Bevor gebucht wird, wird der Rest deshalb zunächst unter der EIGENEN
+	 * Kennung neu geschrieben und sofort erneut gelesen: der letzte Schreiber
+	 * gewinnt eindeutig, die andere Karte findet danach eine fremde Kennung
+	 * vor und bucht nichts – derselbe Weg wie bei surrenderTaken().
+	 *
 	 * @returns {Promise<{claimed: number, rest: number}>}
 	 */
 	async claim() {
@@ -517,8 +550,23 @@ export class MachineCredit {
 			return { claimed: 0, rest: 0 };
 		}
 
+		try {
+			store.setItem(this.storageKey, this.token + SEPARATOR + String(found.amount));
+		} catch {
+			// siehe writeMirror()
+		}
+		let confirmed = null;
+		try {
+			confirmed = parseMirror(store.getItem(this.storageKey));
+		} catch {
+			confirmed = null;
+		}
+		if (confirmed === null || confirmed.token !== this.token) {
+			// Eine andere Karte hat im selben Augenblick geschrieben und
+			// gewonnen. Ich buche nichts – sonst stünde der Rest doppelt.
+			return { claimed: 0, rest: 0 };
+		}
 		this.owns = true;
-		this.writeMirror();
 
 		const result = await credit.add(Math.min(found.amount, this.MAX));
 		const rest = found.amount - result.credited;
@@ -527,6 +575,8 @@ export class MachineCredit {
 			// wird zum Gerätekredit dieser Seite statt zu verschwinden – die
 			// einzige Auflösung, bei der die Bilanz stimmt.
 			this.setAmount(rest, 'claimed');
+		} else {
+			this.removeMirror();
 		}
 		return { claimed: result.credited, rest };
 	}

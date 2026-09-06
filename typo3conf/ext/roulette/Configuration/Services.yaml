@@ -1,0 +1,23 @@
+services:
+  _defaults:
+    autowire: true
+    autoconfigure: true
+    public: false
+
+  Phomo17\Roulette\:
+    resource: '../Classes/*'
+    # Drei reine Namensschilder mit privatem Konstruktor. Ohne diese Ausnahme
+    # meldete der Container Dienste an, die es nie geben darf.
+    exclude: '../Classes/{Roulette.php,WheelGeometry.php,BetLayout.php}'
+
+  # Meldet den DataProcessor unter dem kurzen TypoScript-Namen
+  # „roulette-wheel" an. Der Name trägt das Gerät im Präfix, damit ein
+  # weiteres Gerät ihn nicht überschreiben kann.
+  Phomo17\Roulette\DataProcessing\WheelProcessor:
+    tags:
+      - { name: 'data.processor', identifier: 'roulette-wheel' }
+
+  # Dasselbe für das Tuch (Phase C3).
+  Phomo17\Roulette\DataProcessing\FeltProcessor:
+    tags:
+      - { name: 'data.processor', identifier: 'roulette-felt' }

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+	Icon der Extension im Erweiterungs-Modul.
+
+	AUSNAHME VON DER TOKEN-REGEL: hier stehen ausgeschriebene Hexwerte. Ein
+	Backend-Icon wird von TYPO3 ausserhalb des Frontend-Dokuments eingebunden;
+	dort sind die Custom Properties aus tokens.css nicht definiert und ein
+	var(…) bliebe farblos. Die anderen fuenf Geraete dieses Projekts machen es
+	genauso. Damit alle aus derselben Palette kommen, sind die Werte aus
+	tokens.css abgeschrieben; der Tokenname steht je Wert daneben, ohne die
+	beiden fuehrenden Bindestriche (zwei Bindestriche sind in einem
+	XML-Kommentar nicht erlaubt).
+
+	Motiv: zwei sich ueberlappende Spielkarten, schraeg gegeneinander gestellt
+	- eine mit dem Ruecken nach oben (Holzton mit Messingrahmen), eine mit der
+	Vorderseite (Papierton mit einem einzelnen runden Pip). Keine Buchstaben,
+	keine Zahlen, kein fremdes Zeichen (CONCEPT.md B.3 Nr. 5) - bei dieser
+	Groesse ohnehin unleserlich.
+
+	Selbst konstruiert aus Grundformen (abgerundete Rechtecke, ein Kreis),
+	nicht nachgezeichnet - CONCEPT.md B.3 Nr. 6.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img">
+	<title>Blackjack</title>
+	<g transform="rotate(-8 27 29)">
+		<rect x="14" y="10" width="26" height="38" rx="4" fill="#452b19" stroke="#1a0f08" stroke-width="1.6"/><!-- ck-wood-300 / ck-wood-500, Kartenruecken -->
+		<rect x="18.5" y="14.5" width="17" height="29" rx="2" fill="none" stroke="#bd9333" stroke-width="1.1"/><!-- ck-brass-300, Musterrahmen -->
+	</g>
+	<g transform="rotate(9 37 35)">
+		<rect x="24" y="16" width="26" height="38" rx="4" fill="#f0e6d2" stroke="#1f150d" stroke-width="1.6"/><!-- ck-paper-100 / ck-print-ink -->
+		<circle cx="30" cy="23" r="3.2" fill="#1f150d"/><!-- ck-print-ink, ein einzelner Pip -->
+	</g>
+</svg>

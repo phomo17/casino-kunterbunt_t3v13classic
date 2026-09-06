@@ -21,16 +21,31 @@
 
 	.ck-slot__stage ist die Standfläche des Geräts: Podest und Schattenwurf
 	werden als Pseudoelemente dieses Kastens gezeichnet, und er legt die
-	Breite des Gehäuses fest. Das Gehäuse-Partial liefert dafür genau ein
+	Breite des Geräts fest. Das Gehäuse-Partial liefert dafür genau ein
 	Element mit der Klasse ck-cabinet und darin ein
-	svg class="ck-cabinet__drawing" mit dem viewBox-Verhältnis 100 : 160.
+	svg class="ck-cabinet__drawing".
+
+	Das viewBox-Verhältnis hängt an der GATTUNG (CONCEPT.md C.1 Nr. 1):
+	  automat   100 : 160   stehendes Gehäuse, höher als breit
+	  tisch     160 : 100   Tuch von oben, breiter als tief
+	Die Klasse ck-slot--<gattung> am äußeren Kasten sagt dem Saal, welche
+	Bühne er bauen soll — mit Podest für einen Automaten, ohne für einen
+	Tisch. data-gattung trägt denselben Wert für Skripte und Prüfskripte.
 </f:comment>
 <f:if condition="{automat}">
-	<div class="ck-slot" data-automat="{automat.identifier}">
+	<div class="ck-slot ck-slot--{automat.gattung.value}" data-automat="{automat.identifier}"
+		data-gattung="{automat.gattung.value}">
 		<f:link.typolink parameter="{data.tx_casinostartpage_target}" class="ck-slot__link">
 			<span class="ck-slot__stage">
 				<f:render partial="{automat.cabinetPartial}" arguments="{automat: automat, data: data}" optional="true">
-					<f:render partial="Hall/CabinetPlaceholder" arguments="{automat: automat}" />
+					<f:switch expression="{automat.gattung.value}">
+						<f:case value="tisch">
+							<f:render partial="Hall/TablePlaceholder" arguments="{automat: automat}" />
+						</f:case>
+						<f:defaultCase>
+							<f:render partial="Hall/CabinetPlaceholder" arguments="{automat: automat}" />
+						</f:defaultCase>
+					</f:switch>
 				</f:render>
 			</span>
 			<span class="ck-slot__plate">

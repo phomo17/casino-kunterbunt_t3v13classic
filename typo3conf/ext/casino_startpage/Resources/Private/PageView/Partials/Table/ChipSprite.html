@@ -1,0 +1,173 @@
+<f:comment>
+	Der Chipsatz — die fünf Chips aus CONCEPT.md C.4.1, einmal je Seite.
+
+	     weiß 1 € · rot 5 € · gelb 20 € · grün 25 € · schwarz 100 €
+
+	Die Zuordnung von Farbe zu Wert ist verbindlich und an allen drei Tischen
+	gleich. Jeder Chip ist auf einen Blick unterscheidbar, und zwar dreifach:
+	an der Farbe, am Randkerbenmuster und am Aufdruck. Das Kerbenmuster ist
+	der Teil, der auch ohne Farbsehen trägt.
+
+	  Wert  Farbe    Kerben          Anordnung
+	     1  weiß      3 × 1          drei Einzelkerben, 120° auseinander
+	     5  rot       4 × 1          vier Einzelkerben, 90°
+	    20  gelb      6 × 1          sechs Einzelkerben, 60°
+	    25  grün      4 × 2          vier PAARE, 90°, Paarabstand 14°
+	   100  schwarz   4 × 3          vier DREIERGRUPPEN, 90°, Abstand 14°
+
+	Gelb und Grün liegen im Wert nahe beieinander und sind deshalb die
+	Prüffrage der ganzen Tabelle: sechs Einzelkerben gegen vier Paare ist ein
+	Unterschied in der Gestalt, nicht in einer Zahl, die man zählen müsste.
+
+	Die Kerbenzahlen stehen als dieselben zwei Zahlen in table-chips.js
+	(groups, perGroup). Der Nachweis verify-table-chips.mjs hält beide Seiten
+	gegeneinander — eine Zeichnung, die sich von ihren Daten entfernt, fällt
+	dabei auf.
+
+	Das gesamte <svg> trägt aria-hidden: es ist ein Vorrat an Zeichnungen,
+	kein Inhalt. Den erreichbaren Namen bekommt jeder EINGESETZTE Chip von
+	dem Bedienteil, in dem er steckt (Beschriftung des Auswahlknopfs,
+	aria-label des Feldknopfs). Ein <title> im Symbol würde diesen Namen
+	überall doppelt anbieten.
+
+	Kein url() und kein src: href="#…" zeigt auf eine Stelle im selben
+	Dokument und ist keine Datei von außen (Prüfung G-8).
+</f:comment>
+<svg class="ck-chipsprite" width="0" height="0" aria-hidden="true" focusable="false">
+	<defs>
+
+		<f:comment>
+			1 € — weiß. Aufbau, der für alle fünf gilt:
+			  Kreis r=46      der Chipkörper in --ck-chip-<farbe>
+			  Kreis r=46      dünner dunkler Rand (--ck-chip-edge) als Kante
+			  Kerben          Rechtecke am oberen Rand, um den Mittelpunkt gedreht
+			  Kreis r=30      der innere Ring in der Markierungsfarbe
+			  Kreis r=24      die cremefarbene Einlage (--ck-chip-inlay)
+			  Text            der Wert in --ck-print-ink auf der Einlage
+			Die Kerbenfarbe ist dieselbe wie die Aufdruckfarbe des Chips
+			(--ck-chip-<farbe>-mark). Auf hellen Chips ist sie dunkel, auf
+			dunklen hell — sonst wäre eine Kerbe auf Weiß unsichtbar.
+
+			Drei Einzelkerben bei 0/120/240°.
+		</f:comment>
+		<symbol id="ck-chip-1" viewBox="0 0 100 100">
+			<circle cx="50" cy="50" r="46" fill="var(--ck-chip-white)" />
+			<circle cx="50" cy="50" r="46" fill="none" stroke="var(--ck-chip-edge)" stroke-width="2" />
+			<g fill="var(--ck-chip-white-mark)">
+				<rect x="46.5" y="3" width="7" height="15" rx="1.5" transform="rotate(0 50 50)" />
+				<rect x="46.5" y="3" width="7" height="15" rx="1.5" transform="rotate(120 50 50)" />
+				<rect x="46.5" y="3" width="7" height="15" rx="1.5" transform="rotate(240 50 50)" />
+			</g>
+			<circle cx="50" cy="50" r="30" fill="none" stroke="var(--ck-chip-white-mark)" stroke-width="2.5" />
+			<circle cx="50" cy="50" r="24" fill="var(--ck-chip-inlay)" />
+			<text x="50" y="47" text-anchor="middle" dominant-baseline="central"
+				font-family="var(--ck-font-display)" font-size="26" font-weight="700"
+				fill="var(--ck-print-ink)">1</text>
+			<text x="50" y="66" text-anchor="middle" dominant-baseline="central"
+				font-family="var(--ck-font-display)" font-size="11"
+				fill="var(--ck-print-ink)">&#8364;</text>
+		</symbol>
+
+		<f:comment>5 € — rot, vier Einzelkerben bei 0/90/180/270°.</f:comment>
+		<symbol id="ck-chip-5" viewBox="0 0 100 100">
+			<circle cx="50" cy="50" r="46" fill="var(--ck-chip-red)" />
+			<circle cx="50" cy="50" r="46" fill="none" stroke="var(--ck-chip-edge)" stroke-width="2" />
+			<g fill="var(--ck-chip-red-mark)">
+				<rect x="46.5" y="3" width="7" height="15" rx="1.5" transform="rotate(0 50 50)" />
+				<rect x="46.5" y="3" width="7" height="15" rx="1.5" transform="rotate(90 50 50)" />
+				<rect x="46.5" y="3" width="7" height="15" rx="1.5" transform="rotate(180 50 50)" />
+				<rect x="46.5" y="3" width="7" height="15" rx="1.5" transform="rotate(270 50 50)" />
+			</g>
+			<circle cx="50" cy="50" r="30" fill="none" stroke="var(--ck-chip-red-mark)" stroke-width="2.5" />
+			<circle cx="50" cy="50" r="24" fill="var(--ck-chip-inlay)" />
+			<text x="50" y="47" text-anchor="middle" dominant-baseline="central"
+				font-family="var(--ck-font-display)" font-size="26" font-weight="700"
+				fill="var(--ck-print-ink)">5</text>
+			<text x="50" y="66" text-anchor="middle" dominant-baseline="central"
+				font-family="var(--ck-font-display)" font-size="11"
+				fill="var(--ck-print-ink)">&#8364;</text>
+		</symbol>
+
+		<f:comment>20 € — gelb, sechs Einzelkerben bei 0/60/120/180/240/300°.</f:comment>
+		<symbol id="ck-chip-20" viewBox="0 0 100 100">
+			<circle cx="50" cy="50" r="46" fill="var(--ck-chip-yellow)" />
+			<circle cx="50" cy="50" r="46" fill="none" stroke="var(--ck-chip-edge)" stroke-width="2" />
+			<g fill="var(--ck-chip-yellow-mark)">
+				<rect x="46.5" y="3" width="7" height="15" rx="1.5" transform="rotate(0 50 50)" />
+				<rect x="46.5" y="3" width="7" height="15" rx="1.5" transform="rotate(60 50 50)" />
+				<rect x="46.5" y="3" width="7" height="15" rx="1.5" transform="rotate(120 50 50)" />
+				<rect x="46.5" y="3" width="7" height="15" rx="1.5" transform="rotate(180 50 50)" />
+				<rect x="46.5" y="3" width="7" height="15" rx="1.5" transform="rotate(240 50 50)" />
+				<rect x="46.5" y="3" width="7" height="15" rx="1.5" transform="rotate(300 50 50)" />
+			</g>
+			<circle cx="50" cy="50" r="30" fill="none" stroke="var(--ck-chip-yellow-mark)" stroke-width="2.5" />
+			<circle cx="50" cy="50" r="24" fill="var(--ck-chip-inlay)" />
+			<text x="50" y="47" text-anchor="middle" dominant-baseline="central"
+				font-family="var(--ck-font-display)" font-size="22" font-weight="700"
+				fill="var(--ck-print-ink)">20</text>
+			<text x="50" y="66" text-anchor="middle" dominant-baseline="central"
+				font-family="var(--ck-font-display)" font-size="11"
+				fill="var(--ck-print-ink)">&#8364;</text>
+		</symbol>
+
+		<f:comment>
+			25 € — grün, vier PAARE: 353/7 · 83/97 · 173/187 · 263/277°.
+			14° Abstand innerhalb des Paares, damit die zwei Kerben als Paar
+			gelesen werden und nicht als zwei einzelne.
+		</f:comment>
+		<symbol id="ck-chip-25" viewBox="0 0 100 100">
+			<circle cx="50" cy="50" r="46" fill="var(--ck-chip-green)" />
+			<circle cx="50" cy="50" r="46" fill="none" stroke="var(--ck-chip-edge)" stroke-width="2" />
+			<g fill="var(--ck-chip-green-mark)">
+				<rect x="46.5" y="3" width="7" height="15" rx="1.5" transform="rotate(353 50 50)" />
+				<rect x="46.5" y="3" width="7" height="15" rx="1.5" transform="rotate(7 50 50)" />
+				<rect x="46.5" y="3" width="7" height="15" rx="1.5" transform="rotate(83 50 50)" />
+				<rect x="46.5" y="3" width="7" height="15" rx="1.5" transform="rotate(97 50 50)" />
+				<rect x="46.5" y="3" width="7" height="15" rx="1.5" transform="rotate(173 50 50)" />
+				<rect x="46.5" y="3" width="7" height="15" rx="1.5" transform="rotate(187 50 50)" />
+				<rect x="46.5" y="3" width="7" height="15" rx="1.5" transform="rotate(263 50 50)" />
+				<rect x="46.5" y="3" width="7" height="15" rx="1.5" transform="rotate(277 50 50)" />
+			</g>
+			<circle cx="50" cy="50" r="30" fill="none" stroke="var(--ck-chip-green-mark)" stroke-width="2.5" />
+			<circle cx="50" cy="50" r="24" fill="var(--ck-chip-inlay)" />
+			<text x="50" y="47" text-anchor="middle" dominant-baseline="central"
+				font-family="var(--ck-font-display)" font-size="22" font-weight="700"
+				fill="var(--ck-print-ink)">25</text>
+			<text x="50" y="66" text-anchor="middle" dominant-baseline="central"
+				font-family="var(--ck-font-display)" font-size="11"
+				fill="var(--ck-print-ink)">&#8364;</text>
+		</symbol>
+
+		<f:comment>
+			100 € — schwarz, vier DREIERGRUPPEN:
+			346/0/14 · 76/90/104 · 166/180/194 · 256/270/284°.
+		</f:comment>
+		<symbol id="ck-chip-100" viewBox="0 0 100 100">
+			<circle cx="50" cy="50" r="46" fill="var(--ck-chip-black)" />
+			<circle cx="50" cy="50" r="46" fill="none" stroke="var(--ck-chip-edge)" stroke-width="2" />
+			<g fill="var(--ck-chip-black-mark)">
+				<rect x="46.5" y="3" width="7" height="15" rx="1.5" transform="rotate(346 50 50)" />
+				<rect x="46.5" y="3" width="7" height="15" rx="1.5" transform="rotate(0 50 50)" />
+				<rect x="46.5" y="3" width="7" height="15" rx="1.5" transform="rotate(14 50 50)" />
+				<rect x="46.5" y="3" width="7" height="15" rx="1.5" transform="rotate(76 50 50)" />
+				<rect x="46.5" y="3" width="7" height="15" rx="1.5" transform="rotate(90 50 50)" />
+				<rect x="46.5" y="3" width="7" height="15" rx="1.5" transform="rotate(104 50 50)" />
+				<rect x="46.5" y="3" width="7" height="15" rx="1.5" transform="rotate(166 50 50)" />
+				<rect x="46.5" y="3" width="7" height="15" rx="1.5" transform="rotate(180 50 50)" />
+				<rect x="46.5" y="3" width="7" height="15" rx="1.5" transform="rotate(194 50 50)" />
+				<rect x="46.5" y="3" width="7" height="15" rx="1.5" transform="rotate(256 50 50)" />
+				<rect x="46.5" y="3" width="7" height="15" rx="1.5" transform="rotate(270 50 50)" />
+				<rect x="46.5" y="3" width="7" height="15" rx="1.5" transform="rotate(284 50 50)" />
+			</g>
+			<circle cx="50" cy="50" r="30" fill="none" stroke="var(--ck-chip-black-mark)" stroke-width="2.5" />
+			<circle cx="50" cy="50" r="24" fill="var(--ck-chip-inlay)" />
+			<text x="50" y="47" text-anchor="middle" dominant-baseline="central"
+				font-family="var(--ck-font-display)" font-size="18" font-weight="700"
+				fill="var(--ck-print-ink)">100</text>
+			<text x="50" y="66" text-anchor="middle" dominant-baseline="central"
+				font-family="var(--ck-font-display)" font-size="11"
+				fill="var(--ck-print-ink)">&#8364;</text>
+		</symbol>
+
+	</defs>
+</svg>

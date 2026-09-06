@@ -1,0 +1,71 @@
+<f:comment>
+	Inhaltselement „Roulette" — der Spieltisch auf seiner eigenen Seite.
+
+	Das Element hat keine Einstellungen und wertet keinen Datenbankwert aus.
+
+	REIHENFOLGE. Sie ist die Tastaturreihenfolge und bewusst gewählt: erst
+	Hinweis und geteilte Ansage (Table/Status), dann das Rad mit seiner
+	eigenen Rundenansage, dann das Tuch (mit einem Sprunglink an seinem
+	Anfang), dann die Bedienleiste, zuletzt der Verlauf. Wer den Tisch zum
+	ersten Mal betritt, hört zuerst, wie er bedient wird.
+
+	Der Chipsatz steht als Erstes im Markup: ein <use> kann nur auf ein
+	<symbol> zeigen, das im Dokument schon steht.
+
+	Vier Partials kommen aus dem Site Package und werden NICHT nachgebaut:
+	Table/ChipSprite (die fünf Chips als SVG), Table/Status (der geteilte
+	Ansagebereich der Chips und der Bedienleiste), Table/Controls (Chipwahl,
+	Zurücknehmen, Verdoppeln, Wiederholen, Wechselfeld, CASH OUT und der
+	Rundenauslöser) und Table/History (der Verlaufsstreifen). Fluid findet
+	sie über partialRootPaths.20 aus ext_localconf.php.
+
+	Die drei Variablen unten sind fünf Zeilen Klartext statt eines
+	DataProcessors — dieselbe Begründung wie beim Mustertisch: für fünf feste
+	Werte lohnt kein PHP.
+
+	Die vier data-ro-state/-result/-colour/-total-Messpunkte am Wurzelelement
+	stehen seit Teilstück C3d im Markup, LEER beziehungsweise auf ihrem
+	Anfangswert ausgeliefert, und werden AUSSCHLIESSLICH von roulette.js
+	beschrieben (round-roulette.js selbst fasst kein Dokument an — siehe
+	dessen Kopfkommentar). Ein Messpunkt, ein Schreiber; verify-view.mjs
+	(V-9, V-13) prüft das in beide Richtungen.
+
+	STAND TEILSTÜCK C3e: das Tuch (Table/Roulette/Felt) steht mit allen 159
+	Feldern, einer eigenen Rundenansage (Table/Roulette/Status) und seinem
+	eigenen Stylesheet (felt.css). round-roulette.js wertet aus und zahlt
+	gegen die gemeinsame Kasse aus; roulette.js verdrahtet Geld, Tuch, Rad,
+	Bedienleiste und Klang. Der Ton-Schalter (Table/Roulette/SoundSwitch)
+	steht neben der Rundenansage im Rad-Block: dort, wo ein Besucher zuerst
+	hinschaut, wenn das Rad zu laufen beginnt.
+</f:comment>
+<f:variable name="chips" value="{0: {value: 100, symbolId: 'ck-chip-100'}, 1: {value: 25, symbolId: 'ck-chip-25'}, 2: {value: 20, symbolId: 'ck-chip-20'}, 3: {value: 5, symbolId: 'ck-chip-5'}, 4: {value: 1, symbolId: 'ck-chip-1'}}" />
+<f:variable name="splittable" value="{0: {value: 100}, 1: {value: 25}, 2: {value: 20}, 3: {value: 5}}" />
+<f:variable name="mergeable" value="{0: {value: 100}, 1: {value: 25}, 2: {value: 20}, 3: {value: 5}}" />
+
+<f:asset.css identifier="ckTable" href="EXT:casino_startpage/Resources/Public/Css/table.css" />
+<f:asset.css identifier="rouletteWheel" href="EXT:roulette/Resources/Public/Css/wheel.css" />
+<f:asset.css identifier="rouletteFelt" href="EXT:roulette/Resources/Public/Css/felt.css" />
+<f:asset.module identifier="@phomo17/roulette/roulette.js" />
+
+<div class="ck-table ro-table ck-room-fill" data-ck-table="" data-ck-table-key="roulette"
+	data-ro-state="setzen" data-ro-result="" data-ro-colour="" data-ro-total="0">
+	<f:render partial="Table/ChipSprite" />
+	<f:render partial="Table/Status" />
+
+	<div class="ro-table__stage">
+		<div class="ro-table__wheel">
+			<f:render partial="Table/Roulette/Wheel" arguments="{wheel: wheel}" />
+			<f:render partial="Table/Roulette/Status" />
+			<f:render partial="Table/Roulette/SoundSwitch" />
+		</div>
+		<f:render partial="Table/Roulette/Felt" arguments="{felt: felt}" />
+	</div>
+
+	<div id="ro-controls" tabindex="-1">
+		<p class="ck-table__hint">
+			<f:translate key="LLL:EXT:roulette/Resources/Private/Language/locallang.xlf:wheel.launch.hint" />
+		</p>
+		<f:render partial="Table/Controls" arguments="{chips: chips, splittable: splittable, mergeable: mergeable, go: '{f:translate(key: \'LLL:EXT:roulette/Resources/Private/Language/locallang.xlf:wheel.launch\')}'}" />
+	</div>
+	<f:render partial="Table/History" />
+</div>

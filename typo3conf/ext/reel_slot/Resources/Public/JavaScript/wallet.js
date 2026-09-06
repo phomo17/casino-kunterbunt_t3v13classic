@@ -325,8 +325,11 @@ export class Wallet {
 
 		// EINSATZ zeigt im Markup 01 und der Einsatz 1 ist vorgewählt; der
 		// Gleichstand wird trotzdem einmal hergestellt, damit die Anzeige auch
-		// dann stimmt, wenn das Markup je geändert wird.
-		this.betCounter?.snap(this.readBet());
+		// dann stimmt, wenn das Markup je geändert wird. announce: false
+		// (Audit N-04, 2026-09-05/06): das ist der Anfangsstand beim
+		// Seitenaufbau, keine Bedienhandlung — ein Hilfsmittel las beim
+		// bloßen Laden sonst sofort „Einsatz: 1" vor.
+		this.betCounter?.snap(this.readBet(), false);
 
 		// Die beiden data-Attribute dieser Datei einmal setzen, damit sie ab
 		// dem ersten Augenblick ablesbar sind und nicht erst nach der ersten
@@ -462,7 +465,10 @@ export class Wallet {
 		if (detail.reason === 'subscribe') {
 			// Der allererste Aufruf: die Röhren sind dunkel. Eine Fahrt aus dem
 			// Dunkeln heraus hätte keinen Startwert – also setzen, nicht fahren.
-			this.creditCounter?.snap(detail.amount);
+			// announce: false (Audit N-04, 2026-09-05/06): der Anfangsstand
+			// beim Seitenaufbau ist keine Änderungsmeldung — ein Hilfsmittel
+			// las beim bloßen Laden sonst sofort „Guthaben: 0" vor.
+			this.creditCounter?.snap(detail.amount, false);
 		} else {
 			this.creditCounter?.ramp(detail.amount);
 		}

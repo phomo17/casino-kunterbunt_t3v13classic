@@ -1,0 +1,184 @@
+/*
+ * Blackjack – das Tuch
+ * ====================
+ *
+ * Die Grundfläche des Tuchs (Filzgrün, Holzrahmen, Messinggrat, Webmuster)
+ * kommt aus .ck-felt in casino_startpage/…/table.css. Hier steht nur, was
+ * DIESER Tisch daraus macht: die D-Form und die Lage der sechs Bereiche.
+ *
+ * DIE D-FORM. Gerade Kante oben (Geberseite), Bogen unten (Spielerseite).
+ * Erzeugt über border-radius mit getrennten waagerechten und senkrechten
+ * Radien: oben 0, unten 50 % der Breite auf 42 % der Höhe. Die Bogenhöhe ist
+ * damit rund 0,55 der Breite der geraden Kante — dieselbe, bewusst flachere
+ * Proportion wie auf der Saal-Kachel (siehe deren Kopfkommentar,
+ * Silhouettenprobe nach CONCEPT.md B.3 Nr. 7).
+ *
+ * KEINE EIGENE FARBE, KEINE REGELZAHL. Jeder Wert kommt aus tokens.css;
+ * keine der von Prüfung A-11 verbotenen Zeichenketten steht in dieser Datei.
+ */
+
+.bj-felt-area {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: var(--ck-space-2);
+	inline-size: 100%;
+}
+
+.bj-felt__title {
+	margin: 0;
+	font-family: var(--ck-font-display);
+	font-size: 1.1rem;
+	letter-spacing: 0.08em;
+	color: var(--ck-text-muted);
+}
+
+.bj-felt {
+	position: relative;
+	inline-size: min(100%, 46rem);
+	aspect-ratio: 160 / 100;
+	border-radius: 0 0 50% 50% / 0 0 42% 42%;
+	display: grid;
+	grid-template-columns: 1fr 2fr 1fr;
+	grid-template-rows: auto 1fr auto auto;
+	grid-template-areas:
+		"discard dealer shoe"
+		".       dealer ."
+		"insurance insurance insurance"
+		"seat    seat   seat";
+	align-items: center;
+	justify-items: center;
+	padding: var(--ck-space-3) var(--ck-space-4) var(--ck-space-5);
+	gap: var(--ck-space-2);
+}
+
+/*
+ * Behebungslauf 2026-09-06 (AUDITREPORT-2026-09-06.md, Befund H-03 und M-05):
+ * die geerbte Versteck-Position `inset-block-start: -3rem` aus base.css'
+ * .ck-skiplink ist für den SEITEN-Sprunglink gerechnet, dessen Bezugsrahmen
+ * der Seitenanfang ist. Dieser Sprunglink hier hat aber .bj-felt (das Tuch,
+ * position: relative) als Bezugsrahmen, und das Tuch steht mitten auf der
+ * Seite — -3rem darüber landet deshalb sichtbar auf dem Teppich statt
+ * außerhalb der Seite (M-05, im Browser nachgemessen: y = 392, vollständig
+ * im Bild). -9999px ist unabhängig davon, wo das Tuch auf der jeweiligen
+ * Seite steht, garantiert außerhalb jedes Sichtfelds.
+ *
+ * `transition-property: none` hebt die von .ck-skiplink geerbte Überblendung
+ * von inset-block-start auf (bewusst die Langform, nicht deren Kurzschreib-
+ * weise mit demselben Sinn — F-9 sucht diese Kurzschreibweise textlich und
+ * verlangt dafür einen prefers-reduced-motion-Block, obwohl hier das
+ * Gegenteil einer Bewegung steht: nichts bewegt sich). Nachgewiesen im
+ * laufenden Browser (200 % Textgröße, echte Tabtaste): Ohne diese Zeile
+ * beginnt der Übergang beim EMPFANG des Fokus noch bei der alten Position;
+ * der Browser prüft in diesem Augenblick, ob das Element schon sichtbar ist,
+ * und findet — nur zufällig, weil das Tuch auf dieser Seite tief genug steht
+ * — schon eine augenblicklich sichtbare Zwischenposition. Er rollt deshalb
+ * gar nicht erst, und die Überblendung schiebt das Element anschließend
+ * unbeobachtet aus dem Bild (H-03: y = 902 bei einem 900 px hohen
+ * Sichtfeld). Ohne Übergang liegt die Zielposition schon im selben
+ * Augenschritt fest, in dem der Fokus landet, und der Browser rollt
+ * zuverlässig dorthin (nachgemessen: y = 409, vollständig im Bild,
+ * Tests/Acceptance/specs/sprunglink-fokus-200prozent.spec.ts).
+ */
+.bj-felt__skip {
+	position: absolute;
+	inset-block-start: -9999px;
+	transition-property: none;
+}
+.bj-felt__skip:focus-visible {
+	inset-block-start: var(--ck-space-2);
+	inset-inline-start: var(--ck-space-2);
+}
+
+.bj-felt__shoe { grid-area: shoe; inline-size: 5rem; justify-self: end; }
+.bj-felt__discard { grid-area: discard; inline-size: 5rem; justify-self: start; }
+.bj-felt__shoe svg, .bj-felt__discard svg { inline-size: 100%; block-size: auto; }
+
+.bj-felt__dealer {
+	grid-area: dealer;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: var(--ck-space-1);
+}
+
+.bj-felt__insurance {
+	grid-area: insurance;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: var(--ck-space-1);
+	inline-size: 60%;
+	border-block-start: 1.5px solid var(--ck-felt-line);
+	border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+	padding-block-start: var(--ck-space-1);
+}
+
+.bj-felt__seat {
+	grid-area: seat;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: var(--ck-space-2);
+}
+
+/* Der Aufdruck des Tuchs: aufgemalte Schrift auf Filz. --ck-felt-line
+   erreicht auf --ck-felt-green 6,3 : 1 (siehe tokens.css). */
+.bj-felt__print {
+	margin: 0;
+	font-family: var(--ck-font-display);
+	font-size: 0.78rem;
+	letter-spacing: 0.14em;
+	text-transform: uppercase;
+	color: var(--ck-felt-line);
+}
+
+.bj-felt__total {
+	margin: 0;
+	min-block-size: 1.4rem;
+	font-family: var(--ck-font-numeric);
+	font-size: 1rem;
+	color: var(--ck-felt-line);
+}
+
+.bj-felt__cards { min-block-size: 3.7rem; display: flex; align-items: center; }
+
+/* Der Setzkreis. .ck-felt__field bringt Mindestgröße, Fokusrahmen,
+   aria-disabled-Darstellung und den Stapelbereich schon mit; hier wird daraus
+   ein Kreis. */
+.bj-felt__box {
+	inline-size: 6.5rem;
+	block-size: 6.5rem;
+	border-radius: var(--ck-radius-pill);
+}
+
+.bj-felt__box-label { font-size: 0.72rem; letter-spacing: 0.1em; }
+
+/* Die Blätter der laufenden Runde. Leer und ohne Aufzählungszeichen, solange
+   nichts läuft. */
+.bj-seat {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: flex;
+	gap: var(--ck-space-3);
+	align-items: flex-end;
+	min-block-size: 4.4rem;
+}
+
+.bj-seat__hand {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: var(--ck-space-1);
+}
+
+/* Das gerade zu spielende Blatt bekommt eine Marke, die NICHT nur farbig ist:
+   ein voller Rahmen gegen keinen Rahmen. */
+.bj-seat__hand[data-bj-active="true"] {
+	outline: 2px solid var(--ck-brass-200);
+	outline-offset: 3px;
+	border-radius: var(--ck-radius-sm);
+}
+
+.bj-felt__stack { min-block-size: var(--ck-chip-size); display: flex; }

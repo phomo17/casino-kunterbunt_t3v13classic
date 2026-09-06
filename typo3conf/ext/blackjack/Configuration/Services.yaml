@@ -1,0 +1,11 @@
+services:
+  _defaults:
+    autowire: true
+    autoconfigure: true
+    public: false
+
+  Phomo17\Blackjack\:
+    resource: '../Classes/*'
+    # Ein reines Namensschild mit privatem Konstruktor. Ohne diese Ausnahme
+    # meldete der Container einen Dienst an, den es nie geben darf.
+    exclude: '../Classes/{Blackjack.php}'

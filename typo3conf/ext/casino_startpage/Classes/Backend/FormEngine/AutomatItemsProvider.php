@@ -23,7 +23,7 @@ use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
  * assoziative Arrays wandelt TYPO3 danach selbst wieder in SelectItem um.
  * Numerisch indizierte Item-Arrays sind seit TYPO3 12.3 veraltet.
  *
- * Sind keine Automaten angemeldet, wird nichts angehängt. Das Feld zeigt dann
+ * Sind keine Geräte angemeldet, wird nichts angehängt. Das Feld zeigt dann
  * nur den in der TCA fest hinterlegten Leer-Eintrag — keine Fehlermeldung.
  */
 #[Autoconfigure(public: true)]
@@ -36,7 +36,13 @@ final class AutomatItemsProvider
                 'label' => $automat->title,
                 'value' => $automat->identifier,
                 'description' => $automat->description,
-                'icon' => 'content-casino-automat',
+                // Icon und Gruppe kommen seit Teil C aus der Gattung des Geräts
+                // (CONCEPT.md C.1 Nr. 1). Vorher stand hier fest das
+                // Automaten-Icon — für einen Tisch wäre das schlicht falsch.
+                // 'group' wirkt nur zusammen mit 'itemGroups' in der TCA; beide
+                // stehen deshalb in derselben Änderung.
+                'icon' => $automat->gattung->getIcon(),
+                'group' => $automat->gattung->value,
             ];
         }
     }

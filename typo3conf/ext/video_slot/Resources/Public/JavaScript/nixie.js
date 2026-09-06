@@ -32,6 +32,13 @@
  * steuert ihre Ansage mit, und keine zweite Stelle schreibt in denselben
  * Bereich.
  *
+ * Seit Phase 7 lassen sich show() und clear() STILL aufrufen (zweites
+ * Argument false). Genutzt wird das ausschließlich von der Risiko-Leiter für
+ * die Gruppe „stufe": NixieGroup.html verlangt, dass dort der Ausgang der
+ * Leiter angesagt wird und nicht jede einzelne Stufe. Die Ansage selbst
+ * bleibt Sache dieser Datei — risk.js ruft dafür announce() dieser Gruppe
+ * und schreibt nicht selbst in den Bereich.
+ *
  * In dieser Datei steht kein deutscher Anzeigetext. Der Satz kommt aus der
  * Sprachdatei und reist als data-Attribut ins Dokument; was hier steht, ist
  * eine Entwicklermeldung für die Konsole.
@@ -44,6 +51,19 @@
  * das letzte Bild gezeichnet ist.
  */
 const STRIKE_MS = 210;
+
+/**
+ * Kürzeste Zeit zwischen zwei Zündungen DERSELBEN Röhre.
+ *
+ * CONCEPT.md B.9.3/B.6.1: keine Lichtquelle, die häufiger als dreimal je
+ * Sekunde hell wird — nicht verhandelbar. Eine Zählfahrt (STEP_MS = 70 ms in
+ * counter.js) würde die letzte Röhre ohne Bremse rund vierzehnmal je Sekunde
+ * neu zünden. Die Drossel steckt hier, in der Anzeige, und nicht bei ihren
+ * Aufrufern — dieselbe Bauform wie Lamp in coin_pusher/lamp.js. Ein Auslöser
+ * während der Sperrzeit wird verworfen, nicht gemerkt: eine Warteschlange
+ * wäre wieder ein Takt.
+ */
+const STRIKE_COOLDOWN_MS = 350;
 
 /** Der Bereich, den nur Hilfsmittel lesen (NixieGroup.html). */
 const SELECTOR_ANNOUNCE = '[data-vs-announce]';
@@ -87,6 +107,9 @@ export class NixieGroup {
 
 		/** Wurde schon einmal angesagt? Die erste Ansage wartet nicht. */
 		this.announced = false;
+
+		/** Frühester Zeitpunkt der nächsten Zündung, je Röhre (siehe setTube()). */
+		this.strikeReadyAt = new Map();
 	}
 
 	/** Anzahl der Röhren – die Stellenzahl der Gruppe. */
@@ -103,9 +126,14 @@ export class NixieGroup {
 	 * Risiko-Leiter aus Phase 7 verdoppelt ohne Grenze.
 	 *
 	 * @param {number} value ganze Zahl ab 0
+	 * @param {boolean} [announce] false lässt die Ansage aus. Gebraucht von
+	 *        der Risiko-Leiter für die Gruppe „stufe": NixieGroup.html
+	 *        verlangt, dass dort der AUSGANG angesagt wird und nicht jede
+	 *        einzelne Stufe. Vorgabe true — jeder vorhandene Aufruf verhält
+	 *        sich damit unverändert.
 	 * @returns {void}
 	 */
-	show(value) {
+	show(value, announce = true) {
 		const whole = Math.max(0, Math.trunc(Number.isFinite(value) ? value : 0));
 		const text = String(whole);
 		const digits = text.length > this.length
@@ -120,26 +148,36 @@ export class NixieGroup {
 		// announce(). Angesagt wird, was WIRKLICH in den Röhren steht: also
 		// ohne die führenden Nullen, aber mit den Neunen des Überlaufs. Und
 		// als EINE Zahl, wie ein Mensch sie spräche, nicht Ziffer für Ziffer.
-		this.announce(String(this.length === 0 ? whole : Number(digits)));
+		if (announce) {
+			this.announce(String(this.length === 0 ? whole : Number(digits)));
+		}
 	}
 
 	/**
 	 * Löscht die Gruppe – alle Röhren unbeschickt.
 	 *
+	 * @param {boolean} [announce] siehe show()
 	 * @returns {void}
 	 */
-	clear() {
+	clear(announce = true) {
 		for (const tube of this.tubes) {
 			this.setTube(tube, -1);
 		}
 
 		// Dunkle Röhren zeigen keinen Wert — dann steht auch kein Satz da.
 		// „Gewinn: 0" wäre etwas anderes als eine unbeschickte Anzeige.
-		this.announce(null);
+		if (announce) {
+			this.announce(null);
+		}
 	}
 
 	/**
 	 * Setzt eine einzelne Röhre und zündet sie, falls sich etwas ändert.
+	 *
+	 * Die Ziffer selbst wird IMMER gesetzt – nur der Zündvorgang unterliegt
+	 * der Drossel aus STRIKE_COOLDOWN_MS. Läuft deren Sperrzeit noch, bleibt
+	 * die Röhre bei ihrem zuletzt gezündeten Helligkeitsverlauf stehen, statt
+	 * ihn erneut anzustoßen.
 	 *
 	 * @param {HTMLElement} tube
 	 * @param {number} digit 0 bis 9, oder −1 für dunkel
@@ -152,6 +190,13 @@ export class NixieGroup {
 		}
 
 		tube.style.setProperty('--vs-digit', String(digit));
+
+		const now = globalThis.performance.now();
+		const readyAt = this.strikeReadyAt.get(tube) ?? -Infinity;
+		if (now < readyAt) {
+			return;
+		}
+		this.strikeReadyAt.set(tube, now + STRIKE_COOLDOWN_MS);
 
 		// Der kurze Helligkeitseinbruch im Moment des Wechsels. Die Klasse
 		// wird erst entfernt und dann – nach einem erzwungenen Umbruch – neu
@@ -228,6 +273,7 @@ export class NixieGroup {
 			globalThis.clearTimeout(timer);
 		}
 		this.timers.clear();
+		this.strikeReadyAt.clear();
 
 		this.clearAnnounceTimer();
 		if (this.announcer !== null) {

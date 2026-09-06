@@ -3,6 +3,8 @@
 declare(strict_types=1);
 
 use Phomo17\CasinoStartpage\Automat\AutomatContentElement;
+use Phomo17\CasinoStartpage\Automat\Gattung;
+use Phomo17\CasinoStartpage\Automat\Mustertisch;
 use Phomo17\CasinoStartpage\Backend\FormEngine\AutomatItemsProvider;
 use Phomo17\CasinoStartpage\Backend\Preview\AutomatPreviewRenderer;
 use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
@@ -27,12 +29,27 @@ $GLOBALS['TCA']['tt_content']['columns'][AutomatContentElement::FIELD_AUTOMAT] =
         'type' => 'select',
         'renderType' => 'selectSingle',
         // Fest hinterlegter Leer-Eintrag. Er garantiert, dass die Liste auch
-        // ohne einen einzigen angemeldeten Automaten gültig und leer bedienbar ist.
+        // ohne ein einziges angemeldetes Gerät gültig und leer bedienbar ist.
         'items' => [
             [
                 'label' => $ll . 'tt_content.tx_casinostartpage_automat.none',
                 'value' => '',
             ],
+        ],
+        /*
+         * Zwei Gruppen in der Auswahlliste, seit CONCEPT.md C.1 Nr. 1 zwei
+         * Gattungen im Saal stehen. Die Schlüssel sind wörtlich die Werte des
+         * Enums Gattung; AutomatItemsProvider setzt sie je Eintrag unter dem
+         * Schlüssel "group". Ohne itemGroups wäre "group" am Eintrag wirkungslos
+         * und die Liste eine unsortierte Reihe aus Automaten und Tischen.
+         *
+         * Der feste Leer-Eintrag oben trägt bewusst KEINE Gruppe: TYPO3 stellt
+         * gruppenlose Einträge vor die erste Gruppe, und genau dort gehört
+         * "- bitte wählen -" hin.
+         */
+        'itemGroups' => [
+            Gattung::Automat->value => $ll . 'gattung.automat.plural',
+            Gattung::Tisch->value => $ll . 'gattung.tisch.plural',
         ],
         'itemsProcFunc' => AutomatItemsProvider::class . '->addAutomatItems',
         'dbFieldLength' => 64,
@@ -91,4 +108,31 @@ ExtensionManagementUtility::addRecordType(
     [
         'previewRenderer' => AutomatPreviewRenderer::class,
     ]
+);
+
+/*
+ * 4. Das Inhaltselement „Mustertisch".
+ *
+ * Es stellt den Beispieltisch auf der Seite auf, auf der es liegt — dasselbe
+ * Verhältnis, das ein Automaten-Inhaltselement zu seiner Spielseite hat. Der
+ * Redakteur legt es an, wählt nichts aus und speichert.
+ *
+ * Die Feldliste (zweites Argument) ist leer: das Element hat keine eigene
+ * Einstellung. Die Systemfelder ergänzt TYPO3 13.3+ von selbst. Bewusst ohne
+ * Überschriften-Palette, aus demselben Grund wie beim Casino-Gerät: neben dem
+ * Tisch gibt es nichts auszugeben, und ein Feld ohne Wirkung verleitet zu
+ * Text, den niemand je sieht.
+ *
+ * Keine eigene Datenbankspalte, deshalb auch keine ext_tables.sql und kein
+ * Schema-Schritt.
+ */
+ExtensionManagementUtility::addRecordType(
+    [
+        'label' => $ll . 'tt_content.CType.casino_tisch_muster',
+        'description' => $ll . 'tt_content.CType.casino_tisch_muster.description',
+        'value' => Mustertisch::CTYPE,
+        'icon' => Gattung::Tisch->getIcon(),
+        'group' => AutomatContentElement::CTYPE_GROUP,
+    ],
+    ''
 );

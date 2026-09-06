@@ -1,0 +1,30 @@
+{
+	"name": "phomo17/fruit-risk",
+	"type": "typo3-cms-extension",
+	"description": "Casino Kunterbunt: breiter Fruchtautomat „FruitRisk“ als eigenständige Geräte-Extension.",
+	"license": "AGPL-3.0-or-later",
+	"authors": [
+		{
+			"name": "Phomo17",
+			"email": "phomo17@users.noreply.github.com",
+			"role": "Developer"
+		}
+	],
+	"require": {
+		"php": ">=8.2 <8.5",
+		"typo3/cms-core": "^13.4",
+		"typo3/cms-frontend": "^13.4",
+		"typo3/cms-fluid": "^13.4",
+		"phomo17/casino-startpage": ">=0.2.0 <1.0.0"
+	},
+	"autoload": {
+		"psr-4": {
+			"Phomo17\\FruitRisk\\": "Classes/"
+		}
+	},
+	"extra": {
+		"typo3/cms": {
+			"extension-key": "fruit_risk"
+		}
+	}
+}

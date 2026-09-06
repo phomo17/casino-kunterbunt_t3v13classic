@@ -1,0 +1,110 @@
+<f:comment>
+	Das Tuch des Blackjack-Tisches (CONCEPT.md C.7.1).
+
+	Sicht von oben auf ein Halbrund: die GERADE KANTE OBEN ist die Geberseite,
+	der BOGEN UNTEN zeigt zu den Spielern. Rechts an der geraden Kante der
+	Kartenschlitten („Schuh"), links die Ablage für gespielte Karten. Dieselbe
+	Anordnung wie auf der Saal-Kachel (Table/Blackjack/Cabinet.html) — Prüfung
+	A-7 in verify-cabinet.mjs hält beide Zeichnungen gegeneinander, Merkmal
+	für Merkmal.
+
+	WAS LEER AUSGELIEFERT WIRD, UND WARUM
+	--------------------------------------
+	[data-bj-dealer-cards], [data-bj-dealer-total], [data-bj-hands] und
+	[data-bj-insurance-stack] stehen LEER im Markup. Ein Behälter, den ein
+	Skript anlegt UND füllt, wird von Hilfsmitteln nicht wahrgenommen; einer,
+	der beim Laden schon Inhalt trägt, behauptet ein Spiel, das noch nicht
+	läuft. Gefüllt werden sie ab Umsetzungsstück C5c von view-blackjack.js —
+	und ausschließlich von dort („ein Messpunkt, ein Schreiber").
+
+	WIE VIELE HANDPLÄTZE ES GIBT, STEHT NICHT HIER. Die Höchstzahl der Blätter
+	ist eine Regel und steht ausschließlich in rules-blackjack.js.
+	view-blackjack.js legt genau so viele Plätze an, wie die laufende Runde
+	tatsächlich hat.
+
+	DER SETZKREIS ist das einzige echte Setzfeld dieses Tisches: ein
+	<button type="button" data-ck-field="box"> mit sichtbarer Aufschrift, genau
+	wie der Vertrag des Site Packages es verlangt („Vertrag für das Tuch eines
+	Spiels", casino_startpage/README.md). Alles Weitere — Verdoppeln, Teilen,
+	Versicherung — ist Geld, das mitten in der Runde nachgelegt wird, wenn das
+	Tuch längst gesperrt ist; es läuft nicht über ein Setzfeld.
+
+	DER SPRUNGLINK steht als ERSTES Kind von .ck-felt, nicht davor. Er
+	versteckt sich über position: absolute; der nächste positionierte Vorfahre
+	entscheidet, wohin er bei Fokus fährt. Läge er außerhalb, erschiene er an
+	der oberen linken Ecke des Saals, weit weg vom Fokus (WCAG 2.4.11).
+
+	SCHUH UND ABLAGE sind Zierrat: aria-hidden, focusable="false", kein
+	<title>. Sie sagen nichts, was nicht ohnehin dasteht.
+
+	DIE ZWEI data-text-…-ATTRIBUTE AM SETZKREIS (felt.box.name /
+	felt.box.name.empty) werden von blackjack.js gelesen und an connectFelt()
+	als texts.fieldname/fieldnameEmpty gereicht — NICHT aus dem geteilten
+	Table/Status.html, dessen Satzbau die Auszahlung nennt, die es an diesem
+	Tisch nicht in dieser Form gibt (Umsetzungsstück C5b, Abschnitt 4.13).
+</f:comment>
+<section class="bj-felt-area" aria-labelledby="bj-felt-title">
+	<h2 class="bj-felt__title" id="bj-felt-title">
+		<f:translate key="LLL:EXT:blackjack/Resources/Private/Language/locallang.xlf:felt.label" />
+	</h2>
+
+	<div class="ck-felt bj-felt" data-bj-felt="">
+		<a class="ck-skiplink bj-felt__skip" href="#bj-controls">
+			<f:translate key="LLL:EXT:blackjack/Resources/Private/Language/locallang.xlf:felt.skip" />
+		</a>
+
+		<f:comment>Der Kartenschlitten rechts an der geraden Kante: ein schräg
+			gestelltes Gehäuse mit beidseitig abgeschrägter Kante — dieselbe
+			Form wie auf der Kachel.</f:comment>
+		<div class="bj-felt__shoe" aria-hidden="true">
+			<svg viewBox="0 0 40 26" focusable="false">
+				<rect x="2" y="4" width="36" height="18" rx="2"
+					fill="var(--ck-chrome-300)" stroke="var(--ck-chrome-500)" stroke-width="1.4" />
+				<path d="M2 4 L8 13 L2 22 Z" fill="var(--ck-chrome-500)" />
+				<path d="M38 4 L32 13 L38 22 Z" fill="var(--ck-chrome-500)" />
+				<rect x="10" y="8" width="20" height="10" rx="1.5" fill="var(--ck-chrome-shadow)" />
+			</svg>
+		</div>
+
+		<f:comment>Die Ablage für gespielte Karten links, mit Innenschatten.</f:comment>
+		<div class="bj-felt__discard" aria-hidden="true">
+			<svg viewBox="0 0 40 26" focusable="false">
+				<rect x="2" y="5" width="36" height="16" rx="3" fill="var(--ck-chrome-400)" />
+				<rect x="6" y="8" width="28" height="10" rx="2" fill="var(--ck-chrome-shadow)" />
+			</svg>
+		</div>
+
+		<f:comment>Der Geberbereich an der geraden Kante.</f:comment>
+		<div class="bj-felt__dealer" data-bj-dealer="">
+			<p class="bj-felt__print bj-felt__print--dealer">
+				<f:translate key="LLL:EXT:blackjack/Resources/Private/Language/locallang.xlf:felt.dealer" />
+			</p>
+			<div class="bj-felt__cards" data-bj-dealer-cards=""></div>
+			<p class="bj-felt__total" data-bj-dealer-total=""></p>
+		</div>
+
+		<f:comment>Der Versicherungsbogen, flacher als der Geberbogen und über
+			dem Setzkreis. Der Aufdruck nennt die Versicherung; wie viel sie
+			zahlt, steht NICHT hier — das wäre eine Regelzahl im Markup
+			(Prüfung A-11).</f:comment>
+		<div class="bj-felt__insurance">
+			<p class="bj-felt__print bj-felt__print--arc">
+				<f:translate key="LLL:EXT:blackjack/Resources/Private/Language/locallang.xlf:felt.insurance" />
+			</p>
+			<div class="bj-felt__stack" data-bj-insurance-stack="" aria-hidden="true"></div>
+		</div>
+
+		<f:comment>Der Platz: die Blätter der laufenden Runde (leer, bis eine
+			Runde läuft) und darunter der Setzkreis.</f:comment>
+		<div class="bj-felt__seat">
+			<ol class="bj-seat" data-bj-hands=""></ol>
+			<button type="button" class="ck-felt__field bj-felt__box" data-ck-field="box"
+				data-text-fieldname="{f:translate(key: 'LLL:EXT:blackjack/Resources/Private/Language/locallang.xlf:felt.box.name')}"
+				data-text-fieldname-empty="{f:translate(key: 'LLL:EXT:blackjack/Resources/Private/Language/locallang.xlf:felt.box.name.empty')}">
+				<span class="bj-felt__box-label">
+					<f:translate key="LLL:EXT:blackjack/Resources/Private/Language/locallang.xlf:felt.box" />
+				</span>
+			</button>
+		</div>
+	</div>
+</section>

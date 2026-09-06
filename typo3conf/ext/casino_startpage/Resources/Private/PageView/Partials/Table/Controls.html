@@ -1,0 +1,106 @@
+<f:comment>
+	Bedienleiste eines Spieltisches (CONCEPT.md C.3, C.4).
+
+	Aufrufargumente:
+	  {go}         Beschriftung des Rundenauslösers. Fehlt sie, wird KEIN
+	               Auslöser ausgegeben — der Mustertisch hat keinen, weil er
+	               kein Spiel ist (C.9: „ein Beispieltisch ohne Spiel").
+	  {chips}      Reihenfolge der Chipwahl, absteigend. Je Eintrag: value,
+	               symbolId (siehe Table/ChipSprite.html).
+	  {splittable} Chipwerte, die sich kleiner wechseln lassen (alle außer 1).
+	  {mergeable}  Chipwerte, in die sich kleinere zusammenfassen lassen
+	               (alle außer 100).
+
+	Die Chipwahl ist eine ECHTE Radiogruppe in einem <fieldset> mit <legend>.
+	Damit bringt der Browser die Pfeiltastensteuerung, die Gruppenansage und
+	die Auswahlsemantik von selbst mit. Ein Satz aus Knöpfen mit aria-pressed
+	wäre dreißig Zeilen Nachbau, der in jedem Vorleseprogramm anders klingt.
+
+	Jeder Chip trägt seinen Namen als sichtbaren Text im <label> — visuell
+	verkleinert, aber nicht versteckt. Er steht bewusst NICHT nur als
+	aria-label da: eine Sprachsteuerung sucht den sichtbaren Text, und „klicke
+	fünf Euro" muss funktionieren.
+
+	CASH OUT ist auch im gesperrten Zustand fokussierbar und trägt dann
+	aria-disabled. Ein disabled-Knopf wäre aus der Tastaturreihenfolge heraus
+	und beantwortete nirgends die Frage, warum er nicht geht — und genau diese
+	Frage stellt sich hier, weil die Sperre eine Regel ist (C.4: gesperrt,
+	solange Chips auf dem Tuch liegen) und kein Fehler.
+
+	Dieselbe Regel gilt seit Audit A-06 für die fünf Chip-Radioknöpfe: ein
+	echtes disabled, wie es table-controls.js vor jedem Buy-in für ALLE fünf
+	setzen müsste, nähme der ganzen Gruppe ihre Tabstationen. Sie tragen
+	stattdessen aria-disabled; die eigentliche Sperre besteht in placeChip()
+	(table-buyin.js), das ohne Bestand 'nochip' meldet.
+
+	data-ck-table-controls trägt die Meldungstexte dieser Bedienleiste als
+	data-Attribute, damit sie aus der XLIFF-Datei kommen und nicht im
+	JavaScript stehen — table-controls.js liest sie von hier. Die drei Texte
+	„Alles zurückgenommen" / „Verdoppelt" / „Wiederholt" liegen dagegen schon
+	am Ansagebereich (Table/Status.html, Teilstück C1-C) und werden von dort
+	gelesen; sie werden hier nicht zweimal geführt.
+</f:comment>
+<div class="ck-table__controls" data-ck-table-controls=""
+	data-message-nocash="{f:translate(key: 'LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:table.buyin.nocash')}"
+	data-message-invalid="{f:translate(key: 'LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:table.buyin.invalid')}"
+	data-message-cashout-blocked="{f:translate(key: 'LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:table.cashout.blocked')}"
+	data-message-cashout-done="{f:translate(key: 'LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:table.cashout.done')}"
+	data-text-rack-count="{f:translate(key: 'LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:table.rack.count')}"
+	data-text-amount="{f:translate(key: 'LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:table.amount.announce')}"
+	data-text-undone="{f:translate(key: 'LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:table.announce.undone')}"
+	data-text-limit="{f:translate(key: 'LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:table.announce.limit')}">
+
+	<f:comment>1 — Chipwahl</f:comment>
+	<fieldset class="ck-table__chips">
+		<legend><f:translate key="LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:table.chip.legend" /></legend>
+		<f:for each="{chips}" as="chip">
+			<label class="ck-table__chip">
+				<input type="radio" name="ck-table-chip" value="{chip.value}"
+					data-ck-table-chip="" class="ck-table__chip-input" />
+				<svg class="ck-chip" aria-hidden="true" focusable="false">
+					<use href="#{chip.symbolId}"></use>
+				</svg>
+				<span class="ck-table__chip-name">
+					<f:translate key="LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:table.chip.{chip.value}" />
+				</span>
+				<span class="ck-table__chip-count" data-ck-table-rack="{chip.value}">0</span>
+			</label>
+		</f:for>
+	</fieldset>
+
+	<f:comment>2 — Einsatz bearbeiten</f:comment>
+	<div class="ck-table__actions">
+		<button type="button" class="ck-table__button" data-ck-table-undo="">
+			<f:translate key="LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:table.undo" />
+		</button>
+		<button type="button" class="ck-table__button" data-ck-table-clear="">
+			<f:translate key="LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:table.clear" />
+		</button>
+		<button type="button" class="ck-table__button" data-ck-table-repeat="">
+			<f:translate key="LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:table.repeat" />
+		</button>
+		<button type="button" class="ck-table__button" data-ck-table-double="">
+			<f:translate key="LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:table.double" />
+		</button>
+		<f:if condition="{go}">
+			<button type="button" class="ck-table__button ck-table__button--go" data-ck-table-go="">{go}</button>
+		</f:if>
+	</div>
+
+	<f:comment>3 — Anzeigen. Gezeichnet und angesagt getrennt, wie am
+		Kassenschild: die Tafel trägt aria-hidden, den ganzen Satz spricht der
+		Ansagebereich in Table/Status.html.</f:comment>
+	<div class="ck-table__meters" aria-hidden="true">
+		<span class="ck-table__meter">
+			<span class="ck-table__meter-label"><f:translate key="LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:table.amount" /></span>
+			<span class="ck-table__meter-value" data-ck-table-amount="">&#8211;</span>
+		</span>
+		<span class="ck-table__meter">
+			<span class="ck-table__meter-label"><f:translate key="LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:table.staked" /></span>
+			<span class="ck-table__meter-value" data-ck-table-staked="">&#8211;</span>
+		</span>
+	</div>
+
+	<f:comment>4 — Wechselfeld und Auszahlung</f:comment>
+	<f:render partial="Table/BuyIn" arguments="{splittable: splittable, mergeable: mergeable}" />
+</div>

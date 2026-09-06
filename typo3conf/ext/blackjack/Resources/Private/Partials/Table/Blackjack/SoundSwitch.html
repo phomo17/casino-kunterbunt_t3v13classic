@@ -1,0 +1,32 @@
+<f:comment>
+	Der Ton-Schalter dieses Tisches.
+
+	Ein echter <button type="button"> mit aria-pressed — ein Umschalter, kein
+	Kontrollkästchen: er löst sofort eine Wirkung aus, statt eine Einstellung
+	für ein späteres Absenden zu sammeln.
+
+	Er trägt seinen Namen als SICHTBAREN Text im Knopf, nicht nur als
+	aria-label: eine Sprachsteuerung sucht den sichtbaren Text, und
+	„klicke Ton" muss funktionieren.
+
+	Sein Zustand steht NIE allein in der Farbe: aria-pressed trägt ihn für
+	Hilfsmittel, data-bj-sound-on macht ihn für den Nachweis ablesbar, und für
+	sehende Nutzer wechselt ein per CSS erzeugter Ring von DURCHGEZOGEN auf
+	GESTRICHELT — eine Änderung der Strichart, nicht der Farbe. Dieselbe
+	Bauform und dieselbe Begründung wie am Roulette-Tisch (DECISIONS.md, C3e).
+
+	WARUM „-on" IM NAMEN: data-bj-sound ist die bloße Kennung des Schalters,
+	data-bj-sound-on sein Zustand. Ein Attribut mit zwei Bedeutungen war in
+	diesem Projekt schon zweimal ein Befund.
+
+	Hinter dem Text liegt ein helles Namensschild (.bj-sound__label). Ohne es
+	hinge der Kontrast davon ab, über welchem Teil des Untergrunds die Schrift
+	gerade sitzt.
+</f:comment>
+<button type="button" class="bj-sound" data-bj-sound="" data-bj-sound-on="true" aria-pressed="true"
+	data-text-on="{f:translate(key: 'LLL:EXT:blackjack/Resources/Private/Language/locallang.xlf:sound.on')}"
+	data-text-off="{f:translate(key: 'LLL:EXT:blackjack/Resources/Private/Language/locallang.xlf:sound.off')}">
+	<span class="bj-sound__label">
+		<f:translate key="LLL:EXT:blackjack/Resources/Private/Language/locallang.xlf:sound.label" />
+	</span>
+</button>

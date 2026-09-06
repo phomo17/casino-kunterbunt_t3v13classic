@@ -11,6 +11,10 @@ typo3temp
 /Plans/
 /Reviews/
 APPROVAL.md
+build-blackjack-structure.php
+build-coin-pusher-structure.php
+build-fruit-risk-structure.php
+build-roulette-structure.php
 build-video-slot-structure.php
 CONCEPT.md
 DECISIONS.md

@@ -22,13 +22,22 @@ declare(strict_types=1);
  * diese Datei auf, zieht dabei den kompletten Präfix in die Import-Map und
  * hängt jeder Einzeldatei einen Cache-Buster an.
  *
- * KEIN "dependencies"-Eintrag in Phase 6 — Phase 6 importiert nichts aus
- * casino_startpage. Phase 7 (Kasse, Leiter, Auto, Klang) ergänzt
- * 'dependencies' => ['casino_startpage']; dieser Kopf sagt das ausdrücklich,
- * damit der Fehler „Failed to resolve module specifier" dort nicht erst
- * gesucht werden muss.
+ * "dependencies" nennt seit Phase 7 casino_startpage. Grund: wallet.js und
+ * bank.js importieren '@phomo17/casino-startpage/machine-credit.js' bzw.
+ * '@phomo17/casino-startpage/credit.js', risk.js
+ * '@phomo17/casino-startpage/risk-ladder.js' und sound.js die drei
+ * Klangbausteine sound.js, sound-kit.js und idle-noise.js. Der Kern lädt
+ * fremde Import-Maps nur auf ausdrückliche Ansage
+ * (ImportMap::loadDependency()); ohne diesen Eintrag fehlte das fremde
+ * Präfix in der ausgelieferten Map und der Browser bräche mit „Failed to
+ * resolve module specifier" ab.
+ *
+ * Der Eintrag zieht das GANZE Präfix der anderen Extension in die Map, nicht
+ * nur die einzelnen Dateien. Das ist gewollt und folgenlos: aufgelöst wird
+ * nur, was auch importiert wird.
  */
 return [
+    'dependencies' => ['casino_startpage'],
     'imports' => [
         '@phomo17/video-slot/' => 'EXT:video_slot/Resources/Public/JavaScript/',
     ],

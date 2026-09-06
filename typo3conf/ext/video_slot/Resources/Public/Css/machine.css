@@ -114,6 +114,7 @@
  *   .vs-lamp--on         Lichtfeld an                                   (P7)
  *   .vs-cashout--lit     CASH OUT leuchtet, weil Gerätekredit da ist    (P7)
  *   .vs-sound--on        Ton eingeschaltet                              (P7)
+ *   .vs-machine--duplicate  zweites Gehäuse derselben Seite, unbedienbar (P10)
  *
  * --vs-reel-pos, --vs-reel-duration und --vs-reel-ease haben seit Phase 6
  * eine Regel (Abschnitt 2, .vs-reel__strip): die Bänder sind jetzt 700cqi
@@ -171,6 +172,16 @@
 	block-size: 100%;
 	min-block-size: calc(100svh - 12rem);
 	overflow: clip;
+}
+
+/* Ein zweites "Video Slot"-Inhaltselement auf derselben Seite (video-slot.js,
+   bindMachines()): es bekommt keinen eigenen Gerätekredit und bleibt
+   unbedienbar. Gedämpfte Darstellung statt eines vollwertig aussehenden, aber
+   stummen Gehäuses – dieselbe Absicht wie die Konsolenzeile daneben. */
+.vs-machine--duplicate {
+	filter: grayscale(1);
+	opacity: 0.5;
+	pointer-events: none;
 }
 
 /*
@@ -717,6 +728,26 @@
 		0 0 0 0.55cqi var(--ck-chrome-100),
 		0 0 0 0.95cqi var(--ck-chrome-400),
 		inset 0 0.5cqi 0.9cqi var(--ck-shadow-hard);
+}
+
+/*
+ * Behebungslauf 2026-09-05/06 (AUDITREPORT-2026-09-05.md, Befund A-08):
+ * STOP/AUTO MODE/RISK erreichten bei 7,5 px Schriftgröße nur 4,22–4,36:1
+ * statt der geforderten 4,5:1 (SC 1.4.3) — dieselbe Schriftfarbe
+ * (--ck-chrome-500) direkt auf der gezeichneten Bedienleiste, ohne
+ * eigenen Untergrund. Übernommenes Muster aus fruit_risk/machine.css
+ * (dort Befund N-01/A-30): ein blickdichtes Namensschild aus einem
+ * bereits vorhandenen Chrom-Token hinter der Schrift macht den Kontrast
+ * unabhängig davon, worüber die Beschriftung gezeichnet ist.
+ *
+ * :not(:empty) statt einer Aufzählung der vier beschrifteten Tasten: die
+ * beiden unbeschrifteten Risiko-Tasten rendern ein leeres .vs-btn__label
+ * (Button.html); ein Schild ohne Schrift darunter wäre ein sichtbarer,
+ * unbeschrifteter Fleck.
+ */
+.vs-btn__label:not(:empty) {
+	padding: 0.12em 0.32em;
+	background-color: var(--ck-chrome-100);
 }
 
 .vs-btn__label {

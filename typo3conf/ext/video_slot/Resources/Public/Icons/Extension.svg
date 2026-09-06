@@ -13,10 +13,10 @@
 -->
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img">
 	<title>Video Slot</title>
-	<rect width="64" height="64" rx="10" fill="#2b0f1d"/><!-- ck-wall-base -->
+	<rect width="64" height="64" rx="10" fill="#2c0b11"/><!-- ck-wall-base -->
 	<path d="M12 54V22a8 8 0 0 1 8-8h20a8 8 0 0 1 8 8v32z" fill="#452b19"/><!-- ck-wood-300 -->
 	<path d="M16 52V23a5 5 0 0 1 5-5h18a5 5 0 0 1 5 5v29z" fill="#aab5bd"/><!-- ck-chrome-300 -->
-	<rect x="18" y="15" width="24" height="7" rx="2" fill="#33200f"/><!-- ck-wood-400 -->
+	<rect x="18" y="15" width="24" height="7" rx="2" fill="#2e1c10"/><!-- ck-wood-400 -->
 	<rect x="18" y="24" width="24" height="6" rx="1" fill="#f0e6d2" stroke="#8c6a1f" stroke-width="0.8"/><!-- ck-paper-100 / ck-brass-400 -->
 	<path d="M20 26h20M20 28h13" stroke="#a8251a" stroke-width="0.8"/><!-- ck-print-red -->
 	<rect x="17" y="32" width="26" height="14" rx="1.4" fill="#2b1509"/><!-- ck-nixie-dark -->

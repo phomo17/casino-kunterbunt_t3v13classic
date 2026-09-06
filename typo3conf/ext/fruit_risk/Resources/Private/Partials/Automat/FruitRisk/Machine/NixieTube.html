@@ -1,0 +1,35 @@
+<f:comment>
+	Eine Nixie-Röhre dieses Geraets.
+
+	Zylindrischer Glaskolben, davor ein Drahtgitter als Anode, dahinter ein
+	Stapel geformter Drahtkathoden — eine je Ziffer 0 bis 9, hintereinander
+	in unterschiedlicher Tiefe.
+
+	Die belegte Reihenfolge von vorn nach hinten ist 6 7 5 8 4 3 9 2 0 1,
+	so gewaehlt, dass unbeleuchtete Ziffern die leuchtende moeglichst wenig
+	verdecken. Im Markup stehen sie deshalb RUECKWAERTS: das zuletzt
+	geschriebene Element wird zuletzt gemalt und liegt damit vorn.
+	--fr-depth ist der Platz im Stapel (0 = vorderste Kathode) und steuert
+	Deckkraft und Versatz der Drahtkontur.
+
+	Welche Kathode brennt, entscheidet --fr-digit auf dieser Roehre, rein
+	rechnerisch in CSS — siehe machine.css, Abschnitt 4. -1 bedeutet: keine.
+	Phase F4 aendert die Zahl mit
+	    roehre.style.setProperty('--fr-digit', 7);
+	ohne eine einzige Zeile Markup anzufassen.
+
+	--fr-tube ist nur die laufende Nummer der Roehre in ihrer Gruppe. Sie
+	versetzt das Flimmern, damit nicht alle Roehren im Gleichschritt zucken.
+</f:comment>
+<span class="fr-nixie" style="--fr-digit: {digit}; --fr-tube: {index}">
+	<span class="fr-nixie__digit" data-fr-digit="1" style="--fr-cathode: 1; --fr-depth: 9"></span>
+	<span class="fr-nixie__digit" data-fr-digit="0" style="--fr-cathode: 0; --fr-depth: 8"></span>
+	<span class="fr-nixie__digit" data-fr-digit="2" style="--fr-cathode: 2; --fr-depth: 7"></span>
+	<span class="fr-nixie__digit" data-fr-digit="9" style="--fr-cathode: 9; --fr-depth: 6"></span>
+	<span class="fr-nixie__digit" data-fr-digit="3" style="--fr-cathode: 3; --fr-depth: 5"></span>
+	<span class="fr-nixie__digit" data-fr-digit="4" style="--fr-cathode: 4; --fr-depth: 4"></span>
+	<span class="fr-nixie__digit" data-fr-digit="8" style="--fr-cathode: 8; --fr-depth: 3"></span>
+	<span class="fr-nixie__digit" data-fr-digit="5" style="--fr-cathode: 5; --fr-depth: 2"></span>
+	<span class="fr-nixie__digit" data-fr-digit="7" style="--fr-cathode: 7; --fr-depth: 1"></span>
+	<span class="fr-nixie__digit" data-fr-digit="6" style="--fr-cathode: 6; --fr-depth: 0"></span>
+</span>

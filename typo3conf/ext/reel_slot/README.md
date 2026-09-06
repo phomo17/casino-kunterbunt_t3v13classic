@@ -16,7 +16,7 @@ Regeln und Klänge. Sie lässt sich installieren und entfernen, ohne dass an
 | Composer-Name | `phomo17/reel-slot` |
 | Namespace | `Phomo17\ReelSlot\` |
 | TYPO3-Version | 13.4 (klassische, nicht Composer-basierte Installation) |
-| Abhängigkeit | `casino_startpage` >= 0.9.0 (Risiko-Leiter, Gerätekredit, Klangbaukasten und Leerlaufgeräusche liegen dort) |
+| Abhängigkeit | `casino_startpage` >= 0.1.0 (Risiko-Leiter, Gerätekredit, Klangbaukasten und Leerlaufgeräusche liegen dort) |
 | Lizenz | AGPL-3.0-or-later |
 | Quelltext | https://github.com/phomo17/casino-kunterbunt_t3v13classic |
 
@@ -436,9 +436,81 @@ Die Auswahl dieser Walzenfolgen aus 3521 gleichermaßen gültigen Verteilungen
 sowie die geprüften und verworfenen Alternativen stehen in `DECISIONS.md`
 unter „Ausbaustufe 2, Phase 2 (Teil a: Walzenbänder)".
 
+### Nachweis der Negativliste
+
+```
+ddev exec node typo3conf/ext/reel_slot/Resources/Private/Scripts/verify-cabinet.mjs
+```
+
+Nur lesend, ohne jede Abhängigkeit. Rückgabewert 0, wenn alles stimmt,
+sonst 1. Geprüft wird (Kennung A-1): kein fremder Hersteller-, Modell- oder
+Spieltitel in dieser Extension — gegen dieselbe Negativliste wie in
+`coin_pusher`/`roulette`/`fruit_risk` `verify-cabinet.mjs` (dort A-5) und in
+`video_slot` `verify-cabinet.mjs` (dort A-13). Neu seit dem Behebungslauf
+2026-09-06: bis dahin deckte keine Negativlisten-Prüfung des Projekts diese
+Extension ab.
+
+## Barrierefreiheit
+
+Behebungslauf 2026-09-05/06 (AUDITREPORT-2026-09-05.md). Behoben:
+
+- **A-05 · Walzenbänder ohne Namen.** Die drei `svg.rs-reel__strip`
+  (`Machine/Reel.html`) tragen jetzt `aria-hidden="true"`: das Band ist
+  Zeichnung, kein Inhalt, und für ein Hilfsmittel war es sonst ein
+  namenloses Bild (WCAG 1.1.1). Video Slot und FruitRisk machen es an
+  derselben Stelle bereits so.
+- **A-06 · CASH OUT am Münzschieber** betraf dieses Gerät nicht mehr — es
+  behebt seit dem Vorlauf bereits `aria-disabled` statt `disabled`.
+- **A-08 · Tastenbeschriftungen knapp unter dem Sollwert.** STOP, AUTO MODE
+  und RISK erreichten bei 7,5 px nur 4,22–4,36:1 statt 4,5:1 (SC 1.4.3), weil
+  `.rs-btn__label` direkt auf der gezeichneten Bedienleiste liegt, ohne
+  eigenen Untergrund. `.rs-btn__label:not(:empty)` legt jetzt ein
+  blickdichtes Namensschild (`--ck-chrome-100`) dahinter — übernommenes
+  Muster aus `fruit_risk/machine.css` (dort N-01/A-30). Nachgemessen (1440 px,
+  `rgb(61, 69, 76)` auf `rgb(246, 249, 251)`): **9,22:1**. `:not(:empty)`
+  lässt die beiden unbeschrifteten Risiko-Tasten (risk-left/risk-right)
+  ausdrücklich aus — ein Schild ohne Schrift wäre ein sichtbarer Fleck.
+- **N-04 · Drei Live-Bereiche füllten sich innerhalb von 300 ms nach dem
+  Laden**, bevor irgendjemand etwas bedient hatte: „Guthaben: 0",
+  „Einsatz: 1", „Kasse: 100". Ursache war dieselbe Falle wie beim FruitRisk
+  vor dessen Fertigstellung: `NixieGroup.announce()` (`nixie.js`) sagt die
+  ALLERERSTE Ansage ohne Wartezeit an, und `Bank.paint()` (`bank.js`) sagte
+  bei jedem Aufruf an — auch beim synchronen Erstaufruf aus `subscribe()`,
+  der nur den Anfangszustand herstellt. `show()`/`clear()` (`nixie.js`) und
+  `snap()`/`paint()` (`counter.js`) nehmen jetzt ein zweites Argument
+  `announce` (Vorgabe `true`); `wallet.js` ruft den allerersten Anfangsstand
+  damit `false` auf. `bank.js` reicht den `reason` aus `subscribe()` durch
+  `paint(reason)` und sagt bei `reason === 'subscribe'` nichts an. Die
+  sichtbaren Röhren und das Kassenfenster zeigen ihren Anfangsstand
+  weiterhin sofort — nur die Ansage bleibt beim bloßen Laden aus.
+
+**Eine Grenze, ehrlich benannt statt behoben — A-07, Zielgröße der
+Münztasten:** `+10`/`+50`/`+100` (`.rs-coinslot__button`) erreichen 24×24 px
+(SC 2.5.8) erst **ab 480 px Fensterbreite**. Gemessen:
+
+| Fensterbreite | `+10` | `+50` | `+100` |
+|---|---|---|---|
+| 360 px | 18,7 × 19,0 | 18,7 × 19,0 | 21,6 × 19,0 |
+| 480 px | 25,3 × 25,7 | 25,3 × 25,7 | 29,1 × 25,7 |
+| 768 px | 25,3 × 25,7 | 25,3 × 25,7 | 29,1 × 25,7 |
+
+Geprüft, ob eine Vergrößerung innerhalb der Maßordnung des Gehäuses möglich
+ist (`machine.css`, Abschnitt 4, Koordinatentabelle): die drei Knöpfe liegen
+in einem 20 Einheiten breiten Block (x 8–28), unmittelbar gefolgt vom
+gezeichneten Münzschlitz (x 30–37, nur 2 Einheiten Abstand). Um bei 360 px
+auf 24 px Breite zu kommen, müsste der Block auf rund 25 Einheiten wachsen —
+er schöbe sich damit in den gezeichneten Schlitz hinein. Das ist dieselbe
+Rechnung, die `video_slot/machine.css` (Audit V-04) für den
+Mittelpunktsabstand derselben drei Knöpfe bereits aufgestellt und verworfen
+hat: „Behebbar nur durch eine Neuaufteilung der Sockelreihe an BEIDEN
+Geräten." Eine Vergrößerung, die den Münzschlitz verschiebt oder das Gehäuse
+sonst verzieht, wurde deshalb nicht vorgenommen — anders als beim Vorbild
+FruitRisk (dort war für die Geldbedienteile ungezeichneter Freiraum bis zur
+nächsten festen Zone vorhanden, hier nicht).
+
 ## Stand
 
-Version 0.1.0 (alpha). Teil A ist vollständig abgeschlossen (Phasen 4 bis 11): Gerüst
+Version 0.2.0 (alpha). Teil A ist vollständig abgeschlossen (Phasen 4 bis 11): Gerüst
 und Registry-Anmeldung, das vollständige Gehäuse, der Spielkern samt
 nachgewiesener Quote, die Verrechnung, die Risiko-Leiter, der Auto-Modus und
 der Klang.

@@ -1,0 +1,484 @@
+<f:comment>
+	Das grosse Gehäuse von „FruitRisk" auf seiner eigenen Seite.
+
+	Zwei Teile, bewusst getrennt:
+	  - Machine/Shell.html  die feste Zeichnung (SVG, aria-hidden)
+	  - hier               der Rahmen, die Live-Bereiche und ab F2 die
+	                       beweglichen Teile, die sich über die Zeichnung legen
+
+	.fr-cabinet ist der Container-Query-Container mit dem Seitenverhältnis
+	1 : 1 des Maßrasters 160 x 160 (CONCEPT.md C.14.4). Wie aus einer
+	viewBox-Zahl eine CSS-Länge wird, steht im Kopf von machine.css und nur
+	dort.
+
+	DIE VIER LIVE-BEREICHE STEHEN LEER IM AUSGELIEFERTEN HTML.
+	Ein Live-Bereich, den ein Skript anlegt UND füllt, wird von Hilfsmitteln
+	nicht angesagt (CONCEPT.md C.14.12). Ihre Zahl ist mit dieser Datei
+	festgelegt und ändert sich nicht mehr; für das Rundenergebnis wird KEIN
+	neuer angelegt, es reist durch den Bereich des Sichtfelds.
+
+	role="status" und nicht role="alert": eine Ansage an diesem Gerät ist eine
+	Auskunft, keine Warnung, und darf den Nutzer nicht unterbrechen.
+
+	fr-offscreen verbirgt über clip-path, nicht über display oder visibility —
+	beide nähmen die Bereiche aus dem Barrierebaum und machten role="status"
+	wirkungslos.
+
+	STAND F2: Malreihenfolge jetzt Zeichnung, Sichtfeld, Glas, Anzeigen,
+	Bedienfeld, START/STOP, Live-Bereiche. Alle zwoelf Bedienteile stehen als
+	echte button, aber es gibt noch kein Skript, das etwas ansagt oder auf
+	einen Druck reagiert. Die vier Bereiche bleiben leer, und das ist richtig
+	so.
+
+	STAND F3: Der Gewinnplan hinter Glas trägt jetzt Zahlen. Sie stehen nicht
+	im Markup, sondern kommen über {machine} aus dem CabinetProcessor, der sie
+	aus Classes/Rules.php holt. Bedienung, Walzenwerk und Klang fehlen
+	weiterhin — das ist Phase F4 und F5.
+
+	STAND F4a: Der Grid-Aufruf bekommt jetzt ausdrücklich arguments="{machine:
+	machine}" — Grid.html liest seit diesem Teilstück {machine.reels} und
+	{machine.paylines}. Ohne das Argument bekäme die isolierte
+	Partial-Variablenumgebung von f:render den Wert nicht gereicht (dieselbe
+	Übergabe, mit der Shell.html den Gewinnplan schon seit F3 bekommt).
+
+	STAND F4b: Die Tafel, der Münzschlitz mit den drei Schnellwerten und dem
+	Feld für den freien Betrag, das Kassenfenster und CASH OUT kommen dazu.
+	Neun der zwölf Bedienteile (AUTO MODE, die acht Risiko-Tasten) tragen ab
+	jetzt aria-disabled="true" (Machine/Button.html, Argument disabled) — sie
+	sind in dieser Phase noch wirkungslos, bleiben aber im Tastaturweg
+	erreichbar. Die vier Live-Bereiche bleiben vier: die Tafel und das
+	Kassenfenster sind gezeichnete Anzeigen mit aria-hidden und reisen durch
+	die Bereiche „machine" bzw. „credit"; „grid" und „credit" tragen jetzt
+	zusätzlich die Satzmuster und Namen, die die Ansage-Module aus Phase F4c
+	brauchen — es bleibt bei genau einem Eigentümer je Bereich. Es gibt
+	weiterhin kein JavaScript; jeder neue Zustand ist per Hand über die
+	Entwicklerwerkzeuge auslösbar.
+
+	STAND F5b: Die acht Risiko-Tasten sind verdrahtet (risk.js). Ihre
+	f:render-Aufrufe reichten das Argument disabled zunächst nicht mehr durch
+	— Machine/Button.html lieferte dafür aria-disabled="false" aus, und
+	risk.js nahm das in seinem Konstruktor SOFORT zurück auf "true"; erst ein
+	Angebot setzte es wieder auf "false". AUTO MODE bleibt bewusst unverändert
+	bei disabled: 1 (aria-disabled="true", echtes Bedienteil noch ohne
+	Wirkung) — das nimmt erst eine künftige Phase F5c zurück, wenn sie diese
+	Taste tatsächlich verdrahtet. Der Live-Bereich „risk" hat jetzt seinen
+	Eigentümer (risk.js) und seine drei Satzmuster (Angebot, gewonnen,
+	verloren); die vier Live-Bereiche bleiben vier.
+
+	STAND F5c: AUTO MODE ist jetzt verdrahtet (auto.js) und ruft
+	Machine/Button.html nicht mehr mit disabled: 1, sondern mit toggle: 1
+	auf — alle zwoelf Bedienteile reichen das Argument disabled damit nicht
+	mehr durch. Als Umschalter traegt die Taste ab jetzt aria-pressed
+	("false" schon im ausgelieferten HTML, siehe Machine/Button.html);
+	auto.js zieht "true"/"false" beim Umschalten sofort nach und laesst die
+	Taste zusaetzlich leuchten (.fr-btn--lit), damit der Zustand nicht rein
+	ueber aria-pressed transportiert wird. Kein neuer Live-Bereich: ein
+	Umschalter mit aria-pressed sagt seinen Zustand selbst an, es bleibt bei
+	vier.
+
+	STAND F5d: Der Ton-Schalter kommt dazu (sound.js) — ein eigenes
+	Bedienteil am Sockel, KEIN dreizehnter Aufruf von Machine/Button.html.
+	Er ist standardmaessig eingeschaltet (fr-sound--on, aria-pressed="true"
+	schon im ausgelieferten HTML) und traegt keinen Live-Bereich: ein
+	Umschalter mit aria-pressed sagt seinen Zustand selbst an. Es bleibt bei
+	vier Live-Bereichen.
+
+	BEHEBUNGSLAUF 2026-09-05 (Laufzeitprüfung AUDITREPORT-2026-09-05.md,
+	Befund N-05): Die acht Risiko-Tasten rufen Machine/Button.html jetzt
+	WIEDER mit disabled: 1 auf. Grund: ohne das Argument lieferte das HTML
+	aria-disabled="false" aus, obwohl beim Laden nie ein Angebot besteht —
+	ein Hilfsmittel las im ersten Moment (und ganz ohne JavaScript dauerhaft)
+	das Gegenteil des geltenden Zustands. risk.js nimmt den Zustand in
+	seinem Konstruktor ohnehin unbedingt auf "true" (setGroupEnabled(group,
+	false), siehe risk.js Dateikopf) — das Argument ändert an der Wirkung
+	von risk.js nichts, macht aber den ausgelieferten Anfangszustand
+	ehrlich. AUTO MODE, REWARD, START und STOP bleiben unverändert ohne
+	disabled: 1.
+
+	STAND „Starttaste je Gruppe": jede der drei Risikogruppen bekommt unter
+	ihrer Tastenzeile eine eigene, beschriftete Starttaste (risk-start,
+	risk4-start, risk8-start, Bauform "tab"). Damit sind es fuenfzehn Aufrufe
+	von Machine/Button.html statt zwoelf; acht davon sind weiterhin runde
+	Kappen ohne Aufschrift, sieben tragen sichtbaren Text. Die drei
+	gedruckten Gruppenbeschriftungen entfallen dafuer — ihr Text steht jetzt
+	auf der Kappe der jeweiligen Starttaste. Die drei neuen Tasten tragen wie
+	die acht Richtungstasten disabled: 1 (beim Laden besteht nie ein Angebot).
+	Sie sind KEINE Seite einer Leiter: sie STARTEN sie nur (risk.js,
+	onStart()) — der erste Versuch bleibt der erste Druck auf eine
+	RICHTUNGSTASTE. Kein neuer Live-Bereich, es bleibt bei vier.
+</f:comment>
+<div class="fr-cabinet" data-fr-cabinet>
+	<f:render partial="Automat/FruitRisk/Machine/Shell" arguments="{machine: machine}" />
+
+	<f:comment>Das leuchtende Fenster: sechs Walzen zu je fuenf Feldern.</f:comment>
+	<f:render partial="Automat/FruitRisk/Machine/Grid" arguments="{machine: machine}" />
+
+	<f:comment>Die Scheibe vor dem Sichtfeld. Eigenes Element, weil sie ueber
+		den Leuchtfeldern liegen muss — in der Zeichnung laege sie darunter.
+		Sie faengt keine Zeiger ab: sie ist Glas, kein Bedienteil.</f:comment>
+	<span class="fr-grid__glass"></span>
+
+	<f:comment>Die Tafel ueber dem Sichtfeld, nach Art der alten Meldeschilder.
+		Sie ist verborgen, bis message.js .fr-message--shown setzt — ueber
+		opacity und pointer-events, nie ueber visibility oder display.
+
+		SIE IST KEIN FUENFTER LIVE-BEREICH. Sie traegt aria-hidden="true" und
+		ist damit eine rein gezeichnete Anzeige; ihr Text reist durch den
+		vorhandenen Bereich data-fr-announce="machine" (CONCEPT.md C.14.12,
+		„jede gezeichnete Anzeige ist zweigeteilt"). Die Zahl der Live-Bereiche
+		dieses Geraets bleibt bei VIER.
+
+		Die sieben Texte reisen als data-Attribute mit, damit sie aus der
+		Sprachdatei kommen und nicht im JavaScript stehen. (Behebungslauf
+		REVIEW-fruitrisk-f4.md [L9]: data-fr-text-broken ist neu, für ein
+		Gehäuse, dessen Markup nicht zum Spielkern passt.)</f:comment>
+	<p class="fr-message" data-fr-message aria-hidden="true"
+		data-fr-text-insufficient="{f:translate(key: 'LLL:EXT:fruit_risk/Resources/Private/Language/locallang.xlf:machine.message.insufficient')}"
+		data-fr-text-invalid="{f:translate(key: 'LLL:EXT:fruit_risk/Resources/Private/Language/locallang.xlf:machine.message.invalid')}"
+		data-fr-text-capped="{f:translate(key: 'LLL:EXT:fruit_risk/Resources/Private/Language/locallang.xlf:machine.message.capped')}"
+		data-fr-text-void="{f:translate(key: 'LLL:EXT:fruit_risk/Resources/Private/Language/locallang.xlf:machine.message.void')}"
+		data-fr-text-nocash="{f:translate(key: 'LLL:EXT:fruit_risk/Resources/Private/Language/locallang.xlf:machine.message.nocash')}"
+		data-fr-text-norng="{f:translate(key: 'LLL:EXT:fruit_risk/Resources/Private/Language/locallang.xlf:machine.message.norng')}"
+		data-fr-text-broken="{f:translate(key: 'LLL:EXT:fruit_risk/Resources/Private/Language/locallang.xlf:machine.message.broken')}"></p>
+
+	<f:comment>Vier Roehrengruppen. GUTHABEN und STUFE starten DUNKEL
+		(--fr-digit: -1): eine gemalte Zahl waere eine sichtbare Luege, sobald
+		jemand einwirft, und eine Stufe null gibt es nicht. EINSATZ 10 und
+		GEWINN 0000000 sind dagegen wahr — der Einsatz ist fest 10
+		(CONCEPT.md C.14.5), ein Gewinn liegt nicht vor.
+
+		Sieben Roehren fuer GUTHABEN und GEWINN, weil der Kassen-Hoechststand
+		9.999.999 ist (C.14.10). Zwei fuer STUFE: die Leiter kennt kein Limit
+		nach oben, praktisch erreichbar sind zweistellige Stufen, und fuer den
+		Ausnahmefall gibt es .fr-nixie-group--overflow.</f:comment>
+	<div class="fr-nixie-panel">
+		<f:render partial="Automat/FruitRisk/Machine/NixieGroup"
+			arguments="{labelKey: 'machine.display.guthaben', displayKey: 'guthaben', tubes: {0: '-1', 1: '-1', 2: '-1', 3: '-1', 4: '-1', 5: '-1', 6: '-1'}}" />
+		<f:render partial="Automat/FruitRisk/Machine/NixieGroup"
+			arguments="{labelKey: 'machine.display.einsatz', displayKey: 'einsatz', tubes: machine.stakeTubes}" />
+		<f:render partial="Automat/FruitRisk/Machine/NixieGroup"
+			arguments="{labelKey: 'machine.display.stufe', displayKey: 'stufe', tubes: {0: '-1', 1: '-1'}}" />
+		<f:render partial="Automat/FruitRisk/Machine/NixieGroup"
+			arguments="{labelKey: 'machine.display.gewinn', displayKey: 'gewinn', tubes: {0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0}}" />
+	</div>
+
+	<f:comment>START und STOP im Gehaeuse, RECHTS NEBEN den Walzen. Dieses Geraet
+		hat weder Hebel noch Konsole an der Flanke (CONCEPT.md C.14.5). STOP hat
+		dieselbe Abmessung wie START und sitzt unmittelbar darunter. Beide
+		reagieren auf Zeiger und Tastatur — das bringt der button mit; die
+		Wirkung kommt in Phase F4. Ihre Aufschrift ist zugleich der Name, den ein
+		Hilfsmittel vorliest, deshalb kein zusaetzliches aria-label.</f:comment>
+	<f:render partial="Automat/FruitRisk/Machine/Button"
+		arguments="{key: 'start', shape: 'square', labelKey: 'machine.button.start', ariaLabelKey: ''}" />
+	<f:render partial="Automat/FruitRisk/Machine/Button"
+		arguments="{key: 'stop', shape: 'square', labelKey: 'machine.button.stop', ariaLabelKey: ''}" />
+
+	<f:comment>Das Bedienfeld UNTER den Walzen, von links nach rechts:
+		AUTO MODE, RISK x8 (vier Richtungstasten im Kreuz und darunter die
+		Starttaste RISK x8 START), RISK x4 (zwei Richtungstasten und darunter
+		RISK x4 START), RISK (ebenso), REWARD (CONCEPT.md C.14.5). Es gibt KEINE
+		Einsatztasten — der Einsatz ist fest 10 und EINSATZ ist eine reine
+		Anzeige.
+
+		Die acht Richtungstasten tragen keine sichtbare Aufschrift und bekommen
+		ihren Namen deshalb ueber aria-label aus der Sprachdatei — und zwar einen
+		UNTERSCHEIDENDEN. Acht namenlose oder gleichnamige Tasten waeren fuer ein
+		Hilfsmittel unbenutzbar (CONCEPT.md C.14.12).
+
+		AN DER STELLE DER FRUEHEREN GRUPPENBESCHRIFTUNG SITZT JETZT EIN
+		BEDIENTEIL. Die drei gedruckten Beschriftungen ("RISK x8" usw.) waren
+		aria-hidden, weil sie nur wiederholten, was in den aria-labeln der
+		Tasten ohnehin steckte. Sie sind jetzt die Aufschrift der drei
+		Starttasten, und die sind KEIN loser Textbrocken mehr, sondern ein
+		echtes Bedienteil: die Aufschrift IST ihr erreichbarer Name (kein
+		zusaetzliches aria-label), sie benennt die Gruppe UND die Handlung
+		("RISK x8 START"). Fuer die Augen steht der Gruppenname damit
+		unveraendert an derselben Stelle.
+
+		WARUM DIE STARTTASTE NICHT IM KREUZ SITZT: zwischen dem Ring der oberen
+		und dem der unteren Kreuztaste sind nur 3,7 Einheiten frei (7,4 Kappe
+		+ 2 x 0,95 Ring bei 6,5 Rasterschritt). Eine mittige Taste haette alle
+		elf runden Tasten auf hoechstens 5,7 Einheiten verkleinert und die
+		Zielgroessen-Ausnahme des Geraets vergroessert. Die flache Taste unter
+		der Gruppe kostet dagegen nur den Platz, den die Beschriftung ohnehin
+		belegte.
+
+		Jede Taste hat ihren EIGENEN, unabhaengig schaltbaren Leuchtzustand
+		(.fr-btn--lit). Das ist keine Bequemlichkeit, sondern die bauliche
+		Voraussetzung der Blitzsicherheit aus Phase F5: es duerfen nie zwei
+		Risiko-Tasten gleichzeitig leuchten oder ueberblenden.</f:comment>
+	<div class="fr-panel">
+		<div class="fr-group">
+			<span class="fr-group__row">
+				<f:render partial="Automat/FruitRisk/Machine/Button"
+					arguments="{key: 'auto', shape: 'key', labelKey: 'machine.button.auto', ariaLabelKey: '', toggle: 1}" />
+			</span>
+		</div>
+
+		<div class="fr-group">
+			<span class="fr-group__cross">
+				<f:render partial="Automat/FruitRisk/Machine/Button"
+					arguments="{key: 'risk8-up', shape: 'round', labelKey: '', ariaLabelKey: 'machine.button.risk8.up', disabled: 1}" />
+				<f:render partial="Automat/FruitRisk/Machine/Button"
+					arguments="{key: 'risk8-left', shape: 'round', labelKey: '', ariaLabelKey: 'machine.button.risk8.left', disabled: 1}" />
+				<f:render partial="Automat/FruitRisk/Machine/Button"
+					arguments="{key: 'risk8-right', shape: 'round', labelKey: '', ariaLabelKey: 'machine.button.risk8.right', disabled: 1}" />
+				<f:render partial="Automat/FruitRisk/Machine/Button"
+					arguments="{key: 'risk8-down', shape: 'round', labelKey: '', ariaLabelKey: 'machine.button.risk8.down', disabled: 1}" />
+			</span>
+			<f:render partial="Automat/FruitRisk/Machine/Button"
+				arguments="{key: 'risk8-start', shape: 'tab', labelKey: 'machine.button.risk8.start', ariaLabelKey: '', disabled: 1}" />
+		</div>
+
+		<div class="fr-group">
+			<span class="fr-group__row">
+				<f:render partial="Automat/FruitRisk/Machine/Button"
+					arguments="{key: 'risk4-left', shape: 'round', labelKey: '', ariaLabelKey: 'machine.button.risk4.left', disabled: 1}" />
+				<f:render partial="Automat/FruitRisk/Machine/Button"
+					arguments="{key: 'risk4-right', shape: 'round', labelKey: '', ariaLabelKey: 'machine.button.risk4.right', disabled: 1}" />
+			</span>
+			<f:render partial="Automat/FruitRisk/Machine/Button"
+				arguments="{key: 'risk4-start', shape: 'tab', labelKey: 'machine.button.risk4.start', ariaLabelKey: '', disabled: 1}" />
+		</div>
+
+		<div class="fr-group">
+			<span class="fr-group__row">
+				<f:render partial="Automat/FruitRisk/Machine/Button"
+					arguments="{key: 'risk-left', shape: 'round', labelKey: '', ariaLabelKey: 'machine.button.risk.left', disabled: 1}" />
+				<f:render partial="Automat/FruitRisk/Machine/Button"
+					arguments="{key: 'risk-right', shape: 'round', labelKey: '', ariaLabelKey: 'machine.button.risk.right', disabled: 1}" />
+			</span>
+			<f:render partial="Automat/FruitRisk/Machine/Button"
+				arguments="{key: 'risk-start', shape: 'tab', labelKey: 'machine.button.risk.start', ariaLabelKey: '', disabled: 1}" />
+		</div>
+
+		<div class="fr-group">
+			<span class="fr-group__row">
+				<f:render partial="Automat/FruitRisk/Machine/Button"
+					arguments="{key: 'reward', shape: 'key', labelKey: 'machine.button.reward', ariaLabelKey: ''}" />
+			</span>
+		</div>
+	</div>
+
+	<f:comment>Geldeinwurf am Sockel (CONCEPT.md B.5.2, C.14.10). Der
+		gezeichnete Muenzschlitz in der Mitte IST der Absendeknopf: man wirft
+		ein, indem man in den Schlitz greift, nicht ueber eine Schaltflaeche
+		daneben. Die Eingabetaste im Feld tut dasselbe, weil das bei einem
+		Formular so gehoert.
+
+		Die Schnellwerte sind +10, +100 und +500 (C.14.10) — +10 ist genau
+		eine Runde. Die beiden fr-coinslot__legend sind Beschriftungen fuer
+		die Dokumentstruktur: jedes Eingabefeld und jeder Knopf braucht einen
+		Namen, und am Gehaeuse ist dafuer kein Platz.
+
+		max="9999999" ist die Anzeigekapazitaet der sieben GUTHABEN-Roehren.
+		Der geteilte Hoechststand der Kasse (999.999.999) wird dabei NICHT
+		angefasst — er gehoert casino_startpage und damit allen Geraeten.</f:comment>
+	<form class="fr-coinslot" data-fr-coinslot>
+		<f:comment>Namensschild (Nachtrag 2026-09-05 zu N-01): jede Aufschrift
+			steckt in einem eigenen span.fr-coinslot__button-label, damit
+			machine.css ihr ein blickdichtes Schild geben kann, ohne die
+			gesamte Messingkappe des Knopfes zu überdecken — dieselbe Bauart
+			wie .fr-btn__label, .fr-cashout__label und .fr-sound__label.</f:comment>
+		<div class="fr-coinslot__quick">
+			<button type="button" class="fr-coinslot__button" data-fr-coin-add="10"><span class="fr-coinslot__button-label"><f:translate
+				key="LLL:EXT:fruit_risk/Resources/Private/Language/locallang.xlf:machine.coin.add.10" /></span></button>
+			<button type="button" class="fr-coinslot__button" data-fr-coin-add="100"><span class="fr-coinslot__button-label"><f:translate
+				key="LLL:EXT:fruit_risk/Resources/Private/Language/locallang.xlf:machine.coin.add.100" /></span></button>
+			<button type="button" class="fr-coinslot__button" data-fr-coin-add="500"><span class="fr-coinslot__button-label"><f:translate
+				key="LLL:EXT:fruit_risk/Resources/Private/Language/locallang.xlf:machine.coin.add.500" /></span></button>
+		</div>
+		<f:comment>type="button", nicht submit (Behebungslauf REVIEW-fruitrisk-f4.md
+			[L4]): ein type="submit" laedt die Seite neu, solange coinslot.js
+			noch nicht geladen oder JavaScript aus ist — ein Formular ohne
+			eigenes name-Attribut verliert dabei zwar nichts, gibt aber eine
+			Rueckmeldung, die es nicht einloesen kann. coinslot.js verdrahtet
+			diesen Knopf jetzt selbst (click) und faengt die Eingabetaste im
+			Feld eigens per keydown ab — ohne JavaScript tut der Schlitz
+			nichts, wie jedes andere Bedienteil dieses Geraets auch.</f:comment>
+		<button type="button" class="fr-coinslot__slot" data-fr-coin-insert>
+			<span class="fr-coinslot__legend fr-offscreen"><f:translate
+				key="LLL:EXT:fruit_risk/Resources/Private/Language/locallang.xlf:machine.coin.insert" /></span>
+		</button>
+		<span class="fr-coinslot__coin" data-fr-coin></span>
+		<label class="fr-coinslot__custom">
+			<span class="fr-coinslot__legend fr-offscreen"><f:translate
+				key="LLL:EXT:fruit_risk/Resources/Private/Language/locallang.xlf:machine.coin.custom" /></span>
+			<input type="number" class="fr-coinslot__input" data-fr-coin-input
+				inputmode="numeric" min="1" max="9999999" step="1" value=""
+				placeholder="{f:translate(key: 'LLL:EXT:fruit_risk/Resources/Private/Language/locallang.xlf:machine.coin.placeholder')}" />
+		</label>
+	</form>
+
+	<f:comment>Das Kassenfenster im Sockel (B.5.1). Es zeigt den
+		GESAMTBESTAND — die Kasse —, waehrend die Roehrengruppe GUTHABEN
+		darueber den GERAETEKREDIT zeigt. Zwei Toepfe, zwei Anzeigen.
+
+		Die Fassung ist gezeichnet (Machine/Shell.html, Zone „bank"); hier
+		steht nur der Inhalt. Der Strich als Anfangswert ist derselbe
+		Kunstgriff wie im Saal: eine gemalte Zahl waere eine sichtbare Luege,
+		solange JavaScript den echten Stand noch nicht eingesetzt hat.
+
+		Beschriftung und Zahl tragen aria-hidden; angesagt wird EIN Satz
+		(„Kasse: 250, Guthaben: 40") im vorhandenen Live-Bereich „credit".
+		Kein id-Attribut und kein aria-labelledby: Ausweise muessten je
+		Gehaeuse eindeutig sein.</f:comment>
+	<div class="fr-bank">
+		<span class="fr-bank__label" aria-hidden="true"><f:translate
+			key="LLL:EXT:fruit_risk/Resources/Private/Language/locallang.xlf:machine.bank.label" /></span>
+		<span class="fr-bank__value" data-fr-bank-display aria-hidden="true">&#8211;</span>
+	</div>
+
+	<f:comment>Die Auszahl-Taste CASH OUT (B.5.2). Sie bucht den Geraetekredit
+		vollstaendig in die Kasse zurueck und SITZT AUF DER AUSWURFSCHALE —
+		dem Ort, an dem an einem echten Geraet das Geld herauskommt; das
+		Bedienfeld ist mit fünfzehn Tasten voll.
+
+		type="button", nicht submit: sie gehoert zu keinem Formular. Sie hoert
+		auf click und nicht auf pointerdown — CASH OUT ist keine Spielhandlung,
+		sondern das Beenden, und ein click an einem echten button wird von der
+		Eingabe- UND der Leertaste ausgeloest.
+
+		Ist nichts im Geraet, traegt sie aria-disabled="true": dunkel, ohne
+		Wirkung, aber im Tastaturweg erreichbar. Das Attribut steht schon im
+		Markup, damit die Taste auch ohne JavaScript kein Angebot vortaeuscht;
+		die wirksame Sperre ist cashOut() selbst, das bei 0 folgenlos ist.</f:comment>
+	<button type="button" class="fr-cashout" data-fr-cashout aria-disabled="true">
+		<span class="fr-cashout__label"><f:translate
+			key="LLL:EXT:fruit_risk/Resources/Private/Language/locallang.xlf:machine.cashout.label" /></span>
+	</button>
+
+	<f:comment>Der Ton-Schalter am Sockel, rechts neben der Auswurfschale. Er ist
+		KEIN dreizehntes Bedienteil aus Machine/Button.html: er hat eine eigene
+		Bauform (Kippschalter mit Lämpchen statt Bakelit-Kappe im Chromring) und
+		ist ein UMSCHALTER, kein Drucktaster — aria-pressed sagt einem Hilfsmittel
+		den Zustand mit an.
+
+		Der Ton ist standardmäßig EINGESCHALTET (CONCEPT.md 3.7). Deshalb steht
+		der Schalter schon im ausgelieferten HTML auf fr-sound--on und
+		aria-pressed="true" — und nicht erst, sobald JavaScript läuft. Hat der
+		Besucher ihn früher einmal ausgeschaltet, zieht sound.js beides beim
+		Anmelden sofort nach (subscribe liefert einen Erstaufruf).
+
+		Kein role="status", keine Ansage: ein Umschalter mit aria-pressed sagt
+		seinen Zustand selbst an. Es bleibt bei VIER Live-Bereichen.</f:comment>
+	<button type="button" class="fr-sound fr-sound--on" data-fr-sound aria-pressed="true">
+		<span class="fr-sound__lamp" aria-hidden="true"></span>
+		<span class="fr-sound__label"><f:translate
+			key="LLL:EXT:fruit_risk/Resources/Private/Language/locallang.xlf:machine.sound.label" /></span>
+		<span class="fr-sound__rocker" aria-hidden="true"></span>
+	</button>
+
+	<f:comment>
+		STAND F3-Behebungslauf (REVIEW-fruitrisk-f3.md [M8]): der Gewinnplan
+		hinter Glas ist echter SVG-Text, liegt aber vollständig innerhalb der
+		als aria-hidden="true" ausgezeichneten Zeichnung (Machine/Shell.html)
+		und existiert damit für ein Hilfsmittel nicht — 48 Gewinnwerte, vier
+		Spaltenköpfe, zwölf Symbolnamen und der Feldtreppen-Hinweis. Diese
+		Tabelle macht dieselben Werte aus derselben Quelle ({machine.paytable},
+		{machine.paytableHeads}, {machine.fieldLadderNote} — CabinetProcessor,
+		Classes/Rules.php) lesbar, verborgen nur OPTISCH über .fr-offscreen
+		(clip-path), nie über display/visibility — dieselbe Technik wie bei
+		den vier Live-Bereichen unten. KEIN fünfter Live-Bereich: eine
+		statische Tabelle trägt kein role="status", ihr Inhalt ändert sich
+		nach dem Rendern nie.
+
+		BEHEBUNGSLAUF 2026-09-05 (AUDITREPORT-2026-09-05.md, Befund N-06):
+		unter der Seiten-H1 (die das Site Package aus dem Seitentitel bildet,
+		CONCEPT.md C.14.12) gab es auf keiner Geräteseite eine zweite
+		Gliederungsebene, über die ein Hilfsmittel per Überschriftensprung
+		navigieren könnte. Der Gewinnplan ist dafür der einzige echte
+		Kandidat dieses Geräts: er trägt bereits einen sichtbaren Titel
+		("GEWINNPLAN", als SVG-Text in Machine/Shell.html gezeichnet), nur
+		eben nicht als navigierbare Überschrift, weil dieser Titel innerhalb
+		der aria-hidden gezeichneten Fläche liegt. Die h2 unten macht diesen
+		bereits vorhandenen, bereits benannten Abschnitt für Hilfsmittel
+		auffindbar — sie erfindet keinen neuen Titel, sondern übernimmt
+		denselben Schlüssel wie die table-caption direkt darunter. Keine
+		zweite Überschrift wurde für die vier Live-Bereiche oder die
+		Geldeinbauten ergänzt: die haben keinen eigenen, in sich
+		abgeschlossenen Abschnitt, den eine Überschrift zusammenfassen
+		könnte — eine Überschrift nur um der Vollständigkeit willen wäre hier
+		erfunden, keine Antwort auf eine echte Gliederung.
+	</f:comment>
+	<h2 class="fr-offscreen"><f:translate
+		key="LLL:EXT:fruit_risk/Resources/Private/Language/locallang.xlf:machine.paytable.title" /></h2>
+	<table class="fr-offscreen">
+		<caption><f:translate
+			key="LLL:EXT:fruit_risk/Resources/Private/Language/locallang.xlf:machine.paytable.title" /></caption>
+		<thead>
+			<tr>
+				<th scope="col"><f:translate
+					key="LLL:EXT:fruit_risk/Resources/Private/Language/locallang.xlf:machine.paytable.symbol" /></th>
+				<f:for each="{machine.paytableHeads}" as="head" iteration="headIteration">
+					<f:if condition="{headIteration.index} < 4">
+						<th scope="col">{head.length}</th>
+					</f:if>
+				</f:for>
+			</tr>
+		</thead>
+		<tbody>
+			<f:for each="{machine.paytable}" as="row">
+				<tr>
+					<th scope="row"><f:format.case mode="capital">{row.symbol}</f:format.case></th>
+					<f:for each="{row.values}" as="value"><td>{value.value}</td></f:for>
+				</tr>
+			</f:for>
+		</tbody>
+	</table>
+	<p class="fr-offscreen"><f:translate
+		key="LLL:EXT:fruit_risk/Resources/Private/Language/locallang.xlf:machine.paytable.note" />{machine.fieldLadderNote}</p>
+
+	<f:comment>Statischer, unsichtbarer Hinweis auf den festen Einsatz. Kein
+		role="status": der Satz aendert sich nie. Er schliesst die Luecke, die
+		entsteht, weil die Roehrengruppe EINSATZ aria-hidden traegt und dieses
+		Geraet — anders als das vorhandene Fuenf-Walzen-Geraet — keine eigene
+		Ansage je Roehrengruppe hat.
+
+		Behebungslauf REVIEW-fruitrisk-f4.md [M6]: die Zahl stand hier bislang
+		ausgeschrieben ("Einsatz: 10 Kredite, fest.") — eine dritte, ungebundene
+		Kopie von Rules::STAKE neben den EINSATZ-Roehren und dem Schnellwert
+		+10. Jetzt kommt sie live aus {machine.stake} (CabinetProcessor,
+		Classes/Rules.php::STAKE), ueber f:translate arguments wie sonst nur
+		JavaScript-Satzmuster mit {0} befuellt werden.</f:comment>
+	<p class="fr-offscreen"><f:translate
+		key="LLL:EXT:fruit_risk/Resources/Private/Language/locallang.xlf:machine.stake.note"
+		arguments="{0: machine.stake}" /></p>
+
+	<f:comment>Die vier Live-Bereiche. Sie bleiben LEER — data-Attribute
+		werden von einem Hilfsmittel nicht vorgelesen, sondern reisen nur die
+		Satzmuster und Namen mit, die die Module aus Phase F4c/F4d beim
+		Ansagen brauchen (announce.js, message.js, grid-announce.js, bank.js).
+		„machine" gehoert der Tafel (message.js), „grid" der Sichtfeld-Ansage
+		(grid-announce.js), „credit" dem Kassenfenster (bank.js), „risk" seit
+		Phase F5b dem Risikospiel (risk.js) — je Bereich GENAU EIN
+		Eigentuemer.</f:comment>
+	<p class="fr-offscreen" data-fr-announce="machine" role="status"></p>
+	<p class="fr-offscreen" data-fr-announce="grid" role="status"
+		data-fr-text-grid="{f:translate(key: 'LLL:EXT:fruit_risk/Resources/Private/Language/locallang.xlf:machine.grid.announce')}"
+		data-fr-text-result="{f:translate(key: 'LLL:EXT:fruit_risk/Resources/Private/Language/locallang.xlf:machine.grid.result')}"
+		data-fr-text-resultfield="{f:translate(key: 'LLL:EXT:fruit_risk/Resources/Private/Language/locallang.xlf:machine.grid.result.field')}"
+		data-fr-text-resultlinesonly="{f:translate(key: 'LLL:EXT:fruit_risk/Resources/Private/Language/locallang.xlf:machine.grid.result.linesonly')}"
+		data-fr-text-fieldpart="{f:translate(key: 'LLL:EXT:fruit_risk/Resources/Private/Language/locallang.xlf:machine.grid.fieldpart')}"
+		data-fr-name-sieben="{f:translate(key: 'LLL:EXT:fruit_risk/Resources/Private/Language/locallang.xlf:machine.symbol.sieben')}"
+		data-fr-name-glocke="{f:translate(key: 'LLL:EXT:fruit_risk/Resources/Private/Language/locallang.xlf:machine.symbol.glocke')}"
+		data-fr-name-ananas="{f:translate(key: 'LLL:EXT:fruit_risk/Resources/Private/Language/locallang.xlf:machine.symbol.ananas')}"
+		data-fr-name-apfel="{f:translate(key: 'LLL:EXT:fruit_risk/Resources/Private/Language/locallang.xlf:machine.symbol.apfel')}"
+		data-fr-name-banane="{f:translate(key: 'LLL:EXT:fruit_risk/Resources/Private/Language/locallang.xlf:machine.symbol.banane')}"
+		data-fr-name-erdbeere="{f:translate(key: 'LLL:EXT:fruit_risk/Resources/Private/Language/locallang.xlf:machine.symbol.erdbeere')}"
+		data-fr-name-weintraube="{f:translate(key: 'LLL:EXT:fruit_risk/Resources/Private/Language/locallang.xlf:machine.symbol.weintraube')}"
+		data-fr-name-melone="{f:translate(key: 'LLL:EXT:fruit_risk/Resources/Private/Language/locallang.xlf:machine.symbol.melone')}"
+		data-fr-name-pflaume="{f:translate(key: 'LLL:EXT:fruit_risk/Resources/Private/Language/locallang.xlf:machine.symbol.pflaume')}"
+		data-fr-name-orange="{f:translate(key: 'LLL:EXT:fruit_risk/Resources/Private/Language/locallang.xlf:machine.symbol.orange')}"
+		data-fr-name-zitrone="{f:translate(key: 'LLL:EXT:fruit_risk/Resources/Private/Language/locallang.xlf:machine.symbol.zitrone')}"
+		data-fr-name-kirsche="{f:translate(key: 'LLL:EXT:fruit_risk/Resources/Private/Language/locallang.xlf:machine.symbol.kirsche')}"></p>
+	<p class="fr-offscreen" data-fr-announce="credit" role="status"
+		data-fr-text-credit="{f:translate(key: 'LLL:EXT:fruit_risk/Resources/Private/Language/locallang.xlf:machine.credit.announce')}"></p>
+	<f:comment>Seit Phase F5b hat auch "risk" seinen Eigentümer (risk.js) und
+		seine drei Satzmuster — bleibt aber trotzdem LEER ausgeliefert, aus
+		demselben Grund wie die drei anderen.</f:comment>
+	<p class="fr-offscreen" data-fr-announce="risk" role="status"
+		data-fr-text-offer="{f:translate(key: 'LLL:EXT:fruit_risk/Resources/Private/Language/locallang.xlf:machine.risk.offer')}"
+		data-fr-text-won="{f:translate(key: 'LLL:EXT:fruit_risk/Resources/Private/Language/locallang.xlf:machine.risk.won')}"
+		data-fr-text-lost="{f:translate(key: 'LLL:EXT:fruit_risk/Resources/Private/Language/locallang.xlf:machine.risk.lost')}"></p>
+</div>

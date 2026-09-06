@@ -1,0 +1,250 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" version="1.2">
+	<file source-language="de" datatype="plaintext" original="EXT:fruit_risk/Resources/Private/Language/locallang.xlf" date="2026-09-04T00:00:00Z" product-name="fruit_risk">
+		<header/>
+		<body>
+			<trans-unit id="automat.title">
+				<source>FruitRisk</source>
+			</trans-unit>
+			<trans-unit id="automat.description">
+				<source>Breiter Fruchtautomat mit sechs Walzen und fünf Reihen. Jede Runde bringt einen Gewinn – was daraus wird, entscheidet das Risikospiel danach.</source>
+			</trans-unit>
+
+			<!-- Kopfschild der Saal-Miniatur -->
+			<trans-unit id="cabinet.nameplate">
+				<source>FRUITRISK</source>
+			</trans-unit>
+
+			<!-- Kopfschild des großen Gehäuses auf der Automatenseite -->
+			<trans-unit id="machine.nameplate">
+				<source>FRUITRISK</source>
+			</trans-unit>
+
+			<!-- Bedienteile mit sichtbarer Aufschrift. Die Aufschrift ist
+			     zugleich der erreichbare Name. -->
+			<trans-unit id="machine.button.start">
+				<source>START</source>
+			</trans-unit>
+			<trans-unit id="machine.button.stop">
+				<source>STOP</source>
+			</trans-unit>
+			<trans-unit id="machine.button.auto">
+				<source>AUTO MODE</source>
+			</trans-unit>
+			<trans-unit id="machine.button.reward">
+				<source>REWARD</source>
+			</trans-unit>
+
+			<!-- Die drei gedruckten Gruppenbeschriftungen des Bedienfelds.
+			     Fuer sichtbaren Text am Geraet gilt „RISK" bzw. „Risikospiel";
+			     der andere, im deutschen Markt stark mit einem Hersteller
+			     verknuepfte Begriff erscheint nirgends (CONCEPT.md C.14.18). -->
+			<trans-unit id="machine.button.risk.start">
+				<source>RISK START</source>
+			</trans-unit>
+			<trans-unit id="machine.button.risk4.start">
+				<source>RISK x4 START</source>
+			</trans-unit>
+			<trans-unit id="machine.button.risk8.start">
+				<source>RISK x8 START</source>
+			</trans-unit>
+
+			<!-- Die acht Risiko-Tasten tragen keine sichtbare Aufschrift.
+			     Jede bekommt einen UNTERSCHEIDENDEN Namen — acht gleichnamige
+			     Tasten waeren fuer ein Hilfsmittel unbenutzbar. -->
+			<trans-unit id="machine.button.risk.left">
+				<source>Risiko links</source>
+			</trans-unit>
+			<trans-unit id="machine.button.risk.right">
+				<source>Risiko rechts</source>
+			</trans-unit>
+			<trans-unit id="machine.button.risk4.left">
+				<source>Risiko x4 links</source>
+			</trans-unit>
+			<trans-unit id="machine.button.risk4.right">
+				<source>Risiko x4 rechts</source>
+			</trans-unit>
+			<trans-unit id="machine.button.risk8.left">
+				<source>Risiko x8 links</source>
+			</trans-unit>
+			<trans-unit id="machine.button.risk8.right">
+				<source>Risiko x8 rechts</source>
+			</trans-unit>
+			<trans-unit id="machine.button.risk8.up">
+				<source>Risiko x8 oben</source>
+			</trans-unit>
+			<trans-unit id="machine.button.risk8.down">
+				<source>Risiko x8 unten</source>
+			</trans-unit>
+
+			<!-- Die Ansage des Risikospiels im Live-Bereich "risk" (Phase F5b).
+			     "Risikospiel", nicht der im deutschen Markt stark mit einem
+			     Hersteller verknuepfte Begriff fuer eine Risikoleiter
+			     (CONCEPT.md C.14.18) — der erscheint an diesem Geraet nirgends
+			     in sichtbarem oder angesagtem Text. Nach einem Fehlgriff wird
+			     die Stufe und der Verlust genannt, aber NICHT, was ein Treffer
+			     gebracht haette. -->
+			<trans-unit id="machine.risk.offer">
+				<source>Risikospiel möglich: RISK START, RISK x4 START oder RISK x8 START drücken. Danach führen die Richtungstasten die Leiter. REWARD schreibt den Gewinn gut.</source>
+			</trans-unit>
+			<trans-unit id="machine.risk.won">
+				<source>Risikospiel gewonnen: {0} Kredite auf Stufe {1}.</source>
+			</trans-unit>
+			<trans-unit id="machine.risk.lost">
+				<source>Risikospiel verloren auf Stufe {0}. Der Gewinn ist weg.</source>
+			</trans-unit>
+
+			<!-- Phase F5d: Aufschrift des Ton-Schalters am Sockel. Kein
+			     dreizehntes Bedienteil aus Machine/Button.html — ein eigenes
+			     Bedienteil mit eigener Bauform (siehe Machine/Cabinet.html). -->
+			<trans-unit id="machine.sound.label">
+				<source>TON</source>
+			</trans-unit>
+
+			<!-- Beschriftungen der vier Roehrengruppen -->
+			<trans-unit id="machine.display.guthaben">
+				<source>GUTHABEN</source>
+			</trans-unit>
+			<trans-unit id="machine.display.einsatz">
+				<source>EINSATZ</source>
+			</trans-unit>
+			<trans-unit id="machine.display.stufe">
+				<source>STUFE</source>
+			</trans-unit>
+			<trans-unit id="machine.display.gewinn">
+				<source>GEWINN</source>
+			</trans-unit>
+
+			<!-- Gewinnplan hinter Glas -->
+			<trans-unit id="machine.paytable.title">
+				<source>GEWINNPLAN</source>
+			</trans-unit>
+			<trans-unit id="machine.paytable.note">
+				<source>Kirsche, Zitrone und Orange zählen zusätzlich im ganzen Feld: </source>
+			</trans-unit>
+			<trans-unit id="machine.paytable.symbol">
+				<source>Symbol</source>
+			</trans-unit>
+
+			<!-- Die Tafel (Machine/Cabinet.html, .fr-message). Sie ist kein
+			     eigener Live-Bereich; ihr Text reist durch den Bereich
+			     "machine" (CONCEPT.md C.14.12). -->
+			<trans-unit id="machine.message.insufficient">
+				<source>GUTHABEN ZU GERING</source>
+			</trans-unit>
+			<trans-unit id="machine.message.invalid">
+				<source>BETRAG UNGÜLTIG</source>
+			</trans-unit>
+			<trans-unit id="machine.message.capped">
+				<source>KONTO VOLL</source>
+			</trans-unit>
+			<trans-unit id="machine.message.void">
+				<source>RUNDE UNGÜLTIG</source>
+			</trans-unit>
+			<trans-unit id="machine.message.nocash">
+				<source>KASSE ZU GERING</source>
+			</trans-unit>
+			<trans-unit id="machine.message.norng">
+				<source>AUSSER BETRIEB</source>
+			</trans-unit>
+			<trans-unit id="machine.message.broken">
+				<source>GERÄT GESTÖRT</source>
+			</trans-unit>
+
+			<!-- Der Münzschlitz (CONCEPT.md B.5.2, C.14.10): drei Schnellwerte
+			     und ein Feld für einen frei wählbaren Betrag. -->
+			<trans-unit id="machine.coin.add.10">
+				<source>+10</source>
+			</trans-unit>
+			<trans-unit id="machine.coin.add.100">
+				<source>+100</source>
+			</trans-unit>
+			<trans-unit id="machine.coin.add.500">
+				<source>+500</source>
+			</trans-unit>
+			<trans-unit id="machine.coin.insert">
+				<source>Einwerfen</source>
+			</trans-unit>
+			<trans-unit id="machine.coin.custom">
+				<source>Freier Betrag</source>
+			</trans-unit>
+			<trans-unit id="machine.coin.placeholder">
+				<source>Betrag</source>
+			</trans-unit>
+
+			<!-- Kassenfenster und Auszahlung (CONCEPT.md B.5.1, B.5.2) -->
+			<trans-unit id="machine.bank.label">
+				<source>Kasse</source>
+			</trans-unit>
+			<trans-unit id="machine.cashout.label">
+				<source>CASH OUT</source>
+			</trans-unit>
+			<trans-unit id="machine.credit.announce">
+				<source>Kasse: {0}, Guthaben: {1}</source>
+			</trans-unit>
+
+			<!-- Der feste Einsatz (C.14.5): es gibt keine Einsatztasten, EINSATZ
+			     ist eine reine Anzeige. Dieser Satz schließt die Lücke, die
+			     entsteht, weil die Röhrengruppe EINSATZ aria-hidden trägt. -->
+			<trans-unit id="machine.stake.note">
+				<source>Einsatz: %1$d Kredite, fest.</source>
+			</trans-unit>
+
+			<!-- Die Ansage des Sichtfelds im Live-Bereich "grid" — EIN Satz je
+			     Runde (CONCEPT.md C.14.12), nicht dreißig Bruchstücke. -->
+			<trans-unit id="machine.grid.announce">
+				<source>Sichtfeld: {0}</source>
+			</trans-unit>
+			<trans-unit id="machine.grid.result">
+				<source>Sichtfeld: {0}. Gewinn {1} Kredite. Getroffene Linien: {2}. Im Feld: {3}.</source>
+			</trans-unit>
+			<trans-unit id="machine.grid.result.field">
+				<source>Sichtfeld: {0}. Gewinn {1} Kredite, allein aus der Feldzählung. Im Feld: {2}.</source>
+			</trans-unit>
+			<trans-unit id="machine.grid.result.linesonly">
+				<source>Sichtfeld: {0}. Gewinn {1} Kredite. Getroffene Linien: {2}.</source>
+			</trans-unit>
+			<trans-unit id="machine.grid.fieldpart">
+				<source>{0} mal {1}</source>
+			</trans-unit>
+
+			<!-- Die zwölf Symbolnamen für die Ansage im Live-Bereich "grid". -->
+			<trans-unit id="machine.symbol.sieben">
+				<source>Sieben</source>
+			</trans-unit>
+			<trans-unit id="machine.symbol.glocke">
+				<source>Glocke</source>
+			</trans-unit>
+			<trans-unit id="machine.symbol.ananas">
+				<source>Ananas</source>
+			</trans-unit>
+			<trans-unit id="machine.symbol.apfel">
+				<source>Apfel</source>
+			</trans-unit>
+			<trans-unit id="machine.symbol.banane">
+				<source>Banane</source>
+			</trans-unit>
+			<trans-unit id="machine.symbol.erdbeere">
+				<source>Erdbeere</source>
+			</trans-unit>
+			<trans-unit id="machine.symbol.weintraube">
+				<source>Weintraube</source>
+			</trans-unit>
+			<trans-unit id="machine.symbol.melone">
+				<source>Melone</source>
+			</trans-unit>
+			<trans-unit id="machine.symbol.pflaume">
+				<source>Pflaume</source>
+			</trans-unit>
+			<trans-unit id="machine.symbol.orange">
+				<source>Orange</source>
+			</trans-unit>
+			<trans-unit id="machine.symbol.zitrone">
+				<source>Zitrone</source>
+			</trans-unit>
+			<trans-unit id="machine.symbol.kirsche">
+				<source>Kirsche</source>
+			</trans-unit>
+		</body>
+	</file>
+</xliff>

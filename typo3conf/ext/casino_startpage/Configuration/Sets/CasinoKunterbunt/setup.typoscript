@@ -19,6 +19,14 @@ page {
             # Ergebnis im Template: {content.main.records}
             10 = page-content
             10.as = content
+
+            # Auditbericht 2026-09-05, Befunde G-01/G-02: Kennwerte der Seite
+            # selbst (Organization, WebSite, BreadcrumbList; auf der
+            # Wurzelseite zusätzlich die <meta name="description">). Läuft
+            # auf JEDER Seite, weil page.10 selbst auf jeder Seite läuft —
+            # SiteJsonLdProcessor unterscheidet die Wurzelseite intern über
+            # die Site-Konfiguration, nicht über TypoScript-Bedingungen.
+            20 = casino-site-jsonld
         }
     }
 
@@ -52,7 +60,29 @@ config {
     # NICHT der TYPO3-Copyright-Kommentar im <head> - der kommt aus Typo3Information
     # und lässt sich in 13.4 nicht per TypoScript abschalten.
     disablePrefixComment = 1
+
+    # Auditbericht 2026-09-05, Befund G-05: ohne config.sendCacheHeaders*
+    # schickt der Core auf jeder Seite "Cache-Control: private, no-store" —
+    # eine reine Kern-Voreinstellung, keine Entscheidung dieses Projekts
+    # (DECISIONS.md, 2026-09-05). "auto" wirkt NUR, wenn die Installation
+    # tatsächlich hinter einem Reverse Proxy/CDN steht (normalizedParams
+    # erkennt das); lokal über DDEV ändert sich dadurch nichts am
+    # Browser-Verhalten — bewusst NICHT config.sendCacheHeaders = 1, das
+    # würde dem eigenen Browser während der laufenden Entwicklung für
+    # cache_period (24 Stunden) Änderungen verstecken.
+    sendCacheHeadersForSharedCaches = auto
 }
+
+# Auditbericht 2026-09-05, Befund G-04: der Seitentitel des Saals verdoppelte
+# sich zu "Casino Kunterbunt: Casino Kunterbunt", weil die Saal-Seite selbst
+# "Casino Kunterbunt" heißt und TYPO3 den Site-Titel davorsetzt. Die
+# Kern-Bedingung tree.pagelayout (Core-Feature #88276) kennt das
+# TSconfig-Backend-Layout unter "pagets__" + Schlüssel — hier also genau die
+# eine Seite, die Pages/Startseite.html lädt (page.tsconfig). Jede andere
+# Seite behält den Site-Titel ("Casino Kunterbunt: <Seitentitel>").
+[tree.pagelayout == "pagets__startseite"]
+    config.showWebsiteTitle = 0
+[END]
 
 # --------------------------------------------------------------------------
 # Inhaltselement „Casino-Automat" (CType casino_automat)

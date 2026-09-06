@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+	Icon des Inhaltselements im Seitenmodul und im Assistenten „Neues
+	Inhaltselement". Dieselbe Ausnahme von der Token-Regel wie bei
+	Extension.svg: Backend-Icons stehen ausserhalb des Frontend-Dokuments und
+	koennen die Custom Properties aus tokens.css nicht benutzen. Die Werte
+	sind von dort abgeschrieben; der Tokenname steht je Wert daneben, ohne
+	die beiden fuehrenden Bindestriche.
+
+	Bei 16 Bildpunkten bleiben nur der breite Korpus, das gerasterte Fenster
+	(sechs Spalten, fuenf Zeilen als fuenf helle Balken mit fuenf dunklen
+	Fugen), der orange Nixie-Balken, die Tastenreihe darunter, der Sockel und
+	die beiden Tasten rechts neben den Walzen. Einzelne Fruechte sind bei
+	dieser Groesse nicht darstellbar.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16">
+	<title>FruitRisk</title>
+	<path d="M0.8 14.4V3.6l1.4-1.4h11.6l1.4 1.4v10.8z" fill="#452b19"/><!-- ck-wood-300 -->
+	<path d="M1.8 13.4V4.1l1-1h10.4l1 1v9.3z" fill="#aab5bd"/><!-- ck-chrome-300 -->
+	<rect x="5" y="2.6" width="6" height="1.3" rx="0.3" fill="#f0e6d2"/><!-- ck-paper-100 -->
+	<rect x="2.3" y="4.8" width="8.6" height="5" rx="0.3" fill="#2b1509"/><!-- ck-nixie-dark -->
+	<g fill="#f0e6d2"><!-- ck-paper-100: fuenf Zeilen des Leuchtfensters -->
+		<rect x="2.5" y="5" width="8.2" height="0.8" rx="0.15"/>
+		<rect x="2.5" y="6" width="8.2" height="0.8" rx="0.15"/>
+		<rect x="2.5" y="7" width="8.2" height="0.8" rx="0.15"/>
+		<rect x="2.5" y="8" width="8.2" height="0.8" rx="0.15"/>
+		<rect x="2.5" y="9" width="8.2" height="0.8" rx="0.15"/>
+	</g>
+	<g fill="#2b1509"><!-- ck-nixie-dark: fuenf senkrechte Fugen ergeben sechs Spalten -->
+		<rect x="3.85" y="5" width="0.2" height="4.8"/>
+		<rect x="5.2" y="5" width="0.2" height="4.8"/>
+		<rect x="6.55" y="5" width="0.2" height="4.8"/>
+		<rect x="7.9" y="5" width="0.2" height="4.8"/>
+		<rect x="9.25" y="5" width="0.2" height="4.8"/>
+	</g>
+	<rect x="11.5" y="4.8" width="2.2" height="2.2" rx="0.4" fill="#b7291b"/><!-- ck-bakelite-red: START -->
+	<rect x="11.5" y="7.6" width="2.2" height="2.2" rx="0.4" fill="#ecdfc4"/><!-- ck-bakelite-cream: STOP -->
+	<rect x="2.3" y="10.4" width="11.4" height="1" rx="0.3" fill="#2b1509"/><!-- ck-nixie-dark -->
+	<rect x="2.7" y="10.65" width="10.6" height="0.5" rx="0.25" fill="#ff8c1f"/><!-- ck-nixie-glow -->
+	<g fill="#4a3a2b"><!-- ck-bulb-off: Bedienfeld unter den Walzen -->
+		<circle cx="4.4" cy="12.5" r="0.55"/>
+		<circle cx="6.2" cy="12.5" r="0.55"/>
+		<circle cx="8" cy="12.5" r="0.55"/>
+		<circle cx="9.8" cy="12.5" r="0.55"/>
+		<circle cx="11.6" cy="12.5" r="0.55"/>
+	</g>
+	<circle cx="2.6" cy="12.5" r="0.55" fill="#ffb753"/><!-- ck-bulb-glow -->
+	<rect x="0.8" y="14" width="14.4" height="1.6" rx="0.5" fill="#1a0f08"/><!-- ck-wood-500 -->
+</svg>

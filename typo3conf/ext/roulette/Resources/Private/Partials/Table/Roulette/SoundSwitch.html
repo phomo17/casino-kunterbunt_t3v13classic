@@ -1,0 +1,29 @@
+<f:comment>
+	Der Ton-Schalter des Roulette-Tisches.
+
+	Ein echter <button type="button"> mit aria-pressed — ein Umschalter, kein
+	Kontrollkästchen: er löst sofort eine Wirkung aus, statt eine Einstellung
+	für ein späteres Absenden zu sammeln.
+
+	Er trägt seinen Namen als SICHTBAREN Text im Knopf, nicht nur als
+	aria-label: eine Sprachsteuerung sucht den sichtbaren Text, und
+	„klicke Ton" muss funktionieren.
+
+	Hinter dem Text liegt ein helles Namensschild (.ro-sound__label). Ohne
+	es hinge der Kontrast davon ab, über welchem Teil des Messingverlaufs
+	die Schrift gerade sitzt — genau der Fund, der am vierten Gerät alle
+	Aufschriften von 2,43 : 1 auf 9,22 : 1 gehoben hat.
+
+	Der Zustand steht NICHT allein in der Farbe: aria-pressed trägt ihn für
+	Hilfsmittel, und der Messpunkt data-ro-sound-on macht ihn ablesbar. Der
+	Messpunkt heißt -on und nicht data-ro-sound, weil data-ro-sound schon
+	die bloße Kennung des Schalters wäre — ein Attribut mit zwei
+	Bedeutungen war im Projekt zweimal ein Befund.
+</f:comment>
+<button type="button" class="ro-sound" data-ro-sound="" aria-pressed="true"
+	data-text-on="{f:translate(key: 'LLL:EXT:roulette/Resources/Private/Language/locallang.xlf:sound.on')}"
+	data-text-off="{f:translate(key: 'LLL:EXT:roulette/Resources/Private/Language/locallang.xlf:sound.off')}">
+	<span class="ro-sound__label">
+		<f:translate key="LLL:EXT:roulette/Resources/Private/Language/locallang.xlf:sound.label" />
+	</span>
+</button>

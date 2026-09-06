@@ -18,7 +18,9 @@
  *     Schritt, nicht nur am Ende.
  *  2. Ein simulierter Absturz (Speicher mit Restbetrag, Seite neu geladen)
  *     bucht zurück und löscht den Spiegel.
- *  3. Zwei geöffnete Registerkarten laufen nicht auseinander.
+ *  3. Zwei geöffnete Registerkarten laufen nicht auseinander, und zwei
+ *     Karten, die im selben Augenblick denselben Absturzrest beanspruchen,
+ *     schreiben ihn nicht beide gut (Phase 10, Befund M3).
  *  4. Im Ruhezustand liegen genau die in B.5.3 genannten Schlüssel im
  *     Speicher.
  *  5. Ohne ausreichenden Gerätekredit wird nichts abgebucht.
@@ -167,7 +169,7 @@ const { credit } = await import(CREDIT_URL.href);
 const machineModule = await import(
 	`data:text/javascript;base64,${Buffer.from(patched, 'utf8').toString('base64')}`
 );
-const { openMachineCredit } = machineModule;
+const { openMachineCredit, MachineCredit } = machineModule;
 
 /* --------------------------------------------------------------------------
    Der Bilanzwächter.
@@ -335,6 +337,40 @@ check(afterCrash.amount === 0 && credit.balance === beforeTakeover,
 	'schreibt eine andere Karte auf den Platz, buche ich meinen Betrag zurück – die Summe bleibt gleich');
 check(fakeStore.getItem(MIRROR_KEY) === 'fremdeKennung|15',
 	'der Eintrag der anderen Karte bleibt unangetastet');
+
+console.log('\nZwei Registerkarten legen gleichzeitig an (M3)');
+
+// Zwei Instanzen mit demselben Schlüssel sind auf EINER Seite nicht möglich
+// (openMachineCredit() wirft) – zwei echte Registerkarten sind aber zwei
+// getrennte Prozesse, jede mit einem eigenen open-Register. Nachgestellt wird
+// deshalb die Race an der Speicherstelle selbst: eine "fremde" Karte schreibt
+// GENAU in dem Augenblick über den Platz, in dem claim() ihren eigenen
+// Schreibvorgang bestätigen will – also zwischen dem ersten setItem() und dem
+// bestätigenden getItem().
+const RACE_KEY = 'casinoKunterbunt.machine.pruefgeraetdrei';
+fakeStore.setItem(RACE_KEY, '40');
+const beforeRace = credit.balance;
+
+const realSetItem = fakeStore.setItem.bind(fakeStore);
+let raced = false;
+fakeStore.setItem = (key, value) => {
+	realSetItem(key, value);
+	if (key === RACE_KEY && !raced) {
+		raced = true;
+		// Die fremde Karte gewinnt: sie schreibt direkt im Anschluss über
+		// denselben Platz, bevor die erste Karte ihn zurückliest.
+		realSetItem(RACE_KEY, 'fremdeKennung|40');
+	}
+};
+
+const racer = new MachineCredit('pruefgeraetdrei');
+await racer.ready;
+fakeStore.setItem = realSetItem;
+
+check(racer.amount === 0 && credit.balance === beforeRace,
+	'verliert eine Karte das Wettrennen um denselben Absturzrest, bucht sie nichts nach');
+check(fakeStore.getItem(RACE_KEY) === 'fremdeKennung|40',
+	'der Eintrag der gewinnenden Karte bleibt unangetastet');
 
 console.log('\nKappung am Höchststand');
 

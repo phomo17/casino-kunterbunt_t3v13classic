@@ -1,9 +1,22 @@
+<f:comment>
+	Sprunglink (Audit A-04, WCAG 2.4.1 Blöcke umgehen). Erstes Element im
+	Dokument, noch vor .ck-room__marquee — im Leuchtschild allein liegen bis
+	zu sieben Fokusstationen, bevor main überhaupt beginnt. Ein Layout, weil
+	er allen sechs Seiten zugutekommen soll, nicht nur einer.
+
+	Optisch verborgen, bis er den Tastaturfokus bekommt (base.css,
+	.ck-skiplink) — dieselbe Technik wie „nur für Hilfsmittel" an anderen
+	Stellen des Projekts, nur andersherum: das Element tritt genau dann
+	hervor, wenn ein sehender Tastaturnutzer es braucht.
+</f:comment>
+<a class="ck-skiplink" href="#ck-main"><f:translate
+	key="LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:hall.skiplink" /></a>
 <div class="ck-room">
 	<header class="ck-room__marquee">
 		<f:render section="Sign" optional="true" />
 		<f:render section="Credit" optional="true" />
 	</header>
-	<main class="ck-room__hall">
+	<main class="ck-room__hall" id="ck-main">
 		<f:render section="Main" />
 	</main>
 </div>

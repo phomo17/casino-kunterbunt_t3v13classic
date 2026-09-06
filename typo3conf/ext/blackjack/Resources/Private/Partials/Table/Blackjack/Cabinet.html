@@ -1,0 +1,111 @@
+<f:comment>
+	Kachel des Blackjack-Tisches im Saal.
+
+	Erfüllt denselben Vertrag wie das Gehäuse-Partial jedes anderen Geräts
+	(casino_startpage/README.md, „Vertrag für das Gehäuse-Partial"): genau ein
+	.ck-cabinet, darin genau ein svg.ck-cabinet__drawing mit viewBox
+	„0 0 160 100" (Gattung Tisch, quer), aria-hidden="true", kein <title>.
+	KEIN <text> in dieser Zeichnung (zusätzliche Auflage dieser Phase, Prüfung
+	A-8/A-11): ein aufgedruckter Auszahlungshinweis wäre eine zweite Stelle,
+	an der eine Regel steht, und bei Kachelgröße ohnehin unlesbar.
+
+	HERKUNFT UND KONSTRUKTION (CONCEPT.md B.3, Silhouettenprobe Nr. 7)
+	-------------------------------------------------------------------
+	Diese Zeichnung ist vollständig aus Grundformen konstruiert (path mit
+	Bögen, rect, circle) und zeichnet nichts ab. Vor dem Zeichnen wurden
+	mehrere unterschiedliche Ansichten eines Blackjack-Tisches (Fotos und
+	Zeichnungen aus verschiedenen, voneinander unabhängigen Quellen)
+	betrachtet und zu einer eigenen Form verbunden; keine Vorlage ist Teil
+	dieses Projekts oder wurde kopiert.
+
+	Die charakteristische Grundform eines Blackjack-Tisches — ein Halbrund
+	bzw. eine D-Form von oben, gerade Kante auf der Geberseite, Bogen zu den
+	Spielern hin — gehört der GATTUNG und ist frei (B.3 Nr. 7 erlaubt das
+	ausdrücklich: die Gattungsform selbst ist kein Copyright-Merkmal, ihre
+	Proportionen und die eines bestimmten Modells sind es). Die PROPORTIONEN
+	dieser Zeichnung sind eigens gewählt und bewusst abweichend vom üblichen
+	Halbkreis: die Bogenhöhe beträgt rund 0,55 der Breite der geraden Kante
+	(79 von 144 Bildpunkten, äußerer Rahmen), statt der bei einem echten
+	Halbkreis üblichen 0,5 mit vollem Radius — dieser Tisch ist also
+	erkennbar FLACHER. Zusätzlich ist die Anordnung von Kartenschlitten
+	(rechts) und Ablage für gespielte Karten (links) deutlich asymmetrisch in
+	Größe und Neigung. Ziel nach B.3: „das ist ein Kartentisch", nicht „das
+	ist das Modell X von Hersteller Y".
+
+	BILDINHALT — EIN ZEICHEN, KEINE MASSZEICHNUNG
+	-----------------------------------------------
+	Bei rund 15 rem Kachelbreite ist Feinzeichnung ohnehin nicht mehr
+	unterscheidbar (dieselbe Begründung wie beim Rad des Roulette-Tisches).
+	Gezeigt werden deshalb, von der geraden Geberkante zu den Spielern hin:
+	die Bande (Holz mit Messinggrat), das Tuch (zwei Grüntöne für Tiefe), ein
+	flacher Geberbogen, ein Versicherungsbogen, der Setzkreis des einen
+	dargestellten Platzes, zwei angedeutete Karten davor, sowie — an der
+	geraden Kante — rechts der Kartenschlitten (schräg gestellt, beidseitig
+	abgeschrägt) und links die Ablage für gespielte Karten (mit Innenschatten).
+
+	Alle Farben kommen ausschließlich aus den Design-Tokens in tokens.css.
+
+	A-7 (Kachel und Spielseite zeigen dieselbe Bauform) hat in Phase C4a noch
+	nichts zu vergleichen — die Spielseite entsteht erst in Phase C5 — und
+	meldet sich deshalb in verify-cabinet.mjs ausdrücklich als
+	„übersprungen", nicht als bestanden.
+</f:comment>
+<span class="ck-cabinet">
+	<svg class="ck-cabinet__drawing" viewBox="0 0 160 100" preserveAspectRatio="xMidYMid meet"
+		focusable="false" aria-hidden="true">
+
+		<f:comment>Bande: Holzrahmen als D-Form, gerade Kante oben
+			(Geberseite), Bogen nach unten zu den Spielern. Breite der geraden
+			Kante 144 (8…152), Bogenhöhe 79 ≈ 0,55 der Breite — bewusst
+			flacher als ein voller Halbkreis (Silhouettenprobe, siehe
+			Kopfkommentar).</f:comment>
+		<path d="M8 14 L152 14 A72 79 0 0 1 8 14 Z"
+			fill="var(--ck-wood-300)" stroke="var(--ck-wood-500)" stroke-width="2" />
+
+		<f:comment>Messinggrat auf der Bande, derselbe Pfad eingerückt, ohne
+			Füllung.</f:comment>
+		<path d="M13 19 L147 19 A67 74 0 0 1 13 19"
+			fill="none" stroke="var(--ck-brass-300)" stroke-width="1.6" />
+
+		<f:comment>Das Tuch, zwei Lagen für Tiefe: der dunklere Ton außen,
+			der hellere innen.</f:comment>
+		<path d="M17 23 L143 23 A63 69 0 0 1 17 23 Z" fill="var(--ck-felt-green-dark)" />
+		<path d="M19 25 L141 25 A61 67 0 0 1 19 25 Z" fill="var(--ck-felt-green)" />
+
+		<f:comment>Geberbogen: die Linie, hinter der der Geber steht.</f:comment>
+		<path d="M40 30 Q80 36 120 30" fill="none" stroke="var(--ck-felt-line)" stroke-width="0.5" />
+
+		<f:comment>Versicherungsbogen, flacher als der Geberbogen, über dem
+			Setzkreis.</f:comment>
+		<path d="M68 55 Q80 50 92 55" fill="none" stroke="var(--ck-felt-line)" stroke-width="0.5" />
+
+		<f:comment>Setzkreis des einen dargestellten Platzes.</f:comment>
+		<circle cx="80" cy="68" r="9" fill="none" stroke="var(--ck-felt-line)" stroke-width="0.5" />
+
+		<f:comment>Zwei angedeutete Karten vor dem Setzkreis, leicht
+			gegeneinander verdreht.</f:comment>
+		<g transform="translate(73 76) rotate(-8)">
+			<rect x="0" y="0" width="14" height="9" rx="1.2"
+				fill="var(--ck-paper-100)" stroke="var(--ck-print-ink)" stroke-width="0.6" />
+		</g>
+		<g transform="translate(81 78) rotate(6)">
+			<rect x="0" y="0" width="14" height="9" rx="1.2"
+				fill="var(--ck-paper-100)" stroke="var(--ck-print-ink)" stroke-width="0.6" />
+		</g>
+
+		<f:comment>Kartenschlitten rechts an der geraden Kante: schräg
+			gestelltes Gehäuse mit beidseitig abgeschrägter Kante (zwei
+			path).</f:comment>
+		<g transform="rotate(-12 130 18)">
+			<rect x="114" y="10" width="26" height="13" rx="1.5"
+				fill="var(--ck-chrome-300)" stroke="var(--ck-chrome-500)" stroke-width="1" />
+			<path d="M114 10 L118.5 16.5 L114 23 Z" fill="var(--ck-chrome-500)" />
+			<path d="M140 10 L135.5 16.5 L140 23 Z" fill="var(--ck-chrome-500)" />
+		</g>
+
+		<f:comment>Ablage für gespielte Karten links an der geraden Kante,
+			mit Innenschatten.</f:comment>
+		<rect x="20" y="9" width="26" height="12" rx="2" fill="var(--ck-chrome-400)" />
+		<rect x="22.5" y="11.5" width="21" height="7" rx="1.5" fill="var(--ck-chrome-shadow)" />
+	</svg>
+</span>

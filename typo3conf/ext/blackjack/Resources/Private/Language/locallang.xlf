@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" version="1.2">
+	<file source-language="de" datatype="plaintext" original="EXT:blackjack/Resources/Private/Language/locallang.xlf" date="2026-09-05T22:59:21Z" product-name="blackjack">
+		<header/>
+		<body>
+			<trans-unit id="automat.title">
+				<source>Blackjack</source>
+			</trans-unit>
+			<trans-unit id="automat.description">
+				<source>Ein Kartentisch mit grünem Tuch, Messingkante und Kartenschlitten. Der Geber spielt nach einer festen Hausregel, von der er nie abweicht.</source>
+			</trans-unit>
+			<trans-unit id="card.name">
+				<source>{0} {1}</source>
+			</trans-unit>
+			<trans-unit id="card.facedown">
+				<source>verdeckte Karte</source>
+			</trans-unit>
+			<trans-unit id="card.suit.H"><source>Herz</source></trans-unit>
+			<trans-unit id="card.suit.D"><source>Karo</source></trans-unit>
+			<trans-unit id="card.suit.S"><source>Pik</source></trans-unit>
+			<trans-unit id="card.suit.C"><source>Kreuz</source></trans-unit>
+			<trans-unit id="card.rank.2"><source>Zwei</source></trans-unit>
+			<trans-unit id="card.rank.3"><source>Drei</source></trans-unit>
+			<trans-unit id="card.rank.4"><source>Vier</source></trans-unit>
+			<trans-unit id="card.rank.5"><source>Fünf</source></trans-unit>
+			<trans-unit id="card.rank.6"><source>Sechs</source></trans-unit>
+			<trans-unit id="card.rank.7"><source>Sieben</source></trans-unit>
+			<trans-unit id="card.rank.8"><source>Acht</source></trans-unit>
+			<trans-unit id="card.rank.9"><source>Neun</source></trans-unit>
+			<trans-unit id="card.rank.10"><source>Zehn</source></trans-unit>
+			<trans-unit id="card.rank.J"><source>Bube</source></trans-unit>
+			<trans-unit id="card.rank.Q"><source>Dame</source></trans-unit>
+			<trans-unit id="card.rank.K"><source>König</source></trans-unit>
+			<trans-unit id="card.rank.A"><source>Ass</source></trans-unit>
+			<trans-unit id="felt.label"><source>Der Tisch</source></trans-unit>
+			<trans-unit id="felt.skip"><source>Weiter zur Bedienleiste</source></trans-unit>
+			<trans-unit id="felt.dealer"><source>Geber</source></trans-unit>
+			<trans-unit id="felt.insurance"><source>Versicherung</source></trans-unit>
+			<trans-unit id="felt.box"><source>Einsatz</source></trans-unit>
+			<trans-unit id="round.deal"><source>Geben</source></trans-unit>
+			<trans-unit id="hint.stake">
+				<source>Legen Sie Chips auf den Setzkreis: mit einem Klick oder mit der Eingabetaste. Mit Umschalt-Klick oder der Entf-Taste nehmen Sie den obersten Chip wieder herunter. Der Einsatz muss eine gerade Zahl von {0} bis {1} Euro sein, damit jede Auszahlung ein ganzer Euro bleibt.</source>
+			</trans-unit>
+			<trans-unit id="felt.box.name">
+				<source>{0}, Höchsteinsatz {2} Euro, {3} Euro gesetzt</source>
+			</trans-unit>
+			<trans-unit id="felt.box.name.empty">
+				<source>{0}, Höchsteinsatz {2} Euro, nichts gesetzt</source>
+			</trans-unit>
+			<trans-unit id="actions.legend"><source>Ihr Zug</source></trans-unit>
+			<trans-unit id="actions.hit"><source>Karte</source></trans-unit>
+			<trans-unit id="actions.hit.name"><source>Karte: eine weitere Karte auf dieses Blatt</source></trans-unit>
+			<trans-unit id="actions.stand"><source>Stehen</source></trans-unit>
+			<trans-unit id="actions.stand.name"><source>Stehen: dieses Blatt bleibt, wie es ist</source></trans-unit>
+			<trans-unit id="actions.double"><source>Doppeln</source></trans-unit>
+			<trans-unit id="actions.double.name"><source>Doppeln: den Einsatz dieses Blattes noch einmal nachlegen, genau eine Karte nehmen, danach steht das Blatt</source></trans-unit>
+			<trans-unit id="actions.split"><source>Teilen</source></trans-unit>
+			<trans-unit id="actions.split.name"><source>Teilen: aus dem Paar zwei Blätter machen, das zweite mit demselben Einsatz</source></trans-unit>
+			<trans-unit id="actions.insurance.legend"><source>Versicherung</source></trans-unit>
+			<trans-unit id="actions.insurance.take.short"><source>Versichern</source></trans-unit>
+			<trans-unit id="actions.insurance.take"><source>Versichern für {0} Euro gegen einen Blackjack des Gebers</source></trans-unit>
+			<trans-unit id="actions.insurance.decline"><source>Ohne Versicherung</source></trans-unit>
+
+			<trans-unit id="panel.title"><source>Ihr Blatt</source></trans-unit>
+			<trans-unit id="panel.empty"><source>Noch kein Blatt. Legen Sie einen Einsatz auf den Setzkreis und drücken Sie „Geben".</source></trans-unit>
+
+			<trans-unit id="hand.total"><source>{0}</source></trans-unit>
+			<trans-unit id="hand.total.soft"><source>{0}, weich</source></trans-unit>
+			<trans-unit id="hand.stake"><source>Einsatz {0} Euro</source></trans-unit>
+			<trans-unit id="hand.number"><source>Blatt {0}</source></trans-unit>
+			<trans-unit id="dealer.total"><source>Geber {0}</source></trans-unit>
+
+			<trans-unit id="outcome.win"><source>Gewonnen</source></trans-unit>
+			<trans-unit id="outcome.loss"><source>Verloren</source></trans-unit>
+			<trans-unit id="outcome.push"><source>Patt</source></trans-unit>
+			<trans-unit id="outcome.bust"><source>Überkauft</source></trans-unit>
+			<trans-unit id="outcome.blackjack"><source>Blackjack</source></trans-unit>
+
+			<trans-unit id="round.announce.insurance">
+				<source>Der Geber zeigt ein Ass. Sie können sich für {0} Euro versichern oder ohne Versicherung weiterspielen.</source>
+			</trans-unit>
+			<trans-unit id="round.announce.player">
+				<source>Sie haben {0}. Der Geber zeigt {1}. Möglich ist jetzt: {2}.</source>
+			</trans-unit>
+			<trans-unit id="round.announce.player.split">
+				<source>Blatt {0} von {1}: Sie haben {2}. Der Geber zeigt {3}. Möglich ist jetzt: {4}.</source>
+			</trans-unit>
+			<trans-unit id="round.announce.dealer.shows"><source>zeigt {0}</source></trans-unit>
+			<trans-unit id="round.announce.dealer"><source>Der Geber deckt auf und hat {0}.</source></trans-unit>
+			<trans-unit id="round.announce.win">
+				<source>{0}. Der Geber hat {1}. Ausgezahlt {2} Euro bei {3} Euro Einsatz. Buy-in jetzt {4} Euro.</source>
+			</trans-unit>
+			<trans-unit id="round.announce.loss">
+				<source>{0}. Der Geber hat {1}. {3} Euro Einsatz verloren. Buy-in jetzt {4} Euro.</source>
+			</trans-unit>
+			<trans-unit id="round.announce.push">
+				<source>{0}. Der Geber hat {1}. Der Einsatz von {3} Euro kommt zurück. Buy-in jetzt {4} Euro.</source>
+			</trans-unit>
+			<trans-unit id="round.announce.stake">
+				<source>Der Einsatz muss eine gerade Zahl von {0} bis {1} Euro sein.</source>
+			</trans-unit>
+			<trans-unit id="round.announce.blocked"><source>Das geht gerade nicht.</source></trans-unit>
+			<trans-unit id="round.announce.nocash"><source>Dafür reicht der Buy-in nicht. Wechseln Sie am Tischrand nach.</source></trans-unit>
+			<trans-unit id="round.announce.closed"><source>Dieser Tisch ist geschlossen. Ihr Buy-in ist in der Kasse.</source></trans-unit>
+			<trans-unit id="round.announce.norandom"><source>An diesem Tisch wird nicht gespielt: der Browser liefert keine sichere Zufallsquelle.</source></trans-unit>
+			<trans-unit id="round.announce.shuffled"><source>Neu gemischt</source></trans-unit>
+
+			<trans-unit id="sound.label"><source>Ton</source></trans-unit>
+			<trans-unit id="sound.on"><source>Ton ist an</source></trans-unit>
+			<trans-unit id="sound.off"><source>Ton ist aus</source></trans-unit>
+		</body>
+	</file>
+</xliff>

@@ -53,9 +53,18 @@ let unsubscribe = null;
 /**
  * Schreibt den aktuellen Stand in jede Anzeige des Dokuments.
  *
+ * Behebungslauf (Audit M-06, 2026-09-06): reason ist 'subscribe' genau einmal,
+ * beim synchronen Erstaufruf in credit.subscribe() — noch bevor irgendjemand
+ * etwas bedient hat. Dasselbe Muster wie an der Kasse der Automaten (siehe
+ * reel_slot/bank.js, Audit N-04): die sichtbare Tafel bekommt ihren
+ * Anfangsstand trotzdem sofort, wie schon immer; nur die Ansage bleibt dabei
+ * aus. Ohne diese Unterscheidung sagte die Startseite 104 ms nach dem Laden
+ * „Guthaben: 100 Kredite" an, ohne dass etwas geschehen war.
+ *
+ * @param {string} [reason] der Anlass des jeweiligen Aufrufs
  * @returns {void}
  */
-function paintAll() {
+function paintAll(reason) {
 	const text = credit.format(credit.balance);
 	for (const display of document.querySelectorAll(SELECTOR_DISPLAY)) {
 		if (display.textContent === text) {
@@ -70,9 +79,14 @@ function paintAll() {
 		globalThis.setTimeout(() => display.classList.remove(KICK_CLASS), KICK_MS);
 	}
 
-	// Dieselbe Zahl noch einmal, für Hilfsmittel — verzögert. Siehe announce().
-	for (const announcer of document.querySelectorAll(SELECTOR_ANNOUNCE)) {
-		announce(announcer, text);
+	// Dieselbe Zahl noch einmal, für Hilfsmittel — verzögert. Siehe
+	// announce(). NICHT beim Anfangsstand (reason 'subscribe'): sonst läse
+	// ein Hilfsmittel beim bloßen Laden der Seite bereits den Guthabenstand
+	// vor, obwohl niemand etwas getan hat.
+	if (reason !== 'subscribe') {
+		for (const announcer of document.querySelectorAll(SELECTOR_ANNOUNCE)) {
+			announce(announcer, text);
+		}
 	}
 }
 
@@ -84,9 +98,11 @@ function paintAll() {
  * aria-hidden und ist für Hilfsmittel gar nicht da. Deshalb steht hier der
  * GANZE Satz und nicht nur die Zahl.
  *
- * Die allererste Ansage geht ohne Wartezeit hinaus: sie fällt in den
- * Seitenaufbau und ist der Anfangsstand, keine Meldung „es hat sich etwas
- * geändert".
+ * Die allererste Ansage an einen gegebenen Bereich geht ohne Wartezeit
+ * hinaus. Das ist NICHT der Anfangsstand beim Laden — paintAll() ruft
+ * announce() bei reason 'subscribe' gar nicht erst auf (Befund M-06) —,
+ * sondern die erste tatsächliche Änderung, die dieser Bereich erlebt,
+ * etwa weil er erst nach dem Laden ins Dokument kam.
  *
  * @param {Element} announcer
  * @param {string} value der bereits formatierte Stand
@@ -227,10 +243,14 @@ export function bindCreditDisplays(root = document) {
 		// abzuräumen, und ein pagehide-Zuhörer wäre eine Zeile, die nur so aussieht,
 		// als täte sie etwas. Ein Modul mit eigenem Takt braucht dagegen sein
 		// destroy() — siehe die Automaten-Module.
-		// subscribe() ruft sofort einmal auf und setzt damit den Startwert.
-		unsubscribe = credit.subscribe(paintAll);
+		// subscribe() ruft sofort einmal auf und setzt damit den Startwert,
+		// mit reason 'subscribe' — paintAll() sagt dann nichts an (M-06).
+		unsubscribe = credit.subscribe((detail) => paintAll(detail.reason));
 	} else {
-		paintAll();
+		// Dieselbe Lage wie beim Erstaufruf: root trägt Anzeigen, die es beim
+		// letzten Aufruf noch nicht gab, aber es ist nichts geschehen, das
+		// eine Ansage rechtfertigt.
+		paintAll('subscribe');
 	}
 
 	return displays.length;

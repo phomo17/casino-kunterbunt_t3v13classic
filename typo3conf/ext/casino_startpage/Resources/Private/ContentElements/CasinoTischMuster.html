@@ -1,0 +1,40 @@
+<f:comment>
+	Inhaltselement „Mustertisch" — der Beispieltisch auf seiner eigenen Seite.
+
+	Er hat keine Einstellungen und wertet keinen Datenbankwert aus.
+
+	ck-room-fill ist der Vertrag aus casino_startpage/README.md: der Saal ordnet
+	sich zu genau einer Bildschirmhöhe an und übergibt den Rest an dieses
+	Element.
+
+	Die Reihenfolge im Markup ist die Reihenfolge beim Durchgehen mit der
+	Tastatur, und sie ist bewusst gewählt: erst der Hinweis und die Ansage,
+	dann das Tuch, dann die Bedienleiste, zuletzt der Verlauf. Wer den Tisch
+	zum ersten Mal betritt, hört damit zuerst, wie er bedient wird.
+
+	Der Chipsatz wird als Erstes gerendert: ein <use> kann nur auf ein <symbol>
+	zeigen, das im Dokument schon steht.
+
+	Die drei Variablen unten sind fünf Zeilen Klartext statt eines
+	DataProcessors: der Mustertisch hat keine Datenbankeinstellung, für fünf
+	feste Werte lohnt kein PHP, und er soll gerade zeigen, dass ein Tisch ohne
+	eigenen PHP-Code auskommt. {splittable} und {mergeable} sind dieselbe Menge
+	— jeder Chip außer dem Einer lässt sich sowohl zerlegen als auch aus
+	kleineren zusammensetzen (siehe Table/BuyIn.html) — und stehen trotzdem als
+	zwei eigene Variablen da, weil Table/BuyIn.html die Chipwerte nicht selbst
+	kennen soll.
+</f:comment>
+<f:variable name="chips" value="{0: {value: 100, symbolId: 'ck-chip-100'}, 1: {value: 25, symbolId: 'ck-chip-25'}, 2: {value: 20, symbolId: 'ck-chip-20'}, 3: {value: 5, symbolId: 'ck-chip-5'}, 4: {value: 1, symbolId: 'ck-chip-1'}}" />
+<f:variable name="splittable" value="{0: {value: 100}, 1: {value: 25}, 2: {value: 20}, 3: {value: 5}}" />
+<f:variable name="mergeable" value="{0: {value: 100}, 1: {value: 25}, 2: {value: 20}, 3: {value: 5}}" />
+
+<f:asset.css identifier="ckTable" href="EXT:casino_startpage/Resources/Public/Css/table.css" />
+<f:asset.module identifier="@phomo17/casino-startpage/muster-tisch.js" />
+
+<div class="ck-table ck-room-fill" data-ck-table="" data-ck-table-key="muster_tisch">
+	<f:render partial="Table/ChipSprite" />
+	<f:render partial="Table/Status" />
+	<f:render partial="Table/MusterCloth" />
+	<f:render partial="Table/Controls" arguments="{chips: chips, splittable: splittable, mergeable: mergeable}" />
+	<f:render partial="Table/History" />
+</div>

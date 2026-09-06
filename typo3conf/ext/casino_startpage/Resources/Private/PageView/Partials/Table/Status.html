@@ -1,0 +1,42 @@
+<f:comment>
+	Ansage und Hinweiszeile eines Spieltisches.
+
+	Der Ansagebereich wird LEER ausgeliefert und erst von table-felt.js oder
+	table-controls.js gefüllt. Ein Live-Bereich, den ein Skript anlegt UND
+	füllt, wird von Hilfsmitteln nicht angesagt — dieselbe Regel und derselbe
+	Grund wie am Kassenschild (Partials/Hall/Credit.html).
+
+	role="status" statt role="alert": eine Ansage am Tisch ist eine Auskunft
+	und keine Warnung. Sie soll den Vorlesevorgang nicht unterbrechen, sondern
+	sich einreihen.
+
+	Die Hinweiszeile ist SICHTBAR und nicht nur für Hilfsmittel da: dass man
+	einen Chip mit Entf oder mit Umschalt-Klick wieder herunternimmt, ist
+	nirgends abzulesen und muss dastehen. Sie ist mit aria-describedby an
+	nichts gebunden — sie steht als gewöhnlicher Absatz vor dem Tuch und wird
+	beim Durchgehen ohnehin gelesen.
+
+	Die deutschen Satzbauten reisen als data-Attribute mit, damit sie aus der
+	XLIFF-Datei kommen und nicht im JavaScript stehen. {0}, {1} … sind die
+	Plätze der eingesetzten Werte.
+
+	data-text-fieldname-empty (Teilstück C1-D): derselbe Satz wie
+	data-text-fieldname, aber für ein Feld ohne Einsatz — „…, nichts gesetzt"
+	statt „…, 0 Euro gesetzt". table-felt.js benutzt ihn, sobald er hier steht.
+</f:comment>
+<p class="ck-table__hint">
+	<f:translate key="LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:table.hint.keyboard" />
+</p>
+
+<p class="ck-table__status" data-ck-table-status="" role="status"
+	data-text-placed="{f:translate(key: 'LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:table.announce.placed')}"
+	data-text-removed="{f:translate(key: 'LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:table.announce.removed')}"
+	data-text-cleared="{f:translate(key: 'LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:table.announce.cleared')}"
+	data-text-doubled="{f:translate(key: 'LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:table.announce.doubled')}"
+	data-text-repeated="{f:translate(key: 'LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:table.announce.repeated')}"
+	data-text-fieldmax="{f:translate(key: 'LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:table.announce.fieldmax')}"
+	data-text-roundmax="{f:translate(key: 'LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:table.announce.roundmax')}"
+	data-text-nochip="{f:translate(key: 'LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:table.announce.nochip')}"
+	data-text-locked="{f:translate(key: 'LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:table.announce.locked')}"
+	data-text-fieldname="{f:translate(key: 'LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:table.field.name')}"
+	data-text-fieldname-empty="{f:translate(key: 'LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:table.field.name.empty')}"></p>

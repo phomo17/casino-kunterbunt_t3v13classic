@@ -1,0 +1,84 @@
+/*
+ * Blackjack – die Karten
+ * ======================
+ *
+ * Die Zeichnungen selbst stehen in Resources/Private/Partials/Table/Blackjack/
+ * CardSprite.html; hier stehen nur Maß, Druckfarbe und die Fächerung.
+ *
+ * KEINE EIGENE FARBE. Jeder Wert kommt aus tokens.css des Site Packages
+ * (Prüfung A-1/A-2). Die Karte ist bedrucktes Papier — deshalb --ck-paper-100
+ * als Fläche und --ck-print-ink/--ck-print-red als Druckfarben; „rot" und
+ * „schwarz" sind hier nur Klassennamen, der Farbwert steht nicht hier.
+ *
+ * FARBE IST NIE DIE EINZIGE AUSSAGE. Die vier Farbzeichen haben vier
+ * verschiedene Umrisse, und jede Karte trägt ihr Rangzeichen zweimal als
+ * Text. Diese Datei fügt dem nichts hinzu und nimmt ihm nichts weg.
+ *
+ * --bj-card-width ist die einzige Stellschraube: alle Maße hängen daran.
+ */
+
+.bj-card {
+	inline-size: var(--bj-card-width, 3.4rem);
+	block-size: auto;
+	aspect-ratio: 60 / 84;
+	display: block;
+	filter: drop-shadow(0 0.1rem 0.2rem var(--ck-shadow-soft));
+}
+
+/* Die Druckfarbe. currentColor in der Zeichnung greift genau hierauf zu. */
+.bj-card--red { color: var(--ck-print-red); }
+.bj-card--black { color: var(--ck-print-ink); }
+/* Der Rücken hat kein Farbzeichen und braucht deshalb keine Druckfarbe. */
+.bj-card--back { color: var(--ck-card-back-line); }
+
+/* Rangecke: Zeichen und kleines Farbzeichen. Die Schrift ist die
+   Anzeigeschrift des Projekts, dieselbe wie auf dem Wertaufdruck der Chips. */
+.bj-card__index text {
+	font-family: var(--ck-font-display);
+	font-size: 15px;
+	font-weight: 700;
+	fill: currentColor;
+	text-anchor: start;
+}
+
+/* Das große Mittelbild. */
+.bj-card__pip { color: inherit; }
+
+/* Eine Hand: die Karten überlappen sich wie ein aufgefächertes Blatt. Der
+   Versatz ist negativ, damit jede weitere Karte über die vorige rutscht; die
+   erste Karte bleibt vollständig sichtbar. */
+.bj-hand__cards {
+	display: inline-flex;
+	align-items: flex-start;
+}
+
+.bj-hand__cards .bj-card + .bj-card {
+	margin-inline-start: calc(var(--bj-card-width, 3.4rem) * -0.55);
+}
+
+/* Auf dem Tuch liegen die Karten kleiner und leicht gedreht — ein Blatt liegt
+   nie schnurgerade. Die Drehung ist Zierrat und wird bei reduzierter Bewegung
+   NICHT abgeschaltet: sie bewegt sich nicht, sie steht nur schräg. */
+.bj-felt .bj-card { --bj-card-width: 2.6rem; }
+.bj-felt .bj-hand__cards .bj-card:nth-child(2) { rotate: 4deg; }
+.bj-felt .bj-hand__cards .bj-card:nth-child(4) { rotate: -3deg; }
+
+/* In der Bedienleiste liegen die eigenen Karten AUFGEDECKT und größer: das
+   ist die Stelle, an der der Spieler sein Blatt tatsächlich liest
+   (CONCEPT.md C.7.1, ausdrückliche Vorgabe). */
+.bj-panel .bj-card { --bj-card-width: 4rem; }
+
+/* Eine frisch gegebene Karte fährt kurz ein. Ohne @media-Block wäre das ein
+   Verstoß gegen die Bewegungsdrosselung des Projekts (CONCEPT.md C.3). */
+.bj-card--dealt {
+	animation: bj-card-in var(--ck-duration-base) var(--ck-ease-mech) both;
+}
+
+@keyframes bj-card-in {
+	from { opacity: 0; translate: 0 -0.6rem; }
+	to { opacity: 1; translate: 0 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.bj-card--dealt { animation: none; }
+}

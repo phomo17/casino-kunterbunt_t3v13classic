@@ -2,10 +2,15 @@
 	Eine runde Bakelit-Drucktaste im Chromring, dahinter eine Glühlampe
 	(DESIGNBRIEF.md Abschnitt 6).
 
-	{key}       Wert für data-rs-button; Phase 6 bis 10 greifen darauf zu
-	{labelKey}  Schlüssel der Beschriftung; leer bei den beiden
-	            unbeschrifteten Risiko-Tasten
-	{lamp}      1, wenn über der Taste ein Lichtfeld sitzt
+	{key}           Wert für data-rs-button; Phase 6 bis 10 greifen darauf zu
+	{labelKey}      Schlüssel der sichtbaren Beschriftung; leer bei den
+	                beiden unbeschrifteten Risiko-Tasten
+	{ariaLabelKey}  Schlüssel des erreichbaren Namens; nur gesetzt, wenn die
+	                Taste keine sichtbare Beschriftung hat. Ohne ihn hat ein
+	                Hilfsmittel keinen Namen für die Taste (Audit A-01) — der
+	                Video Slot löst dieselbe Stelle mit diesem Attribut, hier
+	                nachgezogen.
+	{lamp}          1, wenn über der Taste ein Lichtfeld sitzt
 
 	Der Platzhalter .rs-btn__lamp-slot ist immer da, auch leer. Nur so
 	sitzen alle sechs Kappen auf einer Linie, obwohl nur zwei ein Lichtfeld
@@ -18,12 +23,36 @@
 	Ein button ohne Ereignis tut nichts. Das ist in Phase 5 richtig: das
 	Gerät ist statisch, aber das Element ist das semantisch korrekte für
 	eine Bedientaste und muss später nicht ausgetauscht werden.
+
+	WARUM ZWEI VOLLSTÄNDIGE ZWEIGE statt eines einzigen button mit einem
+	bedingten Attribut: ein aria-label steht als gewöhnliches HTML-Attribut
+	im Markup und wird von Fluid immer ausgegeben — auch dann, wenn sein
+	Inhalt leer bleibt. Ein leeres aria-label="" überschreibt aber den
+	sichtbaren Namen mit nichts, und die vier beschrifteten Tasten wären für
+	ein Hilfsmittel namenlos. Doppeltes Markup ist hier der kleinere Preis.
 </f:comment>
-<button type="button" class="rs-btn rs-btn--{key}" data-rs-button="{key}">
-	<span class="rs-btn__lamp-slot"><f:if condition="{lamp}">
-		<span class="rs-lamp" data-rs-lamp="{key}"></span>
-	</f:if></span>
-	<span class="rs-btn__cap"></span>
-	<span class="rs-btn__label"><f:if condition="{labelKey}"><f:translate
-		key="LLL:EXT:reel_slot/Resources/Private/Language/locallang.xlf:{labelKey}" /></f:if></span>
-</button>
+<f:if condition="{ariaLabelKey}">
+	<f:then>
+		<f:variable name="rsButtonAriaLabel"><f:translate
+			key="LLL:EXT:reel_slot/Resources/Private/Language/locallang.xlf:{ariaLabelKey}" /></f:variable>
+		<button type="button" class="rs-btn rs-btn--{key}" data-rs-button="{key}"
+			aria-label="{rsButtonAriaLabel}">
+			<span class="rs-btn__lamp-slot"><f:if condition="{lamp}">
+				<span class="rs-lamp" data-rs-lamp="{key}"></span>
+			</f:if></span>
+			<span class="rs-btn__cap"></span>
+			<span class="rs-btn__label"><f:if condition="{labelKey}"><f:translate
+				key="LLL:EXT:reel_slot/Resources/Private/Language/locallang.xlf:{labelKey}" /></f:if></span>
+		</button>
+	</f:then>
+	<f:else>
+		<button type="button" class="rs-btn rs-btn--{key}" data-rs-button="{key}">
+			<span class="rs-btn__lamp-slot"><f:if condition="{lamp}">
+				<span class="rs-lamp" data-rs-lamp="{key}"></span>
+			</f:if></span>
+			<span class="rs-btn__cap"></span>
+			<span class="rs-btn__label"><f:if condition="{labelKey}"><f:translate
+				key="LLL:EXT:reel_slot/Resources/Private/Language/locallang.xlf:{labelKey}" /></f:if></span>
+		</button>
+	</f:else>
+</f:if>

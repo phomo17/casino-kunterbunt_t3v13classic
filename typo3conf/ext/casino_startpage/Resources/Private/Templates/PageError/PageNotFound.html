@@ -1,0 +1,69 @@
+<f:comment>
+	404-Fehlerseite (Behebungslauf 2026-09-05/06, AUDITREPORT-2026-09-05.md,
+	Befund A-11).
+
+	Dieses Template wird NICHT über PAGEVIEW/TSFE gerendert, sondern direkt
+	vom TYPO3-Kern über FluidPageErrorHandler aufgerufen (site
+	config.yaml, errorHandling), sobald keine Seite zur angefragten Adresse
+	passt — noch vor jeder Seiten- und TypoScript-Auflösung. Es gibt deshalb
+	kein Layout, keine automatische <html lang>-Ausgabe aus der
+	Seitenkonfiguration und kein page.meta aus setup.typoscript: dieses
+	Template schreibt das vollständige Dokument selbst.
+
+	Zwei Variablen stellt der Kern bereit: {message} (der Auslösegrund als
+	Fließtext) und {reasons} (eine Detailliste). Beide bleiben unbenutzt:
+	sie sind auf Englisch und für Entwickler gedacht, nicht für Besucher des
+	Saals.
+
+	Bewusst deutscher Text OHNE <f:translate>: das Übersetzungssystem
+	(LanguageService) ist an diesem sehr frühen Punkt der
+	Anfrageverarbeitung nicht zuverlässig aufgebaut, und diese Seite führt
+	ohnehin nur eine Sprache (de_DE, siehe config.yaml).
+
+	tokens.css und base.css werden über feste, im klassischen Modus stabile
+	Pfade eingebunden (kein f:uri.resource: dessen Extension-Auflösung ist
+	für einen derart frühen Fehlerpfad nicht dokumentiert erprobt) — dieselben
+	zwei Dateien, mit denen jede andere Seite beginnt (setup.typoscript,
+	page.includeCSS). base.css setzt bereits body { background-color;
+	color; font-family }, daher reicht ein kurzer eigener Absatz für den
+	Rückweg.
+</f:comment><!DOCTYPE html>
+<html lang="de-DE">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<meta name="robots" content="noindex, follow" />
+	<title>Seite nicht gefunden – Casino Kunterbunt</title>
+	<link rel="stylesheet" href="/typo3conf/ext/casino_startpage/Resources/Public/Css/tokens.css" />
+	<link rel="stylesheet" href="/typo3conf/ext/casino_startpage/Resources/Public/Css/base.css" />
+	<style>
+		.ck-notfound {
+			display: flex;
+			flex-direction: column;
+			align-items: flex-start;
+			gap: var(--ck-space-3);
+			max-inline-size: 34rem;
+			margin-inline: auto;
+			padding: var(--ck-space-6) var(--ck-space-3);
+		}
+		.ck-notfound__back {
+			color: var(--ck-neon-gold);
+		}
+		.ck-notfound__back:focus-visible {
+			outline: 0.18rem solid var(--ck-bulb-core);
+			outline-offset: 0.12rem;
+		}
+	</style>
+</head>
+<body>
+	<main class="ck-notfound">
+		<h1>Diese Seite gibt es nicht</h1>
+		<p>
+			Die aufgerufene Adresse führt zu keinem Automaten und keinem Tisch in
+			diesem Saal. Vielleicht wurde der Verweis falsch eingegeben, oder die
+			Seite ist umgezogen.
+		</p>
+		<p><a class="ck-notfound__back" href="/">Zurück in den Saal</a></p>
+	</main>
+</body>
+</html>

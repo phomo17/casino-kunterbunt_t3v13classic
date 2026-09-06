@@ -1,0 +1,892 @@
+/*
+ * Coin Pusher – das Gehäuse
+ * =======================================
+ *
+ * Wird ausschließlich von Resources/Private/ContentElements/Machine.html über
+ * <f:asset.css> angefordert und deshalb nur auf Seiten geladen, auf denen der
+ * Automat wirklich steht.
+ *
+ * Alle Farben kommen aus casino_startpage/Resources/Public/Css/tokens.css.
+ * In dieser Datei steht kein ausgeschriebener Farbwert. Wo ein Token
+ * durchsichtig gebraucht wird, steht color-mix(… , transparent) statt eines
+ * neuen rgba-Werts.
+ *
+ * Eigener Klassenpräfix „cp-". Geteilt werden nur die Vertragsklassen des
+ * Site Packages: ck-cabinet / ck-cabinet__drawing (Saal-Miniatur, hier nicht
+ * benutzt) und ck-room-fill (bildschirmfüllendes Gerät).
+ *
+ * KEINE Bewegungsdrosselung: prefers-reduced-motion bleibt laut CONCEPT.md
+ * B.1 Nicht-Ziel. Das Fehlen ist Absicht, kein Versehen.
+ *
+ *
+ * DAS MASSRASTER
+ * --------------
+ * Der viewBox der Zeichnung ist 0 0 100 160 — dasselbe Seitenverhältnis
+ * 1 : 1,6 wie bei den beiden anderen Geräten. .cp-cabinet ist ein
+ * Container-Query-Container mit genau diesem Seitenverhältnis. Damit gilt in
+ * allen Kindern:
+ *
+ *     1cqi = 1 viewBox-Einheit – in BEIDEN Achsen.
+ *
+ * Ein HTML-Kasten auf left: 8cqi; top: 112cqi liegt punktgenau über dem
+ * SVG-Rechteck derselben Koordinaten. Es gibt genau eine Koordinatentabelle
+ * für das ganze Gerät:
+ *
+ *   Chromhaube (Schulter)      x  3–97   y  10– 30   (r 6, flach)
+ *     Kopfschild                x 22–78   y  12– 26   COIN PUSHER, einzeilig
+ *     Münzeinwurfschlitz        x 44–56   y  30,5–35,5   Chromschlitz, mittig im Rahmen
+ *   Korpus (Nussbaum)          x  3–97   y  26–148
+ *   Fensterrahmen (Chrom)      x  5–95   y  34– 91
+ *     Sichtfeld (Zeichenfläche) x  8–92   y  38,4–87,0   84 × 48,6 = 140 : 81
+ *     Glasscheibe               deckungsgleich mit dem Sichtfeld
+ *   Meldungsschild             x 16–84   y  50– 66   (verborgen)
+ *   Nixie-Chromplatte          x  6–94   y  93–110
+ *     Panel (HTML)              x  8–92   y  95–108,5
+ *     Röhren                    y 97–108   (3,3 × 11 je Röhre)
+ *     Drei Gruppen               GUTHABEN 6 · MÜNZWERT 2 · IM FELD 3 = 11 Röhren
+ *   Bedienleiste (Platte)      x  6–94   y 112–128
+ *     Münzwahl-Raster (HTML)    x  8–66   y 112–128   (4 Spalten à 14,5)
+ *     Ton-Schalter               x 70–92   y 116–125
+ *   Geldreihe (HTML)           x  6–94   y 129,5–140,5
+ *     Aufladeknöpfe              x  6–28
+ *     Geldschlitz                x 30–37
+ *     Kassenfenster               x 39–66
+ *     Feld freier Betrag          x 68–94
+ *   Auswurfschale (vorstehend) x 22–78   y 142–149
+ *     Lampe der Schale           x 28–72   y 142,8–144,2
+ *     zugleich CASH OUT          dieselbe Fläche, unsichtbarer button darüber
+ *   Podest / Sockelblende      x  1–99   y 147–160
+ *
+ * Das Sichtfeld misst 84 × 48,6 statt einfach der Feldboden-Maße aus
+ * field.js (128 × 73 Einheiten): die Zeichenfläche bildet zusätzlich die
+ * beiden Verlustschächte links und rechts und einen Streifen über der
+ * hintersten Lage der Schubplatte ab, in dem der Stift-Slalom sitzt —
+ * (128 + 2 · 6) × (73 + 8) = 140 × 81, auf 84 Rastereinheiten Breite skaliert
+ * ergibt das 84 · 81 / 140 = 48,6 Höhe. Siehe view.js, DRAW_WIDTH/DRAW_HEIGHT.
+ *
+ * Dieses Gerät hat KEINEN Hebel und KEINEN Rollenumlauf. Seine Silhouette
+ * unterscheidet sich absichtlich von beiden Walzengeräten (CONCEPT.md B.3
+ * Regel 7): breiter, gedrungener Korpus über die volle Rasterbreite, eine
+ * flache Chromhaube statt gerundeter Schulter oder Kuppel, und ein
+ * querliegendes großes Fenster statt eines hochstehenden Walzenfensters.
+ *
+ *
+ * DIE HAKEN FÜR SPÄTERE PHASEN
+ * ----------------------------
+ * Eine spätere Phase ändert das Aussehen ausschließlich über eine Klasse
+ * oder eine Custom Property – niemals über neues Markup. Jede Zeile hier ist
+ * per Hand über die Entwicklerwerkzeuge auslösbar, unabhängig davon, ob in
+ * Lauf 1 schon JavaScript sie setzt.
+ *
+ *   .cp-tray__lamp--on      Lampe der Auswurfschale leuchtet              (Lauf 1)
+ *   --cp-digit              angezeigte Ziffer, je .cp-nixie               (Lauf 2)
+ *   .cp-nixie--strike       Helligkeitseinbruch beim Ziffernwechsel        (Lauf 2)
+ *   .cp-nixie-group--overflow  Gruppe blinkt bei Überlauf                 (Lauf 2)
+ *   .cp-message--shown      Meldungsschild einblenden                      (Lauf 2)
+ *   .cp-value--selected     gewählter Münzwert                             (Lauf 2)
+ *   .cp-value--pressed      Kappe gedrückt gehalten                        (Lauf 2)
+ *   .cp-drop--flash         Einwurfschlitz leuchtet kurz auf               (Lauf 2)
+ *   .cp-drop__coin--drop    Münze fällt in den Einwurfschlitz              (Lauf 2)
+ *   .cp-coinslot__coin--drop   Geldmünze fällt in den Geldschlitz          (Lauf 2)
+ *   .cp-coinslot__slot--flash  Geldschlitz leuchtet beim Einwurf           (Lauf 2)
+ *   .cp-cashout--lit        CASH OUT leuchtet, weil Gerätekredit da ist    (Lauf 2)
+ *   .cp-sound--on           Ton eingeschaltet                              (Lauf 2)
+ *
+ * Wem die Bedienteile gehören werden (je Teil genau einer):
+ *   Münzeinwurf, Zeichenfläche   coin-pusher.js / pusher.js / view.js  (Lauf 1)
+ *   Lampe der Auswurfschale      lamp.js                               (Lauf 1)
+ *   Münzwertwahl, Geldeinwurf    press.js / coinslot.js               (Lauf 2)
+ *   Kassenfenster, CASH OUT      wallet.js / bank.js                  (Lauf 2)
+ *   Nixie-Anzeigen               nixie.js                             (Lauf 2)
+ *   Meldungsschild                message.js                          (Lauf 2)
+ *   Ton-Schalter, Klang           sound.js                            (Lauf 2)
+ *
+ * Abschnitte:
+ *   0  Einpassung
+ *   1  Spielfeld
+ *   2  Meldungsschild
+ *   3  Münzeinwurf
+ *   4  Nixie-Anzeigen
+ *   5  Münzwertwahl
+ *   6  Ton-Schalter
+ *   7  Geldeinwurf
+ *   8  Kassenfenster
+ *   9  Auswurfschale, Lampe und CASH OUT
+ *  10  Fokus und unsichtbare Beschriftungen
+ *  11  Bewegung (Keyframes)
+ */
+
+
+/* ==========================================================================
+   0  Einpassung
+   ========================================================================== */
+
+.cp-machine { container-type: size; display: flex; align-items: center; justify-content: center;
+              block-size: 100%; min-block-size: calc(100svh - 12rem); overflow: clip; }
+.cp-cabinet { inline-size: min(100cqi, calc(100cqb / 1.6)); aspect-ratio: 100 / 160;
+              container-type: size; position: relative; }
+.cp-shell   { position: absolute; inset: 0; inline-size: 100%; block-size: 100%;
+              filter: drop-shadow(0 0.5cqi 0.9cqi var(--ck-shadow-hard)); }
+
+/* Schattenwurf auf den Teppich, damit das Gerät im Raum steht und nicht auf
+   der Seite klebt. */
+.cp-cabinet::after {
+	content: "";
+	position: absolute;
+	z-index: 0;
+	inset-inline: -8%;
+	inset-block-end: 0.5cqi;
+	block-size: 6cqi;
+	background-image: radial-gradient(
+		50% 50% at 50% 50%,
+		var(--ck-shadow-pool) 0%,
+		var(--ck-shadow-soft) 46%,
+		transparent 72%
+	);
+	filter: blur(0.5cqi);
+	pointer-events: none;
+}
+
+/* Alle beweglichen und bedienbaren Teile liegen über der Zeichnung. Ihre
+   Reihenfolge im Markup ist die Malreihenfolge. */
+.cp-field,
+.cp-field__glass,
+.cp-message,
+.cp-drop,
+.cp-nixie-panel,
+.cp-values,
+.cp-sound,
+.cp-coinslot,
+.cp-bank,
+.cp-tray__lamp,
+.cp-cashout {
+	position: absolute;
+	z-index: 2;
+}
+
+
+/* ==========================================================================
+   1  Spielfeld
+   ========================================================================== */
+
+.cp-field { left: 8cqi; top: 38.4cqi; inline-size: 84cqi; block-size: 48.6cqi;
+            overflow: hidden; border-radius: 0.6cqi; background: var(--ck-chrome-shadow);
+            /* Die Farbschlüssel der Zeichenfläche. view.js liest sie über
+               getComputedStyle und malt damit — dadurch steht auch in der
+               JavaScript-Datei kein Farbwert (B.3 Regel 10). */
+            --cp-floor:        var(--ck-chrome-500);
+            --cp-floor-light:  var(--ck-chrome-400);
+            --cp-floor-edge:   var(--ck-chrome-shadow);
+            --cp-chute:        var(--ck-chrome-shadow);
+            --cp-plate:        var(--ck-chrome-300);
+            --cp-plate-light:  var(--ck-chrome-100);
+            --cp-lip:          var(--ck-brass-300);
+            --cp-lip-light:    var(--ck-brass-100);
+            --cp-pin:          var(--ck-chrome-200);
+            --cp-shadow:       var(--ck-shadow-pool);
+            --cp-coin-1-face:  var(--ck-copper-200);
+            --cp-coin-1-rim:   var(--ck-copper-400);
+            --cp-coin-2-face:  var(--ck-chrome-300);
+            --cp-coin-2-rim:   var(--ck-chrome-500);
+            --cp-coin-5-face:  var(--ck-brass-200);
+            --cp-coin-5-rim:   var(--ck-brass-400);
+            --cp-coin-10-face: var(--ck-chrome-300);
+            --cp-coin-10-rim:  var(--ck-chrome-500);
+            --cp-coin-10-core: var(--ck-brass-200); }
+.cp-field__canvas { display: block; inline-size: 100%; block-size: 100%; }
+.cp-field__glass  { left: 8cqi; top: 38.4cqi; inline-size: 84cqi; block-size: 48.6cqi;
+                    pointer-events: none;
+                    background: linear-gradient(135deg, var(--ck-glass-sheen) 0%, transparent 45%);
+                    box-shadow: inset 0 0.2cqi 0.6cqi var(--ck-glass-edge); }
+
+/*
+ * Warum die Farben hier stehen und nicht in view.js: eine Zeichenfläche kann
+ * keine CSS-Variable lesen; sie braucht eine ausgeschriebene Farbe. Stünde
+ * die im JavaScript, wäre B.3 Regel 10 verletzt. Der Umweg über eigene
+ * --cp-*-Slots auf dem Feld-Container löst beides: die Farbentscheidung
+ * bleibt in CSS, view.js liest sie einmal beim Anlegen über getComputedStyle
+ * und bei jeder Größenänderung erneut.
+ */
+
+
+/* ==========================================================================
+   2  Meldungsschild
+   ========================================================================== */
+
+/*
+ * Verborgen, bis message.js in Lauf 2 .cp-message--shown setzt. KEIN
+ * visibility: hidden: es würde das Schild aus dem Barrierebaum nehmen, und
+ * ein Live-Bereich, der zwischen zwei Meldungen daraus verschwindet, gilt
+ * beim nächsten Mal als NEUER Bereich — neue Live-Bereiche werden nicht
+ * angesagt.
+ */
+.cp-message {
+	inset-inline-start: 16cqi;
+	inset-block-start: 50cqi;
+	inline-size: 68cqi;
+	block-size: 16cqi;
+	display: grid;
+	place-items: center;
+	margin: 0;
+	padding: 0 2cqi;
+	border-radius: 1.2cqi;
+	background-color: color-mix(in srgb, var(--ck-wood-500) 88%, transparent);
+	box-shadow:
+		inset 0 0 0 0.3cqi var(--ck-brass-400),
+		0 0.4cqi 1.2cqi var(--ck-shadow-hard);
+	color: var(--ck-nixie-core);
+	font-family: var(--ck-font-display);
+	font-size: 3.6cqi;
+	letter-spacing: 0.08em;
+	line-height: 1.15;
+	text-align: center;
+	text-shadow: var(--ck-nixie-glow-text);
+	opacity: 0;
+	pointer-events: none;
+	transition: opacity var(--ck-duration-base) linear;
+}
+
+.cp-message--shown {
+	opacity: 1;
+}
+
+
+/* ==========================================================================
+   3  Münzeinwurf
+   ========================================================================== */
+
+/*
+ * Der feste Münzeinwurf (CONCEPT.md B.9.2). Der button liegt unsichtbar
+ * größer als der gezeichnete Schlitz (x44–56 y30,5–35,5), damit die
+ * Trefferfläche auch auf einem kleinen Bildschirm groß genug bleibt — genau
+ * dieselbe Vorsichtsmaßnahme wie beim Münzschlitz der Geldreihe.
+ */
+.cp-drop {
+	inset-inline-start: 38cqi;
+	inset-block-start: 24cqi;
+	inline-size: 24cqi;
+	block-size: 15cqi;
+	margin: 0;
+	padding: 0;
+	border: 0;
+	border-radius: 2cqi;
+	background: none;
+	cursor: pointer;
+	transition: box-shadow var(--ck-duration-fast) linear;
+	-webkit-tap-highlight-color: transparent;
+}
+
+.cp-drop:hover,
+.cp-drop:focus-visible,
+.cp-drop--flash {
+	box-shadow: 0 0 2cqi var(--ck-bulb-halo);
+}
+
+/* Die einfallende Münze. Unsichtbar, bis Lauf 2 sie kurz aufblitzen lässt. */
+.cp-drop__coin {
+	position: absolute;
+	inset-inline-start: 10cqi;
+	inset-block-start: 9.5cqi;
+	inline-size: 4.4cqi;
+	block-size: 4.4cqi;
+	border-radius: 50%;
+	background-image: radial-gradient(
+		circle at 36% 30%,
+		var(--ck-brass-100) 0%,
+		var(--ck-brass-300) 55%,
+		var(--ck-brass-500) 100%
+	);
+	box-shadow: inset 0 0 0 0.35cqi var(--ck-brass-400);
+	opacity: 0;
+	pointer-events: none;
+}
+
+.cp-drop__coin--drop {
+	animation: cp-drop-coin-fall 420ms var(--ck-ease-mech) 1;
+}
+
+
+/* ==========================================================================
+   4  Nixie-Anzeigen
+   ========================================================================== */
+
+/*
+ * Aufbau, Maße relativ zum Raster und Materialrezept unverändert aus
+ * video_slot/Resources/Public/Css/machine.css übernommen (Abschnitt
+ * gleichen Namens) — Röhren sind Röhren. Nur das Präfix (vs- → cp-) und die
+ * Position des Panels sind an dieses Gerät angepasst (Nixie-Chromplatte
+ * x6–94 y93–110, Panel x8–92 y95–108,5).
+ */
+
+.cp-nixie-panel {
+	inset-inline-start: 8cqi;
+	inset-block-start: 95cqi;
+	inline-size: 84cqi;
+	block-size: 13.5cqi;
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 1.2cqi;
+}
+
+.cp-nixie-group__drawn {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 0.5cqi;
+}
+
+.cp-nixie-group__label {
+	color: var(--ck-chrome-shadow);
+	font-family: var(--ck-font-display);
+	font-size: 1.95cqi;
+	letter-spacing: 0.12em;
+	line-height: 1;
+	text-transform: uppercase;
+}
+
+.cp-nixie-group__tubes {
+	display: flex;
+	gap: 0.34cqi;
+}
+
+/*
+ * Eine Röhre: Glaskolben mit gerundeter Kuppe, dunkler Innenraum,
+ * Kantenreflexe über helle Innenschatten.
+ */
+.cp-nixie {
+	position: relative;
+	display: block;
+	inline-size: 3.3cqi;
+	block-size: 11cqi;
+	border-radius: 1.4cqi 1.4cqi 0.35cqi 0.35cqi;
+	background-color: var(--ck-nixie-dark);
+	box-shadow:
+		inset 0 0 0.5cqi var(--ck-glass-edge),
+		inset 0.35cqi 0 0.7cqi var(--ck-glass-sheen),
+		0 0.2cqi 0.4cqi var(--ck-shadow-hard);
+	overflow: hidden;
+	animation: cp-nixie-shimmer 6.4s ease-in-out infinite;
+	animation-delay: calc(var(--cp-tube, 0) * -0.43s);
+}
+
+.cp-nixie::before {
+	content: "";
+	position: absolute;
+	inset: 0;
+	z-index: 2;
+	pointer-events: none;
+	background-image:
+		repeating-linear-gradient(
+			0deg,
+			color-mix(in srgb, var(--ck-chrome-500) 45%, transparent) 0 0.12cqi,
+			transparent 0.12cqi 0.62cqi
+		),
+		repeating-linear-gradient(
+			90deg,
+			color-mix(in srgb, var(--ck-chrome-500) 45%, transparent) 0 0.12cqi,
+			transparent 0.12cqi 0.62cqi
+		);
+	opacity: 0.45;
+}
+
+.cp-nixie::after {
+	content: "";
+	position: absolute;
+	inset: 0;
+	z-index: 3;
+	pointer-events: none;
+	background-image: linear-gradient(
+		122deg,
+		var(--ck-glass-sheen) 0%,
+		transparent 40%,
+		transparent 72%,
+		color-mix(in srgb, var(--ck-glass-edge) 45%, transparent) 100%
+	);
+}
+
+.cp-nixie__digit {
+	position: absolute;
+	inset: 0;
+	z-index: 1;
+	display: grid;
+	place-items: center;
+	font-family: var(--ck-font-numeric);
+	font-size: 6.2cqi;
+	font-variant-numeric: tabular-nums;
+	line-height: 1;
+	transform: translate(
+		calc(var(--cp-depth) * 0.1cqi),
+		calc(var(--cp-depth) * -0.07cqi)
+	);
+}
+
+.cp-nixie__digit::after {
+	content: attr(data-cp-digit);
+	color: transparent;
+	-webkit-text-stroke: 0.14cqi var(--ck-chrome-400);
+	opacity: calc(0.30 - var(--cp-depth) * 0.022);
+}
+
+.cp-nixie__digit::before {
+	content: attr(data-cp-digit);
+	position: absolute;
+	color: var(--ck-nixie-core);
+	text-shadow: var(--ck-nixie-glow-text);
+	transform: translateY(0.09cqi);
+	opacity: calc(1 - min(1, max(
+		calc(var(--cp-cathode) - var(--cp-digit, -1)),
+		calc(var(--cp-digit, -1) - var(--cp-cathode))
+	)));
+}
+
+.cp-nixie--strike {
+	animation:
+		cp-nixie-strike 200ms linear 1,
+		cp-nixie-shimmer 6.4s ease-in-out 200ms infinite;
+}
+
+.cp-nixie-group--overflow .cp-nixie-group__tubes {
+	animation: cp-nixie-overflow 1.1s steps(1, end) infinite;
+}
+
+
+/* ==========================================================================
+   5  Münzwertwahl
+   ========================================================================== */
+
+.cp-values { left: 8cqi; top: 112cqi; inline-size: 58cqi; block-size: 16cqi;
+             display: grid; grid-template-columns: repeat(4, 1fr); gap: 1cqi; }
+.cp-value  { position: relative; display: grid; justify-items: center; align-content: center;
+             gap: 0.4cqi; margin: 0; padding: 0; border: 0; background: none; cursor: pointer;
+             -webkit-tap-highlight-color: transparent; }
+.cp-value__cap { inline-size: 9.2cqi; block-size: 9.2cqi; border-radius: 50%;
+                 background: var(--ck-bakelite-cream);
+                 box-shadow: 0 0 0 0.7cqi var(--ck-chrome-300),
+                             inset 0 -0.5cqi 0.9cqi var(--ck-bakelite-cream-shade);
+                 display: grid; place-items: center;
+                 transition: transform var(--ck-duration-fast) var(--ck-ease-mech),
+                             background var(--ck-duration-fast) linear,
+                             box-shadow var(--ck-duration-fast) linear; }
+.cp-value__coin { border-radius: 50%; position: relative; }
+.cp-value__coin--1  { inline-size: 3.4cqi; block-size: 3.4cqi;
+                      background: var(--ck-copper-200); border: 0.5cqi solid var(--ck-copper-400); }
+.cp-value__coin--2  { inline-size: 3.7cqi; block-size: 3.7cqi;
+                      background: var(--ck-chrome-300); border: 0.5cqi solid var(--ck-chrome-500); }
+.cp-value__coin--5  { inline-size: 4.0cqi; block-size: 4.0cqi;
+                      background: var(--ck-brass-200); border: 0.5cqi solid var(--ck-brass-400); }
+.cp-value__coin--10 { inline-size: 4.4cqi; block-size: 4.4cqi;
+                      background: var(--ck-chrome-300); border: 0.5cqi solid var(--ck-chrome-500);
+                      box-shadow: inset 0 0 0 1.1cqi var(--ck-brass-200); }
+/* Audit A-03: --ck-chrome-100 auf der Bedienleistenplatte (--ck-chrome-200,
+   Shell.html Abschnitt 8) maß 1,30–1,98:1 statt 4,5:1 — die Ziffer war auf den
+   hellen Münzscheiben kaum zu erkennen. --ck-chrome-shadow gegen dieselbe
+   Platte misst 12,66:1 (Token-Luminanz nach WCAG-Formel), dieselbe Lösung wie
+   an der Nixie-Beschriftung (DECISIONS.md 2026-09-02). */
+.cp-value__digits { color: var(--ck-chrome-shadow); font-family: var(--ck-font-display);
+                     font-size: 2.6cqi; letter-spacing: 0.04em; line-height: 1; }
+
+.cp-value--selected .cp-value__cap { background: var(--ck-bulb-glow);
+                                     box-shadow: 0 0 0 0.7cqi var(--ck-chrome-100),
+                                                 0 0 2.4cqi var(--ck-bulb-halo); }
+
+/* Gedrückt gehalten: die Kappe fährt in den Chromring ein — dieselbe
+   Bauform wie überall an diesem Projekt (.cp-value--pressed für das
+   programmatische Festhalten, :active für den echten Fingerdruck). */
+.cp-value--pressed .cp-value__cap,
+.cp-value:active .cp-value__cap {
+	transform: translateY(0.4cqi) scale(0.97);
+}
+
+
+/* ==========================================================================
+   6  Ton-Schalter
+   ========================================================================== */
+
+/* Chromwippe mit Kontrolllampe. CONCEPT.md Abschnitt 3.7 sieht ihn
+   standardmäßig eingeschaltet vor, deshalb trägt das Markup cp-sound--on
+   von Anfang an — so stimmt die Anzeige auch ohne JavaScript. */
+.cp-sound {
+	left: 70cqi;
+	top: 116cqi;
+	inline-size: 22cqi;
+	block-size: 9cqi;
+	display: flex;
+	align-items: center;
+	gap: 1.2cqi;
+	margin: 0;
+	padding: 0 1.4cqi;
+	border: 0;
+	border-radius: 1.4cqi;
+	background-image: var(--ck-chrome-polish);
+	color: var(--ck-chrome-500);
+	font: inherit;
+	cursor: pointer;
+	box-shadow:
+		0 0 0 0.35cqi var(--ck-chrome-500),
+		0 0.3cqi 0.5cqi var(--ck-shadow-hard);
+	-webkit-tap-highlight-color: transparent;
+}
+
+.cp-sound__lamp {
+	inline-size: 2.2cqi;
+	block-size: 2.2cqi;
+	border-radius: 50%;
+	background-color: var(--ck-bulb-off);
+	box-shadow: inset 0 0.2cqi 0.3cqi var(--ck-shadow-hard);
+	transition:
+		background-color var(--ck-duration-fast) linear,
+		box-shadow var(--ck-duration-fast) linear;
+}
+
+.cp-sound__label {
+	font-family: var(--ck-font-display);
+	font-size: 2.2cqi;
+	letter-spacing: 0.2em;
+	text-transform: uppercase;
+}
+
+.cp-sound__rocker {
+	position: relative;
+	inline-size: 3.4cqi;
+	block-size: 6.3cqi;
+	border-radius: 0.8cqi;
+	background-image: linear-gradient(
+		180deg,
+		var(--ck-chrome-100) 0%,
+		var(--ck-chrome-300) 48%,
+		var(--ck-chrome-500) 100%
+	);
+	box-shadow: 0 0.25cqi 0.4cqi var(--ck-shadow-hard);
+	transform: translateY(0.6cqi) rotate(-6deg);
+	transition: transform var(--ck-duration-base) var(--ck-ease-mech);
+}
+
+.cp-sound--on .cp-sound__lamp {
+	background-color: var(--ck-bulb-glow);
+	box-shadow: 0 0 1.6cqi var(--ck-bulb-halo);
+}
+
+.cp-sound--on .cp-sound__rocker {
+	transform: translateY(-0.6cqi) rotate(6deg);
+}
+
+
+/* ==========================================================================
+   7  Geldeinwurf
+   ========================================================================== */
+
+/*
+ * Der Geldschlitz am Sockel (CONCEPT.md B.5.2). Aufbau unverändert aus
+ * video_slot/Resources/Public/Css/machine.css übernommen (Abschnitt
+ * „Geldeinwurf, Kassenfenster und Auszahlung"), Präfix vs- → cp-, Position
+ * an die Geldreihe dieses Geräts angepasst (x6–94 y129,5–140,5).
+ */
+.cp-coinslot {
+	left: 6cqi;
+	top: 129.5cqi;
+	inline-size: 88cqi;
+	block-size: 11cqi;
+	margin: 0;
+	pointer-events: none;
+}
+
+.cp-coinslot > * {
+	pointer-events: auto;
+}
+
+.cp-coinslot__quick {
+	position: absolute;
+	inset-inline-start: 0;
+	inset-block-start: 2.2cqi;
+	inline-size: 22cqi;
+	display: grid;
+	grid-template-columns: repeat(3, 1fr);
+	gap: 1cqi;
+}
+
+.cp-coinslot__button {
+	display: grid;
+	place-items: center;
+	block-size: 5.8cqi;
+	margin: 0;
+	padding: 0;
+	border: 0;
+	border-radius: 0.9cqi;
+	background-image: var(--ck-brass-polish);
+	color: var(--ck-print-ink);
+	font-family: var(--ck-font-display);
+	font-size: 2.4cqi;
+	line-height: 1;
+	cursor: pointer;
+	box-shadow:
+		0 0 0 0.3cqi var(--ck-brass-500),
+		0 0.25cqi 0.4cqi var(--ck-shadow-hard),
+		inset 0 -0.3cqi 0.5cqi var(--ck-shadow-inset);
+	transition: transform var(--ck-duration-fast) var(--ck-ease-mech);
+	-webkit-tap-highlight-color: transparent;
+}
+
+.cp-coinslot__button:active {
+	transform: translateY(0.3cqi);
+}
+
+/* Der Schlitz ist gezeichnet (Shell.html, x30–37 y131,5–138); dieser Knopf
+   liegt nur unsichtbar darüber und macht ihn bedienbar. Er ist der
+   Absendeknopf des Formulars. */
+.cp-coinslot__slot {
+	position: absolute;
+	inset-inline-start: 23.4cqi;
+	inset-block-start: 1.5cqi;
+	inline-size: 8.6cqi;
+	block-size: 7cqi;
+	margin: 0;
+	padding: 0;
+	border: 0;
+	border-radius: 1.6cqi;
+	background-color: transparent;
+	cursor: pointer;
+	transition: box-shadow var(--ck-duration-fast) linear;
+	-webkit-tap-highlight-color: transparent;
+}
+
+.cp-coinslot__slot:hover,
+.cp-coinslot__slot:active,
+.cp-coinslot__slot--flash {
+	box-shadow: 0 0 1.8cqi var(--ck-bulb-halo);
+}
+
+.cp-coinslot__coin {
+	position: absolute;
+	inset-inline-start: 25.4cqi;
+	inset-block-start: 1.8cqi;
+	inline-size: 5cqi;
+	block-size: 5cqi;
+	z-index: 3;
+	border-radius: 50%;
+	background-image: radial-gradient(
+		circle at 36% 30%,
+		var(--ck-brass-100) 0%,
+		var(--ck-brass-300) 55%,
+		var(--ck-brass-500) 100%
+	);
+	box-shadow: inset 0 0 0 0.35cqi var(--ck-brass-400);
+	opacity: 0;
+	pointer-events: none;
+}
+
+.cp-coinslot__coin--drop {
+	animation: cp-coin-drop 460ms var(--ck-ease-mech) 1;
+}
+
+.cp-coinslot__custom {
+	position: absolute;
+	inset-inline-start: 68cqi;
+	inset-block-start: 2.4cqi;
+	inline-size: 22cqi;
+	block-size: 5.8cqi;
+	display: block;
+}
+
+.cp-coinslot__input {
+	inline-size: 100%;
+	block-size: 100%;
+	margin: 0;
+	padding: 0 0.8cqi;
+	border: 0;
+	border-radius: 0.9cqi;
+	appearance: textfield;
+	background-color: var(--ck-nixie-dark);
+	color: var(--ck-nixie-core);
+	font-family: var(--ck-font-display);
+	font-size: 2.8cqi;
+	text-align: end;
+	text-shadow: var(--ck-nixie-glow-text);
+	box-shadow:
+		0 0 0 0.3cqi var(--ck-chrome-500),
+		inset 0 0.3cqi 0.6cqi var(--ck-shadow-inset);
+}
+
+.cp-coinslot__input::-webkit-outer-spin-button,
+.cp-coinslot__input::-webkit-inner-spin-button {
+	appearance: none;
+	margin: 0;
+}
+
+.cp-coinslot__input::placeholder {
+	color: var(--ck-nixie-deep);
+}
+
+
+/* ==========================================================================
+   8  Kassenfenster
+   ========================================================================== */
+
+/*
+ * Das Kassenfenster im Sockel (CONCEPT.md B.5.1). Es zeigt den
+ * GESAMTBESTAND — die Kasse —, während die Nixie-Gruppe GUTHABEN den
+ * GERÄTEKREDIT zeigt. Fassung ist gezeichnet (Shell.html); hier steht nur
+ * der Inhalt. Unverändert aus video_slot übernommen, Präfix vs- → cp-,
+ * Position an die Fassung dieses Geräts angepasst (x39–66 y130,5–139).
+ */
+.cp-bank {
+	left: 40cqi;
+	top: 131.5cqi;
+	inline-size: 25cqi;
+	block-size: 6.5cqi;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 0.6cqi;
+	padding: 0 0.8cqi;
+	pointer-events: none;
+}
+
+.cp-bank__label {
+	color: var(--ck-brass-200);
+	font-family: var(--ck-font-display);
+	font-size: 1.7cqi;
+	letter-spacing: 0.1em;
+	line-height: 1;
+	text-transform: uppercase;
+}
+
+.cp-bank__value {
+	color: var(--ck-nixie-core);
+	font-family: var(--ck-font-numeric);
+	font-size: 2.3cqi;
+	font-variant-numeric: tabular-nums;
+	line-height: 1;
+	text-shadow: var(--ck-nixie-glow-text);
+}
+
+
+/* ==========================================================================
+   9  Auswurfschale, Lampe und CASH OUT
+   ========================================================================== */
+
+.cp-tray__lamp { left: 28cqi; top: 142.8cqi; inline-size: 44cqi;
+                 block-size: 1.4cqi; border-radius: 0.7cqi; background: var(--ck-bulb-off);
+                 transition: background var(--ck-duration-base) var(--ck-ease-mech),
+                             box-shadow var(--ck-duration-base) var(--ck-ease-mech); }
+.cp-tray__lamp--on { background: var(--ck-bulb-glow);
+                     box-shadow: 0 0 2cqi var(--ck-bulb-halo), 0 0 4cqi var(--ck-bulb-halo); }
+
+/* Die Lampe klingt über eine transition aus, nicht über @keyframes: eine
+   Glühlampe wird beim Abdimmen wärmer und klingt aus, sie schaltet nicht
+   (DESIGNBRIEF Abschnitt 4). --ck-duration-base sind 220 ms; zusammen mit
+   der Sperrzeit aus lamp.js (400 + 200 ms) kann daraus nie ein schnelles
+   Blinken werden. */
+
+.cp-cashout { left: 22cqi; top: 142cqi; inline-size: 56cqi; block-size: 7cqi;
+              display: grid; place-items: center; margin: 0; padding: 0; border: 0;
+              border-radius: 1.2cqi; background-color: transparent; color: var(--ck-chrome-500);
+              font: inherit; cursor: not-allowed;
+              transition: color var(--ck-duration-fast) linear,
+                          box-shadow var(--ck-duration-fast) linear,
+                          transform var(--ck-duration-fast) var(--ck-ease-mech);
+              -webkit-tap-highlight-color: transparent; }
+.cp-cashout[disabled] { cursor: default; }
+
+.cp-cashout__label {
+	font-family: var(--ck-font-display);
+	font-size: 1.7cqi;
+	letter-spacing: 0.18em;
+	line-height: 1;
+	text-transform: uppercase;
+}
+
+/* Geladen: die Schale ist beleuchtet und die Taste bedienbar. */
+.cp-cashout--lit {
+	color: var(--ck-brass-100);
+	cursor: pointer;
+	box-shadow: 0 0 1.8cqi var(--ck-bulb-halo);
+	text-shadow: 0 0 0.6cqi var(--ck-bulb-halo);
+}
+
+.cp-cashout--lit:hover {
+	box-shadow: 0 0 2.6cqi var(--ck-bulb-halo);
+}
+
+.cp-cashout--lit:active {
+	transform: translateY(0.25cqi);
+}
+
+
+/* ==========================================================================
+  10  Fokus und unsichtbare Beschriftungen
+   ========================================================================== */
+
+/* Für die Augen nicht da, für Hilfsmittel schon. Kein display: none und
+   kein visibility: hidden: beide nähmen die Elemente aus dem Barrierebaum. */
+.cp-offscreen {
+	position: absolute;
+	inline-size: 1px;
+	block-size: 1px;
+	overflow: hidden;
+	clip-path: inset(50%);
+	white-space: nowrap;
+}
+
+/* Ein sichtbarer Fokusrahmen für jedes Bedienteil am Gehäuse. :focus-visible
+   statt :focus: der Rahmen erscheint bei Tastaturbedienung und bleibt beim
+   Mausklick aus, wo er als Fehler gelesen würde. */
+.cp-cabinet :focus-visible {
+	outline: 0.5cqi solid var(--ck-bulb-core);
+	outline-offset: 0.3cqi;
+	position: relative;
+	z-index: 4;
+}
+
+
+/* ==========================================================================
+  11  Bewegung
+   ========================================================================== */
+
+/* Sehr flaches Atmen der Nixie-Röhren, mit zwei kurzen Einbrüchen je Umlauf. */
+@keyframes cp-nixie-shimmer {
+	0%,
+	100% { filter: brightness(1); }
+	23% { filter: brightness(0.985); }
+	46.8% { filter: brightness(1.02); }
+	48.2% { filter: brightness(0.92); }
+	49.2% { filter: brightness(1.01); }
+	71% { filter: brightness(0.99); }
+	84.4% { filter: brightness(1.015); }
+	85.2% { filter: brightness(0.95); }
+	86% { filter: brightness(1); }
+}
+
+/* Der Zündvorgang beim Ziffernwechsel. */
+@keyframes cp-nixie-strike {
+	0% { filter: brightness(0.35); }
+	22% { filter: brightness(1.25); }
+	46% { filter: brightness(0.6); }
+	100% { filter: brightness(1); }
+}
+
+/* Übergelaufene Röhrengruppe. Harte Umschaltung, keine Überblendung. */
+@keyframes cp-nixie-overflow {
+	0%,
+	59.9% { filter: brightness(1); }
+	60%,
+	100% { filter: brightness(0.42); }
+}
+
+/* Die Münze fällt in den Münzeinwurf über dem Feld: sie kippt herein, sackt
+   durch und verschwindet im Schlitz. */
+@keyframes cp-drop-coin-fall {
+	0% { opacity: 0; transform: translate(-1cqi, -3cqi) rotate(-20deg) scale(1); }
+	18% { opacity: 1; }
+	66% { opacity: 1; transform: translate(0, 0) rotate(4deg) scale(1); }
+	100% { opacity: 0; transform: translate(0, 2cqi) rotate(10deg) scale(0.45); }
+}
+
+/* Die Münze fällt in den Geldschlitz der Kasse: sie kippt herein, sackt
+   durch und verschwindet im Inneren. */
+@keyframes cp-coin-drop {
+	0% { opacity: 0; transform: translate(-1.4cqi, -6cqi) rotate(-28deg) scale(1); }
+	18% { opacity: 1; }
+	66% { opacity: 1; transform: translate(0, 0) rotate(6deg) scale(1); }
+	100% { opacity: 0; transform: translate(0, 2cqi) rotate(12deg) scale(0.45); }
+}

@@ -112,11 +112,11 @@
 		<f:render partial="Automat/ReelSlot/Machine/Button"
 			arguments="{key: 'auto', labelKey: 'machine.button.auto', lamp: 0}" />
 		<f:render partial="Automat/ReelSlot/Machine/Button"
-			arguments="{key: 'risk-left', labelKey: '', lamp: 1}" />
+			arguments="{key: 'risk-left', labelKey: '', ariaLabelKey: 'machine.button.riskLeft', lamp: 1}" />
 		<f:render partial="Automat/ReelSlot/Machine/Button"
 			arguments="{key: 'risk', labelKey: 'machine.button.risk', lamp: 0}" />
 		<f:render partial="Automat/ReelSlot/Machine/Button"
-			arguments="{key: 'risk-right', labelKey: '', lamp: 1}" />
+			arguments="{key: 'risk-right', labelKey: '', ariaLabelKey: 'machine.button.riskRight', lamp: 1}" />
 		<f:render partial="Automat/ReelSlot/Machine/Button"
 			arguments="{key: 'reward', labelKey: 'machine.button.reward', lamp: 0}" />
 	</div>
@@ -250,17 +250,19 @@
 
 		type="button", nicht submit: sie gehört zu keinem Formular.
 
-		Ist der Gerätekredit 0, trägt sie disabled — sie ist dunkel („Sie ist
-		dunkel, wenn nichts drin ist"), nicht anklickbar und wird beim
-		Durchtabben übersprungen. Das Attribut steht schon im Markup, damit die
-		Taste auch ohne JavaScript nicht so aussieht, als täte sie etwas.
+		Ist der Gerätekredit 0, trägt sie aria-disabled="true" — sie ist dunkel
+		(„Sie ist dunkel, wenn nichts drin ist"), tut nichts, bleibt aber im
+		Tastaturweg erreichbar (Audit A-06). Ein echtes disabled nähme sie aus
+		der Tabulatorfolge; aria-disabled sperrt dagegen nichts von selbst,
+		deshalb ist cashOut() selbst der eigentliche Riegel — bei Gerätekredit
+		0 ist es ein folgenloses No-op (machine-credit.js).
 
 		Die Beschriftung steht sichtbar auf der Schale und ist zugleich der
 		Name, den ein Hilfsmittel vorliest — deshalb braucht sie kein
 		zusätzliches aria-label. Bedient wird sie mit Zeiger UND Tastatur
 		(Eingabe- und Leertaste); bank.js hört dafür auf click und nicht wie
 		die Spieltasten auf pointerdown.</f:comment>
-	<button type="button" class="rs-cashout" data-rs-cashout disabled>
+	<button type="button" class="rs-cashout" data-rs-cashout aria-disabled="true">
 		<span class="rs-cashout__label"><f:translate
 			key="LLL:EXT:reel_slot/Resources/Private/Language/locallang.xlf:machine.cashout.label" /></span>
 	</button>

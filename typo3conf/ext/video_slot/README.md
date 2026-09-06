@@ -21,7 +21,7 @@ anderen Extension etwas geändert werden muss.
 | Composer-Name | `phomo17/video-slot` |
 | Namespace | `Phomo17\VideoSlot\` |
 | TYPO3-Version | 13.4 (klassische, nicht Composer-basierte Installation) |
-| Abhängigkeit | `casino_startpage` >= 0.10.0 (Design-Tokens, darunter die beiden neuen Fruchtfarben) |
+| Abhängigkeit | `casino_startpage` >= 0.1.0 (Design-Tokens, darunter die beiden neuen Fruchtfarben) |
 | Lizenz | AGPL-3.0-or-later |
 | Quelltext | https://github.com/phomo17/casino-kunterbunt_t3v13classic |
 
@@ -261,6 +261,71 @@ genau demselben `startRound()` wie ein Tastendruck.
 `machine.js`): mehr, als der Reel Slot heute kann, dessen STOP-Taste nur auf
 `pointerdown` hört.
 
+## Geld, Leiter, Auto-Modus und Klang
+
+Seit Phase 7 spielt der Automat vollständig mit Geld, kennt die Risiko-Leiter
+und den Auto-Modus, und klingt.
+
+**Die zwei Töpfe** (CONCEPT.md B.5): die **Kasse** (`casinoKunterbunt.credits`,
+allen Geräten dieser Seite gemeinsam, im Kassenfenster im Sockel sichtbar) und
+der **Gerätekredit** (`casinoKunterbunt.machine.video_slot`, beim Betreten der
+Seite immer 0, in den GUTHABEN-Röhren). Gespielt wird ausschließlich vom
+Gerätekredit.
+
+**Der Weg des Geldes:** Kasse → Münzschlitz → Gerät → Einsatz/Gewinn →
+`CASH OUT` oder Verlassen der Seite → zurück in die Kasse. Es kann nichts
+liegenbleiben.
+
+**Die Ereignisliste des Geräts:**
+
+| Ereignis | Wann | `detail` |
+|---|---|---|
+| `vs:round` | vor dem Anlaufen, abbrechbar | `{draw, bet}` |
+| `vs:reelrest` | je Walze beim Stillstand | `{reel, cell, symbols}` |
+| `vs:result` | nach dem Anzeigen | `{grid, lines, scatter, factor, bet, win}` |
+| `vs:state` | jeder Zustandswechsel | `{from, to}` |
+| `vs:spin` | eingehend – „starte jetzt eine Runde" | — |
+| `vs:payout` | ein Gewinn liegt vor, abbrechbar | `{win, bet, claim}` |
+| `vs:collect` | ein Anspruch wurde eingelöst | `{amount, credited, capped, machineCredit}` |
+| `vs:coin` | ein Einwurf, angenommen oder abgelehnt | `{amount, moved, reason, machineCredit}` |
+| `vs:cashout` | `CASH OUT` gedrückt | `{moved, capped, machineCredit}` |
+| `vs:count` | ein sichtbarer Zählschritt | `{display, value, index, steps, direction}` |
+| `vs:risk` | Phase `offer` abbrechbar, sonst nur beobachtbar | `{phase, level, win, lost?}` |
+| `vs:risktick` | das gemalte Lichtfeld hat gewechselt | `{level, lit, on}` |
+| `vs:riskcollect` | eingehend – „steig jetzt aus und schreib gut" | — |
+| `vs:auto` | der Auto-Modus wurde umgeschaltet | `{on, reason, rounds}` |
+
+**Die Messpunkte am Gehäuse:**
+
+| Attribut | Bedeutung | Eigentümerdatei |
+|---|---|---|
+| `data-vs-round` | Ziehung der laufenden Runde | `machine.js` |
+| `data-vs-machine-credit`, `data-vs-mirror` | Gerätekredit und Spiegelwert | `wallet.js` |
+| `data-vs-bank`, `data-vs-total`, `data-vs-cashout` | Kassenstand, Bilanz aus Kasse + Gerät, Zustand der Auszahltaste | `bank.js` |
+| `data-vs-risk-*` | Zustand der Risiko-Leiter (`phase`, `level`, `win`, `side`, `on`, `lit`) | `risk.js` |
+| `data-vs-auto`, `data-vs-auto-rounds`, `data-vs-auto-pending` | Zustand des Auto-Modus | `auto.js` |
+| `data-vs-sound-*` | Klangzustand und Messwerte | `sound.js` |
+
+**Die Klangzuordnung:** aus dem geteilten Baukasten (`sound-kit.js`) kommen
+Münze, Münzkaskade, Metall, Blech, Klinke, Registrierkasse und Zählschritt.
+Diesem Gerät eigen sind Startklang, Walzenstopp (fünf Tonhöhen), Laufgeräusch,
+Gewinn-Jingle, Risiko-Klänge, `AUTO` und der Ton-Schalter — sie sind die
+Klangsprache genau dieses Automaten, siehe Kopf von `sound.js`.
+
+Neun weitere ES-Module unter `Resources/Public/JavaScript/`:
+
+| Datei | Aufgabe |
+|---|---|
+| `press.js` | Drucktasten für Zeiger und Tastatur — der gemeinsame Helfer für alle Spieltasten |
+| `counter.js` | ein Zählwerk vor einer Röhrengruppe, importfrei |
+| `payout.js` | der Gewinnanspruch (`WinClaim`) |
+| `coinslot.js` | der Geldeinwurf am Gehäuse |
+| `wallet.js` | Verrechnung, Einsatzwahl, GUTHABEN und EINSATZ |
+| `bank.js` | Kassenfenster und `CASH OUT` |
+| `risk.js` | das Bedienfeld der geteilten Risiko-Leiter (`@phomo17/casino-startpage/risk-ladder.js`) |
+| `auto.js` | der Auto-Modus |
+| `sound.js` | Klangzuordnung des Geräts |
+
 ## Barrierefreiheit
 
 Dieses Gerät ist vollständig neu, deshalb gilt für **jedes** seiner
@@ -299,30 +364,84 @@ Seit Phase 6 (Walzenwerk und Bedienung) zusätzlich:
   Rundenstart geleert, damit während des Laufs keine veraltete Behauptung
   dasteht.
 - **START und STOP sind mit der Tastatur bedienbar** — beide reagieren auf
-  Zeiger *und* auf Enter/Leertaste (`wirePressButton()` in `machine.js`).
+  Zeiger *und* auf Enter/Leertaste (`wirePressButton()` in `press.js`).
   Ausdrücklich mehr, als der Reel Slot heute kann, dessen STOP-Taste nur auf
   `pointerdown` hört.
 - **Kein Kanal ist rein farblich:** der Treffer trägt einen Rahmen (Form,
   `.vs-cell--win`), die Gewinnlinie erscheint zusätzlich sichtbar (Form), und
   die Ansage im Live-Bereich nennt Betrag und Linien (Text).
 
-Zwei Grenzen, ehrlich benannt statt behoben:
+Seit Phase 7 (Kasse, Risiko-Leiter, Auto-Modus, Klang) zusätzlich:
+
+- **Alle Spieltasten reagieren auf Zeiger *und* Tastatur:** START, STOP,
+  RISK, REWARD, die beiden Risiko-Tasten und AUTO MODE (`wirePressButton()`
+  in `press.js`, seit dieser Phase in einer eigenen Datei, weil ihn auch
+  `risk.js` und `auto.js` brauchen).
+- `CASH OUT` und die Einsatztasten sind echte Schaltflächen und reagieren auf
+  `click` — Eingabe- und Leertaste lösen sie damit ohne eine eigene Zeile aus.
+- **Die Einsatzwahl wird während eines Zuges über `aria-disabled` gesperrt,
+  nicht über `disabled`:** `disabled` nähme den Tastfokus mitten im Zug weg,
+  wenn er gerade auf einer Einsatztaste liegt. Die wirksame Sperre bleibt die
+  Prüfung im Code; `aria-disabled` ist die Ansage dazu.
+- **Die Ansage der Gruppe STUFE nennt den Ausgang der Leiter, nicht jede
+  einzelne Stufe** (`NixieGroup.html`): eine Leiter über mehrere Treffer
+  erzeugte sonst mehrere Ansagen in wenigen Sekunden.
+- **Der Ton lässt sich auch mit der Tastatur freischalten:** die
+  Autoplay-Sperre hängt an `pointerdown` *und* an `click`, damit ein Spieler
+  ohne Zeigergerät nicht dauerhaft stumm bleibt.
+
+Drei Grenzen, ehrlich benannt statt behoben:
 
 - Die **Mindestzielgröße von 24 × 24 Bildpunkten** (WCAG 2.2, 2.5.8)
   erreichen die kleinen Tasten erst ab einer gerenderten Gehäusebreite von
   rund 290 Bildpunkten. Das ist die Maßordnung des ganzen Gehäuses und ließe
   sich nur durch ein anderes Gehäuse ändern. Die START-Taste ist mit ⌀ 12,4
   Einheiten die größte des Geräts und erreicht sie deutlich früher.
+- **A-07 (Auditbericht 2026-09-05/06) — dieselbe Zielgröße, aber für
+  `+10`/`+50`/`+100`** (`.vs-coinslot__button`): sie sind **Bedienung**, keine
+  Spielfläche, die obige Ausnahme gilt für sie nicht. Sie erreichen 24×24 px
+  erst **ab 480 px Fensterbreite** (360 px: 18,7–21,6 × 19,0 px; 480 px:
+  25,3–29,1 × 25,7 px — Messwerte identisch zum Reel Slot, siehe dort). Der
+  Grund steht bereits in `machine.css`, Abschnitt „ZIELGROESSE, dokumentierte
+  Abweichung (Audit V-04)": der Block der drei Knöpfe (20 Einheiten) liegt
+  unmittelbar vor dem gezeichneten Münzschlitz (2 Einheiten Abstand); 24 px
+  bei 360 px verlangten rund 25 Einheiten und schöben den Block in den
+  Schlitz hinein — „behebbar nur durch eine Neuaufteilung der Sockelreihe an
+  beiden Geräten". Anders als beim Vorbild FruitRisk gibt es hier keinen
+  ungezeichneten Freiraum bis zur nächsten festen Zone, den eine
+  Vergrößerung ausnutzen könnte, ohne das Gehäuse zu verziehen.
 - **`prefers-reduced-motion`** bleibt laut Konzept Nicht-Ziel. Das Fehlen
   einer Bewegungsdrosselung ist Absicht, kein Versehen.
+
+**Behebungslauf 2026-09-05/06** (zusätzlich zu den obigen Punkten):
+
+- **A-08 · Tastenbeschriftungen knapp unter dem Sollwert.** STOP, AUTO MODE
+  und RISK erreichten bei 7,5 px nur 4,22–4,36:1 statt 4,5:1 (SC 1.4.3), weil
+  `.vs-btn__label` direkt auf der gezeichneten Bedienleiste liegt, ohne
+  eigenen Untergrund. `.vs-btn__label:not(:empty)` legt jetzt ein
+  blickdichtes Namensschild (`--ck-chrome-100`) dahinter — übernommenes
+  Muster aus `fruit_risk/machine.css` (dort N-01/A-30). Nachgemessen (1440 px,
+  `rgb(61, 69, 76)` auf `rgb(246, 249, 251)`): **9,22:1**. `:not(:empty)`
+  lässt die beiden unbeschrifteten Risiko-Tasten ausdrücklich aus.
+- **N-04 · Vier Live-Bereiche füllten sich innerhalb von 300 ms nach dem
+  Laden** — darunter das gesamte Walzenbild —, bevor irgendjemand etwas
+  bedient hatte. `machine.js` rief in seinem Konstruktor bislang
+  `gridAnnouncer.showGrid(this.readGrid())` auf; dieser Aufruf ist ersatzlos
+  entfernt (übernommenes Muster aus `fruit_risk/machine.js`), das Sichtfeld
+  bleibt jetzt leer, bis `finishRound()` den ersten echten Satz meldet. Für
+  GUTHABEN, EINSATZ und KASSE gilt dieselbe Behebung wie am Reel Slot:
+  `show()`/`clear()` (`nixie.js`) und `snap()`/`paint()` (`counter.js`)
+  nehmen ein zweites Argument `announce` (Vorgabe `true`, `wallet.js` ruft
+  den Anfangsstand mit `false` auf), und `bank.js` sagt bei
+  `reason === 'subscribe'` nichts an.
 
 Dies ist eine Aufzählung dessen, was getan wurde — **keine Aussage über
 Konformität**. Ob das Ergebnis eine Norm erfüllt, kann nur eine Prüfung durch
 Menschen feststellen.
 
-## Prüfskript
+## Prüfskripte
 
-Zwei voneinander unabhängige Nachweisskripte, beide nur lesend:
+Vier voneinander unabhängige Nachweisskripte, alle nur lesend:
 
 ```
 ddev exec node typo3conf/ext/video_slot/Resources/Private/Scripts/verify-payout.mjs
@@ -345,8 +464,11 @@ keine Datei von außen, `casino_startpage` kennt den Video Slot nicht, genau
 die neun Symbole ohne BAR, die sechs übernommenen Symbole sind zeichengleich
 zum Reel Slot, Miniatur und großes Gehäuse zeigen dasselbe, die Grundstellung
 ist kein Gewinn, alle neun Symbole sind gleichzeitig sichtbar, jedes
-Bedienteil hat einen Namen, die Live-Bereiche werden leer ausgeliefert, und
-der Haken-Katalog im Kopf von `machine.css` deckt sich mit dem Regelteil.
+Bedienteil hat einen Namen, die Live-Bereiche werden leer ausgeliefert, der
+Haken-Katalog im Kopf von `machine.css` deckt sich mit dem Regelteil, und
+(seit dem Behebungslauf 2026-09-06, Kennung A-13) kein fremder Hersteller-,
+Modell- oder Spieltitel gegen dieselbe Negativliste wie in
+`coin_pusher`/`roulette`/`fruit_risk`.
 
 Wird die Adresse der Automatenseite angehängt, prüft das Skript zusätzlich
 das ausgelieferte HTML — Statuscode, Zahl der Walzen, Felder, Gewinnlinien und
@@ -361,16 +483,47 @@ ddev exec node typo3conf/ext/video_slot/Resources/Private/Scripts/verify-cabinet
 Das Skript ersetzt keinen Blick auf das Gerät: ob es richtig **aussieht**,
 kann kein Skript beantworten.
 
+```
+ddev exec node typo3conf/ext/video_slot/Resources/Private/Scripts/verify-credit.mjs
+```
+
+Prüft Kasse, Verrechnung, Risiko-Leiter und Auto-Modus mit den echten Modulen
+(`wallet.js`, `bank.js`, `coinslot.js`, `payout.js`, `risk.js`, `auto.js`,
+dazu die vier geteilten Bausteine aus `casino_startpage`). Nachgewiesen wird
+unter anderem: die Bilanz aus Kasse und Gerätekredit stimmt über 50 Züge nach
+jedem einzelnen exakt, der Vertrag aus `machine.js` (`vs:round`, `vs:state`,
+`vs:reelrest`, `vs:result`, `vs:spin`) steht wortgleich wie geprüft, ein
+zweites Einlösen desselben Gewinnanspruchs bucht nichts, die Risiko-Leiter
+folgt auf jeder Stufe derselben Kurve wie am Reel Slot (`risk-timing.js`),
+und der Auto-Modus läuft 50 Züge stabil ohne Leiter und schaltet sich bei zu
+geringem Gerätekredit selbst ab. Rückgabewert 0, wenn alles stimmt, sonst 1.
+
+```
+ddev exec node typo3conf/ext/video_slot/Resources/Private/Scripts/verify-sound.mjs
+```
+
+Prüft den Klang mit den echten Modulen (`sound.js` dieses Geräts, dazu
+`sound.js`, `sound-kit.js` und `idle-noise.js` aus `casino_startpage`).
+Nachgewiesen wird unter anderem: vor der ersten echten Nutzergeste entsteht
+kein `AudioContext`, der Tastaturweg schaltet den Ton ebenso frei wie der
+Zeiger, der Zählklang hängt an der sichtbaren Fahrt, zwei Absagen klingen
+hörbar verschieden und eine dritte bleibt stumm, die fünf Walzenstopps sind an
+fallenden Grundtönen unterscheidbar, `aria-pressed` am Ton-Schalter folgt dem
+Zustand auch bei einer fremden Registerkarte, und ein Dauerlauf über 50 Runden
+verwirft keine Stimme und bleibt rechnerisch unter dem Übersteuern (Ausschlag
+< 1,0). Rückgabewert 0, wenn alles stimmt, sonst 1.
+
 ## Stand
 
-Version 0.1.0 (alpha). Aus Teil B sind die Phasen 5 und 6 eingearbeitet:
-Gerüst, Registrierung und Gehäuse stehen, und seit Phase 6 spielt der
-Automat vollständig im Browser — Walzenwerk, Zufallsziehung, Auswertung nach
-den fünf Gewinnlinien und dem Scatter, Hervorhebung der Treffer, Ansage im
-Live-Bereich des Sichtfelds und ein mit Zeiger *und* Tastatur bedienbares
-START/STOP. Es gibt noch **keine Guthabenverrechnung**: der Gewinnbetrag wird
-nur angezeigt, keine Kasse bucht ab, kein Geld wird eingeworfen oder
-ausgezahlt, und Einsatztasten, Risiko-Leiter, Auto-Modus und Klang sind
-unverdrahtet — das bringt Phase 7. Alle dafür bereits gezeichneten Zustände
-des Gehäuses sind über CSS-Klassen auslösbar — der vollständige Katalog steht
-im Kopf von `machine.css`.
+Version 0.2.0 (alpha). Aus Teil B sind die Phasen 5, 6 und 7 eingearbeitet:
+Gerüst, Registrierung und Gehäuse stehen, der Automat spielt vollständig im
+Browser — Walzenwerk, Zufallsziehung, Auswertung nach den fünf Gewinnlinien
+und dem Scatter, Hervorhebung der Treffer, Ansage im Live-Bereich des
+Sichtfelds und ein mit Zeiger *und* Tastatur bedienbares START/STOP —, und
+seit Phase 7 verrechnet der Automat Geld: die Kasse und der Gerätekredit sind
+verdrahtet, der Münzschlitz nimmt Einwürfe an, `CASH OUT` zahlt aus, die
+Einsatzwahl ist bedienbar, das Gerät kennt die Risiko-Leiter aus dem Site
+Package (dieselbe Kurve, dasselbe Verhalten wie am Reel Slot), den Auto-Modus
+und den vollständigen Klang. Alle dafür bereits gezeichneten Zustände des
+Gehäuses sind über CSS-Klassen ausgelöst — der vollständige Katalog steht im
+Kopf von `machine.css`.

@@ -1,0 +1,424 @@
+<f:comment>
+	Die feste Zeichnung des grossen Gehäuses. Maßraster viewBox 0 0 160 160
+	(CONCEPT.md C.14.4) — 60 % breiter als die vorhandenen Geräte bei gleicher
+	Höhe. Die vollständige Koordinatentabelle steht im Kopf von
+	Resources/Public/Css/machine.css und ist die einzige Quelle dafür.
+
+	aria-hidden="true": die Zeichnung ist für Hilfsmittel unsichtbar; ihre
+	Werte reisen über die Live-Bereiche in Machine/Cabinet.html
+	(CONCEPT.md C.14.12). Für Crawler bleibt jeder Text lesbar — aria-hidden
+	betrifft nur den Barrierebaum.
+
+	Keine h1 in dieser Datei. Die einzige Überschrift der Seite liefert das
+	Site Package aus dem Seitentitel.
+
+	STAND F2: Das Innere zeigt jetzt neun gezeichnete Zonen (data-fr-zone):
+	grid, start, stop, tubes, panel, paytable, coinslot, bank, tray. Die
+	beweglichen Teile darüber (Sichtfeld, Röhren, Tasten) legt Machine/
+	Cabinet.html als HTML an; hier steht nur, was sich nie ändert.
+
+	STAND F3: Der Gewinnplan hinter Glas traegt jetzt Zahlen. Sie stehen nicht
+	im Markup, sondern kommen ueber {machine} aus dem CabinetProcessor, der sie
+	aus Classes/Rules.php holt (CONCEPT.md C.14.4: derselbe Tisch, von dem
+	gerechnet wird). Bedienung, Walzenwerk und Klang fehlen weiterhin — das ist
+	Phase F4 und F5.
+
+	Die vollständige Koordinatentabelle im Kopf von
+	Resources/Public/Css/machine.css ist die einzige Quelle aller Maße
+	dieser Zeichnung.
+
+	STAND F5d: Die Fassung des Ton-Schalters kommt hinzu, rechts neben der
+	Auswurfschale — ohne eigenes data-fr-zone, wie CASH OUT auf ihrer
+	Fassung.
+</f:comment>
+<svg class="fr-cabinet__shell" viewBox="0 0 160 160" preserveAspectRatio="xMidYMid meet"
+	focusable="false" aria-hidden="true">
+
+	<defs>
+		<f:comment>
+			Die zwölf Symbole aus CONCEPT.md C.14.6, genau einmal definiert.
+
+			ACHT davon sind ZEICHENGLEICHE Kopien aus dem vorhandenen
+			Fünf-Walzen-Gerät (Kirsche, Zitrone, Orange, Pflaume, Melone,
+			Weintraube, Glocke, Sieben). Geändert ist an ihnen ausschließlich die
+			id: aus vs-sym-… wurde fr-sym-…. Kein Pfad, keine Farbe, keine
+			Strichstärke ist angefasst; verify-cabinet.mjs (A-7) gleicht sie
+			maschinell gegen das Original ab.
+
+			Warum kopiert und nicht geteilt: Läse dieses Gerät aus einem anderen,
+			machte dessen Entfernen dieses hier blind. Die Kopie ist der Preis für
+			zwei wirklich unabhängige Extensions (CONCEPT.md C.14.3, C.14.13).
+
+			Der BAR-Block wird NICHT kopiert, und einen Scatter gibt es hier nicht
+			(C.14.6). Das zwölfte Symbol ist die Ananas.
+
+			VIER sind neu konstruiert: Erdbeere, Banane, Apfel, Ananas. Zu ihrer
+			Herkunft siehe den Absatz „Herkunft der vier neuen Motive" in
+			README.md dieser Extension.
+		</f:comment>
+
+		<f:comment>Kirsche: zeichengleiche Kopie aus video_slot, nur die id geändert.</f:comment>
+		<symbol id="fr-sym-kirsche" viewBox="0 0 24 24">
+			<path d="M13.4 4.6 C10.6 8.0 8.4 10.6 7.6 13.6 M13.4 4.6 C15.4 8.2 16.8 10.8 16.9 13.9"
+				fill="none" stroke="var(--ck-fruit-leaf-shade)" stroke-width="1.5" stroke-linecap="round" />
+			<path d="M13.4 4.6 C16.4 2.0 20.2 2.4 21.6 4.9 C19.0 6.7 15.6 6.6 13.4 4.6 Z"
+				fill="var(--ck-fruit-leaf)" stroke="var(--ck-print-ink)" stroke-width="1.2" stroke-linejoin="round" />
+			<g stroke="var(--ck-print-ink)" stroke-width="1.5">
+				<circle cx="7.2" cy="17.4" r="4.6" fill="var(--ck-fruit-cherry-shade)" />
+				<circle cx="16.9" cy="17.8" r="4.2" fill="var(--ck-fruit-cherry-shade)" />
+			</g>
+			<circle cx="8.0" cy="16.5" r="3.4" fill="var(--ck-fruit-cherry)" />
+			<circle cx="17.6" cy="17.0" r="3.1" fill="var(--ck-fruit-cherry)" />
+		</symbol>
+
+		<f:comment>Zitrone: zeichengleiche Kopie aus video_slot, nur die id geändert.</f:comment>
+		<symbol id="fr-sym-zitrone" viewBox="0 0 24 24">
+			<g transform="rotate(-16 12 12.6)">
+				<ellipse cx="12" cy="12.6" rx="7.8" ry="5.4"
+					fill="var(--ck-fruit-lemon-shade)" stroke="var(--ck-print-ink)" stroke-width="1.5" />
+				<ellipse cx="11.3" cy="11.6" rx="6.4" ry="4.2" fill="var(--ck-fruit-lemon)" />
+				<path d="M19.8 12.6 l2.2 -0.6 M4.2 12.6 l-2.2 0.6"
+					fill="none" stroke="var(--ck-print-ink)" stroke-width="1.6" stroke-linecap="round" />
+			</g>
+		</symbol>
+
+		<f:comment>Orange: zeichengleiche Kopie aus video_slot, nur die id geändert.</f:comment>
+		<symbol id="fr-sym-orange" viewBox="0 0 24 24">
+			<circle cx="12" cy="14.0" r="8.0"
+				fill="var(--ck-fruit-orange-shade)" stroke="var(--ck-print-ink)" stroke-width="1.6" />
+			<circle cx="10.9" cy="12.8" r="6.2" fill="var(--ck-fruit-orange)" />
+			<path d="M12 6.2 V3.4" fill="none" stroke="var(--ck-fruit-leaf-shade)"
+				stroke-width="1.5" stroke-linecap="round" />
+			<path d="M12 6.0 C9.6 3.4 6.4 3.0 4.9 4.6 C6.6 7.0 9.8 7.6 12 6.0 Z"
+				fill="var(--ck-fruit-leaf)" stroke="var(--ck-print-ink)" stroke-width="1.2" stroke-linejoin="round" />
+		</symbol>
+
+		<f:comment>Melone: zeichengleiche Kopie aus video_slot, nur die id geändert.</f:comment>
+		<symbol id="fr-sym-melone" viewBox="0 0 24 24">
+			<path d="M2.6 18.4 A9.4 9.4 0 0 1 21.4 18.4 Z"
+				fill="var(--ck-fruit-leaf-shade)" stroke="var(--ck-print-ink)" stroke-width="1.6" stroke-linejoin="round" />
+			<path d="M4.4 18.4 A7.6 7.6 0 0 1 19.6 18.4 Z" fill="var(--ck-fruit-leaf)" />
+			<path d="M5.8 18.4 A6.2 6.2 0 0 1 18.2 18.4 Z" fill="var(--ck-paper-100)" />
+			<path d="M6.8 18.4 A5.2 5.2 0 0 1 17.2 18.4 Z" fill="var(--ck-fruit-cherry)" />
+			<g fill="var(--ck-print-ink)">
+				<ellipse cx="9.4" cy="15.8" rx="0.8" ry="1.1" />
+				<ellipse cx="12.0" cy="14.7" rx="0.8" ry="1.1" />
+				<ellipse cx="14.6" cy="15.8" rx="0.8" ry="1.1" />
+				<ellipse cx="12.0" cy="17.4" rx="0.8" ry="1.1" />
+			</g>
+			<path d="M2.6 18.4 H21.4" fill="none" stroke="var(--ck-print-ink)"
+				stroke-width="1.6" stroke-linecap="round" />
+		</symbol>
+
+		<f:comment>Glocke: zeichengleiche Kopie aus video_slot, nur die id geändert.</f:comment>
+		<symbol id="fr-sym-glocke" viewBox="0 0 24 24">
+			<path d="M12 3.2 C16.6 3.2 18.2 7.2 18.2 11.4 C18.2 13.6 18.9 14.9 20.0 15.8 H4.0 C5.1 14.9 5.8 13.6 5.8 11.4 C5.8 7.2 7.4 3.2 12 3.2 Z"
+				fill="var(--ck-brass-200)" stroke="var(--ck-print-ink)" stroke-width="1.6" stroke-linejoin="round" />
+			<path d="M12 4.6 C9.8 4.6 8.5 6.2 7.9 8.6 C9.0 6.8 10.4 6.0 12 6.0 Z" fill="var(--ck-brass-100)" />
+			<path d="M15.4 8.0 C15.1 6.2 14.5 5.2 13.7 4.8" fill="none"
+				stroke="var(--ck-brass-300)" stroke-width="1.2" stroke-linecap="round" />
+			<rect x="3.4" y="15.6" width="17.2" height="2.4" rx="1.2"
+				fill="var(--ck-brass-300)" stroke="var(--ck-print-ink)" stroke-width="1.3" />
+			<circle cx="12" cy="20.2" r="2.0"
+				fill="var(--ck-brass-300)" stroke="var(--ck-print-ink)" stroke-width="1.4" />
+		</symbol>
+
+		<f:comment>Sieben: zeichengleiche Kopie aus video_slot, nur die id geändert.</f:comment>
+		<symbol id="fr-sym-sieben" viewBox="0 0 24 24">
+			<path d="M4.2 3.2 H19.8 V7.6 L12.6 21.4 H6.4 L13.4 7.6 H4.2 Z"
+				fill="var(--ck-print-red)" stroke="var(--ck-print-ink)"
+				stroke-width="1.6" stroke-linejoin="round" paint-order="stroke fill" />
+			<path d="M5.6 4.4 H10.6 V6.4 H5.6 Z" fill="var(--ck-paper-100)" opacity="0.85" />
+		</symbol>
+
+		<f:comment>Pflaume: zeichengleiche Kopie aus video_slot, nur die id geändert.</f:comment>
+		<symbol id="fr-sym-pflaume" viewBox="0 0 24 24">
+			<path d="M12 6.0 V2.6" fill="none" stroke="var(--ck-fruit-leaf-shade)"
+				stroke-width="1.5" stroke-linecap="round" />
+			<path d="M12 5.6 C9.6 3.0 6.4 2.6 5.0 4.2 C6.6 6.6 9.8 7.2 12 5.6 Z"
+				fill="var(--ck-fruit-leaf)" stroke="var(--ck-print-ink)" stroke-width="1.2" stroke-linejoin="round" />
+			<ellipse cx="12" cy="14.8" rx="7.4" ry="7.6"
+				fill="var(--ck-fruit-plum-shade)" stroke="var(--ck-print-ink)" stroke-width="1.6" />
+			<ellipse cx="10.8" cy="13.6" rx="5.4" ry="5.8" fill="var(--ck-fruit-plum)" />
+			<path d="M12 7.4 C10.5 10.6 10.5 19.0 12 22.2" fill="none"
+				stroke="var(--ck-print-ink)" stroke-width="1.1" stroke-linecap="round" opacity="0.85" />
+		</symbol>
+
+		<f:comment>Weintraube: zeichengleiche Kopie aus video_slot, nur die id geändert.</f:comment>
+		<symbol id="fr-sym-weintraube" viewBox="0 0 24 24">
+			<path d="M12 9.0 V4.2" fill="none" stroke="var(--ck-fruit-leaf-shade)"
+				stroke-width="1.5" stroke-linecap="round" />
+			<path d="M12.2 4.8 C14.8 2.2 18.6 2.4 20.0 4.6 C17.6 6.6 14.2 6.6 12.2 4.8 Z"
+				fill="var(--ck-fruit-leaf)" stroke="var(--ck-print-ink)" stroke-width="1.2" stroke-linejoin="round" />
+			<g fill="var(--ck-fruit-grape-shade)" stroke="var(--ck-print-ink)" stroke-width="1.4">
+				<circle cx="7.4" cy="12.4" r="2.8" />
+				<circle cx="12.0" cy="11.8" r="2.8" />
+				<circle cx="16.6" cy="12.4" r="2.8" />
+				<circle cx="9.7" cy="16.6" r="2.8" />
+				<circle cx="14.3" cy="16.6" r="2.8" />
+				<circle cx="12.0" cy="20.6" r="2.8" />
+			</g>
+			<g fill="var(--ck-fruit-grape)">
+				<circle cx="6.8" cy="11.6" r="1.8" />
+				<circle cx="11.4" cy="11.0" r="1.8" />
+				<circle cx="16.0" cy="11.6" r="1.8" />
+				<circle cx="9.1" cy="15.8" r="1.8" />
+				<circle cx="13.7" cy="15.8" r="1.8" />
+				<circle cx="11.4" cy="19.8" r="1.8" />
+			</g>
+		</symbol>
+
+		<f:comment>Erdbeere: Herzform aus zwei gespiegelten Bögen mit Spitze unten,
+			fünfzackiger Kelch, Kerne als winzige Ellipsen in Zitronengelb.</f:comment>
+		<symbol id="fr-sym-erdbeere" viewBox="0 0 24 24">
+			<path d="M12 5.6 V2.4" fill="none" stroke="var(--ck-fruit-leaf-shade)"
+				stroke-width="1.5" stroke-linecap="round" />
+			<path d="M12 8.2 L7.4 4.4 L10.2 6.6 L9.0 2.8 L12 5.6 L15.0 2.8 L13.8 6.6 L16.6 4.4 Z"
+				fill="var(--ck-fruit-leaf)" stroke="var(--ck-print-ink)"
+				stroke-width="1.1" stroke-linejoin="round" />
+			<path d="M12 22.4 C7.6 19.2 4.4 15.4 4.4 12.0 C4.4 8.8 7.8 7.0 12 7.0 C16.2 7.0 19.6 8.8 19.6 12.0 C19.6 15.4 16.4 19.2 12 22.4 Z"
+				fill="var(--ck-fruit-strawberry-shade)" stroke="var(--ck-print-ink)"
+				stroke-width="1.6" stroke-linejoin="round" />
+			<path d="M11.0 19.4 C8.2 16.8 6.2 14.0 6.2 11.8 C6.2 9.6 8.6 8.4 11.4 8.4 C13.8 8.4 15.8 9.2 16.4 10.8 C15.6 14.2 13.4 17.2 11.0 19.4 Z"
+				fill="var(--ck-fruit-strawberry)" />
+			<g fill="var(--ck-fruit-lemon)">
+				<ellipse cx="9.0" cy="12.0" rx="0.6" ry="0.9" />
+				<ellipse cx="12.6" cy="11.2" rx="0.6" ry="0.9" />
+				<ellipse cx="15.6" cy="13.0" rx="0.6" ry="0.9" />
+				<ellipse cx="10.6" cy="15.4" rx="0.6" ry="0.9" />
+				<ellipse cx="13.8" cy="15.0" rx="0.6" ry="0.9" />
+				<ellipse cx="12.0" cy="18.4" rx="0.6" ry="0.9" />
+			</g>
+		</symbol>
+
+		<f:comment>Banane: Sichel aus zwei Kreisbögen desselben Mittelpunkts mit
+			verschiedenem Radius; Stielansatz oben grün, Blütenrest unten in
+			Druckschwarz.</f:comment>
+		<symbol id="fr-sym-banane" viewBox="0 0 24 24">
+			<path d="M5.4 5.8 C4.8 14.4 10.2 21.0 19.4 20.6 L20.6 17.6 C13.2 18.0 8.4 12.6 8.6 5.8 Z"
+				fill="var(--ck-fruit-banana-shade)" stroke="var(--ck-print-ink)"
+				stroke-width="1.6" stroke-linejoin="round" />
+			<path d="M7.0 7.4 C6.8 14.2 11.6 19.2 18.6 19.0 L19.2 17.8 C12.6 17.6 8.6 13.0 8.8 7.4 Z"
+				fill="var(--ck-fruit-banana)" />
+			<path d="M5.4 5.8 H8.6 V3.6 H5.4 Z" fill="var(--ck-fruit-leaf)"
+				stroke="var(--ck-print-ink)" stroke-width="1.2" stroke-linejoin="round" />
+			<path d="M19.4 20.6 L21.4 21.8" fill="none" stroke="var(--ck-print-ink)"
+				stroke-width="1.6" stroke-linecap="round" />
+		</symbol>
+
+		<f:comment>Apfel: zwei überlappende Kreise mit Einkerbung oben, gelbgrüner
+			Vollton, Stiel und Blatt wie bei Orange und Pflaume.</f:comment>
+		<symbol id="fr-sym-apfel" viewBox="0 0 24 24">
+			<path d="M12 8.4 V4.4" fill="none" stroke="var(--ck-fruit-leaf-shade)"
+				stroke-width="1.5" stroke-linecap="round" />
+			<path d="M12.2 5.4 C14.6 3.0 18.2 3.2 19.4 5.4 C17.2 7.2 14.0 7.2 12.2 5.4 Z"
+				fill="var(--ck-fruit-leaf)" stroke="var(--ck-print-ink)"
+				stroke-width="1.2" stroke-linejoin="round" />
+			<path d="M12 9.4 C10.4 7.4 6.2 7.6 4.9 11.6 C3.6 15.6 6.2 21.6 9.6 21.6 C10.8 21.6 11.2 20.8 12 20.8 C12.8 20.8 13.2 21.6 14.4 21.6 C17.8 21.6 20.4 15.6 19.1 11.6 C17.8 7.6 13.6 7.4 12 9.4 Z"
+				fill="var(--ck-fruit-apple-shade)" stroke="var(--ck-print-ink)"
+				stroke-width="1.6" stroke-linejoin="round" />
+			<path d="M11.2 11.2 C10.2 9.8 7.8 10.0 6.9 12.4 C6.0 14.8 7.0 18.8 9.0 19.4 C7.9 16.6 8.3 13.0 11.2 11.2 Z"
+				fill="var(--ck-fruit-apple)" />
+		</symbol>
+
+		<f:comment>Ananas: Fasstonne aus zwei Bögen, darauf ein Rautengitter aus zwei
+			gekreuzten Linienscharen; Krone als fünf Zacken über derselben Mittelachse.
+			Das Gitter ist der Umriss-Unterschied, der sie von jeder runden Frucht
+			trennt — die Farbe ist nie das einzige Merkmal.</f:comment>
+		<symbol id="fr-sym-ananas" viewBox="0 0 24 24">
+			<path d="M12 9.0 L8.4 2.6 L10.6 8.0 L12 1.6 L13.4 8.0 L15.6 2.6 Z"
+				fill="var(--ck-fruit-leaf)" stroke="var(--ck-print-ink)"
+				stroke-width="1.2" stroke-linejoin="round" />
+			<path d="M9.4 8.6 L5.8 4.2 L8.2 8.8 Z M14.6 8.6 L18.2 4.2 L15.8 8.8 Z"
+				fill="var(--ck-fruit-leaf-shade)" stroke="var(--ck-print-ink)"
+				stroke-width="1.1" stroke-linejoin="round" />
+			<path d="M5.8 13.4 C5.8 10.2 8.6 8.6 12 8.6 C15.4 8.6 18.2 10.2 18.2 13.4 C18.2 18.8 15.6 22.4 12 22.4 C8.4 22.4 5.8 18.8 5.8 13.4 Z"
+				fill="var(--ck-fruit-pineapple-shade)" stroke="var(--ck-print-ink)"
+				stroke-width="1.6" stroke-linejoin="round" />
+			<path d="M7.4 13.2 C7.4 11.0 9.4 9.9 11.8 9.9 C13.4 9.9 14.8 10.3 15.6 11.1 C14.2 16.0 11.6 19.6 8.6 20.6 C7.8 18.6 7.4 16.0 7.4 13.2 Z"
+				fill="var(--ck-fruit-pineapple)" />
+			<g fill="none" stroke="var(--ck-print-ink)" stroke-width="0.85"
+				stroke-linecap="round" opacity="0.9">
+				<path d="M6.6 11.6 L11.2 21.8 M8.8 9.4 L15.4 21.0 M12.6 9.0 L17.6 17.4 M16.4 10.6 L18.1 15.0" />
+				<path d="M17.4 11.6 L12.8 21.8 M15.2 9.4 L8.6 21.0 M11.4 9.0 L6.4 17.4 M7.6 10.6 L5.9 15.0" />
+			</g>
+		</symbol>
+	</defs>
+
+	<f:comment>Sockel mit Messingkante</f:comment>
+	<rect x="6" y="142" width="148" height="16" rx="4" fill="var(--ck-wood-500)" />
+	<rect x="6" y="142" width="148" height="2.6" rx="1.3" fill="var(--ck-brass-400)" />
+
+	<f:comment>Korpus, breit und mit abgeschrägten Schultern</f:comment>
+	<path d="M4 144 V26 L16 14 H144 L156 26 V144 Z"
+		fill="var(--ck-wood-300)" stroke="var(--ck-wood-500)" stroke-width="2.4" />
+	<path d="M8.5 142 V27.5 L17.5 18 H142.5 L151.5 27.5 V142"
+		fill="none" stroke="var(--ck-brass-400)" stroke-width="0.9" opacity="0.75" />
+
+	<f:comment>Verchromte Frontplatte mit zwei harten Glanzbändern</f:comment>
+	<path d="M10 140 V30 L22 20 H138 L150 30 V140 Z"
+		fill="var(--ck-chrome-300)" stroke="var(--ck-chrome-500)" stroke-width="1.4" />
+	<path d="M15 138 V31 L26 22 L26 138 Z" fill="var(--ck-chrome-100)" opacity="0.5" />
+	<path d="M134 138 V31 L145 22 L145 138 Z" fill="var(--ck-chrome-200)" opacity="0.45" />
+
+	<f:comment>Kopfschild mit dem Namen des Automaten</f:comment>
+	<rect x="46" y="22" width="68" height="14" rx="2.4"
+		fill="var(--ck-wood-500)" stroke="var(--ck-brass-300)" stroke-width="1.6" />
+	<text x="80" y="32.6" text-anchor="middle" textLength="58" lengthAdjust="spacingAndGlyphs"
+		font-family="var(--ck-font-display)" font-size="9"
+		fill="var(--ck-brass-100)"><f:translate key="LLL:EXT:fruit_risk/Resources/Private/Language/locallang.xlf:machine.nameplate" /></text>
+
+	<f:comment>=== 5 Fenster ==========================================
+		Rahmen, Innenrahmen und dunkler Grund. Der dunkle Grund liegt zwischen den
+		Leuchtfeldern und macht die Rasterung 6 x 5 sichtbar — es braucht keine
+		gezeichneten Stege. Die Felder selbst liegen als HTML darueber
+		(Machine/Grid.html), weil sie einen Zustand haben.</f:comment>
+	<g data-fr-zone="grid">
+		<rect x="17.5" y="36.5" width="95" height="43" rx="2.4" fill="var(--ck-chrome-500)" />
+		<rect x="18.6" y="37.4" width="92.8" height="41.2" rx="1.6" fill="var(--ck-wood-500)" />
+		<rect x="20" y="38" width="90" height="40" fill="var(--ck-nixie-dark)" />
+	</g>
+
+	<f:comment>=== 6 Sitz von START und STOP ===========================
+		Zwei Chromsitze rechts NEBEN den Walzen, im Gehaeuse. Dieses Geraet hat
+		weder Hebel noch Konsole an der Flanke (CONCEPT.md C.14.5). Die Tasten
+		selbst liegen als HTML darueber.</f:comment>
+	<g data-fr-zone="start">
+		<rect x="115" y="36.5" width="30" height="21.5" rx="3"
+			fill="var(--ck-chrome-400)" stroke="var(--ck-chrome-500)" stroke-width="0.8" />
+		<rect x="116.6" y="37.6" width="26.8" height="1.6" rx="0.8"
+			fill="var(--ck-chrome-100)" opacity="0.85" />
+	</g>
+	<g data-fr-zone="stop">
+		<rect x="115" y="58" width="30" height="21.5" rx="3"
+			fill="var(--ck-chrome-400)" stroke="var(--ck-chrome-500)" stroke-width="0.8" />
+		<rect x="116.6" y="77.2" width="26.8" height="1.2" rx="0.6"
+			fill="var(--ck-chrome-500)" opacity="0.6" />
+	</g>
+
+	<f:comment>=== 7 Roehrenplatte ====================================</f:comment>
+	<g data-fr-zone="tubes">
+		<rect x="17" y="80.5" width="126" height="13" rx="2"
+			fill="var(--ck-chrome-300)" stroke="var(--ck-chrome-500)" stroke-width="0.7" />
+		<rect x="18.6" y="81.2" width="122.8" height="1.1" rx="0.55"
+			fill="var(--ck-chrome-100)" opacity="0.7" />
+		<rect x="17.8" y="91.9" width="124.4" height="1.4" rx="0.7" fill="var(--ck-chrome-500)" />
+	</g>
+
+	<f:comment>=== 8 Bedienfeldplatte =================================
+		Ein hartes Glanzband oben, wie an allen Chromflaechen dieses Hauses.</f:comment>
+	<g data-fr-zone="panel">
+		<rect x="16" y="95.5" width="128" height="26" rx="6"
+			fill="var(--ck-chrome-200)" stroke="var(--ck-chrome-500)" stroke-width="0.7" />
+		<rect x="19" y="96.6" width="122" height="1.4" rx="0.7"
+			fill="var(--ck-chrome-100)" opacity="0.9" />
+	</g>
+
+	<f:comment>=== 9 Gewinnplan hinter Glas ===========================
+		Gedruckte Karte auf cremefarbenem Papier, rote und schwarze Druckfarbe,
+		darueber ein diagonaler Glasschimmer.
+
+		STAND F3: Die Wertespalten tragen jetzt Zahlen. Sie stehen nicht als
+		Literal in diesem Markup, sondern kommen über {machine.paytableHeads}
+		und {machine.paytable} aus dem CabinetProcessor, der sie aus
+		Classes/Rules.php::PAYTABLE holt (CONCEPT.md C.14.4: der Gewinnplan
+		wird aus derselben Tabelle gedruckt, aus der auch gerechnet wird).
+		Prüfung A-21 in verify-cabinet.mjs hält fest, dass in dieser Zone kein
+		Ziffernzeichen mehr im Markup selbst steht.
+
+		STAND F3-Behebungslauf (REVIEW-fruitrisk-f3.md [H1]): dieselbe Regel
+		gilt jetzt auch für den Hinweis auf den zweiten Gewinnweg — er trug bis
+		hierhin die Feldtreppe als Fließtext-Zahlen direkt in locallang.xlf,
+		eine dritte, ungebundene Kopie von Rules::FIELD_LADDER. Die Zahlen
+		kommen jetzt über {machine.fieldLadderNote} aus derselben Quelle;
+		locallang.xlf trägt nur noch den Vorspann ohne Ziffern.
+
+		Die Reihenfolge der zwölf Zeilen ist die Rangfolge aus Rules::SYMBOLS,
+		von hoch nach niedrig, in vier Blöcken zu je drei. Gedruckt werden
+		zwölf Symbole, vier Kettenlängen (drei bis sechs gleiche, von links,
+		lückenlos), und der Hinweis auf den zweiten Gewinnweg.</f:comment>
+	<g data-fr-zone="paytable">
+		<rect x="18" y="123.5" width="126" height="16.5" rx="1.4"
+			fill="var(--ck-paper-100)" stroke="var(--ck-brass-400)" stroke-width="1.1" />
+		<text x="81" y="126.6" text-anchor="middle" font-family="var(--ck-font-display)"
+			font-size="2.4" fill="var(--ck-print-red)"><f:translate
+			key="LLL:EXT:fruit_risk/Resources/Private/Language/locallang.xlf:machine.paytable.title" /></text>
+		<path d="M19.5 127.4 H142.5" fill="none" stroke="var(--ck-print-red)" stroke-width="0.5" />
+		<text x="81" y="129.8" text-anchor="middle" font-family="var(--ck-font-display)"
+			font-size="1.6" fill="var(--ck-print-ink)"><f:translate
+			key="LLL:EXT:fruit_risk/Resources/Private/Language/locallang.xlf:machine.paytable.note" />{machine.fieldLadderNote}</text>
+
+		<f:comment>Spaltenkoepfe und Zeilen kommen seit Phase F3 aus dem
+			CabinetProcessor, der sie aus Classes/Rules.php holt (CONCEPT.md
+			C.14.4: derselbe Tisch, von dem gerechnet wird). In diesem Block
+			steht deshalb KEINE Zahl mehr — auch die Kettenlaengen 3/4/5/6
+			nicht. Pruefung A-21 in verify-cabinet.mjs haelt genau das fest.</f:comment>
+		<g font-family="var(--ck-font-display)" font-size="1.7" text-anchor="end"
+			fill="var(--ck-print-ink)">
+			<f:for each="{machine.paytableHeads}" as="head"><text x="{head.x}"
+				y="{head.y}">{head.length}</text></f:for>
+		</g>
+
+		<f:comment>Zwoelf Zeilen in vier Bloecken zu drei, in der Rangfolge aus
+			Rules::SYMBOLS. Je Zeile: das Symbol links, dann die vier
+			Gewinnwerte rechtsbuendig.</f:comment>
+		<g font-family="var(--ck-font-display)" font-size="1.9" text-anchor="end"
+			fill="var(--ck-print-red)">
+			<f:for each="{machine.paytable}" as="row">
+				<use href="#fr-sym-{row.symbol}" x="{row.symbolX}" y="{row.symbolY}"
+					width="{row.symbolSize}" height="{row.symbolSize}" /><f:for
+					each="{row.values}" as="value"><text x="{value.x}"
+					y="{value.y}">{value.value}</text></f:for>
+			</f:for>
+		</g>
+
+		<path d="M18 123.5 L31 123.5 L21 140 L18 140 Z"
+			fill="var(--ck-chrome-100)" opacity="0.13" />
+	</g>
+
+	<f:comment>=== 10 Geldeinbauten im Sockel =========================
+		NUR DIE FASSUNGEN. Die Bedienteile — Aufladeknoepfe, Feld fuer einen
+		frei waehlbaren Betrag, CASH OUT auf der Auswurfschale — legt Phase F4
+		als HTML darueber, genau wie beim vorhandenen Fuenf-Walzen-Geraet. Sie
+		stehen hier trotzdem schon, weil das Geraet nach dieser Phase FERTIG
+		aussehen soll und weil die Saal-Miniatur dieselben Bauteile zeigt
+		(verify-cabinet.mjs, A-14).</f:comment>
+	<g data-fr-zone="coinslot">
+		<rect x="50" y="145" width="9" height="7" rx="2"
+			fill="var(--ck-chrome-400)" stroke="var(--ck-chrome-100)" stroke-width="0.5" />
+		<rect x="53.2" y="146.4" width="2.6" height="4.2" rx="1.3" fill="var(--ck-chrome-shadow)" />
+	</g>
+	<g data-fr-zone="bank">
+		<rect x="63" y="144.6" width="42" height="8" rx="1.4"
+			fill="var(--ck-chrome-400)" stroke="var(--ck-chrome-100)" stroke-width="0.5" />
+		<rect x="64.2" y="145.6" width="39.6" height="6" rx="1" fill="var(--ck-nixie-dark)" />
+		<rect x="64.2" y="145.6" width="39.6" height="1.3" rx="0.65"
+			fill="var(--ck-chrome-shadow)" opacity="0.5" />
+	</g>
+	<g data-fr-zone="tray">
+		<path d="M40 152.8 H120 V155.2 Q120 157.6 116.4 157.6 H43.6 Q40 157.6 40 155.2 Z"
+			fill="var(--ck-chrome-300)" stroke="var(--ck-chrome-500)" stroke-width="0.7" />
+		<rect x="43" y="153.6" width="74" height="2.6" rx="1.3"
+			fill="var(--ck-chrome-shadow)" opacity="0.6" />
+		<rect x="43" y="153.2" width="74" height="0.6" rx="0.3"
+			fill="var(--ck-chrome-100)" opacity="0.75" />
+	</g>
+
+	<f:comment>Fassung des Ton-Schalters (Phase F5d). Kein eigenes data-fr-zone:
+		die neun Zonen stehen seit F2 fest, und dieses Bauteil sitzt wie CASH OUT
+		auf einer bereits gezeichneten Flaeche. --ck-chrome-600 aus dem
+		urspruenglichen Plantext gibt es in tokens.css nicht (Farbtokens enden bei
+		--ck-chrome-500) — hier deshalb --ck-chrome-500, das dunkelste vorhandene
+		Chromtoken, siehe DECISIONS.md.
+
+		Behebungslauf 2026-09-05 (AUDITREPORT-2026-09-05.md, N-02): Hoehe von
+		4,8 auf 5,2 vergroessert, deckungsgleich mit dem vergroesserten
+		.fr-sound (machine.css, Abschnitt 10) — dieses Rechteck liegt zwar
+		vollstaendig unter dem blickdichten HTML-Bedienteil und ist normal nie
+		sichtbar, bleibt aber die zeichnerische Fassung, die die
+		Koordinatentabelle nennt.</f:comment>
+	<rect x="124" y="152.8" width="26" height="5.2" rx="1.2"
+		fill="var(--ck-chrome-500)" />
+	<rect x="124.8" y="153.3" width="24.4" height="1" rx="0.5"
+		fill="var(--ck-chrome-300)" />
+</svg>

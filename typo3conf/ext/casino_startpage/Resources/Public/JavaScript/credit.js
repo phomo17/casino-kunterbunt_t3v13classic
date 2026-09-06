@@ -271,6 +271,27 @@ if (typeof globalThis.addEventListener === 'function') {
 }
 
 /**
+ * Rückkehr aus dem Vor-/Zurück-Zwischenspeicher (bfcache).
+ *
+ * Das storage-Ereignis oben feuert NICHT, solange ein Dokument im
+ * Zwischenspeicher liegt — es ist währenddessen laut Standard nicht „fully
+ * active". Ohne diesen Zuhörer rechnete eine so wiederhergestellte Seite mit
+ * dem Kassenstand von vor dem Verlassen weiter, obwohl eine andere Karte ihn
+ * in der Zwischenzeit verändert haben kann.
+ *
+ * event.persisted ist nur bei genau diesem Fall true; ein gewöhnliches Laden
+ * hat balance oben gerade erst über readStore() gesetzt und braucht keinen
+ * zweiten Lesevorgang.
+ */
+if (typeof globalThis.addEventListener === 'function') {
+	globalThis.addEventListener('pageshow', (event) => {
+		if (event.persisted === true) {
+			void credit.reload();
+		}
+	});
+}
+
+/**
  * Die öffentliche Schnittstelle.
  */
 export const credit = {

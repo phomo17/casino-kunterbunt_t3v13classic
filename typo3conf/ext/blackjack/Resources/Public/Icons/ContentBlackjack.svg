@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+	Icon des Inhaltselements im Seitenmodul und im Assistenten „Neues
+	Inhaltselement".
+
+	AUSNAHME VON DER TOKEN-REGEL: hier stehen ausgeschriebene Hexwerte, aus
+	demselben Grund wie in Extension.svg (siehe dort). Die Werte sind aus
+	tokens.css abgeschrieben.
+
+	Dasselbe Motiv wie Extension.svg, bei 16 x 16: zwei sich ueberlappende
+	Karten, eine mit dem Ruecken, eine mit der Vorderseite und einem
+	einzelnen Pip. Keine Buchstaben, keine Zahlen, kein fremdes Zeichen.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16" role="img">
+	<title>Blackjack</title>
+	<g transform="rotate(-8 6.75 7.25)">
+		<rect x="3.5" y="2.5" width="6.5" height="9.5" rx="1" fill="#452b19" stroke="#1a0f08" stroke-width="0.4"/><!-- ck-wood-300 / ck-wood-500, Kartenruecken -->
+		<rect x="4.6" y="3.6" width="4.3" height="7.3" rx="0.5" fill="none" stroke="#bd9333" stroke-width="0.28"/><!-- ck-brass-300, Musterrahmen -->
+	</g>
+	<g transform="rotate(9 9.25 8.75)">
+		<rect x="6" y="4" width="6.5" height="9.5" rx="1" fill="#f0e6d2" stroke="#1f150d" stroke-width="0.4"/><!-- ck-paper-100 / ck-print-ink -->
+		<circle cx="7.5" cy="5.75" r="0.8" fill="#1f150d"/><!-- ck-print-ink, ein einzelner Pip -->
+	</g>
+</svg>

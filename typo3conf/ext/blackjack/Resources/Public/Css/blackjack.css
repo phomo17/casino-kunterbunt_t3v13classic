@@ -1,0 +1,230 @@
+/*
+ * Blackjack – der Rahmen der Spielseite
+ * =====================================
+ *
+ * Diese Datei ordnet die Teile der Seite an: Tuch, Ansage, Bedienleiste,
+ * Verlaufsstreifen. Wie das Tuch selbst aussieht, steht in felt.css; wie eine
+ * Karte aussieht, in cards.css.
+ *
+ * Der Kasten mit bekannter Höhe kommt vom Saal über die Klasse ck-room-fill
+ * (casino_startpage/README.md, „Vertrag für ein bildschirmfüllendes Gerät").
+ * Diese Datei rechnet NICHT mit den Maßen des Saals — sie können sich ändern.
+ *
+ * KEINE EIGENE FARBE (Prüfung A-1). overflow: auto steht als Sicherheitsnetz
+ * da, greift aber im heutigen Saal nie: die Elternkette benutzt durchgehend
+ * min-block-size: auto, der Saal wächst also mit, statt das Gerät
+ * abzuschneiden (gemessen am Roulette-Tisch, siehe DECISIONS.md 2026-09-05).
+ */
+
+.bj-table {
+	inline-size: 100%;
+	overflow: auto;
+	align-items: center;
+}
+
+.bj-table__stage {
+	inline-size: 100%;
+	display: flex;
+	justify-content: center;
+}
+
+/* ==========================================================================
+   Die Bedienleiste
+   ==========================================================================
+   Zwei Spalten: links die geteilte Bedienleiste des Site Packages (Chipwahl,
+   Zurücknehmen, Wechselfeld, CASH OUT, der Auslöser „Geben"), rechts die
+   Handlungen der laufenden Hand und darunter die Handtafel mit den
+   AUFGEDECKTEN eigenen Karten.
+
+   Rechts unten — das ist die ausdrückliche Vorgabe aus CONCEPT.md C.7.1 und
+   der Grund, warum die Tafel als LETZTES Element der rechten Spalte steht und
+   die Spalte am unteren Rand ausgerichtet ist.
+
+   Unter 52rem Breite fällt der Satz auf eine Spalte zusammen; die Tafel steht
+   dann unter der Bedienleiste — immer noch „unten", nur nicht mehr „rechts".
+   Das ist die einzig sinnvolle Auflösung auf einem Telefon: nebeneinander
+   wären beide Spalten unlesbar schmal. */
+
+#bj-controls {
+	inline-size: 100%;
+	display: grid;
+	gap: var(--ck-space-3);
+	grid-template-columns: 1fr;
+	align-items: end;
+}
+
+@media (min-inline-size: 52rem) {
+	#bj-controls {
+		grid-template-columns: minmax(0, 1fr) minmax(18rem, 24rem);
+	}
+	#bj-controls > .ck-table__hint { grid-column: 1 / -1; }
+	.bj-actions { grid-column: 2; }
+}
+
+.bj-actions {
+	display: flex;
+	flex-direction: column;
+	gap: var(--ck-space-2);
+}
+
+.bj-actions__group {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--ck-space-2);
+	margin: 0;
+	padding: var(--ck-space-2);
+	border: 1px solid var(--ck-brass-400);
+	border-radius: var(--ck-radius-md);
+}
+
+/* Das hidden-Attribut der Versicherungsgruppe wirkt nur, wenn es die eigene
+   display-Regel darüber schlägt: die Voreinstellung display:none des Browsers
+   für [hidden] verliert gegen JEDE Regel aus dieser Datei. Ohne diese Zeile
+   stünden die beiden Versicherungsknöpfe in jeder Runde sichtbar da, obwohl
+   view-blackjack.js sie ausdrücklich verbirgt (CONCEPT.md C.7.4: Versicherung
+   gibt es nur bei sichtbarem Ass). */
+.bj-actions__group[hidden] {
+	display: none;
+}
+
+.bj-actions__group legend {
+	padding-inline: var(--ck-space-1);
+	font-family: var(--ck-font-display);
+	font-size: 0.8rem;
+	letter-spacing: 0.1em;
+	color: var(--ck-text-muted);
+}
+
+/* .ck-table__button bringt Mindestgröße, Fokusrahmen und die
+   aria-disabled-Darstellung schon mit. Hier kommt nur dazu, dass eine
+   gesperrte Handlung nicht nur blasser, sondern auch gestrichelt umrandet ist
+   — eine Änderung der STRICHART, nicht nur der Farbe. */
+.bj-act[aria-disabled="true"] {
+	border-style: dashed;
+	cursor: not-allowed;
+}
+
+/* ==========================================================================
+   Die Handtafel — die eigenen Karten, aufgedeckt
+   ========================================================================== */
+
+.bj-panel {
+	padding: var(--ck-space-2);
+	border: 1px solid var(--ck-brass-400);
+	border-radius: var(--ck-radius-md);
+	background-color: var(--ck-felt-green-dark);
+}
+
+.bj-panel__title {
+	margin: 0 0 var(--ck-space-1);
+	font-family: var(--ck-font-display);
+	font-size: 0.85rem;
+	letter-spacing: 0.1em;
+	color: var(--ck-felt-line);
+}
+
+.bj-panel__empty { margin: 0; font-size: 0.85rem; color: var(--ck-text-muted); }
+
+.bj-panel__hands {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: flex;
+	flex-direction: column;
+	gap: var(--ck-space-2);
+}
+
+.bj-panel__hand {
+	display: flex;
+	flex-direction: column;
+	gap: var(--ck-space-1);
+	padding: var(--ck-space-1);
+	border-radius: var(--ck-radius-sm);
+}
+
+/* Das Blatt, das gerade dran ist: ein Rahmen, nicht nur eine Farbe. */
+.bj-panel__hand[data-bj-active="true"] {
+	outline: 2px solid var(--ck-brass-200);
+	outline-offset: 2px;
+}
+
+.bj-panel__meta {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--ck-space-2);
+	font-family: var(--ck-font-numeric);
+	font-size: 0.85rem;
+	color: var(--ck-felt-line);
+}
+
+/* Die Ausgangsmarke trägt IMMER ein Wort. Die Farbe ist Zugabe. */
+.bj-outcome {
+	padding-inline: var(--ck-space-1);
+	border-radius: var(--ck-radius-sm);
+	font-family: var(--ck-font-display);
+	letter-spacing: 0.06em;
+	color: var(--ck-text-inverse);
+	background-color: var(--ck-chrome-200);
+}
+.bj-outcome--win, .bj-outcome--blackjack { background-color: var(--ck-brass-200); }
+.bj-outcome--loss, .bj-outcome--bust { background-color: var(--ck-chrome-300); }
+
+/* ==========================================================================
+   Der Ansagebereich der Runde
+   ========================================================================== */
+
+.bj-status {
+	margin: 0;
+	min-block-size: 1.6rem;
+	text-align: center;
+	font-size: 0.95rem;
+	color: var(--ck-text-primary);
+}
+
+/* ==========================================================================
+   Der Ton-Schalter
+   ==========================================================================
+   Sein Zustand steht NIE allein in der Farbe: der Ring wechselt von
+   durchgezogen auf gestrichelt. Eine Änderung der STRICHART überlebt
+   Graustufen, Kontrastmodus und jede Form von Farbfehlsichtigkeit.
+
+   Das helle Namensschild hinter dem Text ist kein Zierrat: ohne es hinge der
+   Kontrast davon ab, über welchem Teil des Untergrunds die Schrift gerade
+   sitzt — genau der Fund, der am vierten Gerät alle Aufschriften von 2,43 : 1
+   auf 9,22 : 1 gehoben hat. */
+
+.bj-sound {
+	position: relative;
+	min-inline-size: 2.75rem;
+	min-block-size: 2.75rem;
+	padding: var(--ck-space-1) var(--ck-space-2);
+	border: 0;
+	border-radius: var(--ck-radius-pill);
+	background: transparent;
+	cursor: pointer;
+}
+
+.bj-sound::before {
+	content: "";
+	position: absolute;
+	inset: 0;
+	border-radius: inherit;
+	border: 2px solid var(--ck-brass-300);
+	border-style: solid;
+}
+
+.bj-sound[aria-pressed="false"]::before { border-style: dashed; }
+
+.bj-sound:focus-visible { outline: 3px solid var(--ck-brass-200); outline-offset: 2px; }
+
+.bj-sound__label {
+	position: relative;
+	display: inline-block;
+	padding: 0.1rem var(--ck-space-1);
+	border-radius: var(--ck-radius-sm);
+	background-color: var(--ck-paper-100);
+	color: var(--ck-print-ink);
+	font-family: var(--ck-font-display);
+	font-size: 0.8rem;
+	letter-spacing: 0.1em;
+}

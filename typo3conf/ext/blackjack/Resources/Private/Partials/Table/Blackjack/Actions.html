@@ -1,0 +1,71 @@
+<f:comment>
+	Die Bedienteile der laufenden Hand und die Handtafel.
+
+	DIE HANDTAFEL ist die ausdrückliche Vorgabe des Auftraggebers (CONCEPT.md
+	C.7.1): die eigenen Karten liegen auf dem Tuch VERDECKT und hier, rechts
+	unten in der Bedienleiste, AUFGEDECKT. Sie wird LEER ausgeliefert und
+	ausschließlich von view-blackjack.js gefüllt.
+
+	„DOPPELN", NICHT „VERDOPPELN". Die geteilte Bedienleiste hat schon einen
+	Knopf „Verdoppeln" — der verdoppelt den EINSATZ VOR DER RUNDE. Zwei
+	Bedienteile mit demselben sichtbaren Text sind für eine Sprachsteuerung
+	nicht auseinanderzuhalten (WCAG 2.4.6). „Doppeln" ist geläufiges
+	Kartentisch-Deutsch und unterscheidet sich hörbar. Jedes aria-label
+	BEGINNT mit dem sichtbaren Text (WCAG 2.5.3) und erklärt erst danach.
+
+	VERSICHERUNG: hidden statt gesperrt. Sie wird nur in einem einzigen
+	Augenblick angeboten. Ein Knopf, den es gerade nicht GIBT, gehört nicht in
+	die Tastaturreihenfolge; ein Knopf, den es gibt und der gerade nicht GEHT,
+	bleibt drin und sagt über aria-disabled, warum. Beide Fälle kommen hier
+	vor, und sie sind nicht dasselbe.
+
+	KEIN echtes disabled, nirgends (Prüfung A-13).
+
+	Was die Versicherung KOSTET, steht nicht im Markup — das wäre eine
+	Regelzahl (Prüfung A-11). view-blackjack.js setzt sie zur Laufzeit in
+	data-text-take ein.
+</f:comment>
+<div class="bj-actions" data-bj-actions="">
+
+	<fieldset class="bj-actions__group" data-bj-insure-group="" hidden>
+		<legend><f:translate key="LLL:EXT:blackjack/Resources/Private/Language/locallang.xlf:actions.insurance.legend" /></legend>
+		<button type="button" class="ck-table__button bj-act" data-bj-insure="take"
+			data-text-take="{f:translate(key: 'LLL:EXT:blackjack/Resources/Private/Language/locallang.xlf:actions.insurance.take')}">
+			<f:translate key="LLL:EXT:blackjack/Resources/Private/Language/locallang.xlf:actions.insurance.take.short" />
+		</button>
+		<button type="button" class="ck-table__button bj-act" data-bj-insure="decline">
+			<f:translate key="LLL:EXT:blackjack/Resources/Private/Language/locallang.xlf:actions.insurance.decline" />
+		</button>
+	</fieldset>
+
+	<fieldset class="bj-actions__group">
+		<legend><f:translate key="LLL:EXT:blackjack/Resources/Private/Language/locallang.xlf:actions.legend" /></legend>
+		<button type="button" class="ck-table__button bj-act" data-bj-act="hit"
+			aria-label="{f:translate(key: 'LLL:EXT:blackjack/Resources/Private/Language/locallang.xlf:actions.hit.name')}">
+			<f:translate key="LLL:EXT:blackjack/Resources/Private/Language/locallang.xlf:actions.hit" />
+		</button>
+		<button type="button" class="ck-table__button bj-act" data-bj-act="stand"
+			aria-label="{f:translate(key: 'LLL:EXT:blackjack/Resources/Private/Language/locallang.xlf:actions.stand.name')}">
+			<f:translate key="LLL:EXT:blackjack/Resources/Private/Language/locallang.xlf:actions.stand" />
+		</button>
+		<button type="button" class="ck-table__button bj-act" data-bj-act="double"
+			aria-label="{f:translate(key: 'LLL:EXT:blackjack/Resources/Private/Language/locallang.xlf:actions.double.name')}">
+			<f:translate key="LLL:EXT:blackjack/Resources/Private/Language/locallang.xlf:actions.double" />
+		</button>
+		<button type="button" class="ck-table__button bj-act" data-bj-act="split"
+			aria-label="{f:translate(key: 'LLL:EXT:blackjack/Resources/Private/Language/locallang.xlf:actions.split.name')}">
+			<f:translate key="LLL:EXT:blackjack/Resources/Private/Language/locallang.xlf:actions.split" />
+		</button>
+	</fieldset>
+
+	<section class="bj-panel" aria-labelledby="bj-panel-title">
+		<h3 class="bj-panel__title" id="bj-panel-title">
+			<f:translate key="LLL:EXT:blackjack/Resources/Private/Language/locallang.xlf:panel.title" />
+		</h3>
+		<p class="bj-panel__empty" data-bj-panel-empty="">
+			<f:translate key="LLL:EXT:blackjack/Resources/Private/Language/locallang.xlf:panel.empty" />
+		</p>
+		<ol class="bj-panel__hands" data-bj-panel=""></ol>
+	</section>
+
+</div>

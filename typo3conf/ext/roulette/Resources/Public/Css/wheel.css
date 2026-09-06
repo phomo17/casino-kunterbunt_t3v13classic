@@ -1,0 +1,130 @@
+/*
+ * Roulette – das Rad
+ * ==================
+ *
+ * Alle Farbwerte kommen aus casino_startpage/Resources/Public/Css/tokens.css.
+ * In dieser Datei steht kein ausgeschriebener Farbwert (Nachweis A-1).
+ *
+ * DIE DREI ZEILEN, AUF DENEN DIE GANZE BEWEGUNG STEHT
+ * ---------------------------------------------------
+ * transform-box: view-box  sagt dem Browser, dass sich transform-origin auf
+ *                          das Koordinatensystem der viewBox bezieht und
+ *                          nicht auf den umschließenden Kasten des Elements.
+ *                          Ohne diese Zeile dreht das Rad um die falsche
+ *                          Achse.
+ * transform-origin         der Mittelpunkt des Rades, 100/100.
+ * transform: rotate(…)     die Drehung selbst, aus einer Custom Property.
+ *
+ * wheel-view.js schreibt je Bild nur zwei Zahlen (--ro-wheel-turn und
+ * --ro-ball-turn) plus zwei für die Kugel. Es rechnet dabei KEINEN Sinus:
+ * die Umrechnung von „Winkel und Halbmesser" in „x und y" macht der Browser
+ * über rotate() und translate(). Das ist der Grund, warum das ganze Gerät
+ * ohne Winkelfunktion auskommt.
+ *
+ * Die Reihenfolge rotate() vor translate() ist bindend: erst wird das
+ * Koordinatensystem gedreht, dann in der gedrehten Richtung nach außen
+ * geschoben. Umgekehrt liefe die Kugel auf einer Geraden.
+ *
+ * STAND TEILSTÜCK C2-B: die drei Custom Properties (--ro-wheel-turn,
+ * --ro-ball-turn, --ro-ball-r, --ro-ball-hop) stehen im Markup fest auf 0;
+ * wheel-view.js (Teilstück C2-D) setzt sie erst je Bild neu. Das Rad ist in
+ * diesem Teilstück deshalb gezeichnet, aber unbewegt — genau das
+ * Abnahmekriterium von CONCEPT.md C2a.
+ */
+
+
+/* ==========================================================================
+   1  Anordnung
+   ========================================================================== */
+
+/* Seit Phase C3 stehen Rad und Tuch nebeneinander (CONCEPT.md C.6.1: links
+   das Rad, rechts das Tuch). Die Anordnung der beiden steht in felt.css bei
+   .ro-table__stage; hier bleibt nur, was das Rad selbst betrifft.
+   .ck-table ist ein Flex-Container (table.css); overflow: auto sorgt dafür,
+   dass auf einem niedrigen Bildschirm nichts abgeschnitten wird, statt den
+   Vertrag ck-room-fill zu brechen (siehe README.md, Abschnitt
+   „Barrierefreiheit" und die nachgemessenen Werte dort). */
+.ro-table {
+	overflow: auto;
+}
+
+/* Größenbegrenzung: das Rad wird nie größer als sein Platz, aber auch nie
+   größer als eine handliche Höchstgröße auf breiten Bildschirmen. */
+.ro-wheel {
+	inline-size: min(28rem, 100%);
+}
+
+.ro-wheel__drawing {
+	display: block;
+	inline-size: 100%;
+	block-size: auto;
+}
+
+
+/* ==========================================================================
+   2  Drehung — ohne Winkelfunktion
+   ========================================================================== */
+
+.ro-wheel__head {
+	transform-box: view-box;
+	transform-origin: 100px 100px;
+	transform: rotate(calc(var(--ro-wheel-turn) * 1turn));
+}
+
+.ro-wheel__ball-arm {
+	transform-box: view-box;
+	transform-origin: 100px 100px;
+	transform:
+		rotate(calc(var(--ro-ball-turn) * 1turn))
+		translate(0, calc(var(--ro-ball-r) * -1px));
+}
+
+/* Der Sprung der Kugel über eine Rille: sie wirkt größer, weil sie näher am
+   Auge ist, und wirft einen weicheren Schatten. Der Wert --ro-ball-hop läuft
+   von 0 (liegt) bis 1 (höchster Punkt). Nichts blinkt dabei; die Änderung ist
+   stetig. */
+.ro-wheel__ball {
+	transform-box: fill-box;
+	transform-origin: center;
+	transform: scale(calc(1 + var(--ro-ball-hop) * 0.35));
+	filter: drop-shadow(0 calc(var(--ro-ball-hop) * 0.9px) calc(0.4px + var(--ro-ball-hop) * 1.2px)
+		var(--ck-shadow-hard));
+}
+
+/* Die Farbe eines Fachs steht an genau einer Stelle: hier. Das Segment im
+   <defs> füllt mit currentColor. */
+.ro-wheel__pocket--red { color: var(--ck-pocket-red); }
+.ro-wheel__pocket--black { color: var(--ck-pocket-black); }
+.ro-wheel__pocket--green { color: var(--ck-pocket-green); }
+
+.ro-wheel__label {
+	font-family: var(--ck-font-numeric);
+	font-size: 5px;
+	fill: var(--ck-pocket-mark);
+}
+
+
+/* ==========================================================================
+   3  Bewegungsdrosselung
+   ========================================================================== */
+
+/* STAND TEILSTÜCK C3c: der eigene Rundenauslöser (Table/Roulette/Launch.html
+   und die Regeln .ro-launch__button/.ro-launch__hint, die hier bis Teilstück
+   C3b standen) ist ersatzlos entfallen — das Partial wurde durch den
+   Auslöser der geteilten Bedienleiste ersetzt (Table/Controls.html,
+   .ck-table__button--go aus casino_startpage/…/table.css), wo Mindestgröße,
+   Fokusrahmen und aria-disabled-Behandlung bereits stehen. Ein Rundenauslöser
+   auf einer Seite statt zwei tote Knöpfe. */
+
+@media (prefers-reduced-motion: reduce) {
+	/* Wer „Bewegung reduzieren" eingestellt hat, sieht das Ergebnis des
+	   Laufs sofort statt seines Ablaufs. Die Physik läuft unverändert
+	   vollständig durch — nur die Bilder dazwischen entfallen (siehe
+	   wheel-view.js). Hier wird lediglich abgeschaltet, was der Browser
+	   sonst noch weich machen würde. */
+	.ro-wheel__head,
+	.ro-wheel__ball-arm,
+	.ro-wheel__ball {
+		transition: none !important;
+	}
+}

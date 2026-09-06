@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+	Icon der Extension im Erweiterungs-Modul.
+
+	AUSNAHME VON DER TOKEN-REGEL: hier stehen ausgeschriebene Hexwerte. Ein
+	Backend-Icon wird von TYPO3 ausserhalb des Frontend-Dokuments eingebunden;
+	dort sind die Custom Properties aus tokens.css nicht definiert und ein
+	var(…) bliebe farblos. video_slot und reel_slot machen es genauso. Damit
+	alle Geraete trotzdem aus derselben Palette kommen, sind die Werte aus
+	tokens.css abgeschrieben; der Tokenname steht je Wert daneben. Er ist ohne
+	die beiden fuehrenden Bindestriche notiert, weil zwei Bindestriche in
+	einem XML-Kommentar nicht erlaubt sind.
+
+	Motiv: eine Draufsicht auf das Spielfeld — eine Feldwanne, darin drei
+	versetzte Münzen in den Metallen Kupfer, Messing und Nickel, davor die
+	Abwurfkante als Messinglippe. Kein fremdes Gerät, keine Schrift, kein
+	Emblem (CONCEPT.md B.3).
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img">
+	<title>Coin Pusher</title>
+	<rect width="64" height="64" rx="10" fill="#2b0f1d"/><!-- ck-wall-base -->
+	<rect x="10" y="16" width="44" height="34" rx="5" fill="#1b2024" stroke="#3d454c" stroke-width="1.5"/><!-- ck-chrome-shadow / ck-chrome-500 -->
+	<rect x="12.5" y="18.5" width="39" height="29" rx="4" fill="none" stroke="#78838c" stroke-width="0.8" opacity="0.4"/><!-- ck-chrome-400 -->
+	<circle cx="24" cy="27" r="6" fill="#b0663a" stroke="#7a4322" stroke-width="1.4"/><!-- ck-copper-200 / ck-copper-400 -->
+	<circle cx="37" cy="31" r="6.5" fill="#dfb964" stroke="#8c6a1f" stroke-width="1.4"/><!-- ck-brass-200 / ck-brass-400 -->
+	<circle cx="27" cy="40" r="7" fill="#aab5bd" stroke="#3d454c" stroke-width="1.4"/><!-- ck-chrome-300 / ck-chrome-500 -->
+	<rect x="10" y="45.5" width="44" height="3.4" rx="1.7" fill="#bd9333"/><!-- ck-brass-300 -->
+</svg>

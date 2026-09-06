@@ -1,0 +1,183 @@
+<f:comment>
+	Der Kartenvorrat — die Zeichnungen, aus denen jede der 52 Karten und der
+	Kartenrücken zusammengesetzt werden (CONCEPT.md C.7.1: „Kartenmotive werden
+	als SVG gezeichnet, mit selbst entworfenen Zeichen. Keine fremde
+	Kartenschrift, kein fremdes Kartenbild").
+
+	AUFBAU. Eine Karte entsteht zur Laufzeit aus drei Teilen:
+	  1. die Fläche            <use href="#bj-card-face">
+	  2. zwei Rangecken        <text> mit dem Rangzeichen + kleines Farbzeichen,
+	                           die zweite um eine halbe Drehung gedreht
+	  3. das große Mittelbild  bei 2 bis 10 das Farbzeichen, bei Bube, Dame und
+	                           König das jeweilige Bildzeichen
+	Zusammengesetzt wird in cards-blackjack.js (cardMarkup()); diese Datei
+	liefert nur den Vorrat. 52 fertige Zeichnungen wären rund vierzigmal so
+	viel Markup, und jede Formänderung müsste 52-mal nachgezogen werden.
+
+	HERKUNFT UND COPYRIGHT (CONCEPT.md B.3, Silhouettenprobe Nr. 7)
+	---------------------------------------------------------------
+	Die vier Farbzeichen des französischen Blattes sind seit dem 15.
+	Jahrhundert Allgemeingut; geschützt sein kann immer nur eine BESTIMMTE
+	Zeichnung, nie das System. Alle vier Zeichen hier sind aus Grundformen
+	konstruiert — Kreisbögen, eine Raute, Rechtecke — und zeichnen nichts ab.
+
+	Die drei Bildzeichen für Bube, Dame und König sind AUSDRÜCKLICH NICHT die
+	überlieferten Figurenbilder eines französischen Blattes, sondern eigene,
+	abstrakte Zeichen: eine Feder über einem Balken, ein Reif mit drei Perlen,
+	eine Krone mit drei Zacken. Genau daran ist dieses Blatt als eigenes zu
+	erkennen — es sieht nach „Spielkarte" aus und nach keinem bestimmten Blatt.
+
+	Es wird KEINE Schrift für Kartenzeichen benutzt und KEIN Unicode-Zeichen
+	aus dem Bereich der Spielkarten (U+2660 ff., U+1F0A0 ff.). Das Rangzeichen
+	ist gewöhnlicher Text in der Anzeigeschrift des Projekts, genau wie der
+	Wertaufdruck auf den Chips. Prüfung K-13 in verify-cards.mjs weist beides
+	nach.
+
+	DIE RANGZEICHEN SIND DEUTSCH: B, D, K, A für Bube, Dame, König, Ass. Die
+	Zuordnung steht in cards-blackjack.js (RANK_PRINT) und nirgends sonst.
+
+	BARRIEREFREIHEIT. Dieses <svg> trägt aria-hidden und ist ein Vorrat, kein
+	Inhalt. Kein <title> in einem Symbol: den erreichbaren Namen bekommt jede
+	EINGESETZTE Karte von ihrem role="img" + aria-label, das
+	cards-blackjack.js erzeugt. Ein <title> böte ihn überall ein zweites Mal an.
+
+	MASSE. Alle Symbole haben viewBox „0 0 60 84" (Kartenformat) beziehungsweise
+	„0 0 24 24" (Zeichen). Kein Maß dieser Datei ist eine Spielregel.
+
+	DIE KARTENWÖRTER (13 Ränge, 4 Farben, der Satzbau und der Name der
+	verdeckten Karte) reisen als data-Attribute an DIESEM Element mit, statt
+	am Ansagebereich (Table/Blackjack/Status.html) zu hängen — sie gehören
+	nicht zur Ansage, sondern zu den Karten, und der Kartenvorrat kommt
+	ohnehin genau einmal je Seite vor. Satzbau und Name der verdeckten Karte
+	tragen dasselbe data-text-…-Muster wie überall sonst; Rang und Farbe
+	tragen das Präfix bj- (data-bj-suit-…/data-bj-rank-…), weil sie — anders
+	als ein reiner Satzbau — je einen einzelnen Buchstaben oder eine Ziffer
+	tragen und ohne eigenes Präfix mit fremdem Markup kollidieren könnten
+	(Prüfung A-9). blackjack.js liest sie über element.dataset und baut
+	daraus das texts-Objekt, das cards-blackjack.js erwartet (cardName()/
+	cardMarkup()).
+</f:comment>
+<svg class="bj-cardsprite" width="0" height="0" aria-hidden="true" focusable="false"
+	data-bj-cardtexts=""
+	data-text-name="{f:translate(key: 'LLL:EXT:blackjack/Resources/Private/Language/locallang.xlf:card.name')}"
+	data-text-facedown="{f:translate(key: 'LLL:EXT:blackjack/Resources/Private/Language/locallang.xlf:card.facedown')}"
+	data-bj-suit-h="{f:translate(key: 'LLL:EXT:blackjack/Resources/Private/Language/locallang.xlf:card.suit.H')}"
+	data-bj-suit-d="{f:translate(key: 'LLL:EXT:blackjack/Resources/Private/Language/locallang.xlf:card.suit.D')}"
+	data-bj-suit-s="{f:translate(key: 'LLL:EXT:blackjack/Resources/Private/Language/locallang.xlf:card.suit.S')}"
+	data-bj-suit-c="{f:translate(key: 'LLL:EXT:blackjack/Resources/Private/Language/locallang.xlf:card.suit.C')}"
+	data-bj-rank-2="{f:translate(key: 'LLL:EXT:blackjack/Resources/Private/Language/locallang.xlf:card.rank.2')}"
+	data-bj-rank-3="{f:translate(key: 'LLL:EXT:blackjack/Resources/Private/Language/locallang.xlf:card.rank.3')}"
+	data-bj-rank-4="{f:translate(key: 'LLL:EXT:blackjack/Resources/Private/Language/locallang.xlf:card.rank.4')}"
+	data-bj-rank-5="{f:translate(key: 'LLL:EXT:blackjack/Resources/Private/Language/locallang.xlf:card.rank.5')}"
+	data-bj-rank-6="{f:translate(key: 'LLL:EXT:blackjack/Resources/Private/Language/locallang.xlf:card.rank.6')}"
+	data-bj-rank-7="{f:translate(key: 'LLL:EXT:blackjack/Resources/Private/Language/locallang.xlf:card.rank.7')}"
+	data-bj-rank-8="{f:translate(key: 'LLL:EXT:blackjack/Resources/Private/Language/locallang.xlf:card.rank.8')}"
+	data-bj-rank-9="{f:translate(key: 'LLL:EXT:blackjack/Resources/Private/Language/locallang.xlf:card.rank.9')}"
+	data-bj-rank-10="{f:translate(key: 'LLL:EXT:blackjack/Resources/Private/Language/locallang.xlf:card.rank.10')}"
+	data-bj-rank-j="{f:translate(key: 'LLL:EXT:blackjack/Resources/Private/Language/locallang.xlf:card.rank.J')}"
+	data-bj-rank-q="{f:translate(key: 'LLL:EXT:blackjack/Resources/Private/Language/locallang.xlf:card.rank.Q')}"
+	data-bj-rank-k="{f:translate(key: 'LLL:EXT:blackjack/Resources/Private/Language/locallang.xlf:card.rank.K')}"
+	data-bj-rank-a="{f:translate(key: 'LLL:EXT:blackjack/Resources/Private/Language/locallang.xlf:card.rank.A')}">
+	<defs>
+
+		<f:comment>Die leere Kartenfläche. Der Rahmen ist die sichtbare
+			Schnittkante der Karte und zugleich die Bauteilgrenze, die auf dem
+			Tuch das Verhältnis 3,37 : 1 einhält.</f:comment>
+		<symbol id="bj-card-face" viewBox="0 0 60 84">
+			<rect x="0.9" y="0.9" width="58.2" height="82.2" rx="5"
+				fill="var(--ck-paper-100)" stroke="var(--ck-card-edge)" stroke-width="1.4" />
+		</symbol>
+
+		<f:comment>Der Rücken: heller Papierrand außen (ohne ihn stünde Tiefrot
+			auf grünem Tuch bei nur 1,13 : 1), darin das rote Feld, darauf ein
+			goldenes Gitter aus zwei gekreuzten Linienscharen. Das Gitter ist
+			eine eigene, regelmäßige Konstruktion, kein nachgezeichnetes
+			Rückenmuster.</f:comment>
+		<symbol id="bj-card-back" viewBox="0 0 60 84">
+			<rect x="0.9" y="0.9" width="58.2" height="82.2" rx="5"
+				fill="var(--ck-paper-100)" stroke="var(--ck-card-edge)" stroke-width="1.4" />
+			<rect x="4.5" y="4.5" width="51" height="75" rx="3" fill="var(--ck-card-back)" />
+			<g stroke="var(--ck-card-back-line)" stroke-width="0.9" fill="none" opacity="0.85">
+				<path d="M4.5 20 L55.5 20 M4.5 34 L55.5 34 M4.5 50 L55.5 50 M4.5 64 L55.5 64" />
+				<path d="M17 4.5 L17 79.5 M30 4.5 L30 79.5 M43 4.5 L43 79.5" />
+			</g>
+			<circle cx="30" cy="42" r="9" fill="none"
+				stroke="var(--ck-card-back-line)" stroke-width="1.6" />
+			<circle cx="30" cy="42" r="4" fill="var(--ck-card-back-line)" />
+		</symbol>
+
+		<f:comment>Herz: zwei Bögen, die unten in einer Spitze zusammenlaufen.
+			currentColor, damit dieselbe Zeichnung die Druckfarbe der Karte
+			übernimmt (rot oder schwarz kommt aus cards.css, nicht von hier).</f:comment>
+		<symbol id="bj-suit-heart" viewBox="0 0 24 24">
+			<path d="M12 21.5 C12 21.5 2.5 14.6 2.5 8.9 C2.5 5.6 5 3.3 7.9 3.3
+				C9.7 3.3 11.2 4.2 12 5.6 C12.8 4.2 14.3 3.3 16.1 3.3
+				C19 3.3 21.5 5.6 21.5 8.9 C21.5 14.6 12 21.5 12 21.5 Z"
+				fill="currentColor" />
+		</symbol>
+
+		<f:comment>Karo: eine Raute mit leicht eingezogenen Seiten — dadurch ist
+			der Umriss auch klein von der breiten Herzform sicher zu
+			unterscheiden.</f:comment>
+		<symbol id="bj-suit-diamond" viewBox="0 0 24 24">
+			<path d="M12 2 Q15.4 9.2 21 12 Q15.4 14.8 12 22 Q8.6 14.8 3 12 Q8.6 9.2 12 2 Z"
+				fill="currentColor" />
+		</symbol>
+
+		<f:comment>Pik: ein aufrecht stehendes, spitzes Blatt mit zwei
+			Seitenrundungen und einem Fuß.</f:comment>
+		<symbol id="bj-suit-spade" viewBox="0 0 24 24">
+			<path d="M12 2.2 C12 2.2 21.5 9.1 21.5 14.1 C21.5 16.9 19.4 18.8 17 18.8
+				C15.3 18.8 13.9 17.9 13.2 16.6 L14.6 21.8 L9.4 21.8 L10.8 16.6
+				C10.1 17.9 8.7 18.8 7 18.8 C4.6 18.8 2.5 16.9 2.5 14.1
+				C2.5 9.1 12 2.2 12 2.2 Z"
+				fill="currentColor" />
+		</symbol>
+
+		<f:comment>Kreuz: drei gleich große Kreise um einen Mittelpunkt, dazu ein
+			Fuß. Der Umriss ist rund, nicht spitz, und damit von Pik auch in
+			Graustufen zu unterscheiden.</f:comment>
+		<symbol id="bj-suit-club" viewBox="0 0 24 24">
+			<g fill="currentColor">
+				<circle cx="12" cy="6.6" r="4.4" />
+				<circle cx="6.6" cy="14.4" r="4.4" />
+				<circle cx="17.4" cy="14.4" r="4.4" />
+				<path d="M10.6 21.8 L13.4 21.8 L12.7 14.2 L11.3 14.2 Z" />
+			</g>
+		</symbol>
+
+		<f:comment>Bube: eine Feder über einem Balken. Eigenes Zeichen, kein
+			Figurenbild.</f:comment>
+		<symbol id="bj-court-jack" viewBox="0 0 24 24">
+			<g fill="currentColor">
+				<path d="M12 1.8 C15.6 5.4 16.8 10.2 15 15 L9 15 C7.2 10.2 8.4 5.4 12 1.8 Z" />
+				<rect x="11.2" y="15" width="1.6" height="4.6" />
+				<rect x="5.6" y="19.6" width="12.8" height="2.6" rx="1.3" />
+			</g>
+			<path d="M12 3.4 L12 15" stroke="var(--ck-paper-100)" stroke-width="0.9" />
+		</symbol>
+
+		<f:comment>Dame: ein Reif mit drei Perlen. Eigenes Zeichen, kein
+			Figurenbild.</f:comment>
+		<symbol id="bj-court-queen" viewBox="0 0 24 24">
+			<g fill="currentColor">
+				<path d="M3.4 16.4 C3.4 9.6 8 5.4 12 5.4 C16 5.4 20.6 9.6 20.6 16.4
+					L17.8 16.4 C17.8 11.4 14.8 8.2 12 8.2 C9.2 8.2 6.2 11.4 6.2 16.4 Z" />
+				<circle cx="12" cy="3.2" r="2.2" />
+				<circle cx="4.2" cy="12.4" r="2" />
+				<circle cx="19.8" cy="12.4" r="2" />
+				<rect x="3.4" y="18.2" width="17.2" height="3" rx="1.5" />
+			</g>
+		</symbol>
+
+		<f:comment>König: eine Krone mit drei Zacken. Bewusst ohne heraldisches
+			Kreuz und ohne Reichsapfel — eigenes Zeichen, kein Wappen.</f:comment>
+		<symbol id="bj-court-king" viewBox="0 0 24 24">
+			<g fill="currentColor">
+				<path d="M2.6 6.2 L7 12.4 L12 3.6 L17 12.4 L21.4 6.2 L19.6 18 L4.4 18 Z" />
+				<rect x="3.6" y="19.4" width="16.8" height="2.8" rx="1.4" />
+			</g>
+		</symbol>
+
+	</defs>
+</svg>

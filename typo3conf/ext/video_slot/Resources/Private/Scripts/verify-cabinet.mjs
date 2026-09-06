@@ -50,6 +50,10 @@
  *   A-10  jedes Bedienteil hat einen Namen
  *   A-11  die Live-Bereiche werden leer ausgeliefert
  *   A-12  der Haken-Katalog stimmt (Abnahme 3)
+ *   A-13  Kein fremder Hersteller-, Modell- oder Spieltitel (Negativliste) —
+ *         dieselbe Prüfung wie in coin_pusher/roulette/fruit_risk
+ *         verify-cabinet.mjs (dort A-5); vorher deckte keine
+ *         Negativlisten-Prüfung diese Extension ab
  *   B-1   die Seite antwortet mit 200          (nur mit Adresse)
  *   B-2   das Gerät ist da                     (nur mit Adresse)
  *   B-3   es wird keine Datei von außen geladen (nur mit Adresse)
@@ -71,6 +75,8 @@ const EXT = path.resolve(HIER, '../../..');
 const EXT_ROOT = path.resolve(EXT, '..');
 const REEL = path.join(EXT_ROOT, 'reel_slot');
 const SITE = path.join(EXT_ROOT, 'casino_startpage');
+/** diese Datei selbst, für die Ausnahme in A-13 */
+const DIESE_DATEI = fileURLToPath(import.meta.url);
 
 /* ------------------------------------------------------------------ Gerüst */
 
@@ -521,6 +527,78 @@ console.log('\nA-12 Der Haken-Katalog stimmt (Abnahme 3)');
 		check(kopf.includes(name) && regeln.includes(name),
 			`${name}: steht im Katalog und hat seit Phase 6 eine Regel`);
 	}
+}
+
+/* ========================================= A-13 Kein fremder Name */
+
+console.log('\nA-13 Kein fremder Hersteller-, Modell- oder Spieltitel');
+{
+	const NEGATIVLISTE = [
+		// Spielautomatenhersteller und Spieltitel (CONCEPT.md B.3 Nr. 4)
+		'Novomatic', 'Novomatix', 'Greentube', 'Merkur', 'Gauselmann', 'Bally',
+		'Aristocrat', 'IGT', 'Mills', 'Jennings', 'Watling', 'Light & Wonder',
+		'Bell-Fruit', 'Sizzling Hot', 'Book of Ra', 'Book of Sand',
+		"Lucky Lady's Charm", 'Penny Falls',
+		// Rad- und Tischhersteller sowie deren Modell-/Bauteilnamen
+		'TCSJohnHuxley', 'John Huxley', 'Cammegh', 'Abbiati', 'Matsui',
+		'CTC Holdings', 'Alfastreet', 'Interblock', 'Mercury 360', 'Slingshot',
+		'Saturn Glo', 'Garnite', 'EyeBall', 'Velstone', 'Starburst',
+		// Chiphersteller
+		'Gaming Partners International', 'GPI', 'Paulson', 'Bud Jones',
+		'Chipco', 'Dal Negro',
+		// Spielbanken und Casinomarken
+		'Bellagio', 'Caesars', 'Wynn', 'Venetian', 'MGM', 'Mirage', 'Flamingo',
+		'Golden Nugget', 'Tropicana', 'Stardust', 'Riviera', 'Sands', 'Luxor',
+		'Harrah', 'Monte Carlo',
+		// Live-Casino- und Spielesoftwaremarken
+		'Evolution Gaming', 'Playtech', 'Pragmatic Play', 'Microgaming',
+		'NetEnt', 'Scientific Games', 'WMS', 'Barcrest', 'Cirsa', 'Konami',
+		'All rights reserved',
+		// Zusätzlich zu B.3 Nr. 4: geschützte Mechanik-Bezeichnungen aus der
+		// Recherche zu diesem Gerät (CONCEPT.md C.14.18). Sie erscheinen
+		// nirgends — nicht in sichtbarem Text, nicht in Dateinamen, nicht in
+		// CSS-Klassen, nicht in Kommentaren, nicht in Variablennamen. Erfasst
+		// sind neben der Marken-Schreibweise auch Klein-, GROSS- und
+		// Bindestrich-Schreibweisen, wie ein Name realistisch in einer
+		// CSS-Klasse, einem Bezeichner oder einem Kommentar auftauchen würde
+		// (Befund C-2 der Copyright-Prüfung vom 2026-09-06; gemessen statt
+		// vermutet — keine der Varianten löst einen Fehlalarm im vorhandenen
+		// Bestand aus, siehe DECISIONS.md).
+		'Megaways', 'MEGAWAYS', 'megaways',
+		'Cluster Pays', 'CLUSTER PAYS', 'cluster pays', 'ClusterPays', 'clusterPays', 'cluster-pays',
+		'InfiniReels', 'INFINIREELS', 'infinireels', 'Infini Reels', 'infini-reels',
+		'Tumbling Reels', 'TUMBLING REELS', 'tumbling reels', 'TumblingReels', 'tumblingReels', 'tumbling-reels',
+	];
+	// Ausnahme für genau eine Datei: diese Prüfskript-Datei selbst muss die
+	// Negativliste als ausführbares JS-Array wörtlich enthalten, um überhaupt
+	// gegen sie prüfen zu können — dieselbe Art Ausnahme wie in
+	// coin_pusher/roulette/fruit_risk verify-cabinet.mjs (dort A-5).
+	const GEPRUEFT_A13 = alleDateien(EXT).filter((d) => d !== DIESE_DATEI);
+	const treffer = [];
+	for (const datei of GEPRUEFT_A13) {
+		// KEIN Kommentar-Ausschnitt hier: A-13 ist die rechtliche Prüfung
+		// (CONCEPT.md B.3 Nr. 4, V.7 Nr. 5) und liest deshalb den vollen Text,
+		// Kommentare eingeschlossen — ein öffentliches Repository liefert die
+		// Quelldateien vollständig mit aus, der Unterschied zwischen Kommentar
+		// und sichtbarem Text verschwindet damit.
+		const inhalt = lies(datei);
+		for (const name of NEGATIVLISTE) {
+			if (inhalt.includes(name)) {
+				treffer.push(`${kurz(datei)}: „${name}"`);
+			}
+		}
+		for (const zeichen of ['©', '™', '®']) {
+			if (inhalt.includes(zeichen)) {
+				treffer.push(`${kurz(datei)}: Zeichen „${zeichen}"`);
+			}
+		}
+	}
+	check(treffer.length === 0,
+		`kein Treffer der Negativliste (${NEGATIVLISTE.length} Namen) und keins`
+		+ ' der drei Zeichen ©/™/® in dieser Extension — README eingeschlossen'
+		+ ' (Ausnahme: diese Datei selbst, die die Liste als Programmzeile'
+		+ ' enthalten muss, um sie zu prüfen)',
+		...treffer);
 }
 
 /* ============================================ B – das ausgelieferte HTML */

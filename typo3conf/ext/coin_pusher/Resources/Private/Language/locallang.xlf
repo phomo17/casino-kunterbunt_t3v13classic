@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" version="1.2">
+	<file source-language="de" datatype="plaintext" original="EXT:coin_pusher/Resources/Private/Language/locallang.xlf" date="2026-09-03T00:00:00Z" product-name="coin_pusher">
+		<header/>
+		<body>
+			<trans-unit id="automat.title">
+				<source>Coin Pusher</source>
+			</trans-unit>
+			<trans-unit id="automat.description">
+				<source>Münzschieber mit wanderndem Haufen: Münzen einwerfen, die Schubplatte schiebt, was über die vordere Kante fällt, ist gewonnen.</source>
+			</trans-unit>
+
+			<trans-unit id="cabinet.nameplate">
+				<source>COIN PUSHER</source>
+			</trans-unit>
+			<trans-unit id="machine.nameplate.line1">
+				<source>COIN</source>
+			</trans-unit>
+			<trans-unit id="machine.nameplate.line2">
+				<source>PUSHER</source>
+			</trans-unit>
+
+			<!-- Die Nixie-Anzeigen -->
+			<trans-unit id="machine.display.guthaben">
+				<source>GUTHABEN</source>
+			</trans-unit>
+			<trans-unit id="machine.display.guthaben.announce">
+				<source>Guthaben: %s</source>
+			</trans-unit>
+			<trans-unit id="machine.display.muenzwert">
+				<source>MÜNZWERT</source>
+			</trans-unit>
+			<trans-unit id="machine.display.muenzwert.announce">
+				<source>Münzwert: %s</source>
+			</trans-unit>
+			<trans-unit id="machine.display.feld">
+				<source>IM FELD</source>
+			</trans-unit>
+			<trans-unit id="machine.display.feld.announce">
+				<source>Münzen im Feld: %s</source>
+			</trans-unit>
+
+			<!-- Das Meldungsschild über dem Feld -->
+			<trans-unit id="machine.message.insufficient">
+				<source>GUTHABEN ZU GERING</source>
+			</trans-unit>
+			<trans-unit id="machine.message.nocash">
+				<source>KASSE ZU GERING</source>
+			</trans-unit>
+			<trans-unit id="machine.message.capped">
+				<source>KONTO VOLL</source>
+			</trans-unit>
+			<trans-unit id="machine.message.invalid">
+				<source>BETRAG UNGÜLTIG</source>
+			</trans-unit>
+			<trans-unit id="machine.message.norng">
+				<source>AUSSER BETRIEB</source>
+			</trans-unit>
+
+			<!-- Die Münzwertwahl. %s ist der Wert; der Kern setzt ihn über
+			     <f:translate arguments="{0: …}"> mit sprintf() ein — ein {0}
+			     bliebe sichtbar stehen (DECISIONS.md, Audit-Nachlauf Phase 5). -->
+			<trans-unit id="machine.value.label">
+				<source>Münzwert %s wählen</source>
+			</trans-unit>
+
+			<!-- Der feste Münzeinwurf über dem Feld -->
+			<trans-unit id="machine.drop.label">
+				<source>Münze einwerfen</source>
+			</trans-unit>
+			<trans-unit id="machine.drop.hint">
+				<source>Der Zeitpunkt des Einwurfs ist die einzige Steuerung.</source>
+			</trans-unit>
+
+			<!-- Der Geldeinwurf am Sockel (Kasse in das Gerät) -->
+			<trans-unit id="machine.coin.add.10">
+				<source>+10</source>
+			</trans-unit>
+			<trans-unit id="machine.coin.add.50">
+				<source>+50</source>
+			</trans-unit>
+			<trans-unit id="machine.coin.add.100">
+				<source>+100</source>
+			</trans-unit>
+			<trans-unit id="machine.coin.insert">
+				<source>Geld in das Gerät einwerfen</source>
+			</trans-unit>
+			<trans-unit id="machine.coin.custom">
+				<source>Freier Betrag zum Einwerfen</source>
+			</trans-unit>
+			<trans-unit id="machine.coin.placeholder">
+				<source>Betrag</source>
+			</trans-unit>
+
+			<!-- Kassenfenster und Auszahlung -->
+			<trans-unit id="machine.bank.label">
+				<source>KASSE</source>
+			</trans-unit>
+			<trans-unit id="machine.bank.announce">
+				<source>Kasse: %s</source>
+			</trans-unit>
+			<trans-unit id="machine.cashout.label">
+				<source>CASH OUT</source>
+			</trans-unit>
+
+			<!-- Ton-Schalter -->
+			<trans-unit id="machine.sound.label">
+				<source>TON</source>
+			</trans-unit>
+		</body>
+	</file>
+</xliff>

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" version="1.2">
+	<file source-language="de" datatype="plaintext" original="EXT:coin_pusher/Resources/Private/Language/locallang_be.xlf" date="2026-09-03T00:00:00Z" product-name="coin_pusher">
+		<header/>
+		<body>
+			<trans-unit id="tt_content.CType.coin_pusher">
+				<source>Coin Pusher</source>
+			</trans-unit>
+			<trans-unit id="tt_content.CType.coin_pusher.description">
+				<source>Stellt den Münzschieber „Coin Pusher" auf dieser Seite spielbereit auf. Das Element hat keine Einstellungen – alles, was der Automat braucht, bringt er selbst mit. Damit das Gerät auch im Spielsaal steht, gehört auf die Startseite zusätzlich ein Inhaltselement „Casino-Automat", das auf diese Seite verweist.</source>
+			</trans-unit>
+		</body>
+	</file>
+</xliff>

@@ -1,0 +1,45 @@
+<f:comment>
+	Inhaltselement „FruitRisk" — der Automat auf seiner eigenen Seite.
+
+	Das Element hat keine Einstellungen und wertet keinen Datenbankwert aus. Es
+	stellt das Gerät auf, mehr nicht.
+
+	f:asset.css meldet das Stylesheet beim AssetCollector an. Dadurch wird es
+	nur auf Seiten geladen, auf denen dieses Element wirklich steht — anders
+	als page.includeCSS, das auf jeder Seite lädt. Der Core gibt die Dateien
+	des Sammlers nach den includeCSS-Dateien aus, also nach tokens.css und
+	base.css; die Kaskade stimmt damit von allein.
+
+	ck-room-fill ist der Vertrag aus casino_startpage/README.md, Abschnitt
+	„Vertrag für ein bildschirmfüllendes Gerät": der Saal ordnet sich zu genau
+	einer Bildschirmhöhe an und übergibt den ganzen Rest unter dem Wandband an
+	dieses Element. Dieses Element rechnet NICHT selbst mit den Maßen des Saals.
+
+	STAND F2: Das Gehäuse ist gestaltet, aber unbedient — Korpus, Frontplatte,
+	Kopfschild, Sichtfeld, Symbole, Bedienfeld, Röhren und Gewinnplan stehen
+	alle. Das JavaScript kommt erst in Phase F4: es wird hier deshalb noch kein
+	Modul eingebunden.
+
+	STAND F3: Der CabinetProcessor läuft jetzt (ext_localconf.php,
+	Configuration/Services.yaml) und rechnet Classes/Rules.php in den
+	gedruckten Gewinnplan um; das Ergebnis reist als {machine} durch
+	Machine/Cabinet.html nach Machine/Shell.html. Kein JavaScript-Modul wird
+	dadurch eingebunden — dieser Prozessor läuft am Server, nicht im Browser.
+
+	STAND F4: fruit-risk.js wird jetzt über f:asset.module angemeldet — der
+	einzige Weg seit TYPO3 v12 (Import-Map, Configuration/JavaScriptModules.php).
+	Das Modul wird dadurch NUR auf Seiten geladen, auf denen dieses Element
+	wirklich steht, und zieht sich alle übrigen Module des Geräts über die
+	Import-Map selbst nach. Das Gerät spielt ab jetzt vollständig.
+
+	Die Überschrift der Seite liefert das Site Package (Partials/Hall/PageHead)
+	aus dem Seitentitel. Diese Extension gibt bewusst KEINE eigene h1 aus:
+	CONCEPT.md C.14.12 verlangt genau eine, und die steht bereits dort.
+</f:comment>
+<f:asset.css identifier="fruitRiskMachine"
+	href="EXT:fruit_risk/Resources/Public/Css/machine.css" />
+<f:asset.module identifier="@phomo17/fruit-risk/fruit-risk.js" />
+
+<div class="fr-machine ck-room-fill">
+	<f:render partial="Automat/FruitRisk/Machine/Cabinet" arguments="{machine: machine}" />
+</div>

@@ -1,0 +1,39 @@
+<f:comment>
+	Der Ansagebereich der RUNDE — Eigentümer ist ausschließlich roulette.js
+	(verdrahtet erst in Teilstück C3d).
+
+	Er steht NEBEN dem geteilten [data-ck-table-status] aus dem Site Package,
+	der weiterhin allein den Chips und der Bedienleiste gehört. Zwei Bereiche
+	mit je einem Eigentümer statt ein Bereich mit drei Schreibern: eine Ansage
+	kann so keine andere überschreiben — dieselbe Regel wie bei jedem
+	data-ro-*-Messpunkt dieses Geräts ("jeder Messpunkt hat genau einen
+	Schreiber").
+
+	LEER ausgeliefert. Ein Live-Bereich, den ein Skript anlegt UND füllt, wird
+	von Hilfsmitteln nicht angesagt; einer, der beim Laden schon Text trägt,
+	liest ungefragt vor. Beides wäre falsch — dieselbe Regel wie am geteilten
+	Ansagebereich (Table/Status.html, Site Package) und am Kassenschild.
+
+	role="status" statt role="alert": das Ergebnis einer Runde ist eine
+	Auskunft, keine Warnung. Es soll den Vorlesevorgang nicht unterbrechen,
+	sondern sich einreihen.
+
+	Die deutschen Satzbauten reisen als data-Attribute mit, damit sie aus der
+	XLIFF-Datei kommen und nicht im JavaScript stehen. {0} Zahl, {1} Farbe,
+	{2} Auszahlung, {3} Einsatz, {4} Buy-in danach.
+</f:comment>
+<p class="ro-status" data-ro-status="" role="status"
+	data-text-running="{f:translate(key: 'LLL:EXT:roulette/Resources/Private/Language/locallang.xlf:wheel.announce.running')}"
+	data-text-evaluating="{f:translate(key: 'LLL:EXT:roulette/Resources/Private/Language/locallang.xlf:wheel.announce.evaluating')}"
+	data-text-blocked="{f:translate(key: 'LLL:EXT:roulette/Resources/Private/Language/locallang.xlf:wheel.announce.blocked')}"
+	data-text-norandom="{f:translate(key: 'LLL:EXT:roulette/Resources/Private/Language/locallang.xlf:wheel.announce.norandom')}"
+	data-text-nostake="{f:translate(key: 'LLL:EXT:roulette/Resources/Private/Language/locallang.xlf:round.announce.nostake')}"
+	data-text-unavailable="{f:translate(key: 'LLL:EXT:roulette/Resources/Private/Language/locallang.xlf:round.announce.unavailable')}"
+	data-text-closed="{f:translate(key: 'LLL:EXT:roulette/Resources/Private/Language/locallang.xlf:round.announce.closed')}"
+	data-text-win="{f:translate(key: 'LLL:EXT:roulette/Resources/Private/Language/locallang.xlf:round.announce.win')}"
+	data-text-loss="{f:translate(key: 'LLL:EXT:roulette/Resources/Private/Language/locallang.xlf:round.announce.loss')}"
+	data-text-partial="{f:translate(key: 'LLL:EXT:roulette/Resources/Private/Language/locallang.xlf:round.announce.partial')}"
+	data-text-nobet="{f:translate(key: 'LLL:EXT:roulette/Resources/Private/Language/locallang.xlf:round.announce.nobet')}"
+	data-text-colour-red="{f:translate(key: 'LLL:EXT:roulette/Resources/Private/Language/locallang.xlf:wheel.colour.red')}"
+	data-text-colour-black="{f:translate(key: 'LLL:EXT:roulette/Resources/Private/Language/locallang.xlf:wheel.colour.black')}"
+	data-text-colour-green="{f:translate(key: 'LLL:EXT:roulette/Resources/Private/Language/locallang.xlf:wheel.colour.green')}"></p>

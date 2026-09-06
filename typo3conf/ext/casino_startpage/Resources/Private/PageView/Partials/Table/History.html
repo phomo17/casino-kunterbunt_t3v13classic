@@ -1,0 +1,22 @@
+<f:comment>
+	Verlaufsstreifen (CONCEPT.md C.3).
+
+	Eine <ol>, weil die Reihenfolge die Aussage IST: „die letzten Ergebnisse".
+	Eine <ul> behauptete, die Reihenfolge sei gleichgültig.
+
+	KEIN Live-Bereich. Der Streifen ist eine Chronik zum Nachsehen; jedes
+	Ergebnis spricht ohnehin schon der Ansagebereich. Beides zugleich hieße,
+	jedes Ergebnis zweimal zu hören.
+
+	Die Liste wird LEER ausgeliefert. Der Text für den leeren Zustand steht als
+	eigener Absatz bereit und wird von table-history.js ein- und ausgeblendet —
+	als gewöhnlicher Text, nicht als Listeneintrag, damit die Liste nicht
+	fälschlich einen Eintrag meldet.
+</f:comment>
+<div class="ck-table__history">
+	<h2 class="ck-table__history-title"><f:translate key="LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:table.history.label" /></h2>
+	<p class="ck-table__history-empty" data-ck-table-history-empty="">
+		<f:translate key="LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:table.history.empty" />
+	</p>
+	<ol class="ck-history" data-ck-table-history=""></ol>
+</div>

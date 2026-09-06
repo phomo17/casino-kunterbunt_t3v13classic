@@ -63,7 +63,14 @@ final class AutomatPreviewRenderer extends StandardContentPreviewRenderer
             ));
         }
 
-        $out = '<strong>' . htmlspecialchars($languageService->sL($automat->title)) . '</strong>';
+        // Die Gattung steht VOR dem Namen, weil sie die Frage beantwortet, die
+        // ein Redakteur bei sechs Geräten zuerst hat: Automat oder Tisch?
+        // (CONCEPT.md C.1 Nr. 1). badge-info statt badge-warning/-danger: das
+        // ist eine Angabe, keine Warnung.
+        $out = '<span class="badge badge-info">'
+            . htmlspecialchars($languageService->sL($automat->gattung->getLabel()))
+            . '</span> ';
+        $out .= '<strong>' . htmlspecialchars($languageService->sL($automat->title)) . '</strong>';
         $description = trim($languageService->sL($automat->description));
         if ($description !== '') {
             $out .= ' <span class="text-body-secondary">' . htmlspecialchars($description) . '</span>';

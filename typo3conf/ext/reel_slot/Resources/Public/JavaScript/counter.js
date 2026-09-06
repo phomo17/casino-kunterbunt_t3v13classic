@@ -39,7 +39,7 @@
  * Trommel, die ausrollt, statt abrupt zu stehen.
  *
  * Eine neue Zielzahl während einer laufenden Fahrt bricht nichts ab: sie setzt
- * den Startpunkt auf den GERADE ANGEZEIGTEN Wert und fährt von dort weiter. Die
+ * den Startpunkt auf den Wert, der GERADE STEHT, und fährt von dort weiter. Die
  * Anzeige springt dadurch nie zurück.
  *
  *
@@ -71,6 +71,17 @@
  * snap() löst KEIN Ereignis aus. snap() ist keine Fahrt, sondern ein Setzen
  * (Einsatzwahl, erstes Anzeigen) — ein Zählklang dort wäre ein Klang für
  * etwas, das gar nicht gezählt hat.
+ *
+ *
+ * DIE ANSAGE MACHT DIE GRUPPE, NICHT DIESES ZÄHLWERK
+ * ---------------------------------------------------
+ * paint() ruft group.show(value, announce) — und show() füllt den
+ * unsichtbaren Ansagebereich der Gruppe selbst, entprellt über 700 ms
+ * (nixie.js). Seit dem Audit-Nachlauf (2026-09-05/06, Befund N-04) reicht
+ * snap() das zweite Argument announce durch: wallet.js ruft es beim
+ * allerersten Anfangsstand mit false auf, damit die Röhren sofort ihren
+ * Startwert zeigen, ohne dass ein Hilfsmittel ihn beim bloßen Laden der
+ * Seite vorliest.
  *
  * Diese Datei bekommt KEINEN Import. Sie wird zusätzlich von einem Prüfskript
  * unter Node geladen, das die Import-Map von TYPO3 nicht kennt — dieselbe
@@ -160,12 +171,17 @@ export class NixieCounter {
 	 * Lüge.
 	 *
 	 * @param {number} value
+	 * @param {boolean} [announce] false lässt die Ansage des Live-Bereichs
+	 *        aus (Audit N-04, 2026-09-05/06): der allererste Anfangsstand
+	 *        beim Seitenaufbau soll in den Röhren stehen, ohne dass ein
+	 *        Hilfsmittel ihn beim bloßen Laden vorliest. Vorgabe true —
+	 *        jeder vorhandene Aufruf verhält sich damit unverändert.
 	 * @returns {void}
 	 */
-	snap(value) {
+	snap(value, announce = true) {
 		this.cancel();
 		this.value = normalise(value);
-		this.paint();
+		this.paint(announce);
 	}
 
 	/**
@@ -181,7 +197,7 @@ export class NixieCounter {
 			return;
 		}
 
-		// Startpunkt ist immer der GERADE ANGEZEIGTE Wert, nicht das alte Ziel.
+		// Startpunkt ist immer der Wert, der GERADE STEHT, nicht das alte Ziel.
 		// Dadurch springt die Anzeige beim Umschwenken nie zurück.
 		this.from = this.value;
 		this.to = target;
@@ -245,10 +261,11 @@ export class NixieCounter {
 	 * Die Neunen bei Überlauf setzt NixieGroup.show() selbst — hier kommt nur
 	 * das Blinken dazu.
 	 *
+	 * @param {boolean} [announce] siehe snap()
 	 * @returns {void}
 	 */
-	paint() {
-		this.group.show(this.value);
+	paint(announce = true) {
+		this.group.show(this.value, announce);
 		this.group.element.classList.toggle(OVERFLOW_CLASS, this.value > this.ceiling);
 	}
 

@@ -1,0 +1,58 @@
+<f:comment>
+	Das Tuch des Mustertisches — vier Felder ohne Spiel (CONCEPT.md C.9).
+
+	Die Felder heißen A bis D und decken nichts ab: der Mustertisch hat kein
+	Ergebnis. Ihre Auszahlungen und Limits sind trotzdem echte Zahlen, weil
+	genau sie geprüft werden sollen — die Staffel folgt dem Höchsteinsatzprinzip
+	aus Anhang F (10 € je abgedeckter Zahl, gedeckelt bei 100 €), ohne dass
+	dieser Tisch Roulette wäre:
+
+	  A   zahlt  1 : 1    Höchsteinsatz 100 €
+	  B   zahlt  2 : 1    Höchsteinsatz 100 €
+	  C   zahlt  8 : 1    Höchsteinsatz  40 €
+	  D   zahlt 35 : 1    Höchsteinsatz  10 €
+	  Gesamteinsatz je Runde höchstens 100 €
+
+	Jedes Feld ist ein ECHTER <button type="button">. Das ist der Vertrag aus
+	table-felt.js: ein Knopf bringt Rolle, Fokus, Tastatur und
+	Eingabetasten-Verhalten von selbst mit, ein <div> müsste alles nachbauen.
+
+	Die sichtbare Beschriftung steht als Text im Knopf. Den vollständigen
+	erreichbaren Namen („Feld A, zahlt 1 zu 1, Höchsteinsatz 100 Euro, 15 Euro
+	gesetzt") setzt table-felt.js als aria-label und führt ihn nach; er beginnt
+	mit derselben sichtbaren Beschriftung, damit eine Sprachsteuerung ihn
+	weiterhin findet (WCAG 2.5.3).
+
+	Behebungslauf 2026-09-06 (AUDITREPORT-2026-09-06.md, Befund M-07):
+	data-ck-field-label trägt hier ausdrücklich NUR den Feldnamen („Feld A"),
+	nicht die sichtbare Quote daneben. table-felt.js baut den erreichbaren
+	Namen selbst aus Feldname UND Auszahlung zusammen (collect(), Abschnitt
+	„Ein Feld, das für seine Aufschrift keinen Platz hat"); ohne dieses
+	Attribut griff sein Ersatzweg — der GESAMTE sichtbare Text des Knopfes,
+	also Feldname UND Quote zusammen — und die Quote stand danach zweimal im
+	Namen („Feld A zahlt 1 zu 1, zahlt 1 zu 1, …"). Roulette und Blackjack
+	sind an derselben Stelle sauber, weil ihre Feldknöpfe data-ck-field-label
+	bereits tragen.
+</f:comment>
+<div class="ck-felt ck-felt--muster">
+	<button type="button" class="ck-felt__field" data-ck-field="feld-a"
+		data-ck-field-label="{f:translate(key: 'LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:mustertisch.feld.a')}">
+		<span class="ck-felt__field-label"><f:translate key="LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:mustertisch.feld.a" /></span>
+		<span class="ck-felt__field-odds"><f:translate key="LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:mustertisch.odds.1" /></span>
+	</button>
+	<button type="button" class="ck-felt__field" data-ck-field="feld-b"
+		data-ck-field-label="{f:translate(key: 'LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:mustertisch.feld.b')}">
+		<span class="ck-felt__field-label"><f:translate key="LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:mustertisch.feld.b" /></span>
+		<span class="ck-felt__field-odds"><f:translate key="LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:mustertisch.odds.2" /></span>
+	</button>
+	<button type="button" class="ck-felt__field" data-ck-field="feld-c"
+		data-ck-field-label="{f:translate(key: 'LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:mustertisch.feld.c')}">
+		<span class="ck-felt__field-label"><f:translate key="LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:mustertisch.feld.c" /></span>
+		<span class="ck-felt__field-odds"><f:translate key="LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:mustertisch.odds.8" /></span>
+	</button>
+	<button type="button" class="ck-felt__field" data-ck-field="feld-d"
+		data-ck-field-label="{f:translate(key: 'LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:mustertisch.feld.d')}">
+		<span class="ck-felt__field-label"><f:translate key="LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:mustertisch.feld.d" /></span>
+		<span class="ck-felt__field-odds"><f:translate key="LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:mustertisch.odds.35" /></span>
+	</button>
+</div>

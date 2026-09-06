@@ -14,7 +14,11 @@ languages:
     navigationTitle: 'Deutsch'
     flag: de
     websiteTitle: ''
-errorHandling: {}
+errorHandling:
+  -
+    errorCode: 404
+    errorHandler: Fluid
+    errorFluidTemplate: 'EXT:casino_startpage/Resources/Private/Templates/PageError/PageNotFound.html'
 routes:
   -
     route: robots.txt
@@ -25,6 +29,13 @@ routes:
       Disallow: /typo3/
 
       Sitemap: https://casino-kunterbunt.ddev.site/sitemap.xml
+  # llms.txt wird von Hand gepflegt (reine Textdatei, kann die
+  # Automaten-Registry nicht befragen). Audit 2026-09-05, Befund G-03:
+  # typo3conf/ext/casino_startpage/Resources/Private/Scripts/verify-geo.mjs
+  # prüft bei jedem Lauf, ob hier noch jede Seite der XML-Sitemap steht,
+  # und schlägt fehl, sobald eine fehlt — dieser Kommentar allein reicht
+  # also nicht, die Prüfung tatsächlich auszuführen ist Pflicht bei jedem
+  # neuen Gerät.
   -
     route: llms.txt
     type: staticText
@@ -39,8 +50,14 @@ routes:
       > Einsatz. Die Seite ist eine lokale Vorführung und kein Glücksspielangebot.
 
       ## Seiten
-      - [Saal](https://casino-kunterbunt.ddev.site/): die Aufstellung aller Automaten
+      - [Saal](https://casino-kunterbunt.ddev.site/): die Aufstellung aller Automaten und Tische
       - [Reel Slot](https://casino-kunterbunt.ddev.site/reel-slot): klassischer Drei-Walzen-Automat mit Risiko-Leiter
+      - [Video Slot](https://casino-kunterbunt.ddev.site/video-slot): Fünf-Walzen-Automat mit fünf festen Gewinnlinien und Risiko-Leiter
+      - [Coin Pusher](https://casino-kunterbunt.ddev.site/coin-pusher): Münzschieber mit wanderndem Münzhaufen
+      - [FruitRisk](https://casino-kunterbunt.ddev.site/fruit-risk): breiter Fruchtautomat mit sechs Walzen, fünf Reihen und drei Risikospielen
+      - [Roulette](https://casino-kunterbunt.ddev.site/roulette): amerikanisches Rad mit 38 Fächern und doppelter Null
+      - [Mustertisch](https://casino-kunterbunt.ddev.site/mustertisch-testdaten-c1d): Vorlage der geteilten Tisch-Bausteine, kein eigenes Spiel
+      - [Blackjack](https://casino-kunterbunt.ddev.site/blackjack): Kartentisch mit grünem Tuch, Sechs-Deck-Schlitten und fester Geber-Hausregel, spielbar mit Doppeln, Teilen und Versicherung
 
       ## Technik
       - TYPO3 13.4, klassische Installation

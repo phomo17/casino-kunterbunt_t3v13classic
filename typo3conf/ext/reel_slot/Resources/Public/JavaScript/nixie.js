@@ -33,6 +33,17 @@
  * erste Ansage sofort, danach entprellt, Zeitgeber im destroy() abgeräumt.
  * Warum entprellt: siehe ANNOUNCE_MS.
  *
+ * SEIT DEM AUDIT-NACHLAUF (2026-09-05/06, Befund N-04) lassen sich show()
+ * und clear() STILL aufrufen (zweites Argument false): counter.js braucht
+ * das für den allerersten Anfangsstand beim Seitenaufbau (GUTHABEN,
+ * EINSATZ) — die sichtbaren Röhren sollen sofort ihren Startwert zeigen,
+ * der Live-Bereich aber leer bleiben, bis wirklich eine Bedienhandlung
+ * stattgefunden hat (C.14.12 sinngemäß auf dieses Gerät übertragen: ein
+ * Hilfsmittel las beim bloßen Laden der Seite sonst „Guthaben: 0" und
+ * „Einsatz: 1" vor, ohne dass jemand etwas getan hätte). Übernommene
+ * Bauform aus video_slot/nixie.js, das dasselbe Argument bereits für die
+ * Gruppe „stufe" der Risiko-Leiter kennt.
+ *
  * In dieser Datei steht kein deutscher Anzeigetext. Der Satz kommt aus der
  * Sprachdatei und reist als data-Attribut ins Dokument (CONCEPT.md
  * Abschnitt 4); was hier steht, ist eine Entwicklermeldung für die Konsole.
@@ -111,9 +122,13 @@ export class NixieGroup {
 	 * aber die Risiko-Leiter aus Phase 8 verdoppelt ohne Grenze.
 	 *
 	 * @param {number} value ganze Zahl ab 0
+	 * @param {boolean} [announce] false lässt die Ansage aus. Gebraucht vom
+	 *        Zählwerk (counter.js) für den allerersten Anfangsstand beim
+	 *        Seitenaufbau. Vorgabe true — jeder vorhandene Aufruf verhält
+	 *        sich damit unverändert.
 	 * @returns {void}
 	 */
-	show(value) {
+	show(value, announce = true) {
 		const whole = Math.max(0, Math.trunc(Number.isFinite(value) ? value : 0));
 		const text = String(whole);
 		const digits = text.length > this.length
@@ -128,22 +143,27 @@ export class NixieGroup {
 		// announce(). Angesagt wird, was WIRKLICH in den Röhren steht: also
 		// ohne die führenden Nullen, aber mit den Neunen des Überlaufs. Und
 		// als EINE Zahl, wie ein Mensch sie spräche, nicht Ziffer für Ziffer.
-		this.announce(String(this.length === 0 ? whole : Number(digits)));
+		if (announce) {
+			this.announce(String(this.length === 0 ? whole : Number(digits)));
+		}
 	}
 
 	/**
 	 * Löscht die Gruppe – alle Röhren unbeschickt.
 	 *
+	 * @param {boolean} [announce] siehe show()
 	 * @returns {void}
 	 */
-	clear() {
+	clear(announce = true) {
 		for (const tube of this.tubes) {
 			this.setTube(tube, -1);
 		}
 
 		// Dunkle Röhren zeigen keinen Wert — dann steht auch kein Satz da.
 		// „Gewinn: 0" wäre etwas anderes als eine unbeschickte Anzeige.
-		this.announce(null);
+		if (announce) {
+			this.announce(null);
+		}
 	}
 
 	/**
