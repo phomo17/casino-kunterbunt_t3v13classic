@@ -1,0 +1,80 @@
+<f:comment>
+	Inhaltselement „Craps" — der Spieltisch auf seiner eigenen Seite.
+
+	Das Element hat keine Einstellungen und wertet keinen Datenbankwert aus.
+
+	REIHENFOLGE. Sie ist die Tastaturreihenfolge und bewusst gewählt: erst der
+	Hinweis und die geteilte Ansage, dann die Wanne mit ihrer eigenen Ansage
+	und dem Point-Stand, dann das Tuch (mit einem Sprunglink an seinem
+	Anfang), dann die Bedienleiste und die Wurfleiste, zuletzt der Verlauf.
+	Wer den Tisch zum ersten Mal betritt, hört zuerst, wie er bedient wird.
+
+	Der Chipsatz steht als Erstes im Markup: ein <use> kann nur auf ein
+	<symbol> zeigen, das im Dokument schon steht. Dasselbe gilt für den
+	Würfelsatz.
+
+	Fünf Partials kommen aus dem Site Package und werden NICHT nachgebaut:
+	Table/ChipSprite, Table/Status, Table/Controls (die wiederum
+	Table/BuyIn rendert) und Table/History. Fluid findet sie über
+	partialRootPaths.20 aus ext_localconf.php.
+
+	Table/Controls bekommt ABSICHTLICH KEIN {go}-Argument: der Rundenauslöser
+	dieses Tisches steht seit C6d in Table/Craps/Throw.html, zusammen mit
+	Modewahl und Wurfkraft-Schiene. Zwei Knöpfe mit demselben Haken wären ein
+	toter zweiter Auslöser (table-controls.js findet über querySelector nur
+	den ersten).
+
+	Die drei Chip-Variablen sind fünf Zeilen Klartext statt eines
+	DataProcessors — dieselbe Begründung wie an den anderen Tischen: für feste
+	Werte lohnt kein PHP.
+
+	MESSPUNKTE AM WURZELELEMENT. Sechs stammen aus C6d (Wurf), drei kommen mit
+	C7e dazu: data-cr-round (der Zustand des Rundenablaufs), data-cr-point
+	(der Point — er steuert zugleich den Puck in felt.css) und data-cr-total
+	(die Bilanz aus Kasse, Buy-in und liegendem Einsatz, an der der Nachweis
+	R-3 zeigt, dass nichts verschwindet und nichts aus dem Nichts entsteht).
+	Alle neun werden AUSSCHLIESSLICH von craps.js beschrieben (Prüfung V-2).
+
+	STAND UMSETZUNGSSTÜCK C7f: der Ton-Schalter (Table/Craps/SoundSwitch)
+	steht seither in der Wanne, neben Wurf- und Rundenanzeige — er wurde
+	erst jetzt eingehängt, weil ein <f:render> auf ein nicht vorhandenes
+	Partial die Seite mit einer Ausnahme zum Absturz brächte (derselbe Fund
+	wie am anderen Tisch in C3b).
+</f:comment>
+<f:variable name="chips" value="{0: {value: 100, symbolId: 'ck-chip-100'}, 1: {value: 25, symbolId: 'ck-chip-25'}, 2: {value: 20, symbolId: 'ck-chip-20'}, 3: {value: 5, symbolId: 'ck-chip-5'}, 4: {value: 1, symbolId: 'ck-chip-1'}}" />
+<f:variable name="splittable" value="{0: {value: 100}, 1: {value: 25}, 2: {value: 20}, 3: {value: 5}}" />
+<f:variable name="mergeable" value="{0: {value: 100}, 1: {value: 25}, 2: {value: 20}, 3: {value: 5}}" />
+
+<f:asset.css identifier="ckTable" href="EXT:casino_startpage/Resources/Public/Css/table.css" />
+<f:asset.css identifier="crapsDice" href="EXT:craps/Resources/Public/Css/dice.css" />
+<f:asset.css identifier="crapsTray" href="EXT:craps/Resources/Public/Css/tray.css" />
+<f:asset.css identifier="crapsFelt" href="EXT:craps/Resources/Public/Css/felt.css" />
+<f:asset.module identifier="@phomo17/craps/craps.js" />
+
+<div class="ck-table cr-table ck-room-fill" data-ck-table="" data-ck-table-key="craps"
+	data-cr-state="ruht" data-cr-die-a="" data-cr-die-b="" data-cr-sum=""
+	data-cr-valid="" data-cr-throws="0"
+	data-cr-round="setzen" data-cr-point="" data-cr-total="0">
+	<f:render partial="Table/ChipSprite" />
+	<f:render partial="Table/Craps/DiceSprite" />
+	<f:render partial="Table/Status" />
+
+	<div class="cr-table__stage">
+		<div class="cr-table__tray">
+			<p class="ck-table__hint">
+				<f:translate key="LLL:EXT:craps/Resources/Private/Language/locallang.xlf:throw.hint" />
+			</p>
+			<f:render partial="Table/Craps/Tray" />
+			<f:render partial="Table/Craps/Status" />
+			<f:render partial="Table/Craps/Round" />
+			<f:render partial="Table/Craps/SoundSwitch" />
+		</div>
+		<f:render partial="Table/Craps/Felt" arguments="{felt: felt}" />
+	</div>
+
+	<div id="cr-controls" tabindex="-1">
+		<f:render partial="Table/Controls" arguments="{chips: chips, splittable: splittable, mergeable: mergeable}" />
+		<f:render partial="Table/Craps/Throw" />
+	</div>
+	<f:render partial="Table/History" />
+</div>

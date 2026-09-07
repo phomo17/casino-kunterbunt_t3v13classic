@@ -1,0 +1,41 @@
+/*
+ * Craps – der Würfelkörper und seine Augen
+ * =========================================
+ *
+ * Getrennt von tray.css: die Wanne ist der Ort, der Würfel ist der
+ * Gegenstand — dieselbe Trennung wie beim anderen Tisch zwischen wheel.css
+ * (Bauteil) und felt.css (Fläche). Ein Würfel wird in Phase C7 auch
+ * außerhalb der Wanne gezeigt (im Verlaufsstreifen), und dann wird diese
+ * Datei allein gebraucht.
+ *
+ * KEIN NEUER FARBTON FÜR DEN WÜRFEL. Ein Würfel dieses Hauses ist Elfenbein
+ * mit schwarzen Augen — dieselben zwei Tokens, die schon die Kugel des
+ * anderen Tisches (--ck-ivory-100) und jede Druckfarbe (--ck-print-ink)
+ * benutzen. Nachgerechnet (WCAG-Formel, relative Leuchtdichte mit
+ * sRGB-Rücktransformation): --ck-print-ink #1f150d auf --ck-ivory-100
+ * #f2ead6 ergibt 14,95 : 1 — weit über den 4,5 : 1, die WCAG 2.2 für Text
+ * verlangt, und weit über den 3 : 1 für eine Bauteilgrenze. Die Kante
+ * --ck-card-edge #8a7a5e auf demselben Grund liegt bei 3,48 : 1 und trägt
+ * damit als Bauteilgrenze. verify-tray.mjs D-7 rechnet beide Verhältnisse
+ * aus tokens.css nach, statt sie zu glauben.
+ *
+ * Alle Farbwerte kommen aus casino_startpage/Resources/Public/Css/tokens.css.
+ * In dieser Datei steht kein ausgeschriebener Farbwert (Nachweis A-1).
+ */
+
+.cr-dicesprite {
+	position: absolute;
+	width: 0;
+	height: 0;
+	overflow: hidden;
+}
+
+.cr-die__body {
+	fill: var(--ck-ivory-100);
+	stroke: var(--ck-card-edge);
+	stroke-width: 0.5;
+}
+
+.cr-die__pip {
+	fill: var(--ck-print-ink);
+}

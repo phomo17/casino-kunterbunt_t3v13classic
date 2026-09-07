@@ -1,0 +1,168 @@
+/*
+ * Craps – die Wanne
+ * ==================
+ *
+ * Alle Farbwerte kommen aus casino_startpage/Resources/Public/Css/tokens.css.
+ * In dieser Datei steht kein ausgeschriebener Farbwert (Nachweis A-1).
+ *
+ * DIE EINE REGEL, AN DER DIE GANZE BEWEGUNG HÄNGT
+ * -------------------------------------------------
+ * dice-physics.js führt die Gierlage eines Würfels als EINHEITSVEKTOR (zwei
+ * Zahlen), nicht als Winkel — genau deshalb kommt sie ohne Winkelfunktion
+ * aus. Ein Winkel für rotate() müsste erst über Math.atan2() zurückgerechnet
+ * werden; die vier Zahlen einer Drehmatrix sind dagegen UNMITTELBAR die
+ * beiden Vektoren: (m11, m12) ist die Körperachse, (m21, m22) ihre
+ * Senkrechte. dice-view.js (Umsetzungsstück C6d) schreibt vier Zahlen und
+ * rechnet nichts. transform-box: view-box sorgt dafür, dass eine Einheit
+ * hier dieselbe Einheit ist wie in der viewBox — ohne diese Zeile bezöge
+ * sich translate() auf den umschließenden Kasten des Elements und der
+ * Würfel läge woanders.
+ *
+ * STAND UMSETZUNGSSTÜCK C6d: dice-view.js überschreibt die Vorgabewerte auf
+ * .cr-die (Identitätsmatrix, Skalierung 1) je Bild, sobald ein Wurf läuft.
+ * Ohne JavaScript bleibt die Wanne vollständig gezeichnet und die Würfel
+ * stehen auf ihrem Ruheplatz (Vorgabewerte aus Tray.html). Abschnitt 5 fügt
+ * die Wurfleiste hinzu.
+ */
+
+
+/* ==========================================================================
+   1  Anordnung
+   ========================================================================== */
+
+/* .ck-table ist ein Flex-Container (table.css); overflow: auto sorgt dafür,
+   dass auf einem niedrigen Bildschirm gescrollt wird, statt den Vertrag
+   ck-room-fill zu brechen — dieselbe Bauart wie beim Rad des anderen
+   Tisches (roulette/…/wheel.css). */
+.cr-table {
+	overflow: auto;
+}
+
+.cr-tray {
+	inline-size: min(56rem, 100%);
+	margin-inline: auto;
+}
+
+.cr-tray__drawing {
+	display: block;
+	inline-size: 100%;
+	block-size: auto;
+}
+
+
+/* ==========================================================================
+   2  Die Lage eines Würfels — Drehmatrix statt Winkel
+   ========================================================================== */
+
+.cr-die {
+	--cr-m11: 1;
+	--cr-m12: 0;
+	--cr-m21: 0;
+	--cr-m22: 1;
+	--cr-sx: 1;
+	--cr-sy: 1;
+	transform-box: view-box;
+	transform-origin: 0 0;
+	transform:
+		translate(calc(var(--cr-x) * 1px), calc(var(--cr-y) * 1px))
+		matrix(var(--cr-m11), var(--cr-m12), var(--cr-m21), var(--cr-m22), 0, 0)
+		scale(var(--cr-sx), var(--cr-sy));
+}
+
+
+/* ==========================================================================
+   3  Schatten
+   ========================================================================== */
+
+/* Ein Würfel in der Luft wirft einen größeren, blasseren Schatten. Rein
+   optisch; kein Rückfluss in die Physik. --cr-h (die Höhe über dem Tuch)
+   steht bis Umsetzungsstück C6d fest auf 0 (Tray.html). */
+.cr-die__shadow {
+	fill: var(--ck-shadow-hard);
+	opacity: calc(0.45 - var(--cr-h) * 0.008);
+	transform: scale(calc(1 + var(--cr-h) * 0.02));
+	transform-box: fill-box;
+	transform-origin: center;
+}
+
+
+/* ==========================================================================
+   4  Bewegungsdrosselung
+   ========================================================================== */
+
+/* Wer „Bewegung reduzieren" eingestellt hat, bekommt das ERGEBNIS des Wurfs
+   sofort statt seines Ablaufs — das eigentliche Verhalten liegt in
+   dice-view.js (Umsetzungsstück C6d): die Physik läuft dabei unverändert
+   vollständig durch, es entfallen die Bilder, nicht die Rechnung. Hier wird
+   nur abgeschaltet, was der Browser sonst noch weich machen würde. */
+@media (prefers-reduced-motion: reduce) {
+	.cr-die,
+	.cr-die__shadow {
+		transition: none !important;
+	}
+}
+
+/* ==========================================================================
+   5  Die Wurfleiste
+   ========================================================================== */
+
+/* Dieselbe Optik wie die geteilte Bedienleiste des Site Packages
+   (.ck-table__controls), damit Phase C7 sie ersetzen kann, ohne dass sich
+   das Bild ändert. */
+.cr-throw {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-end;
+	gap: var(--ck-space-3);
+	padding: var(--ck-space-3);
+	border-radius: var(--ck-radius-md);
+	background-image: var(--ck-chrome-polish);
+	box-shadow:
+		inset 0 0 0 0.12rem var(--ck-brass-300),
+		0 0.2rem 0.5rem var(--ck-shadow-soft);
+}
+
+/* Trägt eine Option der Modewahl UND ihre Erläuterung (throw.mode.*.hint) —
+   die Erläuterung steht bewusst AUSSERHALB des <label>, damit sie über
+   aria-describedby als Beschreibung angesagt wird, statt den Options-Namen
+   selbst zu verlängern (siehe Kopfkommentar von Throw.html). */
+.cr-throw__option-wrap {
+	display: flex;
+	flex-direction: column;
+	gap: 0.15rem;
+	max-inline-size: 14rem;
+}
+
+.cr-throw__option-hint {
+	color: var(--ck-text-muted);
+	font-size: 0.75rem;
+}
+
+/* 2,75 rem ist die Mindest-Zielgröße aus WCAG 2.2 SC 2.5.8 mit Reserve —
+   dieselbe Zahl wie an jedem anderen Bedienteil eines Tisches. */
+.cr-throw__slider {
+	inline-size: 12rem;
+	block-size: 2.75rem;
+}
+
+/* Wörtlich die Regel von .ck-table__button:focus-visible samt dem zweiten,
+   dunklen Ring aus dem Behebungslauf vom 2026-09-06 (Befund H-02): der
+   Messingring allein erreicht auf der hellen Bedienleiste nur 1,03:1 bis
+   2,68:1 gegen die Nachbarfarben, verlangt sind 3:1 (SC 1.4.11). */
+.cr-throw__slider:focus-visible {
+	outline: 3px solid var(--ck-brass-200);
+	outline-offset: 2px;
+	box-shadow: 0 0 0 2px var(--ck-print-ink);
+}
+
+/* Die Zeile springt nicht, wenn eine Ansage kommt — wörtlich .ck-table__status. */
+.cr-status {
+	margin: 0;
+	min-block-size: 1.5em;
+	color: var(--ck-text-primary);
+	font-size: 0.95rem;
+}
+
+/* .cr-tray { touch-action: none; } steht ABSICHTLICH NICHT hier — sie wird
+   von throw-input.js gesetzt, damit die Seite ohne JavaScript scrollbar
+   bleibt. */

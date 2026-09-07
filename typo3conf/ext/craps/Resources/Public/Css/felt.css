@@ -1,0 +1,390 @@
+/*
+ * Craps – das Tuch
+ * ================
+ *
+ * Alle Farbwerte kommen aus casino_startpage/Resources/Public/Css/tokens.css.
+ * In dieser Datei steht kein ausgeschriebener Farbwert (A-1/A-2 in
+ * verify-cabinet.mjs, F-8 in verify-felt.mjs). Alle eigenen Klassen tragen
+ * das Kürzel cr- (A-9).
+ *
+ * WARUM EINE EIGENE DATEI NEBEN tray.css UND dice.css
+ * ---------------------------------------------------
+ * Wanne, Würfel und Tuch sind drei getrennte Zeichnungen mit drei getrennten
+ * Maßordnungen. tray.css und dice.css werden in dieser Phase mit keiner Zeile
+ * angefasst — die Wurfbedienung bleibt unangetastet.
+ *
+ * DIE MASSORDNUNG DES GITTERS
+ * ---------------------------
+ * 12 Spaltenspuren zu je --cr-cell, 11 Zeilenspuren. Zeile 1 ist die
+ * Puck-Spur. Welches Feld wo liegt, steht in Classes/BetLayout.php und kommt
+ * über den FeltProcessor fertig als grid-column/grid-row ins Markup — deshalb
+ * steht hier keine einzige der 47 Positionen.
+ *
+ * --cr-cell ist 2,75 rem (44 Bildpunkte). Das ist die Zielgröße aus WCAG 2.2,
+ * Erfolgskriterium 2.5.8, mit Reserve; das schmalste Feld des Tuchs (ein
+ * Odds-Streifen) ist genau eine Spur breit und erfüllt sie damit ohne
+ * Ausnahme.
+ *
+ * REFLOW STATT SCHRUMPFEN (WCAG 2.2, SC 1.4.10; Auditbefund H-02)
+ * ---------------------------------------------------------------
+ * Das Tuch ist mindestens 33 rem breit. Bei Platzmangel wird GEROLLT, nicht
+ * verkleinert: die Zielgröße ist eine Zusage, die Bildschirmbreite ist keine.
+ * Damit der Rollbereich überhaupt greift, muss min-inline-size: 0 die ganze
+ * Elternkette hindurch durchgelassen werden — ein Flexkind hat von Haus aus
+ * min-width: auto und schrumpft nie unter seine Inhaltsbreite. Im Site
+ * Package sind die zwei nötigen Stellen seit dem Behebungslauf vom
+ * 2026-09-07 gesetzt; die zwei Stellen dieser Extension stehen unten von
+ * vornherein richtig — am anderen Tisch musste das nachträglich behoben
+ * werden, hier nicht.
+ *
+ * ABWEICHUNG VOM PLANTEXT: --ck-text-secondary existiert nicht in tokens.css
+ * (geprüft per grep vor dem Schreiben dieser Datei, siehe DECISIONS.md). Der
+ * nächstliegende vorhandene Token für sekundären/Hinweistext ist
+ * --ck-text-muted — genau der Token, den auch tray.css dieser Extension und
+ * table.css/base.css im Site Package für Hinweistext benutzen. .cr-felt__
+ * working-hint benutzt deshalb --ck-text-muted statt des im Plan genannten,
+ * nicht existierenden --ck-text-secondary.
+ */
+
+/* ==========================================================================
+   1  Bühne und Rollbereich
+   ========================================================================== */
+
+.cr-table__stage {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--ck-space-3);
+	align-items: flex-start;
+	/* siehe Kopfkommentar, „REFLOW STATT SCHRUMPFEN" */
+	min-inline-size: 0;
+}
+
+.cr-table__tray {
+	flex: 0 0 auto;
+}
+
+.cr-felt-area {
+	min-inline-size: 0;
+	flex: 1 1 auto;
+}
+
+.cr-felt__title {
+	margin: 0 0 var(--ck-space-2);
+	color: var(--ck-text-primary);
+	font-family: var(--ck-font-display);
+	font-size: 1.1rem;
+	letter-spacing: 0.05em;
+}
+
+/* Der Bereich enthält 47 fokussierbare Knöpfe und ist damit auch ohne
+   eigenes tabindex mit der Tastatur erreichbar. */
+.cr-felt__scroll {
+	overflow-x: auto;
+	overscroll-behavior-x: contain;
+}
+
+/* ==========================================================================
+   2  Das Gitter
+   ========================================================================== */
+
+.cr-felt {
+	--cr-cell: 2.75rem;
+	--cr-gap: 0.125rem;
+	position: relative;
+	display: grid;
+	grid-template-columns: repeat(12, minmax(var(--cr-cell), 1fr));
+	grid-template-rows:
+		2.25rem   /* 1  Puck-Spur */
+		2.75rem   /* 2  Don't Come */
+		3.5rem    /* 3  Come-Zahlen */
+		2.75rem   /* 4  Odds */
+		2.75rem   /* 5  Place */
+		3rem      /* 6  Field */
+		3rem      /* 7  Come / Don't Come */
+		3rem      /* 8  Pass / Don't Pass */
+		2.75rem   /* 9  Odds hinter der Linie */
+		2.75rem   /* 10 Hardways */
+		2.75rem;  /* 11 Einmalwetten */
+	gap: var(--cr-gap);
+	min-inline-size: calc(12 * var(--cr-cell) + 11 * var(--cr-gap));
+	padding: var(--ck-space-2);
+}
+
+/* Die vier Bildschirmleser-Gruppen dürfen das Gitter nicht zerschneiden. */
+.cr-felt__group {
+	display: contents;
+}
+
+/* ==========================================================================
+   3  Ein Feld
+   ========================================================================== */
+
+/* .ck-felt__field (table.css) bringt Mindestgröße, Rahmen, Fokusrahmen und
+   die Behandlung von aria-disabled bereits mit. Hier steht nur, was am
+   Craps-Tuch anders ist. */
+.cr-felt__field {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 0 var(--ck-space-1);
+	text-align: center;
+	line-height: 1.1;
+}
+
+.cr-felt__print {
+	font-family: var(--ck-font-display);
+	font-size: 0.7rem;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+	pointer-events: none;
+}
+
+/* Die sechs Come-Zahlen sind die Marken des Tuchs: groß, ohne Sperrung. */
+.cr-felt__field--point .cr-felt__print {
+	font-size: 1.6rem;
+	letter-spacing: 0;
+}
+
+/* Die vierzehn Odds-Streifen liegen tiefer im Tuch — dunkler, damit die
+   Zugehörigkeit zur Grundwette darüber ablesbar ist. --ck-felt-line auf
+   --ck-felt-green-dark liegt deutlich über den 4,5 : 1, die WCAG 2.2 für
+   Text verlangt (nachgerechnet und in Prüfung F-9 belegt). */
+.cr-felt__field--odds {
+	background-color: var(--ck-felt-green-dark);
+}
+
+.cr-felt__field--odds .cr-felt__print {
+	font-size: 0.6rem;
+}
+
+/* Die dunkle Seite bekommt eine eigene FORM, nicht nur eine eigene Farbe
+   (WCAG 1.4.1): ein doppelter Rahmen. Wer nicht zwischen den beiden Grüns
+   unterscheiden kann, sieht trotzdem, dass hier gegen den Schützen gesetzt
+   wird. Der ausgeschriebene Name „Don't …" steht ohnehin im Aufdruck. */
+.cr-felt__field--dontline,
+.cr-felt__field--dontcome,
+.cr-felt__field--dontpoint {
+	border-style: double;
+	border-width: 4px;
+}
+
+/* Die Einmalwetten der Mitte: die schlechtesten Wetten des Tisches. Sie
+   werden nicht versteckt und nicht hervorgehoben — dieselbe Haltung wie bei
+   der Fünferwette des anderen Tisches. */
+.cr-felt__field--single .cr-felt__print,
+.cr-felt__field--hard .cr-felt__print {
+	font-size: 0.65rem;
+}
+
+/* ==========================================================================
+   4  Der Puck
+   ========================================================================== */
+
+/* Ein Spielstein, kein Bedienteil: nicht fokussierbar, aria-hidden, ohne
+   eigene Aussage. Was er zeigt, steht als Text in .cr-round__point und wird
+   nach jedem Wurf einmal angesagt. */
+.cr-puck {
+	grid-row: 1 / 2;
+	grid-column: 1 / 3;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	/* --ck-brass-300 auf --ck-felt-green erreicht nur 2,81 : 1 (Fund beim
+	   Schreiben dieser Datei, siehe DECISIONS.md) — unter den 3 : 1, die
+	   WCAG 2.2 für einen Bedienteil-/UI-Rahmen verlangt. --ck-brass-200
+	   erreicht auf --ck-felt-green 4,28 : 1 und ist derselbe Ton, den die
+	   ON-Regeln unten für den Rahmen ohnehin schon benutzen. */
+	border: 2px solid var(--ck-brass-200);
+	border-radius: 999px;
+	background-color: var(--ck-ivory-100);
+	color: var(--ck-print-ink);
+	font-family: var(--ck-font-display);
+	font-size: 0.7rem;
+	letter-spacing: 0.12em;
+	transition: grid-column 200ms ease, background-color 200ms ease;
+}
+
+.cr-puck__on {
+	display: none;
+}
+
+/* OFF ist der Anfangszustand und braucht keine Regel. Steht ein Point, wechselt
+   der Puck Aufschrift, Farbe und Spur — sechs Regeln, ein Schreiber
+   (data-cr-point am Wurzelelement, geschrieben ausschließlich von craps.js). */
+[data-cr-point='4'] .cr-puck,
+[data-cr-point='5'] .cr-puck,
+[data-cr-point='6'] .cr-puck,
+[data-cr-point='8'] .cr-puck,
+[data-cr-point='9'] .cr-puck,
+[data-cr-point='10'] .cr-puck {
+	background-color: var(--ck-felt-line);
+	border-color: var(--ck-brass-200);
+}
+
+[data-cr-point='4'] .cr-puck__off,
+[data-cr-point='5'] .cr-puck__off,
+[data-cr-point='6'] .cr-puck__off,
+[data-cr-point='8'] .cr-puck__off,
+[data-cr-point='9'] .cr-puck__off,
+[data-cr-point='10'] .cr-puck__off {
+	display: none;
+}
+
+[data-cr-point='4'] .cr-puck__on,
+[data-cr-point='5'] .cr-puck__on,
+[data-cr-point='6'] .cr-puck__on,
+[data-cr-point='8'] .cr-puck__on,
+[data-cr-point='9'] .cr-puck__on,
+[data-cr-point='10'] .cr-puck__on {
+	display: block;
+}
+
+[data-cr-point='4'] .cr-puck { grid-column: 1 / 3; }
+[data-cr-point='5'] .cr-puck { grid-column: 3 / 5; }
+[data-cr-point='6'] .cr-puck { grid-column: 5 / 7; }
+[data-cr-point='8'] .cr-puck { grid-column: 7 / 9; }
+[data-cr-point='9'] .cr-puck { grid-column: 9 / 11; }
+[data-cr-point='10'] .cr-puck { grid-column: 11 / 13; }
+
+/* Die Bewegungsdrosselung gilt projektweit (CONCEPT.md B.6.1). */
+@media (prefers-reduced-motion: reduce) {
+	.cr-puck {
+		transition: none;
+	}
+}
+
+/* ==========================================================================
+   5  Point-Anzeige und Place-Schalter
+   ========================================================================== */
+
+.cr-round__point {
+	margin: var(--ck-space-2) 0;
+	color: var(--ck-text-primary);
+	font-family: var(--ck-font-display);
+	font-size: 0.95rem;
+}
+
+.cr-felt__working {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: baseline;
+	gap: var(--ck-space-2);
+	margin-block-start: var(--ck-space-2);
+}
+
+/* Mindestens 2,75 rem hoch, wie jedes Bedienteil eines Tisches (SC 2.5.8). */
+.cr-felt__working-label {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--ck-space-1);
+	min-block-size: 2.75rem;
+	color: var(--ck-text-primary);
+}
+
+.cr-felt__working-input {
+	inline-size: 1.15rem;
+	block-size: 1.15rem;
+	accent-color: var(--ck-brass-300);
+}
+
+/* Der zweite, dunkle Innenring: der Messingring allein erreicht auf der
+   hellen Bedienleiste keinen verlässlichen Kontrast gegen jede Nachbarfarbe
+   (Behebung H-01 vom 2026-09-07, dieselbe Bauart wie .ck-table__button). */
+.cr-felt__working-input:focus-visible {
+	outline: 3px solid var(--ck-brass-200);
+	outline-offset: 2px;
+	box-shadow: 0 0 0 6px var(--ck-wood-500);
+}
+
+.cr-felt__working-hint {
+	color: var(--ck-text-muted);
+	font-size: 0.85rem;
+	max-inline-size: 44ch;
+}
+
+/* Der Sprunglink: .ck-skiplink (base.css) versteckt sich über
+   position: absolute. Seine Feinlage steht AUSDRÜCKLICH nur unter
+   :focus-visible — eine bedingungslose Fassung hübe die Versteck-Position aus
+   base.css auf und ließe den Link dauerhaft sichtbar stehen (gemessene
+   Kaskade am anderen Tisch: felt.css lädt nach base.css, gleiche
+   Spezifität — die spätere Regel gewinnt). */
+.cr-felt__skip:focus-visible {
+	inset-block-start: var(--ck-space-1);
+	inset-inline-start: var(--ck-space-1);
+}
+
+/* ==========================================================================
+   6  Der Ton-Schalter (Umsetzungsstück C7f)
+   ========================================================================== */
+
+/* Ein eigenes Bedienteil, keine Verallgemeinerung aus der geteilten
+   Bedienleiste (dieselbe Begründung wie bei roulette/…/felt.css, .ro-sound):
+   Mindestgröße 2,75rem in beide Richtungen wie jedes andere Bedienteil dieses
+   Tisches. */
+.cr-sound {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--ck-space-2);
+	min-inline-size: 2.75rem;
+	min-block-size: 2.75rem;
+	padding-inline: var(--ck-space-3);
+	border: 0;
+	border-block-end: 3px solid var(--ck-wood-400);
+	border-radius: var(--ck-radius-pill);
+	background-color: var(--ck-wood-300);
+	cursor: pointer;
+}
+
+/* Messingring plus dunkler Innenring beim Fokus — dieselbe Bauart wie die
+   Behebung H-01 an .cr-felt__working-input weiter oben in dieser Datei: ein
+   Messingring allein erreicht auf wechselndem Untergrund keinen verlässlichen
+   Kontrast gegen jede Nachbarfarbe. */
+.cr-sound:focus-visible {
+	outline: 3px solid var(--ck-brass-200);
+	outline-offset: 2px;
+	box-shadow: 0 0 0 6px var(--ck-wood-500);
+}
+
+.cr-sound:active {
+	transform: translateY(1px);
+	border-block-end-width: 2px;
+}
+
+/* Das helle Namensschild hinter der Aufschrift „Ton" — derselbe Grund wie bei
+   jeder anderen Aufschrift dieses Tuchs (Abschnitt 3) und wie beim Puck
+   (Abschnitt 4): der Kontrast darf nicht davon abhängen, welcher Untergrund
+   gerade unter der Schrift liegt. --ck-print-ink auf --ck-ivory-100 erreicht
+   15,0 : 1 (nachgerechnet beim Schreiben dieser Regel), weit über den
+   4,5 : 1, die WCAG 2.2 für Text verlangt. */
+.cr-sound__label {
+	padding: 0 0.4em;
+	border-radius: var(--ck-radius-sm);
+	background-color: var(--ck-ivory-100);
+	color: var(--ck-print-ink);
+	font-family: var(--ck-font-ui);
+	font-size: 0.85rem;
+	white-space: nowrap;
+}
+
+/* Der Zustand steht NICHT allein in der Farbe (WCAG 1.4.1): aria-pressed
+   trägt ihn für Hilfsmittel, und zusätzlich zur (ohnehin nur unterstützenden)
+   Farbe des Schalters ändert sich die STRICHART des Rings davor — ein reiner
+   Farbwechsel wäre für einen Graustufen- oder Kontrastmodus unsichtbar, ein
+   Wechsel von durchgezogen zu gestrichelt nicht. Der Ring selbst ist
+   erzeugter Inhalt, kein Text, und deshalb ohnehin kein Bedienteil für sich. */
+.cr-sound::before {
+	content: '';
+	inline-size: 0.85rem;
+	block-size: 0.85rem;
+	border: 2px solid var(--ck-brass-200);
+	border-radius: 50%;
+}
+
+.cr-sound[aria-pressed='false'] {
+	background-color: var(--ck-wood-400);
+}
+
+.cr-sound[aria-pressed='false']::before {
+	border-style: dashed;
+	opacity: 0.7;
+}

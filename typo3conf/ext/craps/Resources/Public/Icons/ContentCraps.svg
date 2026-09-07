@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+	Icon des Inhaltselements im Seitenmodul und im Assistenten „Neues
+	Inhaltselement".
+
+	AUSNAHME VON DER TOKEN-REGEL: hier stehen ausgeschriebene Hexwerte, aus
+	demselben Grund wie in Extension.svg (siehe dort). Die Werte sind aus
+	tokens.css abgeschrieben.
+
+	Dasselbe Motiv wie Extension.svg, bei 16 x 16, aber OHNE die
+	Pyramidengummi-Zackenleiste: bei dieser Groesse waere sie nicht mehr von
+	der Wannenkante unterscheidbar. Wannenrahmen, Tuchflaeche, zwei Wuerfel mit
+	fuenf und zwei Augen. Keine Buchstaben, keine Ziffern, kein
+	Unicode-Wuerfelzeichen.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16" role="img">
+	<title>Craps</title>
+	<rect x="1" y="1" width="14" height="14" rx="2" fill="#452b19" stroke="#1a0f08" stroke-width="0.4"/><!-- ck-wood-300 / ck-wood-500, Wannenrahmen -->
+	<rect x="2.25" y="2.25" width="11.5" height="11.5" rx="1.5" fill="none" stroke="#bd9333" stroke-width="0.3"/><!-- ck-brass-300, Messingkante -->
+	<rect x="3" y="3" width="10" height="10" rx="1" fill="#143f24"/><!-- ck-felt-green-dark -->
+	<rect x="3.375" y="3.375" width="9.25" height="9.25" rx="0.875" fill="#1c5c33"/><!-- ck-felt-green, Tuch -->
+	<g><!-- erster Wuerfel, fuenf Augen -->
+		<rect x="5.5" y="4" width="3.5" height="3.5" rx="0.55" fill="#f2ead6" stroke="#8a7a5e" stroke-width="0.175"/><!-- ck-ivory-100 / ck-card-edge -->
+		<g fill="#1f150d"><!-- ck-print-ink -->
+			<circle cx="6.375" cy="4.875" r="0.35"/>
+			<circle cx="8.125" cy="4.875" r="0.35"/>
+			<circle cx="7.25" cy="5.75" r="0.35"/>
+			<circle cx="6.375" cy="6.625" r="0.35"/>
+			<circle cx="8.125" cy="6.625" r="0.35"/>
+		</g>
+	</g>
+	<g><!-- zweiter Wuerfel, zwei Augen -->
+		<rect x="8" y="7" width="3.5" height="3.5" rx="0.55" fill="#f2ead6" stroke="#8a7a5e" stroke-width="0.175"/><!-- ck-ivory-100 / ck-card-edge -->
+		<g fill="#1f150d"><!-- ck-print-ink -->
+			<circle cx="8.875" cy="7.875" r="0.35"/>
+			<circle cx="10.625" cy="9.625" r="0.35"/>
+		</g>
+	</g>
+</svg>

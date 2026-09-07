@@ -27,9 +27,16 @@
  *
  *   Chip aufs Tuch     rack.take(wert) + machineCredit.stake(wert)
  *   Chip zurück        machineCredit.award(wert) + rack.put(wert)
+ *   Chip kaufen        machineCredit.insert(wert) + rack.put(wert)
+ *   Chip verkaufen     rack.take(wert) + machineCredit.withdraw(wert)
  *   Gewinn             machineCredit.award(betrag) + rack.fill(betrag)
  *   Buy-in             machineCredit.insert(betrag) + rack.fill(betrag)
  *   CASH OUT           rack.clear() + machineCredit.cashOut()
+ *
+ * buyIn(betrag) bleibt als Schnittstelle bestehen, obwohl seit der Ansage vom
+ * 2026-09-07 kein Bedienteil mehr dorthin führt: die Nachweisskripte rechnen
+ * damit, und ein Server-Guthaben (Stufe 3) wird einen Betrag wieder in einem
+ * Zug wechseln wollen.
  *
  * WARUM DARAUS DIE DREI REGELN AUS C.4 OHNE ZUTUN FOLGEN
  * ------------------------------------------------------
@@ -80,7 +87,7 @@
  */
 
 import { openMachineCredit } from '@phomo17/casino-startpage/machine-credit.js';
-import { Rack } from '@phomo17/casino-startpage/table-chips.js';
+import { CHIPS, Rack } from '@phomo17/casino-startpage/table-chips.js';
 
 /** Alle auf dieser Seite offenen Bankverbindungen, je Schlüssel höchstens eine. */
 const open = new Map();
@@ -154,6 +161,76 @@ export class TableBank {
 		this.rack.fill(result.moved);
 		this.notify('buyin');
 		return { ok: true, moved: result.moved, chips: this.rack.toArray() };
+	}
+
+	/**
+	 * Kauft GENAU EINEN Chip dieses Werts (Ansage des Auftraggebers vom
+	 * 2026-09-07: „jede Chipsorte bekommt ihre eigene Möglichkeit, einen Chip
+	 * zu kaufen und einen wieder zurückzugeben").
+	 *
+	 * WARUM NICHT EINFACH buyIn(value)
+	 * ---------------------------------
+	 * Heute liefert buyIn(25) tatsächlich genau einen grünen Chip, weil
+	 * breakDown(25) zufällig [{25, 1}] ergibt. Das gilt aber nur, solange 25
+	 * selbst ein Chipwert ist. Kämen die beiden Kartenchips aus C.4.1 (500 und
+	 * 1000) je hinzu, ergäbe breakDown(500) fünf schwarze Chips statt eines
+	 * Kartenchips — der Kauf wäre still etwas anderes als sein Name. Deshalb
+	 * legt diese Methode den Chip UNMITTELBAR ins Rack (rack.put) statt über
+	 * die Zerlegung (rack.fill).
+	 *
+	 * Reihenfolge: erst die Kasse belasten, dann den Chip legen. Schlägt die
+	 * Buchung fehl, ist noch kein Chip entstanden.
+	 *
+	 * @param {number} value einer der fünf Chipwerte
+	 * @returns {Promise<{ok: true, value: number, count: number, amount: number}
+	 *                  |{ok: false, reason: 'unknown'|'nocash'|'full'|'closed', missing?: number}>}
+	 */
+	async buyChip(value) {
+		if (this.closed) {
+			return { ok: false, reason: 'closed' };
+		}
+		if (!Object.prototype.hasOwnProperty.call(CHIPS, value)) {
+			return { ok: false, reason: 'unknown' };
+		}
+		const result = await this.machineCredit.insert(value);
+		if (result.ok !== true) {
+			return { ok: false, reason: result.reason, missing: result.missing };
+		}
+		this.rack.put(value, 1);
+		this.notify('buyin');
+		return { ok: true, value, count: this.rack.countOf(value), amount: this.amount };
+	}
+
+	/**
+	 * Gibt GENAU EINEN Chip dieses Werts an die Kasse zurück.
+	 *
+	 * Der Rückweg von buyChip(). Reihenfolge umgekehrt: erst den Chip aus dem
+	 * Rack nehmen, dann buchen — und bei einem Fehlschlag den Chip
+	 * zurücklegen, damit die Invariante rack.total === machineCredit.amount
+	 * auch im Fehlerfall gilt. Dieselbe Zurückrollung wie in placeChip().
+	 *
+	 * 'full' ist der seltene Fall, dass die Kasse am Höchststand steht: dann
+	 * hat withdraw() den Rest bereits in den Gerätekredit zurückgeschrieben,
+	 * und der Chip gehört wieder ins Rack.
+	 *
+	 * @param {number} value einer der fünf Chipwerte
+	 * @returns {Promise<{ok: true, value: number, count: number, amount: number}
+	 *                  |{ok: false, reason: 'nochip'|'full'|'closed'}>}
+	 */
+	async sellChip(value) {
+		if (this.closed) {
+			return { ok: false, reason: 'closed' };
+		}
+		if (!this.rack.take(value)) {
+			return { ok: false, reason: 'nochip' };
+		}
+		const result = await this.machineCredit.withdraw(value);
+		if (result.ok !== true || result.moved < value) {
+			this.rack.put(value, 1);
+			return { ok: false, reason: result.ok === true ? 'full' : result.reason };
+		}
+		this.notify('cashout');
+		return { ok: true, value, count: this.rack.countOf(value), amount: this.amount };
 	}
 
 	/**

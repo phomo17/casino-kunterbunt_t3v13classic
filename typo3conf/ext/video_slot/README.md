@@ -21,7 +21,7 @@ anderen Extension etwas geändert werden muss.
 | Composer-Name | `phomo17/video-slot` |
 | Namespace | `Phomo17\VideoSlot\` |
 | TYPO3-Version | 13.4 (klassische, nicht Composer-basierte Installation) |
-| Abhängigkeit | `casino_startpage` >= 0.1.0 (Design-Tokens, darunter die beiden neuen Fruchtfarben) |
+| Abhängigkeit | `casino_startpage` >= 0.3.0 (Design-Tokens, darunter die beiden neuen Fruchtfarben) |
 | Lizenz | AGPL-3.0-or-later |
 | Quelltext | https://github.com/phomo17/casino-kunterbunt_t3v13classic |
 
@@ -515,7 +515,7 @@ verwirft keine Stimme und bleibt rechnerisch unter dem Übersteuern (Ausschlag
 
 ## Stand
 
-Version 0.2.0 (alpha). Aus Teil B sind die Phasen 5, 6 und 7 eingearbeitet:
+Version 0.3.0 (alpha). Aus Teil B sind die Phasen 5, 6 und 7 eingearbeitet:
 Gerüst, Registrierung und Gehäuse stehen, der Automat spielt vollständig im
 Browser — Walzenwerk, Zufallsziehung, Auswertung nach den fünf Gewinnlinien
 und dem Scatter, Hervorhebung der Treffer, Ansage im Live-Bereich des

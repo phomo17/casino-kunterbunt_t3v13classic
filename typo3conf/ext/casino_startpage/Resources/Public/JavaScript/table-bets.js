@@ -59,6 +59,37 @@
  * nicht ihre genaue Bedeutung; diese Zuordnung ist deshalb eine eigene
  * Festlegung (DECISIONS.md), gewählt danach, was table-buyin.js in C1-D
  * unmittelbar braucht.
+ *
+ *
+ * ODDS ZÄHLEN NICHT MIT — countsToRoundMax
+ * ----------------------------------------
+ * roundMax ist der Gesamteinsatz einer Runde über alle Felder. Craps braucht
+ * eine Ausnahme: „Odds zählen nicht in den Gesamteinsatz je Wurf. Alles andere
+ * zusammen höchstens 300 €" (CONCEPT.md Anhang H). Ein Feld kann deshalb
+ * countsToRoundMax: false tragen; es unterliegt dann nur noch seinem eigenen
+ * max. Ohne Angabe gilt true, und für Roulette und Blackjack ändert sich
+ * nichts.
+ *
+ * VERTRAGSWETTEN — freeze(feld, betrag)
+ * -------------------------------------
+ * Eine Pass Line darf nach dem Point weder erhöht noch zurückgenommen werden.
+ * freeze(feldId, betrag) legt für ein Feld einen SOCKEL fest: bis auf diesen
+ * Betrag darf abgeräumt werden, darunter nicht. Ein Sockel statt eines
+ * bloßen Schalters, aus einem handfesten Grund: table-felt.js legt einen Chip
+ * ZUERST und fragt das Geld erst danach; lehnt das Geld ab, nimmt es den eben
+ * gelegten Chip mit takeBack() wieder herunter. Ein Feld, das komplett
+ * gesperrt wäre, ließe diese Rücknahme scheitern und behielte einen Chip, den
+ * niemand bezahlt hat. Mit einem Sockel geht sie immer, weil der eben gelegte
+ * Chip per Definition ÜBER dem Sockel liegt.
+ *
+ * Was der Sockel bewirkt:
+ *   takeBack()  Absage 'frozen', sobald der Rest unter den Sockel fiele
+ *   undo()      überspringt geschützte Chips und nimmt den nächsten freien
+ *   clear()     lässt den Sockel liegen und gibt nur den Rest zurück
+ *   double()    lässt Felder MIT Sockel unangetastet (an einer Vertragswette
+ *               wird nicht nachgelegt) und verdoppelt nur die übrigen
+ *   repeat()    unverändert — es verlangt ohnehin ein leeres Tuch
+ * Ohne freeze() ist jeder Sockel 0 und alles verhält sich wie bisher.
  */
 
 /**
@@ -76,9 +107,11 @@
  *          gebrochen (Craps zahlt 7 : 6, also 7/6). Ausgezahlt wird
  *          abgerundet auf ganze Euro — es gibt keine halben Chips.
  * max      Höchsteinsatz auf diesem Feld in Euro
+ * countsToRoundMax  zählt dieses Feld in den Rundenhöchstbetrag? Ohne Angabe
+ *          true. Craps braucht false für Odds (siehe Dateikopf).
  */
 export class BetField {
-	constructor({ id, label, covers = null, matches = null, push = null, payout, max }) {
+	constructor({ id, label, covers = null, matches = null, push = null, payout, max, countsToRoundMax = true }) {
 		if (typeof id !== 'string' || id === '') {
 			throw new TypeError('Ein Feld braucht eine id.');
 		}
@@ -98,6 +131,8 @@ export class BetField {
 		this.push = push === null ? null : Object.freeze([...push]);
 		this.payout = payout;
 		this.max = max;
+		/** Zählt dieses Feld in den Rundenhöchstbetrag? Odds tun das nicht. */
+		this.countsToRoundMax = countsToRoundMax !== false;
 	}
 
 	/**
@@ -141,6 +176,8 @@ export class BetTable {
 		this.placements = [];
 		/** @type {Array<{fieldId: string, value: number}>|null} für repeat() */
 		this.lastRound = null;
+		/** @type {Map<string, number>} Feld → festliegender Sockel (Vertragswette). */
+		this.floors = new Map();
 	}
 
 	/** true, solange gesetzt werden darf. Wird vom Rundenablauf gesetzt. */
@@ -163,6 +200,44 @@ export class BetTable {
 			summe += p.value;
 		}
 		return summe;
+	}
+
+	/**
+	 * Gesamteinsatz über alle Felder, die in den Rundenhöchstbetrag zählen.
+	 * Für Roulette und Blackjack identisch mit total.
+	 */
+	get countedTotal() {
+		let summe = 0;
+		for (const p of this.placements) {
+			const feld = this.fields.get(p.fieldId);
+			if (feld && feld.countsToRoundMax) {
+				summe += p.value;
+			}
+		}
+		return summe;
+	}
+
+	/** Der festliegende Sockel eines Feldes. */
+	floorOn(fieldId) {
+		return this.floors.get(fieldId) ?? 0;
+	}
+
+	/**
+	 * Legt einen Sockel fest: bis auf diesen Betrag darf abgeräumt werden.
+	 * @param {string} fieldId
+	 * @param {number} amount 0 hebt den Sockel auf
+	 */
+	freeze(fieldId, amount) {
+		if (!Number.isInteger(amount) || amount <= 0) {
+			this.floors.delete(fieldId);
+			return;
+		}
+		this.floors.set(fieldId, amount);
+	}
+
+	/** Hebt den Sockel eines Feldes auf. */
+	unfreeze(fieldId) {
+		this.floors.delete(fieldId);
 	}
 
 	/** Einsatz auf einem Feld. */
@@ -227,7 +302,7 @@ export class BetTable {
 		if (bisher + chipValue > feld.max) {
 			return { ok: false, reason: 'fieldmax', limit: feld.max, total: this.total };
 		}
-		if (this.total + chipValue > this.roundMax) {
+		if (feld.countsToRoundMax && this.countedTotal + chipValue > this.roundMax) {
 			return { ok: false, reason: 'roundmax', limit: this.roundMax, total: this.total };
 		}
 		this.placements.push({ fieldId, value: chipValue });
@@ -238,7 +313,8 @@ export class BetTable {
 	 * Nimmt den obersten Chip EINES Feldes zurück — den zuletzt dort
 	 * gelegten. „Oben" ist damit dasselbe wie „zuletzt", und das ist die
 	 * einzige Deutung, die mit dem Bild eines Stapels zusammenpasst.
-	 * @returns {{ok: true, value: number, total: number}|{ok: false, reason: 'unknown'|'locked'|'empty'}}
+	 * @returns {{ok: true, value: number, total: number}
+	 *          |{ok: false, reason: 'unknown'|'locked'|'empty'|'frozen', floor?: number}}
 	 */
 	takeBack(fieldId) {
 		const feld = this.fields.get(fieldId);
@@ -248,8 +324,13 @@ export class BetTable {
 		if (this.locked) {
 			return { ok: false, reason: 'locked' };
 		}
+		const sockel = this.floorOn(fieldId);
+		const gesetzt = this.stakeOn(fieldId);
 		for (let i = this.placements.length - 1; i >= 0; i -= 1) {
 			if (this.placements[i].fieldId === fieldId) {
+				if (gesetzt - this.placements[i].value < sockel) {
+					return { ok: false, reason: 'frozen', floor: sockel };
+				}
 				const [entfernt] = this.placements.splice(i, 1);
 				return { ok: true, value: entfernt.value, total: this.total };
 			}
@@ -260,7 +341,8 @@ export class BetTable {
 	/**
 	 * „Letzten Einsatz zurücknehmen" der Bedienleiste: der zuletzt gelegte
 	 * Chip überhaupt, gleichgültig auf welchem Feld.
-	 * @returns {{ok: true, fieldId: string, value: number, total: number}|{ok: false, reason: 'locked'|'empty'}}
+	 * @returns {{ok: true, fieldId: string, value: number, total: number}
+	 *          |{ok: false, reason: 'locked'|'empty'|'frozen'}}
 	 */
 	undo() {
 		if (this.locked) {
@@ -269,8 +351,19 @@ export class BetTable {
 		if (this.placements.length === 0) {
 			return { ok: false, reason: 'empty' };
 		}
-		const entfernt = this.placements.pop();
-		return { ok: true, fieldId: entfernt.fieldId, value: entfernt.value, total: this.total };
+		// Von hinten nach vorn den letzten Chip suchen, der nicht durch einen
+		// Sockel geschützt ist. Ein geschützter Chip wird ÜBERSPRUNGEN, nicht
+		// abgelehnt: sonst wäre "Letzten Einsatz zurücknehmen" wirkungslos,
+		// sobald irgendwo eine Vertragswette liegt.
+		for (let i = this.placements.length - 1; i >= 0; i -= 1) {
+			const p = this.placements[i];
+			if (this.stakeOn(p.fieldId) - p.value < this.floorOn(p.fieldId)) {
+				continue;
+			}
+			const [entfernt] = this.placements.splice(i, 1);
+			return { ok: true, fieldId: entfernt.fieldId, value: entfernt.value, total: this.total };
+		}
+		return { ok: false, reason: 'frozen' };
 	}
 
 	/**
@@ -284,8 +377,26 @@ export class BetTable {
 		if (this.locked) {
 			return { ok: false, reason: 'locked' };
 		}
-		const entfernt = this.placements.map((p) => ({ ...p }));
-		this.placements = [];
+		// Von hinten nach vorn abräumen, damit die ZUERST gelegten Chips
+		// liegen bleiben: sie sind die Vertragswette. unshift() stellt in
+		// beiden Listen die ursprüngliche Reihenfolge wieder her.
+		const rest = new Map();
+		for (const p of this.placements) {
+			rest.set(p.fieldId, (rest.get(p.fieldId) ?? 0) + p.value);
+		}
+		const entfernt = [];
+		const bleiben = [];
+		for (let i = this.placements.length - 1; i >= 0; i -= 1) {
+			const p = this.placements[i];
+			const uebrig = rest.get(p.fieldId) ?? 0;
+			if (uebrig - p.value >= this.floorOn(p.fieldId)) {
+				rest.set(p.fieldId, uebrig - p.value);
+				entfernt.unshift({ ...p });
+			} else {
+				bleiben.unshift({ ...p });
+			}
+		}
+		this.placements = bleiben;
 		return entfernt;
 	}
 
@@ -305,23 +416,30 @@ export class BetTable {
 		if (this.locked) {
 			return { ok: false, reason: 'locked' };
 		}
-		if (this.placements.length === 0) {
+		// Ein Feld mit Sockel ist eine Vertragswette; an ihr wird nicht
+		// nachgelegt. Verdoppelt wird, was frei ist.
+		const frei = this.placements.filter((p) => this.floorOn(p.fieldId) === 0);
+		if (frei.length === 0) {
 			return { ok: false, reason: 'empty' };
 		}
-		const gesetztJeFeld = new Map();
-		for (const p of this.placements) {
-			gesetztJeFeld.set(p.fieldId, (gesetztJeFeld.get(p.fieldId) ?? 0) + p.value);
+		const freiJeFeld = new Map();
+		for (const p of frei) {
+			freiJeFeld.set(p.fieldId, (freiJeFeld.get(p.fieldId) ?? 0) + p.value);
 		}
-		for (const [fieldId, gesetzt] of gesetztJeFeld) {
+		let zusatzGezaehlt = 0;
+		for (const [fieldId, zusatz] of freiJeFeld) {
 			const feld = this.fields.get(fieldId);
-			if (gesetzt * 2 > feld.max) {
+			if (this.stakeOn(fieldId) + zusatz > feld.max) {
 				return { ok: false, reason: 'fieldmax' };
 			}
+			if (feld.countsToRoundMax) {
+				zusatzGezaehlt += zusatz;
+			}
 		}
-		if (this.total * 2 > this.roundMax) {
+		if (this.countedTotal + zusatzGezaehlt > this.roundMax) {
 			return { ok: false, reason: 'roundmax' };
 		}
-		const added = this.placements.map((p) => ({ ...p }));
+		const added = frei.map((p) => ({ ...p }));
 		for (const p of added) {
 			this.placements.push({ ...p });
 		}
@@ -355,7 +473,9 @@ export class BetTable {
 		}
 		let neuerGesamteinsatz = 0;
 		for (const p of this.lastRound) {
-			neuerGesamteinsatz += p.value;
+			if (this.fields.get(p.fieldId)?.countsToRoundMax) {
+				neuerGesamteinsatz += p.value;
+			}
 		}
 		if (neuerGesamteinsatz > this.roundMax) {
 			return { ok: false, reason: 'roundmax' };
@@ -431,6 +551,7 @@ export class BetTable {
 			locked: this.locked,
 			placements: this.placements.map((p) => ({ ...p })),
 			lastRound: this.lastRound === null ? null : this.lastRound.map((p) => ({ ...p })),
+			floors: [...this.floors.entries()],
 		};
 	}
 
@@ -439,6 +560,7 @@ export class BetTable {
 		this.locked = snapshot.locked;
 		this.placements = snapshot.placements.map((p) => ({ ...p }));
 		this.lastRound = snapshot.lastRound === null ? null : snapshot.lastRound.map((p) => ({ ...p }));
+		this.floors = new Map(snapshot.floors ?? []);
 	}
 }
 

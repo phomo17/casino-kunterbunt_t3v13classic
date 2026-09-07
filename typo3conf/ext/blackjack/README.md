@@ -23,9 +23,9 @@ Tisch-Bausteine des Site Packages verdrahtet.
 | Composer-Name | `phomo17/blackjack` |
 | Namespace | `Phomo17\Blackjack\` |
 | TYPO3-Version | 13.4 (klassische, nicht Composer-basierte Installation) |
-| Abhängigkeit | `casino_startpage` >= 0.1.0 (Design-Tokens, Registry, Kasse) |
+| Abhängigkeit | `casino_startpage` >= 0.3.0 (Design-Tokens, Registry, Kasse) |
 | Lizenz | AGPL-3.0-or-later |
-| Zustand | 0.2.0 / alpha |
+| Zustand | 0.3.0 / alpha |
 
 ## Installation
 

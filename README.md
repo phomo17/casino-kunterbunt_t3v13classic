@@ -1,6 +1,6 @@
 # Casino Kunterbunt
 
-**Version 0.2.0 — alpha.** Frühe Entwicklungsfassung, nichts ist stabil.
+**Version 0.3.0 — alpha.** Frühe Entwicklungsfassung, nichts ist stabil.
 
 Quelltext: <https://github.com/phomo17/casino-kunterbunt_t3v13classic>
 
@@ -35,13 +35,14 @@ Gebaut ist die Welt, in der das Spiel stattfinden wird:
 | **Coin Pusher** — Münzschieber mit eigener 2D-Physik | **eingefroren.** Auf ausdrücklichen Wunsch angehalten, bevor die Maßordnung fertig eingestellt war; wird später zurückgebaut. Drei Prüfungen in `verify-view.mjs` sind bekannt rot und bleiben es bis dahin — siehe die README dieser Extension |
 | **FruitRisk** — breiter Fruchtautomat mit sechs Walzen, 30 Gewinnlinien, festem Einsatz, Gewinn in jeder Runde und drei Risikospielen | fertig |
 
-**Drei Tische:**
+**Vier Tische:**
 
 | | Stand |
 |---|---|
 | **Roulette** — amerikanisches Rad mit doppelter Null, echter Kugelphysik, vollständigem Tuch und Auszahlung | fertig |
 | **Mustertisch** — kein eigenes Spiel, sondern die Vorlage der Gattung Tisch (Chips, Setzfläche, Bedienleiste, Buy-in), Beleg dafür, dass ein neuer Tisch mit denselben Bausteinen auskommt | fertig als Vorlage |
-| **Blackjack** — Kartenschlitten, Mischverfahren, Regelwerk und Rundenlogik nachgewiesen | **noch ohne Spieloberfläche.** Tuch, Kartenbilder und Bedienleiste kommen erst in der nächsten Phase |
+| **Blackjack** — Kartenschlitten, Mischverfahren, Regelwerk, Rundenlogik, Tuch mit selbst gezeichneten Karten und vollständige Bedienung | fertig |
+| **Craps** — zwei selbst geworfene Würfel mit echter Physik in einer Wanne mit Banden, dazu 47 Wettfelder, Point und Puck, Odds nach der Staffel 3-4-5×, Place-Wetten und Auszahlung | fertig; Wanne und Tuch werden im nächsten Bauabschnitt zu **einer** Fläche zusammengelegt |
 
 | | Stand |
 |---|---|
@@ -111,7 +112,7 @@ Assistenten die Datenbankdaten von DDEV eintragen — Benutzer `db`, Passwort
 einem eigenen Container). Beim Schritt „Was möchten Sie tun?" **„Leere
 Startseite"** wählen.
 
-### 4. Die sieben Extensions aktivieren
+### 4. Die acht Extensions aktivieren
 
 ```bash
 ddev exec php typo3/sysext/core/bin/typo3 extension:activate casino_startpage
@@ -121,12 +122,13 @@ ddev exec php typo3/sysext/core/bin/typo3 extension:activate coin_pusher
 ddev exec php typo3/sysext/core/bin/typo3 extension:activate fruit_risk
 ddev exec php typo3/sysext/core/bin/typo3 extension:activate roulette
 ddev exec php typo3/sysext/core/bin/typo3 extension:activate blackjack
+ddev exec php typo3/sysext/core/bin/typo3 extension:activate craps
 ddev exec php typo3/sysext/core/bin/typo3 dumpautoload
 ddev exec php typo3/sysext/core/bin/typo3 cache:flush
 ```
 
-Wichtig: `casino_startpage` **zuerst** — alle sechs Geräte- und Tisch-Extensions
-bauen darauf auf. Untereinander haben die sechs keine Reihenfolge.
+Wichtig: `casino_startpage` **zuerst** — alle sieben Geräte- und Tisch-Extensions
+bauen darauf auf. Untereinander haben die sieben keine Reihenfolge.
 
 ### 5. Seiten und Inhalte anlegen
 
@@ -137,7 +139,7 @@ Installation steht deshalb ein leeres TYPO3 da. Anzulegen im Backend:
 
 | Seite | Inhalt |
 |---|---|
-| **Saal** (Wurzelseite, Backend-Layout „Startseite (Spielsaal)") | je ein Inhaltselement **„Casino-Automat"** pro Gerät bzw. Tisch (Reel Slot, Video Slot, Coin Pusher, FruitRisk, Roulette, Mustertisch, Blackjack), im Feld *Automat* den jeweiligen Eintrag und im Feld *Ziel* seine Spielseite wählen |
+| **Saal** (Wurzelseite, Backend-Layout „Startseite (Spielsaal)") | je ein Inhaltselement **„Casino-Automat"** pro Gerät bzw. Tisch (Reel Slot, Video Slot, Coin Pusher, FruitRisk, Roulette, Mustertisch, Blackjack, Craps), im Feld *Automat* den jeweiligen Eintrag und im Feld *Ziel* seine Spielseite wählen |
 | **Reel Slot** (Unterseite) | ein Inhaltselement **„Reel Slot"** |
 | **Video Slot** (Unterseite) | ein Inhaltselement **„Video Slot"** |
 | **Coin Pusher** (Unterseite) | ein Inhaltselement **„Coin Pusher"** |
@@ -145,8 +147,9 @@ Installation steht deshalb ein leeres TYPO3 da. Anzulegen im Backend:
 | **Roulette** (Unterseite) | ein Inhaltselement **„Roulette"** |
 | **FruitRisk** (Unterseite) | ein Inhaltselement **„FruitRisk"** |
 | **Blackjack** (Unterseite) | ein Inhaltselement **„Blackjack"** |
+| **Craps** (Unterseite) | ein Inhaltselement **„Craps"** |
 
-Alle acht Inhaltselement-Typen stehen im Backend unter der Gruppe
+Alle neun Inhaltselement-Typen stehen im Backend unter der Gruppe
 **„Casino Kunterbunt"**. Die Geräte- und Tisch-Elemente haben keine
 Einstellungen — alles, was ein Gerät oder ein Tisch braucht, bringt es
 selbst mit.
@@ -164,6 +167,7 @@ Abhängigkeiten auskommen, zum Beispiel:
 ```bash
 ddev exec node typo3conf/ext/reel_slot/Resources/Private/Scripts/verify-payout.mjs
 ddev exec node typo3conf/ext/roulette/Resources/Private/Scripts/verify-bets.mjs
+ddev exec node typo3conf/ext/craps/Resources/Private/Scripts/verify-wagers.mjs
 ```
 
 Je nach Extension zählen sie alle möglichen Stellungen vollständig aus oder
@@ -182,7 +186,8 @@ nachweisen, steht im Abschnitt „Prüfskripte" ihrer eigenen `README.md`.
 | `typo3conf/ext/coin_pusher` | der Münzschieber — eingefroren, wird später zurückgebaut |
 | `typo3conf/ext/fruit_risk` | der breite Fruchtautomat mit sechs Walzen und drei Risikospielen |
 | `typo3conf/ext/roulette` | der Roulette-Tisch |
-| `typo3conf/ext/blackjack` | der Blackjack-Tisch — Regelwerk fertig, noch ohne Spieloberfläche |
+| `typo3conf/ext/blackjack` | der Blackjack-Tisch |
+| `typo3conf/ext/craps` | der Craps-Tisch — Würfelphysik, Tuch, Wetten und Auszahlung |
 
 Ein Gerät oder ein Tisch ist ein eigenständiges Inhaltselement. Das Site
 Package kennt keinen einzelnen davon und muss nicht geändert werden, wenn
@@ -218,7 +223,7 @@ Es gibt zwei Ebenen, die getrennt gezählt werden:
   des Spiels als Ganzes.
 - **Die einzelnen Extensions** — je eine Version in ihrer `ext_emconf.php`.
 
-Zurzeit stehen alle sieben Extensions wie das Projekt auf **0.2.0** im
+Zurzeit stehen alle acht Extensions wie das Projekt auf **0.3.0** im
 Zustand **alpha**. Solange die Spielregeln des Gesellschaftsspiels noch nicht
 existieren, sagt eine höhere Zahl ohnehin wenig über Reife aus — sie zählt
 bislang nur mit, wie viele Geräte und Tische dazugekommen sind.

@@ -29,6 +29,14 @@
  *         Absage über takeBack() zurückgerollt — dieselbe Reihenfolge, auf
  *         die sich der Rundennachweis eines Tischspiels mit echter Physik
  *         verlassen kann
+ *
+ * Seit Phase C7, Umsetzungsstück C7c (rückwärtsverträgliche Erweiterung der
+ * Setzfläche um Vertragswetten, CONCEPT.md Anhang H) kommt table-controls.js
+ * dazu:
+ *   V-13  data-text-frozen (Status.html) und die XLIFF-Kennung
+ *         table.announce.frozen existieren, und table-felt.js wie
+ *         table-controls.js lesen sie tatsächlich — kein Attribut ohne
+ *         Leser und kein Leser ohne Attribut
  */
 
 import { readFile } from 'node:fs/promises';
@@ -39,6 +47,7 @@ const PAGEVIEW_PARTIALS = new URL('Private/PageView/Partials/Table/', EXT_ROOT);
 const CONTENT_ELEMENTS = new URL('Private/ContentElements/', EXT_ROOT);
 const CSS_DIR = new URL('Public/Css/', EXT_ROOT);
 const JS_DIR = new URL('Public/JavaScript/', EXT_ROOT);
+const LANG_DIR = new URL('Private/Language/', EXT_ROOT);
 
 let failed = false;
 
@@ -95,6 +104,8 @@ const contentElement = await read(new URL('CasinoTischMuster.html', CONTENT_ELEM
 const css = stripCssComments(await readFile(fileURLToPath(new URL('table.css', CSS_DIR)), 'utf8'));
 const musterTischJs = await readFile(fileURLToPath(new URL('muster-tisch.js', JS_DIR)), 'utf8');
 const tableFeltJs = await readFile(fileURLToPath(new URL('table-felt.js', JS_DIR)), 'utf8');
+const tableControlsJs = await readFile(fileURLToPath(new URL('table-controls.js', JS_DIR)), 'utf8');
+const locallang = await readFile(fileURLToPath(new URL('locallang.xlf', LANG_DIR)), 'utf8');
 
 /* ============================================================================
    V-1 — jedes Bedienteil hat einen Namen
@@ -509,6 +520,24 @@ const ohneZurueckrollen = 'async function legen(fieldId) { '
 check(!legenReihenfolge(ohneZurueckrollen).ok,
 	'GEGENPROBE: eine Fassung ohne bets.takeBack() im Ablehnungsfall wird als FALSCH erkannt');
 
+/* ============================================================================
+   V-13 — data-text-frozen: kein Attribut ohne Leser, kein Leser ohne Attribut
+   (Phase C7, Umsetzungsstück C7c)
+   ============================================================================ */
+
+console.log('\nV-13 — data-text-frozen: Attribut, XLIFF-Kennung und beide Leser');
+
+check(/data-text-frozen\s*=/.test(status), 'Status.html trägt data-text-frozen');
+check(/<trans-unit\s+id="table\.announce\.frozen">/.test(locallang),
+	'die XLIFF-Kennung table.announce.frozen existiert');
+check(/texts\.frozen\b/.test(tableFeltJs), 'table-felt.js liest texts.frozen');
+check(/dataset\.textFrozen\b/.test(tableControlsJs), 'table-controls.js liest dataset.textFrozen');
+
+console.log('     Gegenprobe (V-13-G): eine Fassung ohne das Attribut wird als FALSCH erkannt');
+const statusOhneFrozen = status.replace(/\s*data-text-frozen="[^"]*"/, '');
+check(statusOhneFrozen !== status, 'GEGENPROBE-VORBEREITUNG: die Ersetzung hat wirklich gegriffen (sonst prüfte die Gegenprobe sich selbst)');
+check(!/data-text-frozen\s*=/.test(statusOhneFrozen), 'GEGENPROBE: eine Fassung ganz ohne data-text-frozen wird als FALSCH erkannt');
+
 console.log(failed
 	? '\nERGEBNIS: Markup oder Stylesheet des Spieltisches stimmen NICHT.'
 	: '\nERGEBNIS: jedes Bedienteil hat einen Namen, alle Live-Bereiche werden leer '
@@ -516,7 +545,8 @@ console.log(failed
 	+ 'passen zusammen, der Fokus bleibt überall sichtbar, jedes Bedienteil ist '
 	+ 'mindestens 2,75rem groß, die Bewegungsdrosselung greift, Farbe ist nirgends die '
 	+ 'einzige Aussage, CASH OUT ist aria-disabled statt disabled, die '
-	+ 'Überschriftenstufen stimmen, und table-felt.js hält den Vertrag aus Teilstück C3d '
-	+ '(data-ck-field-label, Reihenfolge beim Legen) ein.');
+	+ 'Überschriftenstufen stimmen, table-felt.js hält den Vertrag aus Teilstück C3d '
+	+ '(data-ck-field-label, Reihenfolge beim Legen) ein, und data-text-frozen für '
+	+ 'Vertragswetten hat Attribut, XLIFF-Kennung und beide Leser.');
 
 process.exit(failed ? 1 : 0);

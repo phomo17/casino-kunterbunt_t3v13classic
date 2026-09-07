@@ -16,7 +16,7 @@ Regeln und Klänge. Sie lässt sich installieren und entfernen, ohne dass an
 | Composer-Name | `phomo17/reel-slot` |
 | Namespace | `Phomo17\ReelSlot\` |
 | TYPO3-Version | 13.4 (klassische, nicht Composer-basierte Installation) |
-| Abhängigkeit | `casino_startpage` >= 0.1.0 (Risiko-Leiter, Gerätekredit, Klangbaukasten und Leerlaufgeräusche liegen dort) |
+| Abhängigkeit | `casino_startpage` >= 0.3.0 (Risiko-Leiter, Gerätekredit, Klangbaukasten und Leerlaufgeräusche liegen dort) |
 | Lizenz | AGPL-3.0-or-later |
 | Quelltext | https://github.com/phomo17/casino-kunterbunt_t3v13classic |
 
@@ -510,7 +510,7 @@ nächsten festen Zone vorhanden, hier nicht).
 
 ## Stand
 
-Version 0.2.0 (alpha). Teil A ist vollständig abgeschlossen (Phasen 4 bis 11): Gerüst
+Version 0.3.0 (alpha). Teil A ist vollständig abgeschlossen (Phasen 4 bis 11): Gerüst
 und Registry-Anmeldung, das vollständige Gehäuse, der Spielkern samt
 nachgewiesener Quote, die Verrechnung, die Risiko-Leiter, der Auto-Modus und
 der Klang.

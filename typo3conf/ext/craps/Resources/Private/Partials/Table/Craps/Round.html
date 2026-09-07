@@ -1,0 +1,45 @@
+<f:comment>
+	Der Point-Stand und die Satzbauten der Runde.
+
+	KEIN Live-Bereich. Das Ergebnis jedes Wurfs — einschließlich des neuen
+	Point-Stands — sagt der Ansagebereich Table/Craps/Status einmal an. Ein
+	zweiter Live-Bereich hieße, jeden Wurf zweimal zu hören. Der Absatz hier
+	ist stattdessen ein gewöhnlicher, ansteuerbarer Text: wer nachsehen will,
+	wie der Tisch gerade steht, findet ihn.
+
+	Er wird MIT Text ausgeliefert („Kein Point …"), und das ist richtig: der
+	Come-out-Zustand ist der tatsächliche Anfangszustand, kein leerer
+	Platzhalter. Nur Live-Bereiche werden leer ausgeliefert.
+
+	Die deutschen Satzbauten reisen als data-Attribute mit. {0}, {1}, {2} sind
+	die Plätze der eingesetzten Werte — die {0}-Schreibweise (nicht %1$s), weil
+	JavaScript sie zur Laufzeit ersetzt und nicht f:translate.
+</f:comment>
+<div class="cr-round" data-cr-round-texts=""
+	data-text-pointnone="{f:translate(key: 'LLL:EXT:craps/Resources/Private/Language/locallang.xlf:felt.point.none')}"
+	data-text-pointset="{f:translate(key: 'LLL:EXT:craps/Resources/Private/Language/locallang.xlf:felt.point.set')}"
+	data-text-natural="{f:translate(key: 'LLL:EXT:craps/Resources/Private/Language/locallang.xlf:round.announce.natural')}"
+	data-text-craps="{f:translate(key: 'LLL:EXT:craps/Resources/Private/Language/locallang.xlf:round.announce.craps')}"
+	data-text-pointsetroll="{f:translate(key: 'LLL:EXT:craps/Resources/Private/Language/locallang.xlf:round.announce.pointset')}"
+	data-text-pointmade="{f:translate(key: 'LLL:EXT:craps/Resources/Private/Language/locallang.xlf:round.announce.pointmade')}"
+	data-text-sevenout="{f:translate(key: 'LLL:EXT:craps/Resources/Private/Language/locallang.xlf:round.announce.sevenout')}"
+	data-text-roll="{f:translate(key: 'LLL:EXT:craps/Resources/Private/Language/locallang.xlf:round.announce.roll')}"
+	data-text-moneywin="{f:translate(key: 'LLL:EXT:craps/Resources/Private/Language/locallang.xlf:round.announce.money.win')}"
+	data-text-moneypartial="{f:translate(key: 'LLL:EXT:craps/Resources/Private/Language/locallang.xlf:round.announce.money.partial')}"
+	data-text-moneyloss="{f:translate(key: 'LLL:EXT:craps/Resources/Private/Language/locallang.xlf:round.announce.money.loss')}"
+	data-text-moneynone="{f:translate(key: 'LLL:EXT:craps/Resources/Private/Language/locallang.xlf:round.announce.money.none')}"
+	data-text-nostake="{f:translate(key: 'LLL:EXT:craps/Resources/Private/Language/locallang.xlf:round.announce.nostake')}"
+	data-text-unavailable="{f:translate(key: 'LLL:EXT:craps/Resources/Private/Language/locallang.xlf:round.announce.unavailable')}"
+	data-text-closed="{f:translate(key: 'LLL:EXT:craps/Resources/Private/Language/locallang.xlf:round.announce.closed')}"
+	data-text-contract="{f:translate(key: 'LLL:EXT:craps/Resources/Private/Language/locallang.xlf:round.reject.contract')}"
+	data-text-comeout="{f:translate(key: 'LLL:EXT:craps/Resources/Private/Language/locallang.xlf:round.reject.comeout')}"
+	data-text-traveled="{f:translate(key: 'LLL:EXT:craps/Resources/Private/Language/locallang.xlf:round.reject.traveled')}"
+	data-text-nopoint="{f:translate(key: 'LLL:EXT:craps/Resources/Private/Language/locallang.xlf:round.reject.nopoint')}"
+	data-text-nobase="{f:translate(key: 'LLL:EXT:craps/Resources/Private/Language/locallang.xlf:round.reject.nobase')}"
+	data-text-oddsmax="{f:translate(key: 'LLL:EXT:craps/Resources/Private/Language/locallang.xlf:round.reject.oddsmax')}"
+	data-text-unit="{f:translate(key: 'LLL:EXT:craps/Resources/Private/Language/locallang.xlf:round.hint.unit')}"
+	data-text-historypoint="{f:translate(key: 'LLL:EXT:craps/Resources/Private/Language/locallang.xlf:round.history.point')}">
+	<p class="cr-round__point" data-cr-point-text="">
+		<f:translate key="LLL:EXT:craps/Resources/Private/Language/locallang.xlf:felt.point.none" />
+	</p>
+</div>

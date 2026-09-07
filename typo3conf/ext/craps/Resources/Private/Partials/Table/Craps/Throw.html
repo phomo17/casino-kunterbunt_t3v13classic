@@ -1,0 +1,84 @@
+<f:comment>
+	Die Wurfleiste — und die Tastaturalternative zum Ziehen.
+
+	WCAG 2.2, Erfolgskriterium 2.5.7 „Dragging Movements": jede Funktion, die
+	über eine Ziehbewegung erreichbar ist, muss auch ohne Ziehen erreichbar
+	sein. Aufnehmen und Schütteln ist eine Ziehbewegung; Wurfkraft-Schiene und
+	Taste sind ihr gleichwertiger Ersatz.
+
+	KEIN laufender Kraftbalken, den man im richtigen Augenblick anhält: das
+	machte die Wurfkraft von der Reaktionszeit abhängig und wäre bei
+	„Bewegung reduzieren" gar nicht mehr bedienbar. Die Schiene ist ein
+	natives Bedienteil — Pfeiltasten, Pos1/Ende, angesagter Wert, keine
+	Zeitvorgabe. Sie zeigt zusätzlich an, wie kräftig ein Zeigerwurf war:
+	dieselbe Größe, zwei Wege.
+
+	Die Modewahl ist eine echte Radiogruppe in fieldset/legend — dasselbe
+	Muster wie die Chipwahl des Site Packages. Ohne legend hörte ein
+	Vorleseprogramm zwei zusammenhanglose Optionen ohne die Frage dazu.
+
+	data-ck-table-go heißt der Auslöser schon jetzt so, wie ihn die geteilte
+	Bedienleiste in Phase C7 sucht. Wer ihn heute so nennt, muss ihn später
+	nicht umbenennen.
+
+	Alle Bedienteile benutzen .ck-table__button und .ck-table__* aus dem Site
+	Package: dort stehen Mindestgröße (2,75 rem, WCAG 2.5.8), Fokusrahmen und
+	die Behandlung von aria-disabled bereits. Ein Tisch baut seine Bedienteile
+	nicht selbst nach.
+
+	EIGENE ERGÄNZUNG (Umsetzungsstück C6d): throw.mode.watch.hint und
+	throw.mode.shoot.hint stehen zwar in locallang.xlf (Plan-Abschnitt 4.36),
+	werden im dortigen Auszug für dieses Partial aber an keiner Stelle
+	verwendet — eine Lücke im Plantext. Beide Sätze erklären knapp, was die
+	jeweilige Option tut, und werden deshalb als eigene, aria-describedby-
+	verknüpfte Erläuterung UNTER jeder Option ausgegeben: sichtbar für alle,
+	und für ein Vorleseprogramm als Beschreibung angesagt, ohne den kurzen
+	Options-Namen selbst zu verlängern (deshalb außerhalb des <label>, nicht
+	darin verschachtelt).
+</f:comment>
+<div class="cr-throw" data-cr-throw="">
+	<fieldset class="ck-table__chips cr-throw__mode">
+		<legend>
+			<f:translate key="LLL:EXT:craps/Resources/Private/Language/locallang.xlf:throw.mode.legend" />
+		</legend>
+		<div class="cr-throw__option-wrap">
+			<label class="ck-table__chip cr-throw__option">
+				<input class="ck-table__chip-input" type="radio" name="cr-mode" value="shoot"
+					data-cr-mode="shoot" checked="checked" aria-describedby="cr-throw-hint-shoot" />
+				<span class="ck-table__chip-name">
+					<f:translate key="LLL:EXT:craps/Resources/Private/Language/locallang.xlf:throw.mode.shoot" />
+				</span>
+			</label>
+			<span class="cr-throw__option-hint" id="cr-throw-hint-shoot">
+				<f:translate key="LLL:EXT:craps/Resources/Private/Language/locallang.xlf:throw.mode.shoot.hint" />
+			</span>
+		</div>
+		<div class="cr-throw__option-wrap">
+			<label class="ck-table__chip cr-throw__option">
+				<input class="ck-table__chip-input" type="radio" name="cr-mode" value="watch"
+					data-cr-mode="watch" aria-describedby="cr-throw-hint-watch" />
+				<span class="ck-table__chip-name">
+					<f:translate key="LLL:EXT:craps/Resources/Private/Language/locallang.xlf:throw.mode.watch" />
+				</span>
+			</label>
+			<span class="cr-throw__option-hint" id="cr-throw-hint-watch">
+				<f:translate key="LLL:EXT:craps/Resources/Private/Language/locallang.xlf:throw.mode.watch.hint" />
+			</span>
+		</div>
+	</fieldset>
+
+	<div class="cr-throw__power">
+		<label class="ck-table__buyin-label" for="cr-power">
+			<f:translate key="LLL:EXT:craps/Resources/Private/Language/locallang.xlf:throw.power.label" />
+		</label>
+		<input class="cr-throw__slider" id="cr-power" data-cr-power="" type="range"
+			min="1" max="10" step="1" value="6" />
+	</div>
+
+	<div class="ck-table__actions">
+		<button class="ck-table__button ck-table__button--go" type="button" data-ck-table-go=""
+			data-cr-go="">
+			<f:translate key="LLL:EXT:craps/Resources/Private/Language/locallang.xlf:throw.button" />
+		</button>
+	</div>
+</div>

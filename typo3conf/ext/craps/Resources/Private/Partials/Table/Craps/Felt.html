@@ -1,0 +1,117 @@
+<f:comment>
+	Das Tuch des Craps-Tisches (CONCEPT.md C.8.1, Anhang H).
+
+	47 echte <button type="button">: ein Knopf bringt Rolle, Fokusreihenfolge
+	und das Verhalten von Eingabe- und Leertaste von selbst mit. ARIA fügt
+	niemals Verhalten hinzu, nur eine Beschreibung.
+
+	DIE LAGE kommt fertig aus dem FeltProcessor (grid-column/grid-row als
+	style-Attribut). Sie ist ein Datum des Feldes, kein Gestaltungsbeschluss
+	der Vorlage — das ist die einzige Stelle dieser Extension mit einem
+	style-Attribut, und es steht weder eine Farbe noch eine Größe darin.
+
+	DER SPRUNGLINK steht als ERSTES Kind von .ck-felt (position: relative,
+	table.css), nicht als Geschwister davor: .ck-skiplink versteckt sich über
+	position: absolute, und der nächste positionierte Vorfahre entscheidet,
+	wohin er bei Tastaturfokus fährt. Läge er außerhalb, erschiene er an der
+	oberen linken Ecke des Saals statt am Tuch (WCAG 2.4.11). Derselbe Fund
+	wie am anderen Tisch (Review C3, H1) — hier von Anfang an richtig.
+
+	DER ERREICHBARE NAME. Jedes Feld trägt aria-label UND data-ck-field-label
+	mit demselben Text: das aria-label sorgt für einen Namen auch ohne
+	JavaScript, data-ck-field-label ist der Weg, auf dem table-felt.js den
+	Namen zur Laufzeit um den gesetzten Betrag ergänzt. Alle craps-Felder
+	haben ein labelKey, weil keine Aufschrift für sich allein eindeutig ist
+	(„Odds" steht vierzehnmal auf dem Tuch).
+
+	DIE AUFSCHRIFT UND f:translate. printed ist bei den sechs Come-Kästen die
+	ZIFFER selbst (kein Übersetzungsschlüssel — „4" ist ein Zeichen, keine
+	XLIFF-Kennung, und darf NICHT durch f:translate laufen). Bei allen
+	übrigen Feldern ist printed ein XLIFF-Bezeichner und MUSS übersetzt
+	werden, sonst stünde der rohe Schlüssel im ausgelieferten HTML. Die
+	Unterscheidung trifft field.kind == 'point'. Und die Bedingung lautet
+	„!= ''" statt bloß „{field.printed}": PHP behandelt die Zeichenkette „0"
+	als falsch, und ein stiller, leerer Aufdruck war am anderen Tisch schon
+	einmal ein Fund, den kein Prüfskript fangen konnte.
+
+	DIE VIER GRUPPEN. Ein Bildschirmleser soll die 47 Felder in Abschnitten
+	ansteuern können, deshalb steht das Tuch in vier role="group"-Bereichen.
+	Jede Gruppe geht einmal über die vollständige Feldliste und überspringt,
+	was nicht zu ihr gehört — dieselbe Machart wie am anderen Tisch. Die
+	Gruppen-<div>s bekommen in felt.css display: contents, damit sie das
+	Gitter nicht zerschneiden.
+
+	DER PUCK ist aria-hidden: was er sagt, steht als Text im Absatz
+	.cr-felt__point (Table/Craps/Round.html) und wird nach jedem Wurf einmal
+	angesagt. Er fährt rein über CSS, gesteuert von data-cr-point am
+	Wurzelelement.
+</f:comment>
+<section class="cr-felt-area" aria-labelledby="cr-felt-title">
+	<h2 class="cr-felt__title" id="cr-felt-title">
+		<f:translate key="LLL:EXT:craps/Resources/Private/Language/locallang.xlf:felt.label" />
+	</h2>
+
+	<div class="cr-felt__scroll">
+		<div class="ck-felt cr-felt" data-cr-felt=""
+			data-text-fieldname="{f:translate(key: 'LLL:EXT:craps/Resources/Private/Language/locallang.xlf:felt.fieldname')}"
+			data-text-fieldname-empty="{f:translate(key: 'LLL:EXT:craps/Resources/Private/Language/locallang.xlf:felt.fieldname.empty')}">
+			<a class="ck-skiplink cr-felt__skip" href="#cr-controls">
+				<f:translate key="LLL:EXT:craps/Resources/Private/Language/locallang.xlf:felt.skip" />
+			</a>
+
+			<span class="cr-puck" data-cr-puck="" aria-hidden="true">
+				<span class="cr-puck__off"><f:translate key="LLL:EXT:craps/Resources/Private/Language/locallang.xlf:felt.puck.off" /></span>
+				<span class="cr-puck__on"><f:translate key="LLL:EXT:craps/Resources/Private/Language/locallang.xlf:felt.puck.on" /></span>
+			</span>
+
+			<f:for each="{0: 'numbers', 1: 'lines', 2: 'hardways', 3: 'single'}" as="gruppe">
+				<div class="cr-felt__group" role="group"
+					aria-label="{f:translate(key: 'LLL:EXT:craps/Resources/Private/Language/locallang.xlf:felt.group.{gruppe}')}">
+					<f:for each="{felt.fields}" as="field">
+						<f:if condition="{field.group} == {gruppe}">
+							<button type="button"
+								class="ck-felt__field cr-felt__field cr-felt__field--{field.kind}"
+								data-ck-field="{field.id}"
+								style="grid-column: {field.gridColumn}; grid-row: {field.gridRow};"
+								data-ck-field-label="{f:translate(key: field.labelKey, arguments: field.labelArgs)}"
+								aria-label="{f:translate(key: field.labelKey, arguments: field.labelArgs)}">
+								<f:if condition="{field.printed} != ''">
+									<span class="cr-felt__print">
+										<f:if condition="{field.kind} == 'point'">
+											<f:then>{field.printed}</f:then>
+											<f:else><f:translate key="LLL:EXT:craps/Resources/Private/Language/locallang.xlf:{field.printed}" /></f:else>
+										</f:if>
+									</span>
+								</f:if>
+							</button>
+						</f:if>
+					</f:for>
+				</div>
+			</f:for>
+		</div>
+	</div>
+
+	<f:comment>
+		Der Schalter für die Place-Wetten (CONCEPT.md C.8.4: „Place-Wetten sind
+		zwischen den Würfen ab- und anschaltbar"). Ein natives
+		Kontrollkästchen: es sammelt eine Einstellung, es löst keine Handlung
+		aus — genau der Unterschied zum Umschaltknopf des Tons.
+
+		EIN Schalter für alle sechs Place-Wetten statt sechs einzelner: sechs
+		zusätzliche Tabstationen für eine Einstellung, die man in aller Regel
+		gemeinsam setzt, wären mehr Bedienweg als Nutzen. Beim Come-out ruhen
+		Place-Wetten ohnehin IMMER (klassische Regel, für den Spieler günstig);
+		der Schalter wirkt deshalb nur, solange ein Point steht — und genau das
+		sagt sein Erklärtext.
+	</f:comment>
+	<div class="cr-felt__working">
+		<label class="cr-felt__working-label">
+			<input type="checkbox" class="cr-felt__working-input" data-cr-place-working=""
+				checked="checked" aria-describedby="cr-working-hint" />
+			<span><f:translate key="LLL:EXT:craps/Resources/Private/Language/locallang.xlf:felt.place.working" /></span>
+		</label>
+		<span class="cr-felt__working-hint" id="cr-working-hint">
+			<f:translate key="LLL:EXT:craps/Resources/Private/Language/locallang.xlf:felt.place.hint" />
+		</span>
+	</div>
+</section>

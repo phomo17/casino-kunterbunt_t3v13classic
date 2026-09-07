@@ -199,9 +199,17 @@ input {
 	text-wrap: balance;
 }
 
+/* overflow-wrap gehört zum Behebungslauf 2026-09-07, Auditbefund M7-02: die
+   Quelladresse ist ein einziges langes Wort ohne Trennstelle. Bei 200 %
+   Textzoom auf 320 oder 360 Bildpunkten war sie breiter als das Fenster und
+   ließ die GANZE Seite waagerecht rollen (gemessen 413 statt 320 Bildpunkte) —
+   auf allen neun Seiten, weil der Abspann überall steht. WCAG 2.2, 1.4.10
+   Reflow verlangt genau das nicht. `anywhere` statt `break-word`, weil die
+   Adresse keine Leerstelle hat, an der ein Umbruch sonst ansetzen könnte. */
 .ck-colophon__source {
 	color: var(--ck-text-primary);
 	text-underline-offset: 0.2em;
+	overflow-wrap: anywhere;
 }
 
 .ck-room__hall {
@@ -270,10 +278,21 @@ body:has(.ck-room-fill) {
 	padding-block: var(--ck-space-3);
 }
 
+/* Behebungslauf 2026-09-07, Auditbefund H-02: min-inline-size ergaenzt.
+   Ein Flexkind hat von Haus aus min-width: auto und schrumpft deshalb nie
+   unter seine Inhaltsbreite. Auf einer Geraeteseite lief die Breite damit
+   nicht bis zum Geraet durch: der Inhalt blieb so breit wie sein breitester
+   Bestandteil, und .ck-room (overflow-x: clip) schnitt den Ueberstand ab —
+   clip laesst sich nicht rollen, das Abgeschnittene war unerreichbar. Mit 0
+   gibt die Kette die Bildschirmbreite nach unten weiter, und der Baustein,
+   der ausdruecklich rollen soll (beim Roulette .ro-felt__scroll), rollt
+   wieder. Nur unter :has(.ck-room-fill) — der Saal selbst (Kachelraster)
+   bleibt unberuehrt. */
 .ck-room:has(.ck-room-fill) .ck-hall__content {
 	display: flex;
 	flex: 1 1 0;
 	min-block-size: auto;
+	min-inline-size: 0;
 }
 
 .ck-room-fill {

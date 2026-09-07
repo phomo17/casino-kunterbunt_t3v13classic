@@ -23,6 +23,10 @@
 	data-text-fieldname-empty (Teilstück C1-D): derselbe Satz wie
 	data-text-fieldname, aber für ein Feld ohne Einsatz — „…, nichts gesetzt"
 	statt „…, 0 Euro gesetzt". table-felt.js benutzt ihn, sobald er hier steht.
+
+	data-text-frozen (Phase C7): eine Vertragswette liegt fest und kann nicht
+	zurückgenommen werden — beim Craps die Pass Line, sobald ihr Point steht.
+	table-felt.js und table-controls.js lesen ihn von hier.
 </f:comment>
 <p class="ck-table__hint">
 	<f:translate key="LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:table.hint.keyboard" />
@@ -38,5 +42,6 @@
 	data-text-roundmax="{f:translate(key: 'LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:table.announce.roundmax')}"
 	data-text-nochip="{f:translate(key: 'LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:table.announce.nochip')}"
 	data-text-locked="{f:translate(key: 'LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:table.announce.locked')}"
+	data-text-frozen="{f:translate(key: 'LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:table.announce.frozen')}"
 	data-text-fieldname="{f:translate(key: 'LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:table.field.name')}"
 	data-text-fieldname-empty="{f:translate(key: 'LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:table.field.name.empty')}"></p>

@@ -46,6 +46,7 @@
  *   texts.fieldmax    table.announce.fieldmax  {0}=Feldname {1}=Limit
  *   texts.roundmax    table.announce.roundmax  {0}=Limit
  *   texts.locked      table.announce.locked    (ohne Platzhalter)
+ *   texts.frozen      table.announce.frozen    {0}=Feldname
  *   texts.nochip      table.announce.nochip    {0}=Wert
  *   texts.fieldname   table.field.name         {0}=Feldname {1}=Auszahlung
  *                                               {2}=Limit {3}=gesetzter Betrag
@@ -265,6 +266,11 @@ export function connectFelt(root, bets, options) {
 			announceDebounced(fuelle(texts.roundmax, [ergebnis.limit]));
 		} else if (ergebnis.reason === 'locked') {
 			announceDebounced(texts.locked ?? '');
+		} else if (ergebnis.reason === 'frozen') {
+			// Eine Vertragswette (Craps: Pass Line nach dem Point). Ohne
+			// diesen Zweig bliebe der Griff nach dem Chip stumm — und Stille
+			// ist an dieser Stelle nicht Ruhe, sondern eine Vermutung.
+			announceDebounced(fuelle(texts.frozen, [labelOf(fieldId)]));
 		} else if (ergebnis.reason === 'nochip' || ergebnis.reason === 'insufficient' || ergebnis.reason === 'closed') {
 			const wert = typeof selectedChip === 'function' ? selectedChip() : '';
 			announceDebounced(fuelle(texts.nochip, [wert]));

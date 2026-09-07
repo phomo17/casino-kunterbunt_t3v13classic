@@ -1,0 +1,18 @@
+services:
+  _defaults:
+    autowire: true
+    autoconfigure: true
+    public: false
+
+  Phomo17\Craps\:
+    resource: '../Classes/*'
+    # Zwei reine Namensschilder mit privatem Konstruktor. Ohne diese Ausnahme
+    # meldete der Container Dienste an, die es nie geben darf.
+    exclude: '../Classes/{Craps.php,BetLayout.php}'
+
+  # Meldet den DataProcessor unter dem kurzen TypoScript-Namen „craps-felt"
+  # an. Der Name trägt das Gerät im Präfix, damit ein weiteres Gerät ihn
+  # nicht überschreiben kann.
+  Phomo17\Craps\DataProcessing\FeltProcessor:
+    tags:
+      - { name: 'data.processor', identifier: 'craps-felt' }

@@ -1,0 +1,23 @@
+<f:comment>
+	Der Ansagebereich des Wurfs — Eigentümer ist ausschließlich craps.js.
+
+	LEER ausgeliefert. Ein Live-Bereich, den ein Skript anlegt UND füllt, wird
+	von Hilfsmitteln nicht angesagt; einer, der beim Laden schon Text trägt,
+	liest ungefragt vor. Beides wäre falsch — dieselbe Regel wie am geteilten
+	Ansagebereich des Site Packages und am Kassenschild.
+
+	role="status" statt role="alert": das Ergebnis eines Wurfs ist eine
+	Auskunft, keine Warnung.
+
+	Die deutschen Satzbauten reisen als data-Attribute mit, damit sie aus der
+	XLIFF-Datei kommen und nicht im JavaScript stehen. {0} erster Würfel,
+	{1} zweiter Würfel, {2} Summe.
+</f:comment>
+<p class="cr-status" data-cr-status="" role="status"
+	data-text-picked="{f:translate(key: 'LLL:EXT:craps/Resources/Private/Language/locallang.xlf:throw.announce.picked')}"
+	data-text-rolling="{f:translate(key: 'LLL:EXT:craps/Resources/Private/Language/locallang.xlf:throw.announce.rolling')}"
+	data-text-result="{f:translate(key: 'LLL:EXT:craps/Resources/Private/Language/locallang.xlf:throw.announce.result')}"
+	data-text-short="{f:translate(key: 'LLL:EXT:craps/Resources/Private/Language/locallang.xlf:throw.announce.short')}"
+	data-text-blocked="{f:translate(key: 'LLL:EXT:craps/Resources/Private/Language/locallang.xlf:throw.announce.blocked')}"
+	data-text-norandom="{f:translate(key: 'LLL:EXT:craps/Resources/Private/Language/locallang.xlf:throw.announce.norandom')}"
+	data-text-power="{f:translate(key: 'LLL:EXT:craps/Resources/Private/Language/locallang.xlf:throw.announce.power')}"></p>

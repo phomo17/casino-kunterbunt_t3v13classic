@@ -1,0 +1,84 @@
+<f:comment>
+	Kachel des Craps-Tisches im Saal.
+
+	Erfüllt denselben Vertrag wie Hall/TablePlaceholder.html des Site Packages:
+	genau ein .ck-cabinet, darin genau ein svg.ck-cabinet__drawing mit viewBox
+	„0 0 160 100" (Gattung Tisch), aria-hidden, kein <title>, kein <text>.
+
+	Sie zeigt dieselbe Bauform wie die Spielseite: eine Wanne mit hoher Bande,
+	Messingkante, grünem Tuch, der Pyramidengummi-Leiste an der linken
+	Gegenbande und den zwei Würfeln rechts, auf der Wurfseite. Genau diese
+	fünf Merkmale gleicht Prüfung A-7 zwischen dieser Datei und
+	Table/Craps/Tray.html ab.
+
+	Die Wanne ist hier ein ZEICHEN, keine Maßzeichnung: die Maßordnung der
+	Spielseite (viewBox 240 : 140, Tuch 20…220 × 20…120) passt nicht in eine
+	Kachel von 160 : 100, und sie muss es auch nicht — verglichen wird die
+	Bauform, nicht die Zahl.
+
+	Die zwei Würfel zeigen fünf und zwei Augen. Die Summe sieben ist die
+	geläufigste Zahl des Spiels und ein reines Motiv; sie behauptet kein
+	Ergebnis. Augen sind IMMER gezeichnete Kreise — kein Schriftzeichen, und
+	ausdrücklich keins der Unicode-Würfelzeichen.
+
+	Alle Farben kommen aus den Design-Tokens in tokens.css.
+</f:comment>
+<span class="ck-cabinet">
+	<svg class="ck-cabinet__drawing" viewBox="0 0 160 100" preserveAspectRatio="xMidYMid meet"
+		focusable="false" aria-hidden="true">
+
+		<f:comment>Merkmal 1: die Wanne mit hoher Bande — ein Holzrahmen mit
+			gerundeten Ecken, innen ein zweiter, dunklerer Ring als sichtbare
+			Höhe der Bande.</f:comment>
+		<rect class="cr-tile__hull" x="4" y="8" width="152" height="84" rx="14"
+			fill="var(--ck-wood-300)" stroke="var(--ck-wood-500)" stroke-width="2" />
+		<rect class="cr-tile__rail" x="13" y="17" width="134" height="66" rx="9"
+			fill="var(--ck-wood-200)" />
+
+		<f:comment>Merkmal 2: die Messingkante auf der Bande.</f:comment>
+		<rect class="cr-tile__brass" x="9" y="13" width="142" height="74" rx="11"
+			fill="none" stroke="var(--ck-brass-300)" stroke-width="1.6" />
+
+		<f:comment>Merkmal 3: das Tuch, in zwei Grüntönen wie an jedem Tisch
+			dieses Hauses.</f:comment>
+		<rect x="17" y="21" width="126" height="58" rx="6" fill="var(--ck-felt-green-dark)" />
+		<rect class="cr-tile__felt" x="19" y="23" width="122" height="54" rx="5"
+			fill="var(--ck-felt-green)" />
+
+		<f:comment>Merkmal 4: der Pyramidengummi an der linken Bande — der
+			Gegenbande, die ein gültiger Wurf erreichen muss. Fünf Zacken aus
+			EINEM Dreieck über transform="translate(…)", nicht fünf gerechnete
+			Pfade.</f:comment>
+		<g class="cr-tile__pyramid" fill="var(--ck-rubber-pyramid)">
+			<path d="M19 23 L24 28 L19 33 Z" transform="translate(0 0)" />
+			<path d="M19 23 L24 28 L19 33 Z" transform="translate(0 10)" />
+			<path d="M19 23 L24 28 L19 33 Z" transform="translate(0 20)" />
+			<path d="M19 23 L24 28 L19 33 Z" transform="translate(0 30)" />
+			<path d="M19 23 L24 28 L19 33 Z" transform="translate(0 40)" />
+		</g>
+
+		<f:comment>Merkmal 5: die zwei Würfel, rechts auf dem Tuch. Kantenlänge
+			16, Augen als Kreise mit Halbmesser 1,6 — dieselbe Anordnung der
+			Augen wie in DiceSprite.html, nur größer: Ecken, Mitten, Mittelpunkt
+			auf einem Raster von je einem Viertel der Kantenlänge.</f:comment>
+		<g class="cr-tile__die">
+			<rect x="98" y="30" width="16" height="16" rx="2.6"
+				fill="var(--ck-ivory-100)" stroke="var(--ck-card-edge)" stroke-width="0.8" />
+			<g fill="var(--ck-print-ink)">
+				<circle cx="102" cy="34" r="1.6" />
+				<circle cx="110" cy="34" r="1.6" />
+				<circle cx="106" cy="38" r="1.6" />
+				<circle cx="102" cy="42" r="1.6" />
+				<circle cx="110" cy="42" r="1.6" />
+			</g>
+		</g>
+		<g class="cr-tile__die">
+			<rect x="118" y="52" width="16" height="16" rx="2.6"
+				fill="var(--ck-ivory-100)" stroke="var(--ck-card-edge)" stroke-width="0.8" />
+			<g fill="var(--ck-print-ink)">
+				<circle cx="122" cy="56" r="1.6" />
+				<circle cx="130" cy="64" r="1.6" />
+			</g>
+		</g>
+	</svg>
+</span>

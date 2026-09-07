@@ -74,7 +74,7 @@ leben. Regeln dafür:
   Farbe in einer Automaten-Datei.
 - **Ausnahme von der nächsten Zeile:** Solange CONCEPT.md V.6 gilt, wird die
   Versionsnummer **nicht** erhöht — auch nicht für einen neuen Token. Die
-  Spanne `0.2.0-0.99.99` deckt jeden Zwischenstand ab.
+  Spanne `0.3.0-0.99.99` deckt jeden Zwischenstand ab.
 - Die Minor-Version des Site Packages steigt, und die Automaten-Extension
   hebt ihre Untergrenze in `ext_emconf.php` und `composer.json` mit an.
 
@@ -171,7 +171,7 @@ AutomatRegistry::register(new Automat(
 
 | Datei | Was hinein muss | Warum |
 |---|---|---|
-| `ext_emconf.php` | `'casino_startpage' => '0.2.0-0.99.99'` unter `constraints.depends` | bestimmt in der klassischen Installation die Ladereihenfolge der `ext_localconf.php`; ohne sie kann die Registry-Anmeldung vor dem Site Package laufen |
+| `ext_emconf.php` | `'casino_startpage' => '0.3.0-0.99.99'` unter `constraints.depends` | bestimmt in der klassischen Installation die Ladereihenfolge der `ext_localconf.php`; ohne sie kann die Registry-Anmeldung vor dem Site Package laufen |
 | `Configuration/JavaScriptModules.php` | `'dependencies' => ['casino_startpage']` **und** das eigene Präfix unter `imports` | ohne den `dependencies`-Eintrag liefert der Kern das Präfix `@phomo17/casino-startpage/` nicht mit aus, und der Browser bricht mit „Failed to resolve module specifier" ab, sobald ein Modul `credit.js` oder `sound.js` importiert |
 | `Configuration/TCA/Overrides/tt_content.php` | eigener `CType` über `ExtensionManagementUtility::addRecordType()`, Gruppe `AutomatContentElement::CTYPE_GROUP` | damit der Automat auf seiner eigenen Seite platziert werden kann |
 | `ext_localconf.php` | zusätzlich zur Registry-Anmeldung ein `addTypoScriptSetup()` mit der Rendering-Definition des eigenen `CType` | ein eigenes Site Set würde die Site-Konfiguration ändern und damit den Grundsatz „ohne Änderung an anderen Stellen installierbar" brechen |
@@ -378,6 +378,18 @@ hat — die Linie zwischen zwei Zahlen ist 24 Bildpunkte breit —, nennt seinen
 mit, damit es auch ohne JavaScript einen Namen hat. `table-felt.js` bevorzugt
 `data-ck-field-label` vor dem sichtbaren Text und führt den vollständigen Namen wie
 gehabt nach. Fehlt das Attribut, ändert sich nichts.
+
+**Felder, die nicht in den Rundenhöchstbetrag zählen.** Ein Feld kann
+`countsToRoundMax: false` tragen. Es unterliegt dann nur noch seinem eigenen
+`max`. Das braucht ein Spiel mit Zusatzwetten, deren Regeln sie ausdrücklich
+von der Rundengrenze ausnehmen. Ohne Angabe gilt `true`.
+
+**Vertragswetten.** `bets.freeze(feldId, betrag)` legt für ein Feld einen
+Sockel fest: bis auf diesen Betrag darf abgeräumt werden, darunter nicht.
+`takeBack()` sagt dann `frozen` ab (Ansage über `data-text-frozen` am
+Ansagebereich), `undo()` überspringt geschützte Chips, `clear()` lässt den
+Sockel liegen, `double()` lässt Felder mit Sockel unangetastet. `unfreeze()`
+hebt ihn auf. Ohne `freeze()` ändert sich nichts.
 
 ## Guthaben-Schnittstelle
 
@@ -1077,7 +1089,7 @@ führt zurück zu `/`.
 
 ## Stand
 
-Version 0.2.0 (alpha). Teil A ist vollständig abgeschlossen; aus Teil B sind Phase 2,
+Version 0.3.0 (alpha). Teil A ist vollständig abgeschlossen; aus Teil B sind Phase 2,
 Phase 3, Phase 4 und der Tokenbedarf von Phase 5 eingearbeitet. Aus Teil C ist Phase C1
 „Der Tisch als Gattung" vollständig eingearbeitet — seither haben sich zwei weitere
 Tischspiele bei der Geräte-Registry angemeldet, ohne dass diese Extension dafür
@@ -1097,7 +1109,7 @@ inzwischen zehn Farbpaare. Zuletzt sind acht Werte dazugekommen —
 `--ck-fruit-pineapple`, jeweils mit ihrer Schattenstufe. Wie alle davor heißen
 sie nach ihrem Werkstoff, nicht nach dem Gerät, das sie zuerst gebraucht hat.
 Eine Automaten-Extension, die sie benutzt, verlangt in `ext_emconf.php`
-`'casino_startpage' => '0.2.0-0.99.99'`.
+`'casino_startpage' => '0.3.0-0.99.99'`.
 
 Seit dem GEO-Behebungslauf vom 2026-09-05 liefert das Site Package auf jeder
 Seite `Organization`, `WebSite` und `BreadcrumbList` als strukturierte Daten

@@ -307,12 +307,28 @@
 	background-color: var(--ck-glass-sheen);
 }
 
+/* Behebungslauf 2026-09-07, Befund H-01 — dieselbe Begründung und derselbe
+   zweite, dunkle Innenring wie bei .ck-table__button:focus-visible weiter
+   unten. Der Behebungslauf vom 2026-09-06 hatte Knopf und Eingabefeld
+   nachgezogen, diese Klasse aber nicht: die Modewahl des Craps-Tisches sitzt
+   auf derselben hellen Bedienleiste, wo der Messingring allein nur 1,69:1
+   (oben) und 1,44:1 (unten) erreicht. Mit dem Innenring hat der Rahmen
+   wieder eine Seite deutlich über 3:1. */
 .ck-table__chip:has(:focus-visible) {
 	outline: 3px solid var(--ck-brass-200);
 	outline-offset: 3px;
+	box-shadow: 0 0 0 2px var(--ck-print-ink);
 }
 
-.ck-table__chip:has([aria-disabled="true"]) {
+/* Behebungslauf 2026-09-07, Auditbefund H7-01: die Ausblendung gilt NICHT für
+   den gerade fokussierten Chip. opacity wirkt auf das ganze Element,
+   einschließlich outline und box-shadow — der Fokusrahmen des Chips fiel
+   dadurch auf gemessene 2,60:1, ausgerechnet auf dem ERSTEN Chip, den ein
+   Tastaturbenutzer erreicht: beim Laden ist jedes Chipfach leer und damit
+   jeder Chip ausgeblendet. Mit Chips im Fach erreicht derselbe Rahmen
+   15,35:1. Die Ausblendung sagt „hiervon hast du keinen"; wo der Fokus steht,
+   muss sie das aber nicht mehr sagen — das sagt der Rahmen. */
+.ck-table__chip:has([aria-disabled="true"]):not(:has(:focus-visible)) {
 	opacity: 0.4;
 }
 

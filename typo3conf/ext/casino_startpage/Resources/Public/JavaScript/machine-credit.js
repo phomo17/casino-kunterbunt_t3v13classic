@@ -30,7 +30,8 @@
  * DIE ZUSAGEN — DIESELBEN WIE BEI credit.js
  * -----------------------------------------
  *   Lesen ist synchron          amount, canAfford()
- *   Jedes Ändern ist asynchron  insert(), cashOut(), stake(), award(), close()
+ *   Jedes Ändern ist asynchron  insert(), cashOut(), withdraw(), stake(),
+ *                               award(), close()
  *   Andere Registerkarten       werden über das storage-Ereignis mitgeführt
  *
  * Der Grund für die asynchronen Methoden ist derselbe wie dort: sie sind die
@@ -430,6 +431,54 @@ export class MachineCredit {
 			moved: result.credited,
 			amount: this.amount,
 			capped: result.credited < wanted,
+		};
+	}
+
+	/**
+	 * Bucht einen TEILBETRAG des Gerätekredits in die Kasse zurück.
+	 *
+	 * Der Weg für „einen einzelnen Chip zurückgeben" (CONCEPT.md C.4.1 in der
+	 * Fassung der Ansage vom 2026-09-07). cashOut() bleibt daneben unverändert
+	 * bestehen und bucht weiterhin ALLES zurück; die beiden werden bewusst
+	 * NICHT zusammengelegt, weil cashOut() der seit Ausbaustufe 2 geprüfte
+	 * Weg jedes Automaten ist und ein Umbau dort nichts gewinnt.
+	 *
+	 * ALLES ODER NICHTS an der Geräteseite: reicht der Gerätekredit nicht, wird
+	 * nichts bewegt. An der Kassenseite gilt dieselbe Kappungsregel wie bei
+	 * cashOut(): passt nicht alles in die Kasse, bleibt der Rest im Gerät und
+	 * capped meldet es. Verschwinden kann nichts.
+	 *
+	 * Reihenfolge wie in cashOut(): erst aus dem Gerät nehmen (setAmount vor
+	 * dem einzigen await), dann der Kasse geben, dann einen etwaigen Rest
+	 * zurückschreiben. Ein harter Abbruch dazwischen kann höchstens den Betrag
+	 * verlieren, nie ihn verdoppeln.
+	 *
+	 * @param {number} amount ganze Zahl ab 1
+	 * @param {string} [reason] nur für die Zuhörer
+	 * @returns {Promise<{ok: true, moved: number, amount: number, capped: boolean}
+	 *                  |{ok: false, reason: 'insufficient'|'closed', amount: number, moved: 0}>}
+	 * @throws {RangeError}
+	 */
+	async withdraw(amount, reason = 'withdraw') {
+		requireAmount(amount, 'withdraw');
+		if (this.closed) {
+			return { ok: false, reason: 'closed', amount: this.amount, moved: 0 };
+		}
+		if (this.amount < amount) {
+			return { ok: false, reason: 'insufficient', amount: this.amount, moved: 0 };
+		}
+		const previous = this.amount;
+		this.setAmount(previous - amount, reason);
+		const result = await credit.add(amount);
+		const leftover = amount - result.credited;
+		if (leftover > 0) {
+			this.setAmount(this.amount + leftover, reason);
+		}
+		return {
+			ok: true,
+			moved: result.credited,
+			amount: this.amount,
+			capped: result.credited < amount,
 		};
 	}
 

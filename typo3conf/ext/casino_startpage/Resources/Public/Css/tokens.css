@@ -221,6 +221,23 @@
 	--ck-pocket-edge: rgba(0, 0, 0, 0.45);
 	--ck-ivory-100: #f2ead6;
 
+	/* --- Spieltisch: der Pyramidengummi der Bande ------------------------- */
+	/* Die Innenseite einer hohen Tischbande ist mit gezacktem Gummi belegt.
+	   Er ist der Grund, warum ein Würfel nicht wie eine Billardkugel
+	   berechenbar abprallt: wo er auf einer Zacke auftrifft, entscheidet, wohin
+	   er weiterläuft. Der Werkstoff heißt Gummi und nicht Craps — ein zweiter
+	   Tisch mit Banden benutzt dieselben zwei Tokens (Regel aus
+	   casino_startpage/README.md, „Design-Token-Namensschema").
+
+	   Dunkles, mattes Gummi, damit es sich vom Tuch absetzt, ohne wie ein
+	   zweites Bauteil zu wirken. Es trägt keinen Text und ist keine
+	   Bedienfläche: für die Zackenleiste gilt deshalb kein Kontrastsollwert,
+	   sie ist Teil einer aria-hidden-Zeichnung. Der hellere Zweitwert liegt als
+	   Kantenlinie auf den Zacken und macht sie bei kleiner Darstellung
+	   überhaupt erst als Zacken erkennbar. */
+	--ck-rubber-pyramid: #241f1c;
+	--ck-rubber-pyramid-edge: #3d3630;
+
 	/* --- Chips (CONCEPT.md C.4.1) ----------------------------------------- */
 	/* Fünf Werte, fünf Farben, verbindlich und an allen drei Tischen gleich:
 	   weiß 1, rot 5, gelb 20, grün 25, schwarz 100. Ein Chip ist ein Werkstoff

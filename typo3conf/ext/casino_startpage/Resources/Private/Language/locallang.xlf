@@ -123,6 +123,9 @@
 			<trans-unit id="table.announce.locked">
 				<source>Die Runde nimmt keine Einsätze mehr an.</source>
 			</trans-unit>
+			<trans-unit id="table.announce.frozen">
+				<source>{0} liegt fest: eine Vertragswette kann nicht zurückgenommen werden.</source>
+			</trans-unit>
 
 			<!-- Bedienleiste, Wechselfeld, Verlaufsstreifen und Mustertisch
 			     (CONCEPT.md C.3, C.4, C.9). Teilstück C1-D. -->
@@ -189,6 +192,13 @@
 			<trans-unit id="table.buyin.invalid">
 				<source>Bitte eine ganze Zahl von 1 bis 999.999.999 eingeben.</source>
 			</trans-unit>
+			<!-- Erfolgsansage des Buy-ins (Audit M7-01, 2026-09-07): der bisherige
+			     Text meldete nur den Fehlschlag, nie den Erfolg. {0} = tatsächlich
+			     eingewechselter Betrag, {1} = neuer Buy-in insgesamt — der neue
+			     Bestand, nicht nur die Handlung. -->
+			<trans-unit id="table.buyin.done">
+				<source>{0} Euro eingewechselt. Buy-in jetzt {1} Euro.</source>
+			</trans-unit>
 
 			<trans-unit id="table.cashout">
 				<source>CASH OUT</source>
@@ -208,6 +218,17 @@
 			</trans-unit>
 			<trans-unit id="table.exchange.up">
 				<source>%s Euro größer wechseln</source>
+			</trans-unit>
+			<!-- Erfolgsansagen des Wechselfelds (Audit M7-01, 2026-09-07):
+			     exchangeDown/exchangeUp meldeten bislang gar nichts. {0} = der
+			     gewechselte Chipwert in Euro, {1} = die neue Stückzahl dieses
+			     Werts im Bestand danach — der neue Bestand, nicht nur die
+			     Handlung. -->
+			<trans-unit id="table.exchange.down.done">
+				<source>{0} Euro kleiner gewechselt. Jetzt {1} Chips zu {0} Euro im Bestand.</source>
+			</trans-unit>
+			<trans-unit id="table.exchange.up.done">
+				<source>{0} Euro größer gewechselt. Jetzt {1} Chips zu {0} Euro im Bestand.</source>
 			</trans-unit>
 
 			<!-- {0} = Stückzahl. Bildet den vollständigen Text des Zähl-Feldes

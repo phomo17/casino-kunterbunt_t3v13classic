@@ -26,6 +26,15 @@
  *   B-10  Rundenablauf: alle 25 Kombinationen aus fünf Zuständen und fünf Übergängen
  *   B-11  gesperrt heißt gesperrt — für alle sechs verändernden Methoden
  *
+ * Phase C7, Umsetzungsstück C7c — rückwärtsverträgliche Erweiterung um
+ * countsToRoundMax (Odds zählen nicht in den Rundenhöchstbetrag) und um einen
+ * Sockel für Vertragswetten (freeze/unfreeze), CONCEPT.md Anhang H:
+ *   TB-neu-1  countsToRoundMax: ohne Angabe true, mit false zählt das Feld
+ *             nicht in countedTotal, wohl aber weiter in total und sein max
+ *   TB-neu-2  Sockel: freeze()/unfreeze(), takeBack() unter dem Sockel
+ *   TB-neu-3  undo()/clear()/double() mit Sockel
+ *   TB-neu-4  snapshot()/restore() führen die Sockel mit
+ *
  * WARUM UNMITTELBAR GELADEN UND NICHT NACHGEBILDET
  * -------------------------------------------------
  * Beide Dateien importieren nichts (siehe ihre eigenen Kopfkommentare). Der
@@ -557,11 +566,188 @@ console.log("\nB-11  gesperrt heißt gesperrt — für alle sechs verändernden 
 	check(repeatErgebnis.ok === false && repeatErgebnis.reason === 'locked', `repeat() sagt bei gesperrtem Tuch mit reason:'locked' ab (gefunden: ${JSON.stringify(repeatErgebnis)})`);
 }
 
+/* ============================================================ TB-neu-1 countsToRoundMax */
+
+console.log('\nTB-neu-1  countsToRoundMax: Odds zählen nicht in den Rundenhöchstbetrag');
+{
+	const tisch = new BetTable({
+		fields: [
+			{ id: 'gewoehnlich', label: 'G', covers: [1], payout: 1, max: 1000 },
+			{ id: 'odds', label: 'O', covers: [1], payout: 1, max: 1000, countsToRoundMax: false },
+		],
+		roundMax: 50,
+	});
+
+	check(tisch.fields.get('gewoehnlich').countsToRoundMax === true,
+		'ohne Angabe ist countsToRoundMax true (bestehende Tische ändern sich nicht)');
+	check(tisch.fields.get('odds').countsToRoundMax === false,
+		'mit countsToRoundMax:false steht die Eigenschaft auch am Feld auf false');
+
+	check(tisch.place('gewoehnlich', 50).ok === true, 'ein zählendes Feld darf bis roundMax belegt werden');
+	check(tisch.countedTotal === 50, `countedTotal ist nach dem zählenden Einsatz 50 (gefunden: ${tisch.countedTotal})`);
+	check(tisch.total === 50, `total ist ebenfalls 50 (gefunden: ${tisch.total})`);
+
+	const ablehnung = tisch.place('gewoehnlich', 1);
+	check(ablehnung.ok === false && ablehnung.reason === 'roundmax',
+		`ein weiterer Euro auf das zählende Feld wird mit reason:'roundmax' abgelehnt (gefunden: ${JSON.stringify(ablehnung)})`);
+
+	const odds1 = tisch.place('odds', 500);
+	check(odds1.ok === true, `ein nicht zählendes Feld darf über roundMax hinaus belegt werden (gefunden: ${JSON.stringify(odds1)})`);
+	check(tisch.countedTotal === 50, `countedTotal bleibt bei 50, das Odds-Feld zählt nicht mit (gefunden: ${tisch.countedTotal})`);
+	check(tisch.total === 550, `total zählt weiterhin ALLES, also 550 (gefunden: ${tisch.total})`);
+
+	const odds2 = tisch.place('odds', 501);
+	check(odds2.ok === false && odds2.reason === 'fieldmax',
+		`das Odds-Feld unterliegt weiterhin seinem eigenen max (gefunden: ${JSON.stringify(odds2)})`);
+}
+
+/* =========================================================================== TB-neu-2 Sockel */
+
+console.log('\nTB-neu-2  Sockel: freeze()/unfreeze(), takeBack() unter dem Sockel');
+{
+	const tisch = new BetTable({
+		fields: [{ id: 'f', label: 'F', covers: [1], payout: 1, max: 1000 }],
+		roundMax: 1000,
+	});
+	tisch.place('f', 10);
+	tisch.place('f', 5);
+	tisch.freeze('f', 10);
+
+	check(tisch.floorOn('f') === 10, `floorOn('f') ist 10 (gefunden: ${tisch.floorOn('f')})`);
+
+	const ueberSockel = tisch.takeBack('f');
+	check(ueberSockel.ok === true && ueberSockel.value === 5,
+		`takeBack() über dem Sockel gelingt (Rest 10, genau der Sockel) (gefunden: ${JSON.stringify(ueberSockel)})`);
+	check(tisch.stakeOn('f') === 10, `auf 'f' liegt danach noch genau der Sockel (gefunden: ${tisch.stakeOn('f')})`);
+
+	const unterSockel = tisch.takeBack('f');
+	check(unterSockel.ok === false && unterSockel.reason === 'frozen' && unterSockel.floor === 10,
+		`takeBack() unter den Sockel wird mit reason:'frozen', floor:10 abgelehnt (gefunden: ${JSON.stringify(unterSockel)})`);
+	check(tisch.stakeOn('f') === 10, 'der Sockel liegt nach der Absage unverändert weiter');
+
+	tisch.unfreeze('f');
+	check(tisch.floorOn('f') === 0, `unfreeze() hebt den Sockel auf (gefunden: ${tisch.floorOn('f')})`);
+	const nachUnfreeze = tisch.takeBack('f');
+	check(nachUnfreeze.ok === true && nachUnfreeze.value === 10,
+		`nach unfreeze() gelingt takeBack() wieder vollständig (gefunden: ${JSON.stringify(nachUnfreeze)})`);
+
+	// freeze(f, 0) hebt den Sockel ebenso auf wie unfreeze().
+	tisch.place('f', 20);
+	tisch.freeze('f', 10);
+	tisch.freeze('f', 0);
+	check(tisch.floorOn('f') === 0, `freeze(f, 0) hebt den Sockel auf wie unfreeze() (gefunden: ${tisch.floorOn('f')})`);
+}
+
+/* ================================================================ TB-neu-3 undo/clear/double */
+
+console.log('\nTB-neu-3  undo()/clear()/double() mit Sockel');
+{
+	// undo(): überspringt den geschützten Chip und nimmt den nächsten freien.
+	const tisch = new BetTable({
+		fields: [
+			{ id: 'geschuetzt', label: 'P', covers: [1], payout: 1, max: 1000 },
+			{ id: 'frei', label: 'F', covers: [1], payout: 1, max: 1000 },
+		],
+		roundMax: 1000,
+	});
+	tisch.place('geschuetzt', 10); // #1
+	tisch.freeze('geschuetzt', 10);
+	tisch.place('frei', 7); // #2, zuletzt gelegt, aber frei
+
+	const undo1 = tisch.undo();
+	check(undo1.ok === true && undo1.fieldId === 'frei' && undo1.value === 7,
+		`undo() überspringt den geschützten Chip und nimmt den freien (gefunden: ${JSON.stringify(undo1)})`);
+
+	const undo2 = tisch.undo();
+	check(undo2.ok === false && undo2.reason === 'frozen',
+		`undo() sagt mit reason:'frozen' ab, wenn nur noch geschützte Chips liegen (gefunden: ${JSON.stringify(undo2)})`);
+	check(tisch.stakeOn('geschuetzt') === 10, 'der geschützte Chip liegt nach beiden undo()-Läufen unverändert');
+
+	// clear(): lässt genau den Sockel liegen, gibt den Rest in ursprünglicher Reihenfolge zurück.
+	const tisch2 = new BetTable({
+		fields: [
+			{ id: 'a', label: 'A', covers: [1], payout: 1, max: 1000 },
+			{ id: 'b', label: 'B', covers: [1], payout: 1, max: 1000 },
+		],
+		roundMax: 1000,
+	});
+	tisch2.place('a', 10); // #1
+	tisch2.place('b', 20); // #2
+	tisch2.place('a', 4); // #3
+	tisch2.freeze('a', 10);
+
+	const geraeumt = tisch2.clear();
+	check(Array.isArray(geraeumt), `clear() liefert ein Array (gefunden: ${JSON.stringify(geraeumt)})`);
+	check(tiefGleich(geraeumt, [{ fieldId: 'b', value: 20 }, { fieldId: 'a', value: 4 }]),
+		`clear() gibt genau den Rest zurück, in ursprünglicher Legereihenfolge (gefunden: ${JSON.stringify(geraeumt)})`);
+	check(tisch2.stakeOn('a') === 10, `der Sockel auf 'a' bleibt liegen (gefunden: ${tisch2.stakeOn('a')})`);
+	check(tisch2.stakeOn('b') === 0, `'b' ist vollständig abgeräumt (gefunden: ${tisch2.stakeOn('b')})`);
+
+	// double(): Felder MIT Sockel bleiben unangetastet, die übrigen verdoppeln.
+	const tisch3 = new BetTable({
+		fields: [
+			{ id: 'vertrag', label: 'V', covers: [1], payout: 1, max: 1000 },
+			{ id: 'offen', label: 'O', covers: [1], payout: 1, max: 1000 },
+		],
+		roundMax: 1000,
+	});
+	tisch3.place('vertrag', 15);
+	tisch3.freeze('vertrag', 15);
+	tisch3.place('offen', 6);
+
+	const verdoppelt = tisch3.double();
+	check(verdoppelt.ok === true, `double() gelingt (gefunden: ${JSON.stringify(verdoppelt)})`);
+	check(tisch3.stakeOn('vertrag') === 15, `'vertrag' bleibt unverdoppelt bei 15 (gefunden: ${tisch3.stakeOn('vertrag')})`);
+	check(tisch3.stakeOn('offen') === 12, `'offen' wird verdoppelt auf 12 (gefunden: ${tisch3.stakeOn('offen')})`);
+	check(tiefGleich(verdoppelt.added, [{ fieldId: 'offen', value: 6 }]),
+		`double() meldet nur den frei verdoppelten Chip zurück (gefunden: ${JSON.stringify(verdoppelt.added)})`);
+
+	// Gegenprobe: liegt NUR eine Vertragswette, sagt double() 'empty' und ändert nichts.
+	const tisch4 = new BetTable({
+		fields: [{ id: 'vertrag', label: 'V', covers: [1], payout: 1, max: 1000 }],
+		roundMax: 1000,
+	});
+	tisch4.place('vertrag', 15);
+	tisch4.freeze('vertrag', 15);
+	const vorher4 = tisch4.snapshot();
+	const ablehnung4 = tisch4.double();
+	check(ablehnung4.ok === false && ablehnung4.reason === 'empty',
+		`GEGENPROBE: double() mit AUSSCHLIESSLICH gesockelten Feldern sagt mit reason:'empty' ab (gefunden: ${JSON.stringify(ablehnung4)})`);
+	check(tiefGleich(tisch4.snapshot(), vorher4), 'GEGENPROBE: dabei wurde nichts verändert');
+}
+
+/* =========================================================== TB-neu-4 snapshot/restore mit Sockel */
+
+console.log('\nTB-neu-4  snapshot()/restore() führen die Sockel mit');
+{
+	const tisch = new BetTable({
+		fields: [{ id: 'f', label: 'F', covers: [1], payout: 1, max: 1000 }],
+		roundMax: 1000,
+	});
+	tisch.place('f', 20);
+	tisch.freeze('f', 10);
+
+	const aufnahme = tisch.snapshot();
+	check(tiefGleich(aufnahme.floors, [['f', 10]]), `snapshot() führt die Sockel mit (gefunden: ${JSON.stringify(aufnahme.floors)})`);
+
+	tisch.unfreeze('f');
+	check(tisch.floorOn('f') === 0, 'zur Kontrolle: der Sockel ist jetzt tatsächlich aufgehoben');
+
+	tisch.restore(aufnahme);
+	check(tisch.floorOn('f') === 10, `restore() stellt den Sockel wieder her (gefunden: ${tisch.floorOn('f')})`);
+
+	// Ein wiederhergestellter Tisch verhält sich in takeBack() genau wie vorher.
+	const zuFruehesTakeBack = tisch.takeBack('f');
+	check(zuFruehesTakeBack.ok === false && zuFruehesTakeBack.reason === 'frozen',
+		`nach restore() sperrt takeBack() unter den wiederhergestellten Sockel genau wie vorher (gefunden: ${JSON.stringify(zuFruehesTakeBack)})`);
+}
+
 /* ------------------------------------------------------------- Ergebnis */
 
 console.log(fehler === 0
 	? '\nERGEBNIS: alle Prüfungen bestanden. Legen, Stapeln, Zurücknehmen, Feld- und'
-	+ '\nRundenlimits, Auswertung und der Rundenablauf sind unter Node bewiesen.'
+	+ '\nRundenlimits, Auswertung, der Rundenablauf, countsToRoundMax und die'
+	+ '\nSockel für Vertragswetten sind unter Node bewiesen.'
 	: `\nERGEBNIS: ${fehler} Prüfung${fehler === 1 ? '' : 'en'} fehlgeschlagen.`);
 
 process.exit(fehler === 0 ? 0 : 1);

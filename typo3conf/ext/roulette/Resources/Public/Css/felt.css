@@ -42,11 +42,16 @@
    1  Anordnung von Rad und Tuch, Rollverhalten
    ========================================================================== */
 
+/* min-inline-size: 0 gehoert zum Behebungslauf 2026-09-07 (Auditbefund
+   H-02): die Buehne ist selbst ein Flexkind von .ck-table und haette sonst
+   min-width: auto — sie bliebe so breit wie das Tuch, und der Rollbereich
+   .ro-felt__scroll bekaeme nie eine Breite, unter der er rollen muesste. */
 .ro-table__stage {
 	display: flex;
 	flex-wrap: wrap;
 	gap: var(--ck-space-3);
 	align-items: flex-start;
+	min-inline-size: 0;
 }
 
 .ro-table__wheel {

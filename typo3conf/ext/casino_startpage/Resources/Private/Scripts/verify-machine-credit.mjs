@@ -25,6 +25,10 @@
  *     Speicher.
  *  5. Ohne ausreichenden Gerätekredit wird nichts abgebucht.
  *  6. Die Kappung am Höchststand lässt nichts verschwinden.
+ *  7. withdraw() (Ansage vom 2026-09-07, „Chips einzeln zurückgeben") löscht
+ *     den Spiegel, sobald der Gerätekredit dadurch auf 0 fällt, legt ihn nicht
+ *     neu an, und benachrichtigt die Zuhörer genau einmal mit reason
+ *     'withdraw'; nach close() liefert es 'closed' und bewegt nichts.
  *
  *
  * WARUM MIT DEN ECHTEN DATEIEN UND WIE
@@ -371,6 +375,48 @@ check(racer.amount === 0 && credit.balance === beforeRace,
 	'verliert eine Karte das Wettrennen um denselben Absturzrest, bucht sie nichts nach');
 check(fakeStore.getItem(RACE_KEY) === 'fremdeKennung|40',
 	'der Eintrag der gewinnenden Karte bleibt unangetastet');
+
+console.log('\nwithdraw() (Ansage vom 2026-09-07: Chips einzeln zurückgeben)');
+
+const WITHDRAW_MIRROR_KEY = 'casinoKunterbunt.machine.pruefgeraetwithdraw';
+const wd = openMachineCredit('pruefgeraetwithdraw');
+await wd.ready;
+await credit.set(500);
+await wd.insert(80);
+check(fakeStore.getItem(WITHDRAW_MIRROR_KEY) === `${wd.token}|80`,
+	'Testaufbau: der Spiegel steht nach insert(80)');
+
+let withdrawNotifications = [];
+const unsubscribeWithdraw = wd.subscribe((event) => {
+	if (event.reason !== 'subscribe') {
+		withdrawNotifications.push(event.reason);
+	}
+});
+
+const kasseVorTeilabhebung = credit.balance;
+const teilabhebung = await wd.withdraw(30);
+check(teilabhebung.ok === true && teilabhebung.moved === 30 && wd.amount === 50,
+	'withdraw(30) bewegt genau 30, der Gerätekredit sinkt auf 50');
+check(credit.balance === kasseVorTeilabhebung + 30, 'die Kasse wächst um genau denselben Betrag');
+check(fakeStore.getItem(WITHDRAW_MIRROR_KEY) === `${wd.token}|50`,
+	'der Spiegel bleibt stehen und trägt den neuen Betrag, solange der Gerätekredit über 0 liegt');
+check(withdrawNotifications.length === 1 && withdrawNotifications[0] === 'withdraw',
+	`withdraw() benachrichtigt die Zuhörer genau einmal mit reason "withdraw" (gemeldet: ${withdrawNotifications.join(', ') || '—'})`);
+
+withdrawNotifications = [];
+const restabhebung = await wd.withdraw(50);
+check(restabhebung.ok === true && restabhebung.moved === 50 && wd.amount === 0,
+	'withdraw(50) leert den Gerätekredit vollständig');
+check(fakeStore.getItem(WITHDRAW_MIRROR_KEY) === null,
+	'bei 0 wird der Spiegel GELÖSCHT (B.5.2) und nicht neu angelegt');
+check(withdrawNotifications.length === 1 && withdrawNotifications[0] === 'withdraw',
+	'auch die zweite Teilabhebung benachrichtigt genau einmal');
+
+unsubscribeWithdraw();
+await wd.close();
+const nachSchliessenWd = await wd.withdraw(1);
+check(nachSchliessenWd.ok === false && nachSchliessenWd.reason === 'closed' && nachSchliessenWd.moved === 0,
+	'nach close() liefert withdraw() "closed" und bewegt nichts');
 
 console.log('\nKappung am Höchststand');
 

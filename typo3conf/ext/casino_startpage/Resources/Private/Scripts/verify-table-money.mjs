@@ -30,6 +30,11 @@
  *  9. machine-credit.js und credit.js sind seit Phase C1 buchstabengleich
  *     geblieben (Zusage an die Automaten, insbesondere den eingefrorenen
  *     Münzschieber).
+ * 10. withdraw() bewegt einen Teilbetrag, ohne dass die Summe aus Kasse und
+ *     Gerätekredit sich ändert.
+ * 11. buyChip()/sellChip() bewegen GENAU EINEN Chip und GENAU seinen Wert.
+ * 12. Über 3000 zufällige Schritte hinweg hält die Invariante, und beim
+ *     Verlassen kommt die Kasse auf ihren Ausgangswert zurück.
  *
  *
  * WARUM MIT DEN ECHTEN DATEIEN UND WIE
@@ -140,6 +145,7 @@ check(patchedBuyin !== buyinSource && !patchedBuyin.includes('@phomo17/casino-st
 	'beide Modulnamen in table-buyin.js wurden für Node aufgelöst');
 
 const { credit } = await import(CREDIT_URL.href);
+const { CHIP_VALUES } = await import(CHIPS_URL.href);
 const { openTableBank } = await import(
 	`data:text/javascript;base64,${Buffer.from(patchedBuyin, 'utf8').toString('base64')}`
 );
@@ -432,6 +438,169 @@ check(bankSechs.staked === stakedVorFehlschlag, 'staked ist unverändert');
 await bankSechs.close();
 
 /* ============================================================================
+   M-10 — withdraw() bewegt einen Teilbetrag, ohne die Gesamtsumme zu ändern
+   ============================================================================ */
+
+console.log('\nM-10 — machineCredit.withdraw() bewegt genau den angeforderten Teilbetrag');
+
+await credit.reload();
+await credit.set(500);
+const bankSieben = openTableBank('muster_pruef_withdraw');
+await bankSieben.ready;
+await bankSieben.machineCredit.insert(200);
+check(bankSieben.machineCredit.amount === 200, 'Testaufbau: Gerätekredit über insert() auf 200 gebracht');
+
+const summeVorTeilrueckgabe = credit.balance + bankSieben.machineCredit.amount;
+const teilrueckgabe = await bankSieben.machineCredit.withdraw(60);
+check(teilrueckgabe.ok === true && teilrueckgabe.moved === 60,
+	`withdraw(60) meldet Erfolg und bewegt genau 60 (moved: ${teilrueckgabe.moved})`);
+check(bankSieben.machineCredit.amount === 140,
+	`der Gerätekredit sinkt um genau 60 auf 140 (${bankSieben.machineCredit.amount})`);
+check(credit.balance + bankSieben.machineCredit.amount === summeVorTeilrueckgabe,
+	'die Summe aus Kasse und Gerätekredit ist vor und nach withdraw() gleich');
+
+const zuViel = await bankSieben.machineCredit.withdraw(bankSieben.machineCredit.amount + 1);
+check(zuViel.ok === false && zuViel.reason === 'insufficient' && zuViel.moved === 0,
+	'ein Betrag über dem Gerätekredit wird mit "insufficient" abgelehnt und bewegt nichts');
+check(bankSieben.machineCredit.amount === 140,
+	'der abgelehnte Versuch hat den Gerätekredit nicht verändert');
+
+await bankSieben.close();
+const nachSchliessen = await bankSieben.machineCredit.withdraw(1);
+check(nachSchliessen.ok === false && nachSchliessen.reason === 'closed' && nachSchliessen.moved === 0,
+	'nach close() liefert withdraw() "closed" und bewegt nichts');
+
+/* ============================================================================
+   M-11 — buyChip()/sellChip() bewegen GENAU EINEN Chip und GENAU seinen Wert
+   ============================================================================ */
+
+console.log('\nM-11 — buyChip()/sellChip() bewegen genau einen Chip und genau seinen Wert, für alle fünf Werte');
+
+await credit.reload();
+await credit.set(100000);
+const bankAcht = openTableBank('muster_pruef_chipkasse');
+await bankAcht.ready;
+
+for (const value of CHIP_VALUES) {
+	const kasseVorKauf = credit.balance;
+	const buyInVorKauf = bankAcht.amount;
+	const zahlVorKauf = bankAcht.rack.countOf(value);
+	const kauf = await bankAcht.buyChip(value);
+	check(kauf.ok === true && kauf.value === value && kauf.count === zahlVorKauf + 1,
+		`buyChip(${value}) erhöht die Stückzahl um genau 1 (${kauf.count})`);
+	check(bankAcht.amount === buyInVorKauf + value,
+		`buyChip(${value}) erhöht den Buy-in um genau ${value} (${bankAcht.amount})`);
+	check(credit.balance === kasseVorKauf - value,
+		`buyChip(${value}) belastet die Kasse um genau ${value}`);
+
+	const zahlVorVerkauf = bankAcht.rack.countOf(value);
+	const buyInVorVerkauf = bankAcht.amount;
+	const kasseVorVerkauf = credit.balance;
+	const verkauf = await bankAcht.sellChip(value);
+	check(verkauf.ok === true && verkauf.value === value && verkauf.count === zahlVorVerkauf - 1,
+		`sellChip(${value}) senkt die Stückzahl um genau 1 (${verkauf.count})`);
+	check(bankAcht.amount === buyInVorVerkauf - value,
+		`sellChip(${value}) senkt den Buy-in um genau ${value} (${bankAcht.amount})`);
+	check(credit.balance === kasseVorVerkauf + value,
+		`sellChip(${value}) schreibt der Kasse genau ${value} gut`);
+}
+
+const leererVerkauf = await bankAcht.sellChip(CHIP_VALUES[0]);
+check(leererVerkauf.ok === false && leererVerkauf.reason === 'nochip',
+	'sellChip() auf eine leere Sorte meldet "nochip" und bewegt nichts');
+check(bankAcht.rack.countOf(CHIP_VALUES[0]) === 0 && bankAcht.amount === 0,
+	'der Fehlschlag hat weder Rack noch Buy-in verändert');
+
+const kasseVorUnbekannt = credit.balance;
+const unbekannterKauf = await bankAcht.buyChip(3);
+check(unbekannterKauf.ok === false && unbekannterKauf.reason === 'unknown',
+	'buyChip() mit einem unbekannten Wert (3) meldet "unknown" und bewegt nichts');
+check(bankAcht.amount === 0 && credit.balance === kasseVorUnbekannt,
+	'der abgelehnte Kauf hat weder Buy-in noch Kasse verändert');
+await bankAcht.close();
+
+/* ============================================================================
+   M-12 — 3000 zufällige Schritte: die Ansage vom 2026-09-07, rechnerisch belegt
+   ============================================================================ */
+
+console.log('\nM-12 — 3000 zufällige Schritte aus buyChip/sellChip/placeChip/returnChip/payout');
+
+await credit.reload();
+const startKasseM12 = 5000;
+await credit.set(startKasseM12);
+const bankNeun = openTableBank('muster_pruef_dauerlauf');
+await bankNeun.ready;
+
+/** Individuelle Chipwerte, die gerade auf dem (gedachten) Tuch liegen. */
+let stakedM12 = [];
+const drawM12 = sequence(20260907);
+let schritteM12 = 0;
+
+for (let i = 0; i < 3000; i++) {
+	const aktion = drawM12(5);
+	if (aktion === 0) {
+		// Chip kaufen
+		const value = CHIP_VALUES[drawM12(CHIP_VALUES.length)];
+		if (credit.canAfford(value)) {
+			await bankNeun.buyChip(value);
+		}
+	} else if (aktion === 1) {
+		// Chip verkaufen — nur, wenn das Rack einen hergibt.
+		const vorhanden = bankNeun.rack.toArray();
+		if (vorhanden.length > 0) {
+			const wahl = vorhanden[drawM12(vorhanden.length)];
+			await bankNeun.sellChip(wahl.value);
+		}
+	} else if (aktion === 2) {
+		// Chip legen — nur, wenn das Rack einen hergibt.
+		const vorhanden = bankNeun.rack.toArray();
+		if (vorhanden.length > 0) {
+			const wahl = vorhanden[drawM12(vorhanden.length)];
+			const result = await bankNeun.placeChip(wahl.value);
+			if (result.ok === true) {
+				stakedM12.push(wahl.value);
+			}
+		}
+	} else if (aktion === 3) {
+		// Chip zurücknehmen — nur, wenn etwas liegt.
+		if (stakedM12.length > 0) {
+			const index = drawM12(stakedM12.length);
+			const value = stakedM12[index];
+			const result = await bankNeun.returnChip(value);
+			if (result.ok === true) {
+				stakedM12.splice(index, 1);
+			}
+		}
+	} else {
+		// Auswertung ohne Gewinn oder Verlust: was auf dem Tuch liegt, geht
+		// unverändert zurück. M-12 prüft die Buchführung dieser Datei, nicht
+		// eine Gewinnquote — die tragen verify-bets.mjs und verify-wagers.mjs.
+		if (stakedM12.length > 0) {
+			const summe = stakedM12.reduce((sum, v) => sum + v, 0);
+			await bankNeun.payout(summe, summe);
+			stakedM12 = [];
+		}
+	}
+
+	schritteM12 += 1;
+	if (bankNeun.rack.total !== bankNeun.amount) {
+		check(false, `Schritt ${schritteM12}: rack.total (${bankNeun.rack.total}) !== machineCredit.amount (${bankNeun.amount})`);
+		break;
+	}
+}
+check(!failed, `${schritteM12} Schritte gespielt, die Invariante rack.total === machineCredit.amount hielt nach jedem einzelnen`);
+
+const verfallenBeiSchluss = stakedM12.reduce((sum, v) => sum + v, 0);
+const geraeteBetragVorSchluss = bankNeun.amount;
+const kasseVorSchluss = credit.balance;
+await bankNeun.close();
+check(credit.balance === kasseVorSchluss + geraeteBetragVorSchluss,
+	`beim Schließen wandert der gesamte verbliebene Gerätekredit (${geraeteBetragVorSchluss}) in die Kasse`);
+check(credit.balance === startKasseM12 - verfallenBeiSchluss,
+	`die Kasse steht nach dem Schließen exakt auf ihrem Ausgangswert (${startKasseM12}) abzüglich dessen, `
+	+ `was auf dem Tuch verfallen ist (${verfallenBeiSchluss}): ${credit.balance}`);
+
+/* ============================================================================
    M-9 — die Zusage an die Automaten
    ============================================================================ */
 
@@ -446,7 +615,11 @@ console.log('\nM-9 — machine-credit.js und credit.js sind unverändert');
  * bewusst zu erneuern. Beides soll auffallen, nicht durchrutschen.
  */
 const ERWARTETE_PRUEFSUMMEN = {
-	'machine-credit.js': '3bebad44c5e2d5f37eef9e38c272d0562e8724b3fc5bc114c8f648d1e74e9d0b',
+	// Erneuert am Tag von Phase T: machine-credit.js hat mit withdraw() eine
+	// zusätzliche Methode bekommen (Ansage „Chips einzeln zurückgeben",
+	// 2026-09-07). Nichts Bestehendes wurde geändert; die Zusage an die
+	// Automaten prüft seither M-9b Zeile für Zeile statt über die Prüfsumme.
+	'machine-credit.js': 'f1c78305429470bf74cd2aeacda6aa09889c61892c3c9b8670aed55beced3be1',
 	'credit.js': '226f66c0e73a52ac40f0e27cb3197204d37f7a2f73058df9368fb46cdb07b752',
 };
 for (const [datei, erwartet] of Object.entries(ERWARTETE_PRUEFSUMMEN)) {
@@ -454,6 +627,45 @@ for (const [datei, erwartet] of Object.entries(ERWARTETE_PRUEFSUMMEN)) {
 	const tatsaechlich = createHash('sha256').update(inhalt, 'utf8').digest('hex');
 	check(tatsaechlich === erwartet, `${datei} ist buchstabengleich zu seinem Stand vor Phase C1 (${tatsaechlich})`);
 }
+
+console.log('\nM-9b — die sechs Methoden, auf die sich die Automaten verlassen, sind unverändert');
+
+/**
+ * Die Rümpfe, die der eingefrorene Münzschieber und die drei Automaten
+ * benutzen. Sie werden aus dem Quelltext ausgeschnitten (von „	async NAME("
+ * bis zur schließenden Klammer auf derselben Einrückung) und gegen ihre
+ * Prüfsumme gehalten. Kommt eine Methode hinzu — wie withdraw() —, ändert das
+ * hier nichts; wird eine BESTEHENDE angefasst, fällt es auf.
+ */
+const ERWARTETE_METHODEN = {
+	insert: '5394f911784256e42a15196056ed12aa1efc25244fdbd6fb0348c86227eee50c',
+	cashOut: 'f777bccfc28c764defeb709082472525102ecc5aa4012b004bb74e108f8966b5',
+	stake: '211a1a14f663aa1fed83a382771b62239ac3de72b648599d1c30e9eb86654308',
+	award: '88bfd8760eebbbdb6dc455a544ca04a3ffb45e972130cc12b854fa794cb7f426',
+	close: '32518bf7b71f5a7c31f669583b2bba51a48e9f65d11b217ee2edf9b702deac5b',
+	claim: '367273773b0baa92b6d62c29c21d66fa30d42f94ba42a9607b9cc33db8da1cab',
+};
+
+/** Schneidet den Rumpf einer Methode aus dem Quelltext. @returns {?string} */
+function methodenRumpf(quelle, name) {
+	const anfang = quelle.indexOf(`\n\tasync ${name}(`);
+	if (anfang === -1) {
+		return null;
+	}
+	const ende = quelle.indexOf('\n\t}\n', anfang);
+	return ende === -1 ? null : quelle.slice(anfang, ende + 4);
+}
+
+const machineJetzt = await readFile(fileURLToPath(MACHINE_URL), 'utf8');
+for (const [name, erwartet] of Object.entries(ERWARTETE_METHODEN)) {
+	const rumpf = methodenRumpf(machineJetzt, name);
+	const gemessen = rumpf === null
+		? 'FEHLT'
+		: createHash('sha256').update(rumpf, 'utf8').digest('hex');
+	check(gemessen === erwartet, `machine-credit.js: ${name}() ist unverändert (${gemessen})`);
+}
+check(methodenRumpf(machineJetzt, 'withdraw') !== null,
+	'machine-credit.js: withdraw() existiert');
 
 console.log(failed
 	? '\nERGEBNIS: das Geld am Spieltisch stimmt NICHT.'

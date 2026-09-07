@@ -19,7 +19,7 @@ anderen Extension etwas geändert werden muss.
 | Composer-Name | `phomo17/roulette` |
 | Namespace | `Phomo17\Roulette\` |
 | TYPO3-Version | 13.4 (klassische, nicht Composer-basierte Installation) |
-| Abhängigkeit | `casino_startpage` >= 0.1.0 (Design-Tokens, darunter die sechs neuen Rad-Farben) |
+| Abhängigkeit | `casino_startpage` >= 0.3.0 (Design-Tokens, darunter die sechs neuen Rad-Farben) |
 | Lizenz | AGPL-3.0-or-later |
 | Quelltext | https://github.com/phomo17/casino-kunterbunt_t3v13classic |
 
@@ -852,7 +852,7 @@ ist rechnerisch (`verify-bets.mjs`, Prüfung B-11) und steht bereits fest.
 
 ## Stand
 
-Version 0.2.0 (alpha). Phase C2 (Rad und Physik) und Phase C3 (Tuch, Wetten,
+Version 0.3.0 (alpha). Phase C2 (Rad und Physik) und Phase C3 (Tuch, Wetten,
 Auszahlung, Klang) sind vollständig eingearbeitet.
 
 **Phase C2** (fünf Teilstücke C2-A bis C2-E): die Extension ist

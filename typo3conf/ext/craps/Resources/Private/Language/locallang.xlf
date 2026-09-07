@@ -1,0 +1,301 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" version="1.2">
+	<file source-language="de" datatype="plaintext" original="EXT:craps/Resources/Private/Language/locallang.xlf" date="2026-09-07T00:00:00Z" product-name="craps">
+		<header/>
+		<body>
+			<trans-unit id="automat.title">
+				<source>Craps</source>
+			</trans-unit>
+			<trans-unit id="automat.description">
+				<source>47 Wettfelder auf grünem Tuch: Pass Line, Come, Odds und Place-Zahlen, dazu Hardways und ein laufender Point. Zwei Würfel werden selbst geworfen, das Ergebnis entsteht aus der Simulation.</source>
+			</trans-unit>
+
+			<!-- Die Wurfleiste -->
+			<trans-unit id="throw.mode.legend">
+				<source>Wer wirft?</source>
+			</trans-unit>
+			<trans-unit id="throw.mode.watch">
+				<source>Zuschauen</source>
+			</trans-unit>
+			<trans-unit id="throw.mode.watch.hint">
+				<source>Der Tisch wirft. Kraft, Winkel und Lage der Würfel werden gezogen.</source>
+			</trans-unit>
+			<trans-unit id="throw.mode.shoot">
+				<source>Selbst werfen</source>
+			</trans-unit>
+			<trans-unit id="throw.mode.shoot.hint">
+				<source>Die Würfel aufnehmen, schütteln und werfen – oder die Wurfkraft einstellen und die Taste drücken.</source>
+			</trans-unit>
+			<trans-unit id="throw.power.label">
+				<source>Wurfkraft</source>
+			</trans-unit>
+			<trans-unit id="throw.button">
+				<source>Würfel werfen</source>
+			</trans-unit>
+			<trans-unit id="throw.hint">
+				<source>Mit gedrückter Maustaste oder gedrücktem Finger die Würfel aufnehmen, durch Bewegen schütteln und zum Werfen loslassen – je schneller die Bewegung beim Loslassen, desto kräftiger der Wurf. Ohne Zeigegerät: Wurfkraft einstellen und „Würfel werfen“ drücken.</source>
+			</trans-unit>
+
+			<!-- Ansage im Live-Bereich. {0} erster Würfel, {1} zweiter, {2} Summe -->
+			<trans-unit id="throw.announce.picked">
+				<source>Die Würfel liegen in der Hand. Bewegen schüttelt sie, Loslassen wirft.</source>
+			</trans-unit>
+			<trans-unit id="throw.announce.rolling">
+				<source>Die Würfel rollen.</source>
+			</trans-unit>
+			<trans-unit id="throw.announce.result">
+				<source>{0} und {1}, zusammen {2}.</source>
+			</trans-unit>
+			<trans-unit id="throw.announce.short">
+				<source>Zu kurz geworfen: die Würfel haben die gegenüberliegende Bande nicht erreicht. Der Wurf zählt nicht und wird wiederholt.</source>
+			</trans-unit>
+			<trans-unit id="throw.announce.blocked">
+				<source>Die Würfel rollen noch.</source>
+			</trans-unit>
+			<trans-unit id="throw.announce.norandom">
+				<source>Dieser Browser stellt keine sichere Zufallsquelle bereit. Der Tisch spielt nicht.</source>
+			</trans-unit>
+			<trans-unit id="throw.announce.power">
+				<source>Wurfkraft {0} von 10.</source>
+			</trans-unit>
+
+			<!-- Platzhalterregel (Festlegung aus Phase C3b, hier unverändert
+			     weitergeführt): Kennungen, die SERVERSEITIG über
+			     f:translate(arguments: …) aufgelöst werden, benutzen %1$s/%2$s —
+			     TYPO3s TranslateViewHelper löst über PHPs vsprintf() auf. Kennungen,
+			     die JAVASCRIPT zur Laufzeit ersetzt, benutzen {0}/{1}. Wer das
+			     verwechselt, bekommt unaufgelöste Platzhalter ins HTML. -->
+
+			<!-- ===== Das Tuch: Überschrift, Sprunglink, Gruppen ===== -->
+			<trans-unit id="felt.label">
+				<source>Das Tuch</source>
+			</trans-unit>
+			<trans-unit id="felt.skip">
+				<source>Tuch überspringen und zur Bedienleiste</source>
+			</trans-unit>
+			<trans-unit id="felt.group.numbers">
+				<source>Die Punktzahlen</source>
+			</trans-unit>
+			<trans-unit id="felt.group.lines">
+				<source>Linien- und Field-Wetten</source>
+			</trans-unit>
+			<trans-unit id="felt.group.hardways">
+				<source>Hardway-Wetten</source>
+			</trans-unit>
+			<trans-unit id="felt.group.single">
+				<source>Einmalwetten</source>
+			</trans-unit>
+
+			<!-- Der Puck. „OFF“/„ON“ sind der Aufdruck, der Name ist deutsch. -->
+			<trans-unit id="felt.puck.off">
+				<source>OFF</source>
+			</trans-unit>
+			<trans-unit id="felt.puck.on">
+				<source>ON</source>
+			</trans-unit>
+			<trans-unit id="felt.point.none">
+				<source>Kein Point – der nächste Wurf ist ein Come-out.</source>
+			</trans-unit>
+			<trans-unit id="felt.point.set">
+				<source>Der Point steht auf {0}.</source>
+			</trans-unit>
+
+			<!-- Der Name eines Feldes zur Laufzeit (table-felt.js).
+			     {0} Name, {1} Auszahlung, {2} Höchsteinsatz, {3} gesetzter Betrag.
+			     {1} bleibt ungenutzt: die Auszahlung steht schon in {0}. -->
+			<trans-unit id="felt.fieldname">
+				<source>{0}, höchstens {2} Euro, {3} Euro gesetzt</source>
+			</trans-unit>
+			<trans-unit id="felt.fieldname.empty">
+				<source>{0}, höchstens {2} Euro, nichts gesetzt</source>
+			</trans-unit>
+
+			<!-- ===== Aufschriften auf dem Tuch ===== -->
+			<trans-unit id="felt.print.pass">
+				<source>Pass Line</source>
+			</trans-unit>
+			<trans-unit id="felt.print.dontpass">
+				<source>Don't Pass · Bar 12</source>
+			</trans-unit>
+			<trans-unit id="felt.print.come">
+				<source>Come</source>
+			</trans-unit>
+			<trans-unit id="felt.print.dontcome">
+				<source>Don't Come</source>
+			</trans-unit>
+			<trans-unit id="felt.print.odds">
+				<source>Odds</source>
+			</trans-unit>
+			<trans-unit id="felt.print.field">
+				<source>Field · die 2 zahlt 2 zu 1 · die 12 zahlt 3 zu 1</source>
+			</trans-unit>
+			<trans-unit id="felt.print.dontcome.4"><source>Don't Come 4</source></trans-unit>
+			<trans-unit id="felt.print.dontcome.5"><source>Don't Come 5</source></trans-unit>
+			<trans-unit id="felt.print.dontcome.6"><source>Don't Come 6</source></trans-unit>
+			<trans-unit id="felt.print.dontcome.8"><source>Don't Come 8</source></trans-unit>
+			<trans-unit id="felt.print.dontcome.9"><source>Don't Come 9</source></trans-unit>
+			<trans-unit id="felt.print.dontcome.10"><source>Don't Come 10</source></trans-unit>
+			<trans-unit id="felt.print.place.4"><source>Place 4</source></trans-unit>
+			<trans-unit id="felt.print.place.5"><source>Place 5</source></trans-unit>
+			<trans-unit id="felt.print.place.6"><source>Place 6</source></trans-unit>
+			<trans-unit id="felt.print.place.8"><source>Place 8</source></trans-unit>
+			<trans-unit id="felt.print.place.9"><source>Place 9</source></trans-unit>
+			<trans-unit id="felt.print.place.10"><source>Place 10</source></trans-unit>
+			<trans-unit id="felt.print.hard.4"><source>Hard 4</source></trans-unit>
+			<trans-unit id="felt.print.hard.6"><source>Hard 6</source></trans-unit>
+			<trans-unit id="felt.print.hard.8"><source>Hard 8</source></trans-unit>
+			<trans-unit id="felt.print.hard.10"><source>Hard 10</source></trans-unit>
+			<trans-unit id="felt.print.seven"><source>Die 7</source></trans-unit>
+			<trans-unit id="felt.print.craps"><source>2, 3 oder 12</source></trans-unit>
+			<trans-unit id="felt.print.two"><source>Die 2</source></trans-unit>
+			<trans-unit id="felt.print.three"><source>Die 3</source></trans-unit>
+			<trans-unit id="felt.print.eleven"><source>Die 11</source></trans-unit>
+			<trans-unit id="felt.print.twelve"><source>Die 12</source></trans-unit>
+
+			<!-- ===== Erreichbare Namen (serverseitig, deshalb %1$s) ===== -->
+			<trans-unit id="felt.name.pass">
+				<source>Pass Line, zahlt %1$s</source>
+			</trans-unit>
+			<trans-unit id="felt.name.dontpass">
+				<source>Don't Pass, zahlt %1$s, die 12 ist ein Patt</source>
+			</trans-unit>
+			<trans-unit id="felt.name.come">
+				<source>Come, zahlt %1$s, wandert auf die als Nächstes geworfene Zahl</source>
+			</trans-unit>
+			<trans-unit id="felt.name.dontcome">
+				<source>Don't Come, zahlt %1$s, die 12 ist ein Patt</source>
+			</trans-unit>
+			<trans-unit id="felt.name.passodds">
+				<source>Odds hinter der Pass Line, ohne Hausvorteil, höchstens nach der Staffel 3-4-5×</source>
+			</trans-unit>
+			<trans-unit id="felt.name.dontpassodds">
+				<source>Odds hinter Don't Pass, ohne Hausvorteil, höchstens nach der Staffel 3-4-5×</source>
+			</trans-unit>
+			<trans-unit id="felt.name.comepoint">
+				<source>Come-Zahl %1$s, zahlt %2$s. Hierher wandert eine Come-Wette von selbst.</source>
+			</trans-unit>
+			<trans-unit id="felt.name.dontcomepoint">
+				<source>Don't Come %1$s, zahlt %2$s. Hierher wandert eine Don't-Come-Wette von selbst.</source>
+			</trans-unit>
+			<trans-unit id="felt.name.comeodds">
+				<source>Odds hinter der Come-Zahl %1$s, zahlt %2$s, ohne Hausvorteil, volle Auszahlung in Schritten von %3$s Euro</source>
+			</trans-unit>
+			<trans-unit id="felt.name.dontcomeodds">
+				<source>Odds hinter der Don't-Come-Zahl %1$s, zahlt %2$s, ohne Hausvorteil, volle Auszahlung in Schritten von %3$s Euro</source>
+			</trans-unit>
+			<trans-unit id="felt.name.place">
+				<source>Place %1$s, zahlt %2$s, volle Auszahlung in Schritten von %3$s Euro, ruht beim Come-out</source>
+			</trans-unit>
+			<trans-unit id="felt.name.field">
+				<source>Field, zahlt 1 zu 1; die 2 zahlt 2 zu 1, die 12 zahlt 3 zu 1</source>
+			</trans-unit>
+			<trans-unit id="felt.name.hard">
+				<source>Hard %1$s: die %1$s als Doppel vor der einfachen %1$s und vor der 7, zahlt %2$s</source>
+			</trans-unit>
+			<trans-unit id="felt.name.seven">
+				<source>Die 7 im nächsten Wurf, zahlt 4 zu 1</source>
+			</trans-unit>
+			<trans-unit id="felt.name.craps">
+				<source>2, 3 oder 12 im nächsten Wurf, zahlt 7 zu 1</source>
+			</trans-unit>
+			<trans-unit id="felt.name.two">
+				<source>Die 2 im nächsten Wurf, zahlt 30 zu 1</source>
+			</trans-unit>
+			<trans-unit id="felt.name.three">
+				<source>Die 3 im nächsten Wurf, zahlt 15 zu 1</source>
+			</trans-unit>
+			<trans-unit id="felt.name.eleven">
+				<source>Die 11 im nächsten Wurf, zahlt 15 zu 1</source>
+			</trans-unit>
+			<trans-unit id="felt.name.twelve">
+				<source>Die 12 im nächsten Wurf, zahlt 30 zu 1</source>
+			</trans-unit>
+
+			<!-- ===== Der Schalter für die Place-Wetten ===== -->
+			<trans-unit id="felt.place.working">
+				<source>Place-Wetten arbeiten</source>
+			</trans-unit>
+			<trans-unit id="felt.place.hint">
+				<source>Beim Come-out ruhen Place-Wetten immer. Dieser Schalter entscheidet, ob sie arbeiten, solange ein Point steht.</source>
+			</trans-unit>
+
+			<!-- ===== Ansagen der Runde. {0} erster Würfel, {1} zweiter, {2} Summe ===== -->
+			<trans-unit id="round.announce.natural">
+				<source>{0} und {1}, zusammen {2}. Pass Line gewinnt.</source>
+			</trans-unit>
+			<trans-unit id="round.announce.craps">
+				<source>{0} und {1}, zusammen {2}. Craps – Pass Line verliert.</source>
+			</trans-unit>
+			<trans-unit id="round.announce.pointset">
+				<source>{0} und {1}, zusammen {2}. Der Point steht auf {2}.</source>
+			</trans-unit>
+			<trans-unit id="round.announce.pointmade">
+				<source>{0} und {1}, zusammen {2}. Der Point ist gefallen, Pass Line gewinnt.</source>
+			</trans-unit>
+			<trans-unit id="round.announce.sevenout">
+				<source>{0} und {1}, zusammen {2}. Seven-out – der Point ist verloren.</source>
+			</trans-unit>
+			<trans-unit id="round.announce.roll">
+				<source>{0} und {1}, zusammen {2}.</source>
+			</trans-unit>
+			<trans-unit id="round.announce.money.win">
+				<source>Zurück: {0} Euro auf {1} Euro Einsatz. Buy-in {2} Euro.</source>
+			</trans-unit>
+			<trans-unit id="round.announce.money.partial">
+				<source>Teilrückgabe: {0} Euro auf {1} Euro Einsatz. Buy-in {2} Euro.</source>
+			</trans-unit>
+			<trans-unit id="round.announce.money.loss">
+				<source>Verloren: {1} Euro. Buy-in {2} Euro.</source>
+			</trans-unit>
+			<trans-unit id="round.announce.money.none">
+				<source>Kein Einsatz aufgelöst.</source>
+			</trans-unit>
+			<trans-unit id="round.announce.nostake">
+				<source>Für den Come-out braucht es einen Einsatz auf Pass Line oder Don't Pass.</source>
+			</trans-unit>
+			<trans-unit id="round.announce.unavailable">
+				<source>Dieser Tisch ist gerade nicht verfügbar.</source>
+			</trans-unit>
+			<trans-unit id="round.announce.closed">
+				<source>Die Kasse dieses Tisches ist geschlossen. Die Runde ist zu Ende.</source>
+			</trans-unit>
+
+			<!-- ===== Absagen beim Setzen ===== -->
+			<trans-unit id="round.reject.contract">
+				<source>Die Pass Line liegt fest, solange der Point steht.</source>
+			</trans-unit>
+			<trans-unit id="round.reject.comeout">
+				<source>Come und Don't Come gehen erst, wenn ein Point steht.</source>
+			</trans-unit>
+			<trans-unit id="round.reject.traveled">
+				<source>Auf diese Zahl wandert eine Come-Wette von selbst; hier wird nicht gelegt.</source>
+			</trans-unit>
+			<trans-unit id="round.reject.nopoint">
+				<source>Odds gehen erst, wenn ein Point steht.</source>
+			</trans-unit>
+			<trans-unit id="round.reject.nobase">
+				<source>Odds brauchen zuerst ihre Grundwette.</source>
+			</trans-unit>
+			<trans-unit id="round.reject.oddsmax">
+				<source>Odds hier höchstens {0} Euro – Staffel 3-4-5×.</source>
+			</trans-unit>
+			<trans-unit id="round.hint.unit">
+				<source>Volle Auszahlung nur in Schritten von {0} Euro.</source>
+			</trans-unit>
+			<trans-unit id="round.history.point">
+				<source>Point {0}</source>
+			</trans-unit>
+
+			<!-- Der Ton-Schalter (Umsetzungsstück C7f) -->
+			<trans-unit id="sound.label">
+				<source>Ton</source>
+			</trans-unit>
+			<trans-unit id="sound.on">
+				<source>Ton ist an, ausschalten</source>
+			</trans-unit>
+			<trans-unit id="sound.off">
+				<source>Ton ist aus, einschalten</source>
+			</trans-unit>
+		</body>
+	</file>
+</xliff>

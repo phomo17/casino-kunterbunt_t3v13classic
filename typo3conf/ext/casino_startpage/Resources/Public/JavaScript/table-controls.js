@@ -43,7 +43,9 @@
  *
  *   [data-ck-table-controls]  data-message-nocash, data-message-invalid,
  *                              data-message-cashout-blocked,
- *                              data-message-cashout-done, data-text-rack-count,
+ *                              data-message-cashout-done, data-message-buyin-done,
+ *                              data-message-exchange-down-done,
+ *                              data-message-exchange-up-done, data-text-rack-count,
  *                              data-text-amount, data-text-undone,
  *                              data-text-limit (Table/Controls.html)
  *   [data-ck-table-status]    data-text-cleared, data-text-doubled,
@@ -93,6 +95,9 @@ export function connectControls(root, parts) {
 		invalid: messagesEl?.dataset.messageInvalid ?? '',
 		cashoutBlocked: messagesEl?.dataset.messageCashoutBlocked ?? '',
 		cashoutDone: messagesEl?.dataset.messageCashoutDone ?? '',
+		buyinDone: messagesEl?.dataset.messageBuyinDone ?? '',
+		exchangeDownDone: messagesEl?.dataset.messageExchangeDownDone ?? '',
+		exchangeUpDone: messagesEl?.dataset.messageExchangeUpDone ?? '',
 		rackCount: messagesEl?.dataset.textRackCount ?? '',
 		amount: messagesEl?.dataset.textAmount ?? '',
 		undone: messagesEl?.dataset.textUndone ?? '',
@@ -102,6 +107,7 @@ export function connectControls(root, parts) {
 		repeated: statusEl?.dataset.textRepeated ?? '',
 		nochip: statusEl?.dataset.textNochip ?? '',
 		locked: statusEl?.dataset.textLocked ?? '',
+		frozen: statusEl?.dataset.textFrozen ?? '',
 	};
 
 	const chipInputs = [...root.querySelectorAll('[data-ck-table-chip]')];
@@ -223,6 +229,7 @@ export function connectControls(root, parts) {
 			if (buyinInput) {
 				buyinInput.value = '';
 			}
+			announce(fuelle(texts.buyinDone, [result.moved, bank.amount]));
 		} else if (result.reason === 'nocash') {
 			announce(fuelle(texts.nocash, [result.missing]));
 		}
@@ -239,12 +246,20 @@ export function connectControls(root, parts) {
 	}
 
 	function onExchangeDown(event) {
-		bank.exchangeDown(Number(event.currentTarget.getAttribute('data-ck-table-exchange-down')));
+		const value = Number(event.currentTarget.getAttribute('data-ck-table-exchange-down'));
+		const result = bank.exchangeDown(value);
+		if (result.ok === true) {
+			announce(fuelle(texts.exchangeDownDone, [value, bank.rack.countOf(value)]));
+		}
 		refresh();
 	}
 
 	function onExchangeUp(event) {
-		bank.exchangeUp(Number(event.currentTarget.getAttribute('data-ck-table-exchange-up')));
+		const value = Number(event.currentTarget.getAttribute('data-ck-table-exchange-up'));
+		const result = bank.exchangeUp(value);
+		if (result.ok === true) {
+			announce(fuelle(texts.exchangeUpDone, [value, bank.rack.countOf(value)]));
+		}
 		refresh();
 	}
 
@@ -253,6 +268,10 @@ export function connectControls(root, parts) {
 		if (result.ok !== true) {
 			if (result.reason === 'locked') {
 				announce(texts.locked);
+			} else if (result.reason === 'frozen') {
+				// Es liegt etwas auf dem Tuch, aber alles davon ist
+				// Vertragswette. Ohne diesen Zweig bliebe der Knopf stumm.
+				announce(fuelle(texts.frozen, ['']));
 			}
 			return;
 		}
@@ -276,7 +295,7 @@ export function connectControls(root, parts) {
 		for (const { value } of removed) {
 			await bank.returnChip(value);
 		}
-		announce(texts.cleared);
+		announce(bets.placements.length > 0 ? fuelle(texts.frozen, ['']) : texts.cleared);
 		refresh();
 	}
 

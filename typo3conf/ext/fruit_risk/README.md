@@ -18,7 +18,7 @@ anderen Extension etwas geändert werden muss.
 | Composer-Name | `phomo17/fruit-risk` |
 | Namespace | `Phomo17\FruitRisk\` |
 | TYPO3-Version | 13.4 (klassische, nicht Composer-basierte Installation) |
-| Abhängigkeit | `casino_startpage` >= 0.1.0 |
+| Abhängigkeit | `casino_startpage` >= 0.3.0 |
 | Import-Map-Präfix | `@phomo17/fruit-risk/` |
 | CSS-Präfix | `fr-` |
 | Lizenz | AGPL-3.0-or-later |
@@ -1255,7 +1255,7 @@ Phase F5 vollständig.
 
 ## Stand
 
-Version 0.2.0 (alpha). **Phase F5 abgeschlossen: Das Gerät ist vollständig.**
+Version 0.3.0 (alpha). **Phase F5 abgeschlossen: Das Gerät ist vollständig.**
 Zusätzlich zu allem aus Phase F4 (sechs laufende Walzen zu je 40 Bandzellen,
 sicherer Zufall über `crypto.getRandomValues` ohne jeden Rückfall,
 `START`/`STOP` für Zeiger und Tastatur, Hervorhebung der Treffer, ein Satz
