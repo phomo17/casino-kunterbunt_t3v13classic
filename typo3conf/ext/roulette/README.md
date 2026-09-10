@@ -19,7 +19,7 @@ anderen Extension etwas geändert werden muss.
 | Composer-Name | `phomo17/roulette` |
 | Namespace | `Phomo17\Roulette\` |
 | TYPO3-Version | 13.4 (klassische, nicht Composer-basierte Installation) |
-| Abhängigkeit | `casino_startpage` >= 0.3.0 (Design-Tokens, darunter die sechs neuen Rad-Farben) |
+| Abhängigkeit | `casino_startpage` >= 0.4.0 (Design-Tokens, darunter die sechs neuen Rad-Farben) |
 | Lizenz | AGPL-3.0-or-later |
 | Quelltext | https://github.com/phomo17/casino-kunterbunt_t3v13classic |
 
@@ -92,15 +92,35 @@ an anderen Stellen installierbar ist.
 
 ## Der Tisch und das Rad
 
-Es gibt **zwei** Zeichnungen, und sie sind nicht zu verwechseln:
+Seit dem Umbau nach den zwei Bildvorlagen (Ansage vom 2026-09-08) stehen Rad
+und Spielplan auf **einer** Fläche, ringsum ein Holzrahmen — nicht mehr als
+zwei nebeneinanderstehende Kästen. Der Tisch ist ein Kasten mit festem
+Seitenverhältnis **504 : 160** und **drei gestapelten Schichten**:
 
-| Datei | Wofür |
-|---|---|
-| `Resources/Private/Partials/Table/Roulette/Cabinet.html` | die **Miniatur** im Saal. Vertrag aus `casino_startpage/README.md`: genau ein `.ck-cabinet`, darin genau ein `<svg class="ck-cabinet__drawing">` mit `viewBox`-Verhältnis 160 : 100 (Gattung Tisch, quer). Zeigt Tischplatte, Rad **und seit Phase C3 das Zahlenfeld des Tuchs** — als Zeichen, keine Maßzeichnung: zwölf Tuchspalten zu drei Zeilen, Nullspalte links, dieselbe Bauform wie auf der Spielseite (Prüfung A-7). |
-| `Resources/Private/Partials/Table/Roulette/Wheel.html` | das **große Rad** auf der Spielseite, mit allen 38 Fächern nach Anhang F, gerechnet vom `WheelProcessor`. |
-| `Resources/Private/Partials/Table/Roulette/Felt.html` | das **Tuch** auf der Spielseite: 159 echte Bedienteile nach Anhang F, gerechnet vom `FeltProcessor` — siehe „Das Tuch" unten. |
+| Datei | Schicht | Wofür |
+|---|---|---|
+| `Resources/Private/Partials/Table/Roulette/Cloth.html` | 1 (unten) | die **Zeichnung** des Tisches: Schatten, Holzrahmen, Maserung, Messingfase, Zarge, Tuch, Radmulde und die gerechneten Umrisse der zwei Pfeilfelder `0`/`00`. `aria-hidden`, sie sagt nichts, was nicht auch als Text dasteht. |
+| `Resources/Private/Partials/Table/Roulette/Wheel.html` | 2 (Mitte) | das **große Rad**, unverändert, mit allen 38 Fächern nach Anhang F, gerechnet vom `WheelProcessor`, jetzt absolut in der Radmulde platziert. |
+| `Resources/Private/Partials/Table/Roulette/Felt.html` | 3 (oben) | das **Tuch**: 159 echte Bedienteile nach Anhang F als durchsichtige Überlagerung, gerechnet vom `FeltProcessor` — siehe „Das Tuch" unten. |
 
-Beide Zeichnungen benutzen dieselbe Bauform (Ring, Messingrille, Fächerkranz,
+Dazu die **Miniatur** im Saal, `Resources/Private/Partials/Table/Roulette/Cabinet.html`:
+Vertrag aus `casino_startpage/README.md`, genau ein `.ck-cabinet`, darin genau
+ein `<svg class="ck-cabinet__drawing">` mit `viewBox`-Verhältnis 160 : 100
+(Gattung Tisch, quer). Zeigt Tischplatte, Rad und das Zahlenfeld des Tuchs —
+als Zeichen, keine Maßzeichnung.
+
+**Die Maßordnung, aus der alles folgt** (`Classes/BetLayout.php`): die
+`viewBox` von `Cloth.html` ist `0 0 504 160`. Darin liegt das Tuch bei
+x 20…484, y 20…140, die Radmulde bei Mittelpunkt 86/80 mit Halbmesser 58, und
+der Spielplankasten (das Gitter der 159 Felder) bei x 152…480, y 24…136 —
+also **328 × 112**. Das ist **genau** das Verhältnis 41 : 14 der Spursummen
+des CSS-Gitters (27 Spaltenspuren, 9 Zeilenspuren): `328 × 14 = 112 × 41 =
+4592`. Diese eine Gleichung ist das Herzstück des Umbaus — nur weil sie
+stimmt, füllen die `fr`-Anteile des Gitters den Spielplankasten der Zeichnung
+ohne Verzerrung aus, und Prüfung **F-13** in `verify-felt.mjs` rechnet sie bei
+jedem Lauf nach.
+
+Rad und Tuch benutzen dieselbe Bauform (Ring, Messingrille, Fächerkranz,
 Chromkegel, Kugel) und ausschließlich gedrehte Kopien eines einzigen
 Fach-Segments (`transform="rotate(…)"`) statt für jedes Fach einzeln
 gerechneter Koordinaten.
@@ -404,6 +424,23 @@ Kante oder in einem Eckpunkt berührt. Die Fünferwette ist eine ausdrücklich
 dokumentierte Ausnahme von genau dieser Regel (siehe unten, „Wetten, die es
 hier nicht gibt").
 
+**Die Aufschrift ist englisch, der Vorlesetext deutsch.** Ansage des
+Auftraggebers vom 2026-09-08: aufgedruckt wird wörtlich, was auf der
+Bildvorlage steht — die acht Aufschriften `2 to 1`, `1st 12`, `2nd 12`,
+`3rd 12`, `1–18`, `Even`, `Odd`, `19–36`. Damit ist die Aufschrift **kein
+übersetzbarer Text** mehr, sondern die Beschriftung eines Spielgeräts — wie
+die Augen auf einem Würfel. Sie steht deshalb als Klartext-Konstante in
+`Classes/BetLayout.php` und läuft **nicht** durch `f:translate`; eine
+englische Sprachfassung soll auf dem Tuch nichts anderes zeigen als eine
+deutsche. Jeder Aufschriftteil trägt seine Sprache mit sich (`lang="en"` für
+Buchstaben, kein `lang` für eine reine Zahlenangabe wie `1–18` — ein
+`lang="en"` an einer Ziffer machte aus „12" ein gesprochenes „twelve" statt
+„zwölf", WCAG 2.2 SC 3.1.2). Der **Vorlesetext** bleibt deutsch, kommt
+weiterhin aus `locallang.xlf` (Kennungen `felt.name.*`) und beginnt bei jedem
+Feld mit sichtbarer Aufschrift mit genau dieser Aufschrift (WCAG 2.2 SC 2.5.3
+„Label in Name", Prüfung F-20) — wer den Tisch mit der Stimme bedient, sagt
+das Wort, das er sieht.
+
 **Die zehn Bauformen der neun Wettarten** (Dreierreihe und Trio zahlen beide
 11:1, sind aber zwei verschiedene, unabhängig codierte Zweige in
 `bets-roulette.js` und werden deshalb getrennt gezählt — siehe
@@ -421,6 +458,26 @@ hier nicht gibt").
 | Kolonne | `col-` | 3 | 12 | 2 : 1 | 100 € |
 | Dutzend | `dz-` | 3 | 12 | 2 : 1 | 100 € |
 | Einfache Chance (Rot/Schwarz/Gerade/Ungerade/1–18/19–36) | — | 6 | 18 | 1 : 1 | 100 € |
+
+**Ovale, Rauten, Pfeilfelder.** Die 38 Zahlenfelder tragen ihre Ziffer als
+farbiges Oval statt als schlichten Text — Farbe kommt aus
+`WheelGeometry::RED`/`::BLACK`, damit dieselbe Zahl auf dem Tuch nie anders
+gefärbt sein kann als am Rad (Prüfung F-16). Nachgerechnet nach der
+WCAG-2.2-Formel: die aufgemalte Fachzahl (`--ck-pocket-mark`) erreicht 6,88:1
+auf Rot, 16,09:1 auf Schwarz und 5,76:1 auf Grün (Soll ≥ 4,5:1, SC 1.4.3); die
+helle Ovalkontur (`--ck-felt-line`) erreicht 6,32:1 gegen das Tuch (Soll ≥
+3:1, SC 1.4.11) — ohne sie wäre ein rotes Oval mit nur 1,01:1 auf dem Tuch
+praktisch unsichtbar. Rot und Schwarz tragen als einfache Chancen statt eines
+Wortes eine **Raute** in ihrer Farbe; beide bekommen dieselbe helle Kontur,
+und **zusätzlich nur die schwarze** eine feine Schraffur — der zweite,
+farbunabhängige Unterschied, den WCAG 2.2 SC 1.4.1 verlangt (Prüfung F-10).
+Der erreichbare Name jedes Zahlenfeldes nennt seine Farbe ausgeschrieben
+(„17, schwarz"), damit eine Aussage, die auf dem Tuch nur über Farbe
+transportiert wird, nicht verloren geht. Die Umrisse der zwei Pfeilfelder `0`
+und `00` werden **gerechnet** (`BetLayout::arrowPaths()`) und liegen in der
+Zeichenschicht `Cloth.html`, nicht als `clip-path` am Knopf — ein `clip-path`
+schnitte den Fokusrahmen mit ab, derselbe Fehler, den `opacity` in diesem
+Haus bereits viermal verursacht hat (Prüfung F-15).
 
 Zusammen **159 Felder** — nachgezählt in `verify-bets.mjs`, Prüfung B-2/B-3.
 Diese Tabelle ist eine Lesehilfe, kein vierter Ort für Anhang F: Anzahl,
@@ -461,18 +518,34 @@ geprüfte Datei selbst), und über 500.000 gespielte Runden bestätigt (siehe
 
 | Ort | Rolle |
 |---|---|
-| `Resources/Public/JavaScript/bets-roulette.js` | die **maßgebliche Fassung**. Importfrei, läuft unverändert unter Node und im Browser; `table-bets.js` (Phase C1) macht daraus die Buchführung. |
-| `Classes/BetLayout.php` | der **geprüfte PHP-Spiegel**, damit das Tuch serverseitig gezeichnet werden kann. `verify-felt.mjs`, Prüfung F-1, gleicht beide Fassungen für alle 159 Felder Feld für Feld ab. |
-| `Classes/DataProcessing/FeltProcessor.php` | rechnet aus der PHP-Fassung die Gitterlage (`grid-column`/`grid-row`) und den lesbaren Text der abgedeckten Zahlen vor, damit `Felt.html` keine einzige Zahl von Hand enthält. |
+| `Resources/Public/JavaScript/bets-roulette.js` | die **maßgebliche Fassung der Buchführung**: Kennung, Art, abgedeckte Zahlen, Auszahlung, Höchsteinsatz und Gitterlage. Importfrei, läuft unverändert unter Node und im Browser; `table-bets.js` (Phase C1) macht daraus die Buchführung im Browser. Seit dem Umbau nach der Bildvorlage führt sie **nicht** mehr die Aufschrift oder den Namen — die wurden von keiner einzigen Zeile JavaScript gelesen. |
+| `Classes/BetLayout.php` | der **geprüfte Buchführungsspiegel und alles, was gezeichnet wird**: Aufschrift (englisch, Klartext), Ovalfarbe, Rautenzuordnung, `labelKey`/`labelArgs` des deutschen Vorlesetexts, und die Maßordnung der Tischzeichnung (`viewBox`, Tuch, Radmulde, Spielplankasten, die zwei Pfeilumrisse). `verify-felt.mjs`, Prüfung F-1, gleicht die Buchführungsdaten beider Fassungen für alle 159 Felder Feld für Feld ab; F-13 rechnet die Maßordnung nach. |
+| `Classes/DataProcessing/FeltProcessor.php` | rechnet aus der PHP-Fassung die Gitterlage (`grid-column`/`grid-row`) für Fluid vor und bereitet Aufschrift, Name und Gruppierung für `Felt.html` auf, damit dort keine einzige Zahl und kein Text von Hand steht. |
 
 ## Woher die Form des Tuchs kommt
 
 Für die Copyright-Prüfung nach V.7: das Tuch besteht ausschließlich aus
 Gitterspuren (CSS-Grid), Rechtecken mit gerundeten Ecken (die Namensschilder)
 und einer Raute (die Farbfelder Rot/Schwarz) — keine Vorlage wurde
-abgezeichnet, importiert oder vektorisiert. Die Anordnung folgt der Spielregel
-des amerikanischen Roulettes (Regeln sind frei, CONCEPT.md B.3 Nr. 1), nicht
-der Gestaltung eines bestimmten Herstellertisches. Kein fremder Name steht in
+abgezeichnet, importiert oder vektorisiert. Seit dem Umbau nach den zwei
+Bildvorlagen (Ansage vom 2026-09-08) gilt dasselbe für die Tischzeichnung
+(`Cloth.html`): Holzrahmen, Messingfase, Zarge, Tuch und Radmulde sind
+gerechnete SVG-Rechtecke und ein gerechneter Kreis, die zwei Pfeilumrisse für
+`0`/`00` sind gerechnete SVG-Pfade (`BetLayout::arrowPaths()`) — auch hier
+keine Bilddatei, kein importierter Pfad, keine Vektorisierung. Als Vorbild
+dienten zwei Bildvorlagen, die der Rechteinhaber dieses Projekts vor der
+Verwendung selbst rechtlich geprüft und freigegeben hat (`DECISIONS.md`,
+2026-09-08); keine von beiden ist Bestandteil dieses Repositoriums, keine
+wurde eingebettet und keine vektorisiert. Die erste war für den
+**Spielplan** maßgeblich — übernommen ist von ihr allein der funktionale
+Feldaufbau des üblichen amerikanischen Tableaus, der als Spielregel und
+funktionale Anordnung nicht geschützt ist (CONCEPT.md B.3 Nr. 1; US
+Copyright Office Circular 33; § 2 Abs. 2 UrhG i. V. m. BGH
+„Geburtstagszug"), gezeichnet in eigener Gestaltung und mit unseren Quoten
+aus Anhang F. Die zweite diente ausdrücklich **nur der Orientierung** für
+die Gesamtwirkung — ein Tisch, ringsum ein Holzrahmen, Rad und Spielplan
+auf einer Fläche —, nicht als Vorlage zum Nachbau: das **Raddesign dieses
+Projekts ist unverändert das eigene**. Kein fremder Name steht in
 Text, Datei, Klasse, Kommentar oder Bezeichner; keine Schriftdatei wird
 nachgeladen; keine Farbsystem-Nummer oder sonstige Herstellerfarbangabe kommt
 vor — jede Farbe ist ein `--ck-…`-Token aus `casino_startpage/tokens.css`.
@@ -586,8 +659,11 @@ Ereignis- und Messpunktvertrag" oben für die genaue Aufteilung.
 **Der Sprunglink über das Tuch.** 159 Feldknöpfe sind 159 Tabstationen. Als
 erstes fokussierbares Element im Tuch steht deshalb ein Sprunglink zur
 Bedienleiste (WCAG 2.2, Erfolgskriterium 2.4.1 „Bypass Blocks"), über die im
-Site Package schon vorhandene Klasse `.ck-skiplink` — verborgen über
-`opacity`/Position, nie über `display`, sonst bekäme er nie den Fokus.
+Site Package schon vorhandene Klasse `.ck-skiplink` — er versteckt sich seit
+dem 2026-09-09 über seine **Größe** (1 × 1 Bildpunkt, `clip-path: inset(50%)`),
+nicht mehr über eine negative Lage: damit gibt es keinen Bezugsrahmen mehr,
+der falsch sein könnte, und der Link ist unsichtbar, wo immer er im
+Rollbereich steht. Nie über `display`, sonst bekäme er nie den Fokus.
 
 **Tastaturbedienung, überall.** Jedes Bedienteil — die 159 Feldknöpfe, der
 Ton-Schalter, der Rundenauslöser (heute Teil der geteilten Bedienleiste,
@@ -599,19 +675,32 @@ aus der Tastaturreihenfolge und beantwortete nicht, warum er gerade nicht
 geht — das gilt für Felder während einer laufenden Runde, für Chips ohne
 Deckung und für `CASH OUT`, solange Chips auf dem Tuch liegen.
 
-**Zielgröße (WCAG 2.2, Erfolgskriterium 2.5.8).** Ein Zahlenfeld ist
-mindestens 2,75 rem (44 px) in beide Richtungen groß (`--ro-cell`); ein
-Linienfeld — die Linie zwischen zwei Zahlen, an der ein Split, eine Ecke oder
-eine Reihe liegt — ist genau 1,5 rem (24 px), die Untergrenze des
-Erfolgskriteriums und nicht darunter (`--ro-line`). Reicht der Platz nicht,
-wird das Tuch **gerollt**, nie verkleinert — die Zielgröße ist eine Zusage,
-die Bildschirmbreite ist keine. Der Ton-Schalter und der Rundenauslöser sind
-ebenfalls mindestens 2,75 rem groß.
+**Zielgröße (WCAG 2.2, Erfolgskriterium 2.5.8).** Seit dem Umbau nach der
+Bildvorlage liegt das Tuch als Überlagerung auf der Tischzeichnung und die
+Gitterspuren tragen `fr`-Anteile statt fester `rem`-Breiten
+(`COLUMN_FRACTIONS`/`ROW_FRACTIONS` in `Classes/BetLayout.php`, gespiegelt in
+`felt.css`). Die Zielgröße wird deshalb **feldweise gerechnet**, nicht mehr an
+einer einzelnen Spurbreite abgelesen: `verify-felt.mjs`, Prüfung F-7, rechnet
+für **jedes** der 159 Felder aus Spurgewicht und der Untergrenze `--ro-line`
+(1,5 rem, 24 px) nach, dass es mindestens 24 × 24 Bildpunkte misst — das
+schmalste Feld trifft die Untergrenze genau, kein Feld fällt darunter. Der
+Tisch ist dadurch mindestens **1512 Bildpunkte** breit (41 Spaltenanteile ×
+1,5 rem × 504/328). Reicht der Platz nicht, wird das Tuch **gerollt**, nie
+verkleinert — die Zielgröße ist eine Zusage, die Bildschirmbreite ist keine.
+Der Ton-Schalter und der Rundenauslöser sind weiterhin mindestens 2,75 rem
+groß.
 
-**Namen für Felder ohne sichtbare Aufschrift.** Ein Split, eine Ecke, eine
-Dreier- oder Sechserreihe hat auf 24 Bildpunkten keinen Platz für Schrift.
-Solche Felder tragen ihren Namen serverseitig als `aria-label` UND als
-`data-ck-field-label` — ein rückwärtsverträglicher, zweizeiliger Vertrag im
+**Namen für alle 159 Felder.** Bis zum Umbau nach der Bildvorlage hatten nur
+Felder ohne sichtbare Aufschrift (Split, Ecke, Dreier- oder Sechserreihe —
+auf 24 Bildpunkten ist ohnehin kein Platz für Schrift) einen eigenen Namen;
+Zahlen-, Dutzend- und Chancenfelder brauchten keinen, weil ihre Aufschrift
+deutsch und eindeutig war. Seit die Aufschrift englisch ist (`Even`,
+`1st 12`) oder ganz fehlt (die zwei Rauten Rot/Schwarz), bliebe ein Feld ohne
+eigenen Namen für ein Vorleseprogramm unverständlich oder stumm — deshalb
+trägt jetzt **jedes** der 159 Felder seinen Namen serverseitig als
+`aria-label` UND als `data-ck-field-label`, beginnend mit seiner sichtbaren
+Aufschrift, wo es eine gibt (WCAG 2.2, Erfolgskriterium 2.5.3 „Label in
+Name", Prüfung F-20) — ein rückwärtsverträglicher, zweizeiliger Vertrag im
 geteilten Baustein `table-felt.js` (`casino_startpage/README.md`, „Vertrag
 für das Tuch eines Spiels"), der den vollständigen, mit dem gesetzten Betrag
 nachgeführten Namen daraus baut.
@@ -619,10 +708,16 @@ nachgeführten Namen daraus baut.
 **Farbe ist nie die einzige Aussage (WCAG 1.4.1).** Jedes Fach der
 Radzeichnung trägt seine Zahl als `<text>`; jede Marke im Verlaufsstreifen
 bekommt ein `text`-Feld und den Farbnamen als `title`. Auf dem Tuch sind Rot
-und Schwarz der heikelste Fall, weil die Farben das Spiel selbst sind: beide
-tragen zusätzlich zur Raute den ausgeschriebenen Namen („Rot"/„Schwarz") im
-Namensschild — auch in Graustufen oder bei fehlerhafter Farbwiedergabe bleibt
-„hier liegt eine Farbwette" ablesbar.
+und Schwarz der heikelste Fall, weil die Farben das Spiel selbst sind: seit
+dem Umbau nach der Bildvorlage druckt die Vorlage auf diesen beiden Feldern
+kein Wort mehr, sondern je eine Raute in ihrer Farbe. Beide Rauten tragen
+deshalb dieselbe helle Kontur (`--ck-felt-line`) — ohne sie wäre Rot mit nur
+1,01:1 auf dem Tuch praktisch unsichtbar —, und **zusätzlich nur die
+schwarze** eine feine Schraffur: der zweite, farbunabhängige Unterschied
+zwischen beiden (Prüfung F-10). Jedes der 38 Zahlenfelder nennt seine Farbe
+zusätzlich ausgeschrieben im erreichbaren Namen („17, schwarz") — auch in
+Graustufen oder bei fehlerhafter Farbwiedergabe bleibt „hier liegt eine
+Farbwette" ablesbar.
 
 **Das Namensschild.** Jedes Bedienteil mit sichtbarer Aufschrift — Ziffern,
 „2 zu 1", „1. Dutzend", „Rot", „Ton" — trägt ein helles, blickdichtes
@@ -639,6 +734,10 @@ Radgeometrie" oben):
 |---|---|---|
 | jede aufgedruckte Tuch-Aufschrift (`.ro-felt__print`) | Tuchwebung | 9,40 : 1 |
 | der Ton-Schalter (`.ro-sound__label`) | Bakelit-Bedienteil | 17,80 : 1 |
+| Fachzahl (`--ck-pocket-mark`) | Ovalfarbe Rot | 6,88 : 1 |
+| Fachzahl (`--ck-pocket-mark`) | Ovalfarbe Schwarz | 16,09 : 1 |
+| Fachzahl (`--ck-pocket-mark`) | Ovalfarbe Grün | 5,76 : 1 |
+| Ovalkontur (`--ck-felt-line`) | Tuch (SC 1.4.11) | 6,32 : 1 |
 
 **Kein Messpunkt mit zwei Bedeutungen.** Der Zustandsspiegel des Ton-Schalters
 heißt `data-ro-sound-on`, nicht `data-ro-sound` — dieses Attribut ist bereits
@@ -647,7 +746,7 @@ für Hilfsmittel). Ein Attribut mit zwei Bedeutungen war im Projekt zweimal ein
 Befund.
 
 Nachgewiesen von `verify-view.mjs` (Kennungen V-1 bis V-15),
-`verify-felt.mjs` (F-1 bis F-12) und `verify-sound.mjs` (S-1 bis S-10, siehe
+`verify-felt.mjs` (F-1 bis F-21) und `verify-sound.mjs` (S-1 bis S-10, siehe
 „Prüfskripte" unten). Ein Skript ersetzt keinen echten Tastatur- und
 Bildschirmleser-Durchgang — das bleibt ein von Hand zu prüfender Schritt.
 
@@ -778,16 +877,39 @@ jede Nachbarschaft gerechnet, der rechnerische Quotennachweis (B-11:
 36/38 für alle Felder außer der Fünferwette, 35/38 für sie), und der
 Rundenhöchstbetrag liegt unter der Summe der Feldhöchsteinsätze.
 
-`verify-felt.mjs` (Kennungen F-1 bis F-12): PHP-Spiegel und JavaScript
-stimmen für alle 159 Felder überein, jedes Feld hat genau einen Knopf, jeder
-Feldknopf ist ein echter `<button>`, `aria-label`/`data-ck-field-label`
-sitzen genau dort, wo ein `labelKey` es verlangt, jede benutzte
-XLIFF-Kennung existiert, `style`-Attribute enthalten ausschließlich
-`grid-column`/`grid-row`, die Zielgröße stimmt, `felt.css` hat keine eigene
-Farbe und keinen fehlenden Token, jede aufgedruckte Aufschrift erreicht
-mindestens 4,5 : 1 Kontrast gegen ihr Namensschild, Rot/Schwarz sind auch
-ohne Farbwahrnehmung erkennbar, der Sprunglink funktioniert, und die
-Überschriftenstufen stimmen.
+`verify-felt.mjs` (Kennungen F-1 bis F-21, seit dem Umbau nach der
+Bildvorlage um neun Prüfungen erweitert): PHP-Spiegel und JavaScript stimmen
+für die Buchführungsdaten aller 159 Felder überein (F-1), es gibt genau eine
+Knopf-Vorlage mit einem `<f:section name="Aufdruck">` (F-2), jeder Feldknopf
+ist ein echter `<button>` (F-3), `aria-label`/`data-ck-field-label` sitzen an
+allen 159 Feldern und ergeben paarweise verschiedene Namen (F-4), jede
+benutzte XLIFF-Kennung existiert und keine `felt.print.*`-Kennung kommt
+zurück (F-5), `style`-Attribute enthalten ausschließlich
+`grid-column`/`grid-row` (F-6), die Zielgröße stimmt feldweise gerechnet für
+alle 159 Felder (F-7), `felt.css` hat keine eigene Farbe und keinen
+fehlenden Token (F-8), jede aufgedruckte Aufschrift und jedes Oval erreichen
+mindestens 4,5 : 1 Kontrast (F-9), Rot/Schwarz sind auch ohne
+Farbwahrnehmung erkennbar (F-10), der Sprunglink funktioniert (F-11), und
+die Überschriftenstufen stimmen (F-12). **Neu seit dem Umbau nach der
+Bildvorlage:** die Maßordnung von Zeichnung, Stylesheet und Gitter passt
+zueinander, `328 × 14 = 112 × 41` (F-13); genau eine Fläche mit drei
+Schichten, kein Rest der alten Zwei-Kästen-Anordnung (F-14); die zwei
+Pfeilfelder `0`/`00` sind gerechnete Umrisse ohne `clip-path` am Knopf
+(F-15); die 38 Ovale stimmen mit der Radanordnung überein (F-16); kein
+gesperrter Zustand dimmt den Fokusrahmen mit `opacity`, ohne
+`:not(:focus-visible)` auszunehmen (F-17); die Aufschrift steht wörtlich in
+einer unabhängigen Abschrift der Vorlage (F-18); `lang="en"` sitzt an jedem
+Aufschriftteil mit Buchstaben und an keinem ohne (F-19); und jeder
+erreichbare Name enthält die sichtbare Aufschrift seines Feldes, „Label in
+Name" (F-20). **Ebenfalls neu, aus einer zurückgestellten Gestaltungsfrage**
+(siehe `DECISIONS.md`): die auslaufende Kante des Rollbereichs sitzt an einem
+umschließenden Element (`.ro-cloth__frame`), nicht an `.ro-cloth__scroll`
+selbst — sonst wanderte sie beim Rollen mit — und deckt kein fokussierbares
+Element ab (F-21). Ein **Wächterblock** am Anfang und Ende des Skripts bricht laut
+ab, sobald eine Pflichtdatei fehlt oder ein NUL-Byte enthält, und hält die
+Anzahl der tatsächlich ausgegebenen Zusagen gegen eine im Skript erklärte
+Zahl (`ERWARTETE_ZUSAGEN`) — eine stumm übersprungene Prüfung soll nicht
+mehr wie eine bestandene aussehen.
 
 `verify-round.mjs` (Kennungen R-1 bis R-15, rechnet mit den echten Bausteinen
 — `round-roulette.js`, `bets-roulette.js`, `table-bets.js`, `table-buyin.js`,
@@ -852,7 +974,7 @@ ist rechnerisch (`verify-bets.mjs`, Prüfung B-11) und steht bereits fest.
 
 ## Stand
 
-Version 0.3.0 (alpha). Phase C2 (Rad und Physik) und Phase C3 (Tuch, Wetten,
+Version 0.4.0 (alpha). Phase C2 (Rad und Physik) und Phase C3 (Tuch, Wetten,
 Auszahlung, Klang) sind vollständig eingearbeitet.
 
 **Phase C2** (fünf Teilstücke C2-A bis C2-E): die Extension ist
@@ -875,9 +997,22 @@ zentgenau in Geld übersetzt (siehe „Der lange Messlauf: Auszahlung" oben).
 
 Barrierefreiheit — Bewegungsdrosselung, Tastaturbedienung überall, zwei Live-
 Bereiche mit je einem Eigentümer, der Sprunglink über das Tuch, Zielgrößen,
-Namen für Felder ohne sichtbare Aufschrift, Farbe nie als einzige Aussage,
+Namen für alle 159 Felder, Farbe nie als einzige Aussage,
 Namensschilder und ihr Kontrast — ist eingearbeitet und in „Barrierefreiheit"
 oben vollständig dokumentiert.
+
+**Bauabschnitt V** (Umsetzungsstücke Va bis Ve, Ansage vom 2026-09-08): der
+Tisch ist nach zwei Bildvorlagen umgebaut — Rad und Spielplan liegen jetzt
+auf **einer** Fläche mit Holzrahmen statt in zwei nebeneinanderstehenden
+Kästen, das amerikanische Tableau ist bis auf die Zahlenanordnung (die
+unverändert blieb) nachgebildet: `0`/`00` als Pfeilfelder, die 38 Zahlen als
+farbige Ovale, `2 to 1`/die Dutzende/die einfachen Chancen als wörtliche
+Aufschrift der Vorlage, Rot/Schwarz als Rauten mit einem zweiten,
+farbunabhängigen Unterschied. Die Aufschrift ist seither englisch, der
+Vorlesetext bleibt deutsch (siehe „Das Tuch" oben). `verify-felt.mjs` ist von
+zwölf auf zwanzig Prüfungen gewachsen und trägt seither einen Wächterblock
+gegen eine stumm übersprungene Prüfung — eine Fehlerklasse, die dieses
+Projekt binnen einer Woche dreimal getroffen hat (siehe „Prüfskripte" oben).
 
 **Der vollständige Prüfstand**, acht Skripte, alle grün, jede neue Prüfung
 mit einer benannten Gegenprobe: `verify-cabinet`, `verify-wheel`,
@@ -893,3 +1028,14 @@ an ein bestimmtes fremdes Spiel erinnert.
 Bewusst noch nicht Teil dieser Extension: der Mehrspielerbetrieb an einem
 Tisch (Teil D, `CONCEPT.md`) und die beiden hohen Chips zu 500 € und 1.000 €
 (sie wären mit einem Feldhöchsteinsatz von 100 € nirgends legbar).
+
+Nach **Bauabschnitt V** hat ein eigener Gestaltungslauf dem Tisch Material,
+Licht und eine Mulde gegeben, ohne eine der Prüfungen zu verletzen — alle 37
+Prüfskripte des Projekts liefen danach erneut grün nach. Die
+Copyright-Prüfung nach `CONCEPT.md` V.7 ist für den umgebauten Tisch
+abgeschlossen; der einzige „beobachten"-Befund (die Werkstoffnamen
+„Bakelit"/„Nixie") wurde geprüft und bewusst **nicht** geändert, weil es
+sich um Gattungsbezeichnungen für Werkstoffe und Röhrentechnik handelt, nicht
+um geschützte Marken. Mit **Phase C8** ist Teil C insgesamt abgenommen: 36
+PASS, 0 FAIL, 0 BLOCKED im Abnahmetest, plus fünf von Hand nachgemessene
+Bedienläufe.

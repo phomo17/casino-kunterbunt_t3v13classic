@@ -21,9 +21,8 @@
  *   [data-ck-table-repeat]          wiederholen
  *   [data-ck-table-double]          verdoppeln
  *   [data-ck-table-go]              Auslöser der Runde (FREIWILLIG)
- *   [data-ck-table-buyin-form]      Wechselfeld: Betrag in Chips
- *   [data-ck-table-buyin-input]     das Zahlenfeld darin
- *   [data-ck-table-buyin-add]       Schnellwerte, value = Betrag
+ *   [data-ck-table-chip-buy]        einen Chip dieses Werts kaufen
+ *   [data-ck-table-chip-sell]       einen Chip dieses Werts zurückgeben
  *   [data-ck-table-cashout]         CASH OUT
  *   [data-ck-table-exchange-down]   kleiner wechseln, value = Chipwert
  *   [data-ck-table-exchange-up]     größer wechseln, value = Chipwert
@@ -34,6 +33,15 @@
  * Findet sie einen Haken nicht, tut sie dafür nichts — kein Fehler, keine
  * Anmeldung. Dieselbe Haltung wie credit-display.js.
  *
+ * WARUM DAS BETRAGSFORMULAR VERSCHWUNDEN IST
+ * -------------------------------------------
+ * Ansage des Auftraggebers vom 2026-09-07: je Chipsorte ein eigener Kauf- und
+ * Rückgabeweg, statt eines Betrags, den das Haus selbsttätig zerlegt. Die drei
+ * Haken des Formulars gibt es im Markup nicht mehr; nach der Haltung dieser
+ * Datei („findet sie einen Haken nicht, tut sie dafür nichts") wäre der Code
+ * dafür folgenlos liegengeblieben — er ist trotzdem entfernt, weil toter Code
+ * beim nächsten Lesen als Zusage missverstanden würde.
+ *
  *
  * WOHER DIE DEUTSCHEN SATZBAUTEN KOMMEN — EIGENE FESTLEGUNG
  * -----------------------------------------------------------
@@ -41,10 +49,10 @@
  * seinem options.texts). Statt eines zusätzlichen Parameters liest diese Datei
  * ihre Texte aus dem bereits ausgelieferten Markup:
  *
- *   [data-ck-table-controls]  data-message-nocash, data-message-invalid,
- *                              data-message-cashout-blocked,
- *                              data-message-cashout-done, data-message-buyin-done,
- *                              data-message-exchange-down-done,
+ *   [data-ck-table-controls]  data-message-nocash, data-message-cashout-blocked,
+ *                              data-message-cashout-done, data-message-chip-buy-done,
+ *                              data-message-chip-sell-done, data-message-chip-sell-none,
+ *                              data-message-chip-full, data-message-exchange-down-done,
  *                              data-message-exchange-up-done, data-text-rack-count,
  *                              data-text-amount, data-text-undone,
  *                              data-text-limit (Table/Controls.html)
@@ -92,10 +100,12 @@ export function connectControls(root, parts) {
 
 	const texts = {
 		nocash: messagesEl?.dataset.messageNocash ?? '',
-		invalid: messagesEl?.dataset.messageInvalid ?? '',
 		cashoutBlocked: messagesEl?.dataset.messageCashoutBlocked ?? '',
 		cashoutDone: messagesEl?.dataset.messageCashoutDone ?? '',
-		buyinDone: messagesEl?.dataset.messageBuyinDone ?? '',
+		chipBuyDone: messagesEl?.dataset.messageChipBuyDone ?? '',
+		chipSellDone: messagesEl?.dataset.messageChipSellDone ?? '',
+		chipSellNone: messagesEl?.dataset.messageChipSellNone ?? '',
+		chipFull: messagesEl?.dataset.messageChipFull ?? '',
 		exchangeDownDone: messagesEl?.dataset.messageExchangeDownDone ?? '',
 		exchangeUpDone: messagesEl?.dataset.messageExchangeUpDone ?? '',
 		rackCount: messagesEl?.dataset.textRackCount ?? '',
@@ -117,9 +127,8 @@ export function connectControls(root, parts) {
 	const repeatBtn = root.querySelector('[data-ck-table-repeat]');
 	const doubleBtn = root.querySelector('[data-ck-table-double]');
 	const goBtn = root.querySelector('[data-ck-table-go]');
-	const buyinForm = root.querySelector('[data-ck-table-buyin-form]');
-	const buyinInput = root.querySelector('[data-ck-table-buyin-input]');
-	const buyinAddButtons = [...root.querySelectorAll('[data-ck-table-buyin-add]')];
+	const chipBuyButtons = [...root.querySelectorAll('[data-ck-table-chip-buy]')];
+	const chipSellButtons = [...root.querySelectorAll('[data-ck-table-chip-sell]')];
 	const cashoutBtn = root.querySelector('[data-ck-table-cashout]');
 	const exchangeDownButtons = [...root.querySelectorAll('[data-ck-table-exchange-down]')];
 	const exchangeUpButtons = [...root.querySelectorAll('[data-ck-table-exchange-up]')];
@@ -198,6 +207,26 @@ export function connectControls(root, parts) {
 				input.removeAttribute('aria-disabled');
 			}
 		}
+		/*
+		 * Der Rückgabeknopf wird gesperrt, sobald von dieser Sorte kein Chip
+		 * mehr im Bestand liegt — aria-disabled, nicht disabled, aus
+		 * demselben Grund wie bei den Chip-Radioknöpfen darüber: beim
+		 * Betreten des Tisches ist jede Sorte leer, und fünf unerreichbare
+		 * Tabstationen wären schlimmer als fünf gesperrte.
+		 *
+		 * Der KAUF-Knopf wird nie gesperrt: ob die Kasse reicht, hängt am
+		 * Gesamtbestand, den diese Datei bewusst nicht kennt (sie greift nie
+		 * selbst auf den Speicher zu). Ein Kauf ohne Deckung wird beim Klick
+		 * beantwortet, mit der fehlenden Summe.
+		 */
+		for (const button of chipSellButtons) {
+			const value = Number(button.getAttribute('data-ck-table-chip-sell'));
+			if (bank.rack.countOf(value) <= 0) {
+				button.setAttribute('aria-disabled', 'true');
+			} else {
+				button.removeAttribute('aria-disabled');
+			}
+		}
 		if (cashoutBtn) {
 			const gesperrt = bank.hasStake || bank.amount <= 0;
 			if (gesperrt) {
@@ -219,30 +248,30 @@ export function connectControls(root, parts) {
 		refresh();
 	}
 
-	async function doBuyIn(amount) {
-		if (!Number.isInteger(amount) || amount < 1 || amount > 999999999) {
-			announce(texts.invalid);
-			return;
-		}
-		const result = await bank.buyIn(amount);
+	async function onChipBuy(event) {
+		const value = Number(event.currentTarget.getAttribute('data-ck-table-chip-buy'));
+		const result = await bank.buyChip(value);
 		if (result.ok === true) {
-			if (buyinInput) {
-				buyinInput.value = '';
-			}
-			announce(fuelle(texts.buyinDone, [result.moved, bank.amount]));
+			announce(fuelle(texts.chipBuyDone, [value, result.count, result.amount]));
 		} else if (result.reason === 'nocash') {
 			announce(fuelle(texts.nocash, [result.missing]));
+		} else if (result.reason === 'full') {
+			announce(fuelle(texts.chipFull, [value]));
 		}
 		refresh();
 	}
 
-	function onBuyinSubmit(event) {
-		event.preventDefault();
-		void doBuyIn(buyinInput ? Number(buyinInput.value) : NaN);
-	}
-
-	function onBuyinAdd(event) {
-		void doBuyIn(Number(event.currentTarget.getAttribute('data-ck-table-buyin-add')));
+	async function onChipSell(event) {
+		const value = Number(event.currentTarget.getAttribute('data-ck-table-chip-sell'));
+		const result = await bank.sellChip(value);
+		if (result.ok === true) {
+			announce(fuelle(texts.chipSellDone, [value, result.count, result.amount]));
+		} else if (result.reason === 'nochip') {
+			announce(fuelle(texts.chipSellNone, [value]));
+		} else if (result.reason === 'full') {
+			announce(fuelle(texts.chipFull, [value]));
+		}
+		refresh();
 	}
 
 	function onExchangeDown(event) {
@@ -401,9 +430,11 @@ export function connectControls(root, parts) {
 	repeatBtn?.addEventListener('click', onRepeat);
 	doubleBtn?.addEventListener('click', onDouble);
 	goBtn?.addEventListener('click', onGoClick);
-	buyinForm?.addEventListener('submit', onBuyinSubmit);
-	for (const button of buyinAddButtons) {
-		button.addEventListener('click', onBuyinAdd);
+	for (const button of chipBuyButtons) {
+		button.addEventListener('click', onChipBuy);
+	}
+	for (const button of chipSellButtons) {
+		button.addEventListener('click', onChipSell);
 	}
 	cashoutBtn?.addEventListener('click', onCashout);
 	for (const button of exchangeDownButtons) {
@@ -434,9 +465,11 @@ export function connectControls(root, parts) {
 		repeatBtn?.removeEventListener('click', onRepeat);
 		doubleBtn?.removeEventListener('click', onDouble);
 		goBtn?.removeEventListener('click', onGoClick);
-		buyinForm?.removeEventListener('submit', onBuyinSubmit);
-		for (const button of buyinAddButtons) {
-			button.removeEventListener('click', onBuyinAdd);
+		for (const button of chipBuyButtons) {
+			button.removeEventListener('click', onChipBuy);
+		}
+		for (const button of chipSellButtons) {
+			button.removeEventListener('click', onChipSell);
 		}
 		cashoutBtn?.removeEventListener('click', onCashout);
 		for (const button of exchangeDownButtons) {

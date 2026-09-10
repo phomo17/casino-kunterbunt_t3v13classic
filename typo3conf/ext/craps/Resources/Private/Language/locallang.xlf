@@ -7,7 +7,7 @@
 				<source>Craps</source>
 			</trans-unit>
 			<trans-unit id="automat.description">
-				<source>47 Wettfelder auf grünem Tuch: Pass Line, Come, Odds und Place-Zahlen, dazu Hardways und ein laufender Point. Zwei Würfel werden selbst geworfen, das Ergebnis entsteht aus der Simulation.</source>
+				<source>48 Wettfelder auf grünem Tuch: Pass Line, Come, Odds und Place-Zahlen, dazu Hardways, C&amp;E und ein laufender Point. Zwei Würfel werden selbst geworfen, das Ergebnis entsteht aus der Simulation.</source>
 			</trans-unit>
 
 			<!-- Die Wurfleiste -->
@@ -86,13 +86,10 @@
 				<source>Einmalwetten</source>
 			</trans-unit>
 
-			<!-- Der Puck. „OFF“/„ON“ sind der Aufdruck, der Name ist deutsch. -->
-			<trans-unit id="felt.puck.off">
-				<source>OFF</source>
-			</trans-unit>
-			<trans-unit id="felt.puck.on">
-				<source>ON</source>
-			</trans-unit>
+			<!-- felt.puck.off/felt.puck.on entfallen seit dem Umbau nach der
+			     Bildvorlage (2026-09-08): „OFF“/„ON“ sind Tuch-Beschriftung
+			     wie jede andere Aufschrift und stehen seither als Klartext
+			     in BetLayout.php (PRINT_PUCK_OFF/PRINT_PUCK_ON). -->
 			<trans-unit id="felt.point.none">
 				<source>Kein Point – der nächste Wurf ist ein Come-out.</source>
 			</trans-unit>
@@ -110,66 +107,55 @@
 				<source>{0}, höchstens {2} Euro, nichts gesetzt</source>
 			</trans-unit>
 
-			<!-- ===== Aufschriften auf dem Tuch ===== -->
-			<trans-unit id="felt.print.pass">
-				<source>Pass Line</source>
+			<!-- Die Überschrift und die Erläuterung der gezeichneten, nicht
+			     bespielbaren linken Tischseite. Sie ist SICHTBAR: eine Fläche,
+			     die aussieht wie ein Wettfeld und keines ist, muss sich
+			     erklären. -->
+			<trans-unit id="felt.mirror.label">
+				<source>Gegenüberliegende Tischseite</source>
 			</trans-unit>
-			<trans-unit id="felt.print.dontpass">
-				<source>Don't Pass · Bar 12</source>
+			<trans-unit id="felt.mirror.hint">
+				<source>Nur gezeichnet: dorthin fliegen die Würfel. Gesetzt wird auf der rechten Tischseite.</source>
 			</trans-unit>
-			<trans-unit id="felt.print.come">
-				<source>Come</source>
-			</trans-unit>
-			<trans-unit id="felt.print.dontcome">
-				<source>Don't Come</source>
-			</trans-unit>
-			<trans-unit id="felt.print.odds">
-				<source>Odds</source>
-			</trans-unit>
-			<trans-unit id="felt.print.field">
-				<source>Field · die 2 zahlt 2 zu 1 · die 12 zahlt 3 zu 1</source>
-			</trans-unit>
-			<trans-unit id="felt.print.dontcome.4"><source>Don't Come 4</source></trans-unit>
-			<trans-unit id="felt.print.dontcome.5"><source>Don't Come 5</source></trans-unit>
-			<trans-unit id="felt.print.dontcome.6"><source>Don't Come 6</source></trans-unit>
-			<trans-unit id="felt.print.dontcome.8"><source>Don't Come 8</source></trans-unit>
-			<trans-unit id="felt.print.dontcome.9"><source>Don't Come 9</source></trans-unit>
-			<trans-unit id="felt.print.dontcome.10"><source>Don't Come 10</source></trans-unit>
-			<trans-unit id="felt.print.place.4"><source>Place 4</source></trans-unit>
-			<trans-unit id="felt.print.place.5"><source>Place 5</source></trans-unit>
-			<trans-unit id="felt.print.place.6"><source>Place 6</source></trans-unit>
-			<trans-unit id="felt.print.place.8"><source>Place 8</source></trans-unit>
-			<trans-unit id="felt.print.place.9"><source>Place 9</source></trans-unit>
-			<trans-unit id="felt.print.place.10"><source>Place 10</source></trans-unit>
-			<trans-unit id="felt.print.hard.4"><source>Hard 4</source></trans-unit>
-			<trans-unit id="felt.print.hard.6"><source>Hard 6</source></trans-unit>
-			<trans-unit id="felt.print.hard.8"><source>Hard 8</source></trans-unit>
-			<trans-unit id="felt.print.hard.10"><source>Hard 10</source></trans-unit>
-			<trans-unit id="felt.print.seven"><source>Die 7</source></trans-unit>
-			<trans-unit id="felt.print.craps"><source>2, 3 oder 12</source></trans-unit>
-			<trans-unit id="felt.print.two"><source>Die 2</source></trans-unit>
-			<trans-unit id="felt.print.three"><source>Die 3</source></trans-unit>
-			<trans-unit id="felt.print.eleven"><source>Die 11</source></trans-unit>
-			<trans-unit id="felt.print.twelve"><source>Die 12</source></trans-unit>
 
-			<!-- ===== Erreichbare Namen (serverseitig, deshalb %1$s) ===== -->
+			<!-- ===== Erreichbare Namen (serverseitig, deshalb %1$s) =====
+
+			     ZWEI REGELN, DIE FÜR JEDEN EINTRAG HIER GELTEN:
+
+			     1  Steht auf dem Tuch ein englisches Wort, kommt es hier
+			        WÖRTLICH vor (WCAG 2.2 SC 2.5.3). „PASS LINE“, „FIELD“,
+			        „Seven“, „Any Craps“, „SIX“, „NINE“, „ODDS“, „Don't Pass
+			        Bar“, „Don't Come“ — jedes davon steht so da, wie es
+			        gedruckt ist. Prüfung F-23 hält das fest.
+			     2  Steht auf dem Tuch eine englische ZAHL („31 FOR 1“), nennt
+			        der Name sie UND unsere Schreibweise: „zahlt 31 for 1, also
+			        30 zu 1“. Sonst sähe die Umsetzung für einen blinden
+			        Spieler nach einem Rechenfehler aus. Auch das hält F-23
+			        fest.
+
+			     EINE BEKANNTE GRENZE: in einem aria-label lässt sich kein
+			     Sprachwechsel auszeichnen — das Attribut nimmt nur Text, kein
+			     Markup. Eine deutsche Stimme spricht „PASS LINE“ deshalb
+			     deutsch aus. Das ist eine Einschränkung von ARIA selbst und
+			     der Preis dafür, dass Label in Name erfüllt bleibt. -->
+
 			<trans-unit id="felt.name.pass">
-				<source>Pass Line, zahlt %1$s</source>
+				<source>PASS LINE, zahlt %1$s</source>
 			</trans-unit>
 			<trans-unit id="felt.name.dontpass">
-				<source>Don't Pass, zahlt %1$s, die 12 ist ein Patt</source>
+				<source>Don't Pass Bar, zahlt %1$s; die 12 ist ein Patt</source>
 			</trans-unit>
 			<trans-unit id="felt.name.come">
-				<source>Come, zahlt %1$s, wandert auf die als Nächstes geworfene Zahl</source>
+				<source>COME, zahlt %1$s, wandert auf die als Nächstes geworfene Zahl</source>
 			</trans-unit>
 			<trans-unit id="felt.name.dontcome">
-				<source>Don't Come, zahlt %1$s, die 12 ist ein Patt</source>
+				<source>Don't Come Bar, zahlt %1$s; die 12 ist ein Patt</source>
 			</trans-unit>
 			<trans-unit id="felt.name.passodds">
-				<source>Odds hinter der Pass Line, ohne Hausvorteil, höchstens nach der Staffel 3-4-5×</source>
+				<source>ODDS hinter der PASS LINE, ohne Hausvorteil, höchstens nach der Staffel 3-4-5×</source>
 			</trans-unit>
 			<trans-unit id="felt.name.dontpassodds">
-				<source>Odds hinter Don't Pass, ohne Hausvorteil, höchstens nach der Staffel 3-4-5×</source>
+				<source>ODDS hinter Don't Pass Bar, ohne Hausvorteil, höchstens nach der Staffel 3-4-5×</source>
 			</trans-unit>
 			<trans-unit id="felt.name.comepoint">
 				<source>Come-Zahl %1$s, zahlt %2$s. Hierher wandert eine Come-Wette von selbst.</source>
@@ -183,32 +169,49 @@
 			<trans-unit id="felt.name.dontcomeodds">
 				<source>Odds hinter der Don't-Come-Zahl %1$s, zahlt %2$s, ohne Hausvorteil, volle Auszahlung in Schritten von %3$s Euro</source>
 			</trans-unit>
+			<!-- Die vier Zahlenkästen mit Ziffernaufdruck. -->
 			<trans-unit id="felt.name.place">
 				<source>Place %1$s, zahlt %2$s, volle Auszahlung in Schritten von %3$s Euro, ruht beim Come-out</source>
 			</trans-unit>
-			<trans-unit id="felt.name.field">
-				<source>Field, zahlt 1 zu 1; die 2 zahlt 2 zu 1, die 12 zahlt 3 zu 1</source>
+			<!-- Die zwei Zahlenkästen mit ausgeschriebenem Aufdruck (SIX, NINE).
+			     %1$s ist das gedruckte Wort und steht ZUERST, damit wer den
+			     Rechner mit der Stimme bedient das sichtbare Wort sagen kann. -->
+			<trans-unit id="felt.name.place.word">
+				<source>%1$s, die Place-Wette auf die %2$s, zahlt %3$s, volle Auszahlung in Schritten von %4$s Euro, ruht beim Come-out</source>
 			</trans-unit>
+			<trans-unit id="felt.name.field">
+				<source>FIELD, zahlt %1$s auf 3, 4, 9, 10 und 11; die 2 ist eingekreist und zahlt doppelt (PAYS DOUBLE), also 2 zu 1; die 12 zahlt dreifach (PAYS TRIPLE), also 3 zu 1</source>
+			</trans-unit>
+			<!-- Ab hier die Felder mit englischem Zahlenaufdruck: %1$s ist die
+			     aufgedruckte Form, %2$s unsere. -->
 			<trans-unit id="felt.name.hard">
-				<source>Hard %1$s: die %1$s als Doppel vor der einfachen %1$s und vor der 7, zahlt %2$s</source>
+				<source>Hard %1$s: die %1$s als Doppel vor der einfachen %1$s und vor der 7, zahlt %2$s, also %3$s</source>
 			</trans-unit>
 			<trans-unit id="felt.name.seven">
-				<source>Die 7 im nächsten Wurf, zahlt 4 zu 1</source>
+				<source>Seven: die 7 im nächsten Wurf, zahlt %1$s, also %2$s</source>
 			</trans-unit>
 			<trans-unit id="felt.name.craps">
-				<source>2, 3 oder 12 im nächsten Wurf, zahlt 7 zu 1</source>
+				<source>Any Craps: 2, 3 oder 12 im nächsten Wurf, zahlt %1$s, also %2$s</source>
 			</trans-unit>
 			<trans-unit id="felt.name.two">
-				<source>Die 2 im nächsten Wurf, zahlt 30 zu 1</source>
+				<source>Die 2 im nächsten Wurf, zahlt %1$s, also %2$s</source>
 			</trans-unit>
 			<trans-unit id="felt.name.three">
-				<source>Die 3 im nächsten Wurf, zahlt 15 zu 1</source>
+				<source>Die 3 im nächsten Wurf, zahlt %1$s, also %2$s</source>
 			</trans-unit>
 			<trans-unit id="felt.name.eleven">
-				<source>Die 11 im nächsten Wurf, zahlt 15 zu 1</source>
+				<source>Die 11 im nächsten Wurf, zahlt %1$s, also %2$s</source>
 			</trans-unit>
 			<trans-unit id="felt.name.twelve">
-				<source>Die 12 im nächsten Wurf, zahlt 30 zu 1</source>
+				<source>Die 12 im nächsten Wurf, zahlt %1$s, also %2$s</source>
+			</trans-unit>
+			<!-- C & E: die einzige abgeleitete Wette des Tisches. %1$s ist die
+			     Quote bei 2, 3 oder 12 (3 zu 1), %2$s die bei der 11 (7 zu 1);
+			     beide kommen aus BetLayout.php und damit aus Anhang H. Der Name
+			     beginnt mit „C und E“, damit die beiden sichtbaren Buchstaben
+			     der Kreise darin vorkommen (WCAG 2.2 SC 2.5.3, Label in Name). -->
+			<trans-unit id="felt.name.crapseleven">
+				<source>C und E, Craps und Elf: der Einsatz zählt je zur Hälfte für 2, 3 oder 12 und für die 11. Bei 2, 3 oder 12 zahlt die Wette %1$s, bei der 11 zahlt sie %2$s.</source>
 			</trans-unit>
 
 			<!-- ===== Der Schalter für die Place-Wetten ===== -->

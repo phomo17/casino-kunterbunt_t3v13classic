@@ -3,11 +3,21 @@
 
 	Das Element hat keine Einstellungen und wertet keinen Datenbankwert aus.
 
-	REIHENFOLGE. Sie ist die Tastaturreihenfolge und bewusst gewählt: erst der
-	Hinweis und die geteilte Ansage, dann die Wanne mit ihrer eigenen Ansage
-	und dem Point-Stand, dann das Tuch (mit einem Sprunglink an seinem
-	Anfang), dann die Bedienleiste und die Wurfleiste, zuletzt der Verlauf.
-	Wer den Tisch zum ersten Mal betritt, hört zuerst, wie er bedient wird.
+	REIHENFOLGE. Sie ist die Tastaturreihenfolge und bewusst gewählt: erst die
+	Überschrift und die sichtbare Erklärung der gespiegelten Gegenseite, dann
+	der Tisch mit seinen 47 Feldern (mit einem Sprunglink an seinem Anfang) und
+	dem Place-Schalter, dann der Wurfhinweis, die geteilte Ansage, der
+	Rundenstand und der Ton-Schalter, dann die Bedienleiste und die
+	Wurfleiste, zuletzt der Verlauf. Wer den Tisch zum ersten Mal betritt,
+	hört zuerst, wie er bedient wird.
+
+	SEIT UMSETZUNGSSTÜCK Td: EINE FLÄCHE STATT ZWEIER. Wanne und Tuch waren bis
+	dahin zwei nebeneinanderstehende Zeichnungen (Phasen C6/C7); seit der
+	Ansage vom 2026-09-07 sind sie ein Kasten mit drei gestapelten Schichten
+	(Cloth, Felt, Dice). Die Überschrift, die sichtbare Erklärung der
+	Gegenseite und der Place-Schalter stehen deshalb HIER statt in Felt.html:
+	eine absolut positionierte Überlagerung hat keinen Platz mehr für etwas,
+	das im Layout VOR oder NACH ihr stehen soll.
 
 	Der Chipsatz steht als Erstes im Markup: ein <use> kann nur auf ein
 	<symbol> zeigen, das im Dokument schon steht. Dasselbe gilt für den
@@ -59,18 +69,107 @@
 	<f:render partial="Table/Craps/DiceSprite" />
 	<f:render partial="Table/Status" />
 
-	<div class="cr-table__stage">
-		<div class="cr-table__tray">
-			<p class="ck-table__hint">
-				<f:translate key="LLL:EXT:craps/Resources/Private/Language/locallang.xlf:throw.hint" />
-			</p>
-			<f:render partial="Table/Craps/Tray" />
-			<f:render partial="Table/Craps/Status" />
-			<f:render partial="Table/Craps/Round" />
-			<f:render partial="Table/Craps/SoundSwitch" />
+	<f:comment>
+		EINE FLÄCHE, DREI SCHICHTEN (Ansage des Auftraggebers vom 2026-09-07).
+
+		Bis dahin standen Wanne (Phase C6) und Tuch (Phase C7) als zwei
+		Zeichnungen nebeneinander — eine Folge des Phasenschnitts, die keiner
+		Prüfung auffiel, weil jede nur ihren Teil ansah. CONCEPT.md C.8.1 sagt
+		von Anfang an das Gegenteil: ein Tisch von oben, Banden ringsum, die
+		Würfel bleiben auf dem Tisch.
+
+		Die drei Schichten liegen in EINEM Kasten mit festem Seitenverhältnis
+		240 : 140 — der Maßordnung, in der dice-physics.js rechnet. Nur so
+		landen die Würfel dort, wo die Physik sie hinlegt, und nur so liegt das
+		Wettgitter deckungsgleich auf der Spielfläche.
+
+		  1  Cloth   Rahmen, Messingkante, Tuch, Pyramidengummi
+		  2  Felt    die 47 Knöpfe und die gezeichnete Gegenseite
+		  3  Dice    die beiden Würfel, ganz oben — sie rollen ÜBER die Felder
+
+		Der Rollbereich liegt AUSSEN um den Kasten (.cr-cloth__scroll). Bei
+		schmalem Bildschirm rollt dieser Kasten, nie die Seite.
+	</f:comment>
+	<section class="cr-cloth-area" aria-labelledby="cr-felt-title">
+		<h2 class="cr-felt__title" id="cr-felt-title">
+			<f:translate key="LLL:EXT:craps/Resources/Private/Language/locallang.xlf:felt.label" />
+		</h2>
+
+		<f:comment>
+			DIE SICHTBARE ERKLÄRUNG DER GEGENÜBERLIEGENDEN TISCHSEITE (Ansage vom
+			2026-09-07, Festlegung 3 zu Tc). Die linke Seitensektion weiter unten
+			ist gezeichnet, aber nicht bedient (aria-hidden, siehe Felt.html) —
+			eine Fläche, die aussieht wie ein Wettfeld und keines ist, muss sich
+			erklären, sonst ist sie eine Falle. Dieser Absatz steht deshalb VOR
+			dem Tisch und ist selbst NICHT aria-hidden.
+		</f:comment>
+		<p class="cr-felt__mirror-hint">
+			<strong><f:translate key="LLL:EXT:craps/Resources/Private/Language/locallang.xlf:felt.mirror.label" /></strong>
+			<f:translate key="LLL:EXT:craps/Resources/Private/Language/locallang.xlf:felt.mirror.hint" />
+		</p>
+
+		<f:comment>
+			DIE AUSLAUFENDE KANTE (DECISIONS.md, 2026-09-09T12:23:41).
+
+			.cr-cloth__frame ist das umschließende Element, das dem
+			Gestaltungslauf gefehlt hat: der Tisch ist breiter als die Seite
+			und rollt INNERHALB seines eigenen Kastens — das ist gebaut und
+			barrierefrei zulässig (die SEITE rollt nicht waagerecht), sieht
+			aber ohne Kante aus wie abgeschnitten statt wie rollbar. Die
+			Kante steht als ::before/::after am FRAME, nicht an
+			.cr-cloth__scroll selbst: ein Pseudoelement am Rollbereich wäre
+			dessen eigener Inhalt und wanderte beim Rollen mit. felt.css
+			trägt dafür pointer-events: none (die Kante darf kein
+			fokussierbares Element verdecken) und rollt selbst nicht mit.
+		</f:comment>
+		<div class="cr-cloth__frame">
+			<div class="cr-cloth__scroll">
+				<div class="cr-cloth">
+					<f:comment>
+						Cloth bekommt seit dem Umbau nach der Bildvorlage {felt}:
+						die drei geschwungenen Linien der Linienwetten werden aus
+						der Gitter-Maßordnung gerechnet (BetLayout::bandPaths())
+						und nicht in der Zeichnung abgeschrieben.
+					</f:comment>
+					<f:render partial="Table/Craps/Cloth" arguments="{felt: felt}" />
+					<f:render partial="Table/Craps/Felt" arguments="{felt: felt}" />
+					<f:render partial="Table/Craps/Dice" />
+				</div>
+			</div>
 		</div>
-		<f:render partial="Table/Craps/Felt" arguments="{felt: felt}" />
-	</div>
+
+		<f:comment>
+			Der Schalter für die Place-Wetten (CONCEPT.md C.8.4). Er stand bis
+			zur Zusammenlegung in Felt.html; seit das Tuch eine Überlagerung
+			ist, kann kein Bedienteil mehr darin liegen — eine absolut
+			positionierte Schicht hat keinen Platz für etwas, das darunter
+			gehört.
+
+			Ein natives Kontrollkästchen: es sammelt eine Einstellung, es löst
+			keine Handlung aus — genau der Unterschied zum Umschaltknopf des
+			Tons. EIN Schalter für alle sechs Place-Wetten statt sechs
+			einzelner: sechs zusätzliche Tabstationen für eine Einstellung, die
+			man in aller Regel gemeinsam setzt, wären mehr Bedienweg als
+			Nutzen.
+		</f:comment>
+		<div class="cr-felt__working">
+			<label class="cr-felt__working-label">
+				<input type="checkbox" class="cr-felt__working-input" data-cr-place-working=""
+					checked="checked" aria-describedby="cr-working-hint" />
+				<span><f:translate key="LLL:EXT:craps/Resources/Private/Language/locallang.xlf:felt.place.working" /></span>
+			</label>
+			<span class="cr-felt__working-hint" id="cr-working-hint">
+				<f:translate key="LLL:EXT:craps/Resources/Private/Language/locallang.xlf:felt.place.hint" />
+			</span>
+		</div>
+	</section>
+
+	<p class="ck-table__hint">
+		<f:translate key="LLL:EXT:craps/Resources/Private/Language/locallang.xlf:throw.hint" />
+	</p>
+	<f:render partial="Table/Craps/Status" />
+	<f:render partial="Table/Craps/Round" />
+	<f:render partial="Table/Craps/SoundSwitch" />
 
 	<div id="cr-controls" tabindex="-1">
 		<f:render partial="Table/Controls" arguments="{chips: chips, splittable: splittable, mergeable: mergeable}" />

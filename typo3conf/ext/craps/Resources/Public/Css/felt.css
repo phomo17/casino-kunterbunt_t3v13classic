@@ -10,24 +10,34 @@
  * WARUM EINE EIGENE DATEI NEBEN tray.css UND dice.css
  * ---------------------------------------------------
  * Wanne, Würfel und Tuch sind drei getrennte Zeichnungen mit drei getrennten
- * Maßordnungen. tray.css und dice.css werden in dieser Phase mit keiner Zeile
- * angefasst — die Wurfbedienung bleibt unangetastet.
+ * Maßordnungen. dice.css wird in dieser Phase mit keiner Zeile angefasst —
+ * die Wurfbedienung bleibt unangetastet. tray.css bekommt seit
+ * Umsetzungsstück Td (eine Fläche statt zweier) genau eine Änderung an
+ * seiner Anordnung (Abschnitt 1) — die Transformationskette der Würfel
+ * (Abschnitt 2 dort) bleibt ebenso unberührt.
  *
- * DIE MASSORDNUNG DES GITTERS
- * ---------------------------
- * 12 Spaltenspuren zu je --cr-cell, 11 Zeilenspuren. Zeile 1 ist die
- * Puck-Spur. Welches Feld wo liegt, steht in Classes/BetLayout.php und kommt
- * über den FeltProcessor fertig als grid-column/grid-row ins Markup — deshalb
- * steht hier keine einzige der 47 Positionen.
+ * DIE MASSORDNUNG DES GITTERS NACH DER BILDVORLAGE (Ansage vom 2026-09-08)
+ * ---------------------------------------------------------------------
+ * 96 Spaltenspuren zu je --cr-track, 11 Zeilenspuren. Zeile 1 ist die
+ * Puck-Spur. Spuren 1…37 sind die linke Seitensektion (gespiegelt, nur
+ * gezeichnet), 37…40 die gespiegelte E/C-Kreisspalte, 40…58 die
+ * Mittensektion, 58…61 die bespielbare E/C-Kreisspalte, 61…97 die rechte,
+ * bespielbare Seitensektion. Welches Feld wo liegt, steht in
+ * Classes/BetLayout.php und kommt über den FeltProcessor fertig als
+ * grid-column/grid-row (und, für die gespiegelte Seite, mirrorGridColumn)
+ * ins Markup — deshalb steht hier keine einzige der 48 Positionen.
  *
- * --cr-cell ist 2,75 rem (44 Bildpunkte). Das ist die Zielgröße aus WCAG 2.2,
- * Erfolgskriterium 2.5.8, mit Reserve; das schmalste Feld des Tuchs (ein
- * Odds-Streifen) ist genau eine Spur breit und erfüllt sie damit ohne
- * Ausnahme.
+ * --cr-track ist 0,75 rem (12 Bildpunkte). Das ist NICHT mehr die Zielgröße
+ * selbst — das schmalste FELD des Tuchs ist drei Spuren breit (36
+ * Bildpunkte), über den 24 aus WCAG 2.2 SC 2.5.8. Die elf Zeilen sind
+ * verschieden hoch (Classes/BetLayout.php, ROW_FRACTIONS); Prüfung F-7
+ * rechnet die Zielgröße für jedes der 48 Felder einzeln nach, statt sie an
+ * der Spurbreite abzulesen.
  *
  * REFLOW STATT SCHRUMPFEN (WCAG 2.2, SC 1.4.10; Auditbefund H-02)
  * ---------------------------------------------------------------
- * Das Tuch ist mindestens 33 rem breit. Bei Platzmangel wird GEROLLT, nicht
+ * Das Tuch ist mindestens 86,4 rem breit (96 Spuren zu 0,75rem × 240/200).
+ * Bei Platzmangel wird GEROLLT, nicht
  * verkleinert: die Zielgröße ist eine Zusage, die Bildschirmbreite ist keine.
  * Damit der Rollbereich überhaupt greift, muss min-inline-size: 0 die ganze
  * Elternkette hindurch durchgelassen werden — ein Flexkind hat von Haus aus
@@ -47,71 +57,307 @@
  */
 
 /* ==========================================================================
-   1  Bühne und Rollbereich
+   1  Der Tisch als EINE Fläche, und die Rollkette
    ========================================================================== */
 
-.cr-table__stage {
-	display: flex;
-	flex-wrap: wrap;
-	gap: var(--ck-space-3);
-	align-items: flex-start;
-	/* siehe Kopfkommentar, „REFLOW STATT SCHRUMPFEN" */
+/* DIE ROLLKETTE, VON AUSSEN NACH INNEN — und warum sie hier steht.
+   Ein Flexkind hat von Haus aus min-width: auto und schrumpft nie unter
+   seine Inhaltsbreite. Bleibt an EINER Stelle der Kette min-inline-size: 0
+   aus, läuft die Bildschirmbreite nicht bis zum Tisch durch: der Inhalt
+   bleibt so breit wie sein breitester Bestandteil, und .ck-room
+   (overflow-x: clip) schneidet den Überstand ab — clip lässt sich nicht
+   rollen, das Abgeschnittene ist unerreichbar. Beim Roulette war genau das
+   ein halbes Jahr lang der Fall (Auditbefund H-02, behoben am 2026-09-07).
+
+     .ck-room:has(.ck-room-fill) .ck-hall__content   min-inline-size: 0   base.css
+     .ck-room-fill                                   min-inline-size: 0   base.css
+     .cr-table                                       min-inline-size: 0   tray.css
+     .cr-cloth-area                                  min-inline-size: 0   hier
+     .cr-cloth__frame    (umschließt die Kante, kein Flex-Kind, braucht
+                          deshalb kein eigenes min-inline-size)            hier
+     .cr-cloth__scroll   overflow-x: auto            min-inline-size: 0   hier
+     .cr-cloth           min-inline-size: <Mindestbreite>                 hier
+
+   Erst das letzte Glied ist breiter als der Bildschirm — und genau dort,
+   und nur dort, wird gerollt. */
+
+/* GESTALTUNG 2026-09-09: die Sektion bekommt einen eigenen Rhythmus. Alles
+   auf dieser Seite hing bisher am selben Grundabstand des Saals, und damit
+   stand der Tisch — das größte Ding der Seite — genauso weit von seiner
+   Überschrift entfernt wie zwei Absätze voneinander. Zusammengehöriges
+   rückt zusammen, Getrenntes rückt auseinander: das ist der ganze
+   Unterschied zwischen „Liste von Bausteinen" und „ein Tisch mit
+   Beschriftung".
+
+   min-inline-size: 0 ist unverändert das dritte Glied der Rollkette
+   (Kopfkommentar oben) und darf nicht wegfallen. */
+.cr-cloth-area {
 	min-inline-size: 0;
+	margin-block-end: var(--ck-space-4);
 }
 
-.cr-table__tray {
-	flex: 0 0 auto;
-}
+/* DIE ÜBERSCHRIFT DES TISCHES — sein Namensschild.
 
-.cr-felt-area {
-	min-inline-size: 0;
-	flex: 1 1 auto;
-}
+   GESTALTUNG 2026-09-09. Sie stand bisher als 1,1-rem-Zeile über der
+   Zeichnung und war damit kleiner als die Aufschrift auf dem Tuch selbst.
+   Ein Tisch dieser Größe braucht eine Überschrift, die ihn ansagt, nicht
+   eine, die ihn beschriftet.
 
+   Der Grad wächst mit dem Bildschirm (clamp): 1,35 rem auf 320 Bildpunkten,
+   bis 1,9 rem auf einem breiten. Der Sprung ist bewusst klein — die Stufe
+   zur nächsten Ebene (Ansagezeile, 1 rem) beträgt damit rund 1,35 bis 1,9,
+   und das ist die Tonleiter, in der die ganze Seite steht.
+
+   Darunter eine Messinglinie über die volle Breite: dieselbe Kante, die auch
+   an der Wanne läuft, und die Ankündigung, dass jetzt der Tisch kommt.
+   --ck-brass-400 auf dem Teppich des Saals erreicht 3,34 : 1 — über den
+   3 : 1 einer grafischen Grenze, obwohl hier keine gefordert wäre (die Linie
+   trägt keine Aussage; was sie sagt, sagt die Überschrift selbst).
+
+   Der Textkontrast bleibt unverändert: --ck-text-primary auf dem Teppich,
+   keine Fläche dahinter. */
 .cr-felt__title {
-	margin: 0 0 var(--ck-space-2);
+	margin: 0 0 var(--ck-space-3);
+	padding-block-end: var(--ck-space-2);
+	border-block-end: 2px solid var(--ck-brass-400);
 	color: var(--ck-text-primary);
 	font-family: var(--ck-font-display);
-	font-size: 1.1rem;
-	letter-spacing: 0.05em;
+	font-size: clamp(1.35rem, 1.1rem + 1vw, 1.9rem);
+	font-weight: 400;
+	letter-spacing: 0.14em;
+	line-height: 1.2;
 }
 
-/* Der Bereich enthält 47 fokussierbare Knöpfe und ist damit auch ohne
-   eigenes tabindex mit der Tastatur erreichbar. */
-.cr-felt__scroll {
+/* Die sichtbare Erklärung der gezeichneten Gegenseite. Sie steht VOR dem
+   Tisch, weil ein Bildschirmleser sie sonst nie erreichte: der Block selbst
+   ist aria-hidden. Seit Umsetzungsstück Td steht der Absatz selbst in
+   Table.html, nicht mehr in Felt.html — diese Regel gilt unverändert für
+   ihn, CSS fragt nicht, aus welcher Datei ein Element stammt. */
+/* GESTALTUNG 2026-09-09: der Absatz bekommt dieselbe Anrisslinie wie die
+   Ansagezeile (tray.css, .cr-status) — beides sind Sätze ÜBER den Tisch, im
+   Unterschied zu den Aufschriften AUF ihm. Eine gemeinsame Kante macht aus
+   zwei zufällig benachbarten Absätzen eine Gattung.
+
+   --ck-text-muted #b39c80 auf dem Teppich --ck-carpet-base #3a0e15 erreicht
+   nachgerechnet 6,37 : 1; an der hellsten Stelle des Saals (der warme
+   Lichtteppich --ck-ambient-haze über der Mitte, 6 % Deckung) noch
+   5,60 : 1. Beides über den 4,5 : 1 für Fließtext. Auf
+   der hellen Bedienleiste tut es das NICHT — dort ist derselbe Ton im
+   selben Lauf ersetzt worden (tray.css, .cr-throw__option-hint). Ein Token
+   ist nicht an sich gut oder schlecht, sondern nur auf einem bestimmten
+   Untergrund. */
+.cr-felt__mirror-hint {
+	margin: 0 0 var(--ck-space-3);
+	max-inline-size: 68ch;
+	padding-inline-start: var(--ck-space-3);
+	border-inline-start: 2px solid var(--ck-brass-400);
+	color: var(--ck-text-muted);
+	font-size: 0.9rem;
+	line-height: 1.55;
+}
+
+/* DIE AUSLAUFENDE KANTE (DECISIONS.md, 2026-09-09T12:23:41). Der Tisch ist
+   breiter als die Seite und rollt INNERHALB seines eigenen Kastens
+   (.cr-cloth__scroll) — barrierefrei zulässig, sieht aber ohne diese Kante
+   aus wie abgeschnitten statt wie rollbar. Die Kante steht als
+   ::before/::after HIER, am umschließenden .cr-cloth__frame, und NICHT an
+   .cr-cloth__scroll selbst: ein Pseudoelement am Rollbereich gehörte zu
+   dessen eigenem Inhalt und wanderte beim Rollen mit; am Frame bleibt sie an
+   Ort und Stelle. pointer-events: none, damit sie kein fokussierbares
+   Element verdeckt oder abfängt.
+
+   Die Deckung 0,25 (--ck-shadow-edge) ist NACHGERECHNET und darf nicht ohne
+   neue Rechnung erhöht werden: der Fokusrahmen eines Wettfeldes auf dem Tuch
+   (--ck-brass-200 auf --ck-felt-green, beide abgedunkelt) erreicht ohne
+   Auflage 4,29 : 1, bei 0,25 noch 3,37 : 1 — über der Grenze von 3 : 1 aus
+   SC 1.4.11. Bei 0,35 wären es nur noch 2,93 : 1, darunter. */
+.cr-cloth__frame {
+	position: relative;
+}
+
+.cr-cloth__frame::before,
+.cr-cloth__frame::after {
+	content: '';
+	position: absolute;
+	inset-block: 0;
+	inline-size: 2rem;
+	pointer-events: none;
+	z-index: 3;
+}
+
+.cr-cloth__frame::before {
+	inset-inline-start: 0;
+	background-image: linear-gradient(to right, var(--ck-shadow-edge), transparent);
+}
+
+.cr-cloth__frame::after {
+	inset-inline-end: 0;
+	background-image: linear-gradient(to left, var(--ck-shadow-edge), transparent);
+}
+
+/* Der Rollbereich. Er enthält 48 fokussierbare Knöpfe und ist damit auch ohne
+   eigenes tabindex mit der Tastatur erreichbar: wandert der Fokus auf einen
+   Knopf außerhalb des Sichtfelds, rollt der Browser von selbst nach. */
+.cr-cloth__scroll {
 	overflow-x: auto;
 	overscroll-behavior-x: contain;
+	min-inline-size: 0;
+}
+
+/* DER TISCH. Das Seitenverhältnis ist NICHT gewählt, sondern die Maßordnung
+   von dice-physics.js: 240 × 140 Einheiten. Weicht es ab, landen die Würfel
+   neben der Stelle, an der die Physik sie berechnet hat.
+
+   --cr-track/--cr-gap stehen HIER und nicht auf .cr-felt (Berichtigung zum
+   Plan, Abschnitt 4.28): .cr-felt ist das KIND dieses Kastens, und Custom
+   Properties werden nur nach UNTEN vererbt — auf .cr-felt selbst hätte eine
+   spätere Änderung des Spurmaßes nur an einer der beiden Stellen gewirkt.
+   .cr-felt erbt beide Werte, ohne sie erneut zu deklarieren (Prüfung F-7).
+
+   DIE SPURBREITE UND DER SPALT (Umbau nach der Bildvorlage, 2026-09-08).
+
+   --cr-track ist 0,75rem (12 Bildpunkte). Das ist NICHT mehr die Zielgröße
+   selbst: das schmalste FELD des Tuchs ist seit dem Umbau drei Spuren breit
+   (die E/C-Kreisspalte, der Don't-Pass-Schenkel) und misst damit 36
+   Bildpunkte. Eine feinere Spur war nötig, weil die Vorlage sehr verschiedene
+   Breiten zeigt — Zahlenkasten, Don't-Come-Kasten und die zwei Schenkel
+   verhalten sich wie 4 : 5 : 4 : 3, und das lässt sich mit einer groben Spur
+   nicht abbilden. Nachgerechnet wird die Zielgröße deshalb seit dem Umbau
+   FELDWEISE (Prüfung F-7), nicht mehr an der Spurbreite.
+
+   --cr-gap ist 0. Am echten Tisch liegt zwischen zwei Kästen EINE Linie, kein
+   Streifen Tuch; und wo zwei Feldrahmen aneinanderstoßen, entsteht genau die
+   DOPPELTE Linie, die die Vorlage zwischen den Zahlenkästen zeigt. Der Spalt
+   bleibt als Custom Property stehen, damit die Rechnungen weiter unten ihn
+   nennen können und ein späterer Wert nicht an drei Stellen nachgezogen
+   werden muss.
+
+   DIE MINDESTBREITE folgt daraus: 96 Spuren zu --cr-track ergeben die Breite
+   der SPIELFLÄCHE; der Tisch ist um den Faktor 240/200 breiter, weil Rahmen
+   und Bande dazukommen. 96 × 12 × 1,2 = 1382 Bildpunkte. Die Obergrenze liegt
+   knapp darüber, damit der Tisch auf einem breiten Bildschirm noch ein wenig
+   wachsen kann, ohne höher zu werden als der Saal. */
+.cr-cloth {
+	--cr-track: 0.75rem;
+	--cr-gap: 0rem;
+	position: relative;
+	inline-size: 100%;
+	min-inline-size: calc((96 * var(--cr-track) + 95 * var(--cr-gap)) * 240 / 200);
+	max-inline-size: 96rem;
+	aspect-ratio: 240 / 140;
+	margin-inline: auto;
+}
+
+/* Schicht 1: die Zeichnung des Tisches. */
+.cr-cloth__ground {
+	position: absolute;
+	inset: 0;
+	inline-size: 100%;
+	block-size: 100%;
+	pointer-events: none;
+}
+
+/* Schicht 3: die Würfel, ganz oben. pointer-events: none an der Schicht,
+   auto an den Würfeln — so löst ein Klick auf ein Wettfeld keinen Wurf aus,
+   und ein Finger auf dem Tuch rollt weiterhin den Rollbereich. */
+.cr-cloth__dice {
+	position: absolute;
+	inset: 0;
+	inline-size: 100%;
+	block-size: 100%;
+	pointer-events: none;
+	z-index: 2;
+}
+
+.cr-cloth__dice .cr-die {
+	pointer-events: auto;
 }
 
 /* ==========================================================================
    2  Das Gitter
    ========================================================================== */
 
+/* DIE MASSORDNUNG NACH DER BILDVORLAGE (Ansage vom 2026-09-08): 96
+   Spaltenspuren, 11 Zeilenspuren. Welches Feld wo liegt, steht in
+   Classes/BetLayout.php und kommt über den FeltProcessor fertig als
+   grid-column/grid-row ins Markup — hier steht keine einzige der 48
+   Positionen.
+
+     Spuren  1 … 37   linke Seitensektion, gespiegelt und nur gezeichnet
+     Spuren 37 … 40   gespiegelte E/C-Kreisspalte
+     Spuren 40 … 58   Mittensektion, die Einmalwetten
+     Spuren 58 … 61   E/C-Kreisspalte, bespielbar
+     Spuren 61 … 97   rechte Seitensektion, bespielbar
+
+   ZIELGRÖSSE (WCAG 2.2 SC 2.5.8). Das schmalste Feld des Tuchs ist drei
+   Spuren breit (die E/C-Kreisspalte, der Don't-Pass-Schenkel) und misst
+   damit 36 Bildpunkte — über den geforderten 24. Die elf Zeilen sind
+   verschieden hoch (BetLayout::ROW_FRACTIONS); Prüfung F-7 rechnet die
+   tatsächliche Breite und Höhe jedes der 48 Felder einzeln nach, statt eine
+   Spurbreite oder eine gleichmäßige Zeilenhöhe zu behaupten.
+
+   DIE LAGE AUF DER SPIELFLÄCHE — Schicht 2, zwischen Zeichnung und Würfeln.
+   Die vier Prozentzahlen sind die Maßordnung aus Cloth.html, nichts weiter:
+   links 20/240, oben 20/140, Breite 200/240, Höhe 100/140. Sie stehen als
+   Rechnung da und nicht als gerundete Zahl, damit man sie gegen die
+   Maßordnung lesen kann.
+
+   --cr-track/--cr-gap werden hier NICHT erneut deklariert (Berichtigung zum
+   Plan, Abschnitt 4.28): sie stehen auf .cr-cloth, dem Elternkasten, und
+   werden nach unten vererbt. Zwei Deklarationen wären zwei Wahrheiten.
+
+   .ck-felt (table.css, geteilter Baustein) bringt einen eigenen Holzrahmen,
+   ein eigenes grünes Tuch und einen eigenen Schlagschatten mit — richtig für
+   einen Tisch, der SEIN EIGENES Tuch ist, falsch hier: seit der
+   Zusammenlegung von Wanne und Tuch liegt dieses Gitter nur noch als
+   durchsichtige Überlagerung auf der Zeichnung aus Cloth.html. Die drei
+   Zeilen background/border/box-shadow heben die geteilte Regel wieder auf
+   (felt.css lädt nach table.css, gleiche Spezifität, die spätere Regel
+   gewinnt) — ohne sie zeichnete .ck-felt einen zweiten Holzrahmen und ein
+   zweites, deckendes Grün genau auf die Bandeninnenkante der Zeichnung:
+   wieder zwei Flächen statt einer. */
 .cr-felt {
-	--cr-cell: 2.75rem;
-	--cr-gap: 0.125rem;
-	position: relative;
+	position: absolute;
+	inset-inline-start: calc(100% * 20 / 240);
+	inset-block-start: calc(100% * 20 / 140);
+	inline-size: calc(100% * 200 / 240);
+	block-size: calc(100% * 100 / 140);
+	z-index: 1;
+	background: none;
+	border: 0;
+	box-shadow: none;
 	display: grid;
-	grid-template-columns: repeat(12, minmax(var(--cr-cell), 1fr));
-	grid-template-rows:
-		2.25rem   /* 1  Puck-Spur */
-		2.75rem   /* 2  Don't Come */
-		3.5rem    /* 3  Come-Zahlen */
-		2.75rem   /* 4  Odds */
-		2.75rem   /* 5  Place */
-		3rem      /* 6  Field */
-		3rem      /* 7  Come / Don't Come */
-		3rem      /* 8  Pass / Don't Pass */
-		2.75rem   /* 9  Odds hinter der Linie */
-		2.75rem   /* 10 Hardways */
-		2.75rem;  /* 11 Einmalwetten */
+	grid-template-columns: repeat(96, minmax(var(--cr-track), 1fr));
+	/* DIE ELF ZEILEN SIND VERSCHIEDEN HOCH — anders als vor dem Umbau, wo acht
+	   gleich hohe Zeilen genügten. Die Vorlage zeigt einen hohen Zahlenkasten
+	   zwischen schmalen Streifen; gleich hohe Zeilen wären ein anderes Bild.
+
+	   Die elf Werte stehen ZUGLEICH in Classes/BetLayout.php (ROW_FRACTIONS) —
+	   dort, weil zwei Prüfungen mit ihnen rechnen: F-7 (jedes Feld ist
+	   mindestens 24 Bildpunkte hoch) und F-18 (die geschwungenen Linien treffen
+	   die Zeilenkanten). Prüfung F-7 hält beide Listen Zahl für Zahl
+	   gegeneinander; weichen sie ab, fällt es auf.
+
+	     0.6  Puck-Spur, kein Bedienteil
+	     1.1  Don't Come        \
+	     0.8  Don't-Come-Odds    |
+	     2.0  die große Zahl     |  ein Zahlenkasten, fünf Zonen
+	     0.8  Come-Odds          |
+	     0.8  Come              /
+	     1.8  COME
+	     1.6  FIELD
+	     1.0  Don't Pass Bar
+	     1.4  PASS LINE
+	     1.0  Schulter (die zwei Linien-Odds) */
+	grid-template-rows: 0.6fr 1.1fr 0.8fr 2fr 0.8fr 0.8fr 1.8fr 1.6fr 1fr 1.4fr 1fr;
 	gap: var(--cr-gap);
-	min-inline-size: calc(12 * var(--cr-cell) + 11 * var(--cr-gap));
-	padding: var(--ck-space-2);
+	min-inline-size: calc(96 * var(--cr-track) + 95 * var(--cr-gap));
 }
 
-/* Die vier Bildschirmleser-Gruppen dürfen das Gitter nicht zerschneiden. */
-.cr-felt__group {
+/* Die vier Bildschirmleser-Gruppen und der gespiegelte Block dürfen das
+   Gitter nicht zerschneiden. */
+.cr-felt__group,
+.cr-felt__mirror {
 	display: contents;
 }
 
@@ -122,50 +368,399 @@
 /* .ck-felt__field (table.css) bringt Mindestgröße, Rahmen, Fokusrahmen und
    die Behandlung von aria-disabled bereits mit. Hier steht nur, was am
    Craps-Tuch anders ist. */
+/* DAS TUCH SCHEINT DURCH. Seit der Zusammenlegung von Wanne und Tuch (Ansage
+   vom 2026-09-07) liegt das Gitter ÜBER der gezeichneten Spielfläche. Ein Feld
+   mit eigener Füllung sähe aus wie ein aufgeklebtes Schild; am echten Tisch
+   sind die Kästen auf das Tuch AUFGEMALT. Deshalb: kein Hintergrund, sondern
+   eine helle Linie — genau die Bauart des Vorbilds, und sie kostet nichts an
+   Lesbarkeit: --ck-felt-line auf --ck-felt-green erreicht 6,4 : 1 (Text
+   verlangt 4,5 : 1, eine Bauteilgrenze 3 : 1; F-9 rechnet es nach). */
 .cr-felt__field {
 	display: flex;
+	flex-direction: column;
 	align-items: center;
 	justify-content: center;
+	gap: 0.05rem;
 	padding: 0 var(--ck-space-1);
+	border: 1.5px solid var(--ck-felt-line);
+	background-color: transparent;
+	color: var(--ck-felt-line);
 	text-align: center;
-	line-height: 1.1;
+	line-height: 1.05;
+}
+
+/* DIE MINDESTGRÖSSE WIRD HIER AUFGEHOBEN — und das ist eine Berichtigung,
+   kein Nachlassen.
+
+   .ck-felt__field (table.css, geteilter Baustein) setzt min-inline-size und
+   min-block-size auf 2,75rem (44 Bildpunkte). Für einen Tisch, dessen Felder
+   frei nebeneinander liegen, ist das richtig. In einem Gitter ist es falsch:
+   eine Spur ist 12 Bildpunkte breit, ein Feld von drei Spuren also 36 — die
+   44 aus dem geteilten Baustein zwängen es über seine Spuren hinaus und über
+   das Nachbarfeld. (Vor dem Umbau traf das bereits die vierzehn
+   Odds-Streifen: eine Spur zu 28 Bildpunkten gegen min-inline-size 44. Der
+   Fund wird hier mitbehoben.)
+
+   Die Zusage aus WCAG 2.2 SC 2.5.8 geht dabei NICHT verloren, sie wechselt
+   nur den Ort: sie folgt jetzt aus der Maßordnung selbst, und Prüfung F-7
+   rechnet sie für jedes der 48 Felder einzeln nach — Breite aus Spurzahl mal
+   --cr-track, Höhe aus dem fr-Anteil mal der Tuchhöhe bei der Mindestbreite.
+   Das ist ein schärferer Nachweis als eine Zahl im Stylesheet, weil er das
+   TATSÄCHLICHE Maß rechnet und nicht eine Absicht wiederholt. */
+.cr-felt__field {
+	min-inline-size: 0;
+	min-block-size: 0;
+}
+
+/* ==========================================================================
+   3b  Der Zahlenkasten: ein Kasten, fünf Zonen
+   ========================================================================== */
+
+/* WAS HIER GEZEIGT WERDEN MUSS. Auf einem echten Craps-Tisch ist jede Zahl EIN
+   Kasten, und die Höhe der Chiplage sagt, welche Wette gemeint ist. Genau das
+   soll man sehen: einen Kasten mit einer großen Zahl, oben und unten je zwei
+   schmale Streifen. Fünf gleich stark umrandete Kästchen wären ein anderes
+   Bild — und ein schlechteres, weil die Zahl dann nicht mehr die Marke des
+   Kastens wäre.
+
+   DER TRICK IST EINFACH: die WAAGERECHTEN Linien der vier Streifen sind
+   Haarlinien in einem gedeckten Ton, die SENKRECHTEN bleiben die kräftige
+   Aufschrift-Farbe. So schließt sich das Bild zu einem Kasten, obwohl es fünf
+   Knöpfe sind.
+
+   --ck-ivory-300 auf --ck-felt-green erreicht 3,32 : 1 (tokens.css, dort
+   nachgerechnet) — über den 3 : 1, die WCAG 2.2 für die Grenze eines
+   Bedienteils verlangt. Es ist also eine gedämpfte, keine unsichtbare Linie. */
+.cr-felt__field--dcstrip,
+.cr-felt__field--comestrip,
+.cr-felt__field--zone {
+	border-block-color: var(--ck-ivory-300);
+	border-block-width: 1px;
+}
+
+/* Die große Zahl ist die Marke des Kastens: groß, ohne Sperrung, in der
+   Schmuckschrift des Hauses (eine schmal laufende Plakatschrift — genau die
+   Bauart, die auf einem echten Tisch steht, und der Grund, warum eine Zahl in
+   vier Spuren Platz findet). Gelb wie auf der Vorlage: --ck-brass-100 erreicht
+   auf --ck-felt-green 6,16 : 1 (F-9 rechnet es nach). */
+.cr-felt__field--place .cr-felt__print {
+	font-size: 1.9rem;
+	letter-spacing: 0;
+	line-height: 1;
+	color: var(--ck-brass-100);
+}
+
+/* SIX und NINE stehen auf einem echten Tisch schräg, damit eine gedrehte 6
+   nicht als 9 gelesen werden kann. Welche zwei Kästen das sind, steht NICHT
+   hier, sondern in BetLayout::POINT_PRINT; Prüfung F-21 hält beides
+   gegeneinander, damit die Schräge nicht am falschen Kasten landet, wenn die
+   Aufschrift einmal geändert wird. */
+/* GESTALTUNGSLAUF 2026-09-09 — GEMESSENE ENGE, KEINE GESCHMACKSFRAGE.
+
+   Der Schriftgrad stand auf 1,15 rem. Ein Zahlenkasten ist vier Spuren breit
+   (48 Bildpunkte) und trägt links und rechts je einen Grundabstand Polster
+   (.cr-felt__field, padding), es bleiben also 40 Bildpunkte für die
+   Aufschrift. „NINE" in der schmalen Schmuckschrift des Hauses misst bei
+   1,15 rem rund 45 Bildpunkte und ragt damit über seinen Kasten hinaus — im
+   Bildschirmfoto vom 2026-09-09 stehen „8", „NINE" und „10" sichtbar
+   aneinander. Bei 1 rem sind es rund 39 Bildpunkte und der Kasten trägt sie.
+
+   Geändert wird ausschließlich der GRAD, nicht die Aufschrift, nicht die
+   Schräge, nicht der Kasten: welche zwei Kästen schräg gesetzt sind, steht
+   unverändert in BetLayout::POINT_PRINT, und Prüfung F-21 hält beides
+   gegeneinander. Die Schräge selbst ist die Bauart des Vorbilds — eine
+   gedrehte Sechs darf nicht als Neun lesbar sein — und bleibt.
+
+   ZWEITER FUND AN DERSELBEN STELLE: die Schräge hat noch nie gewirkt.
+   .cr-felt__print ist ein <span> und damit ein nicht ersetztes INLINE-
+   Element; auf ein solches wirkt transform nach der CSS-Spezifikation gar
+   nicht. Die Regel stand seit dem Umbau nach der Bildvorlage im Stylesheet,
+   Prüfung F-21 fand sie dort auch — geprüft wird die ZUORDNUNG (welcher
+   Kasten), nicht die Wirkung. Im Bild standen SIX und NINE aufrecht.
+   display: inline-block macht aus dem Span einen Kasten, auf den transform
+   wirkt; an Fluss, Ausrichtung und Zeilenhöhe ändert das an dieser Stelle
+   nichts, weil jeder Aufdruck ohnehin allein in seiner Zeile steht. */
+[data-ck-field='place-6'] .cr-felt__print,
+[data-ck-field='place-9'] .cr-felt__print {
+	display: inline-block;
+	font-size: 1rem;
+	transform: rotate(-16deg);
+}
+
+/* DIE GEGENSEITE BEKAM DIE SCHRÄGE BISHER NICHT — ein Fund des
+   Gestaltungslaufs vom 2026-09-09.
+
+   Die Regel darüber hängt an [data-ck-field='place-6'] bzw. '…-9'. Der
+   gespiegelte Block trägt dieses Attribut AUSDRÜCKLICH NICHT: Prüfung F-16
+   verlangt, dass im Spiegel kein data-ck-field steht (er ist gezeichnet,
+   nicht bedient, und ein zweiter Knopf mit derselben Feldkennung wäre ein
+   zweites Ziel für dieselbe Wette). Die Folge war unsichtbar in jeder
+   Prüfung und sehr sichtbar im Bild: auf der gezeichneten Tischseite standen
+   SIX und NINE AUFRECHT und in 1,9 rem — dem Grad der großen Ziffern — und
+   liefen dort über ihre Kästen hinweg („8NINE10" ohne Zwischenraum,
+   Bildschirmfoto vom 2026-09-09). Die Vorlage zeigt beide schräg, und der
+   Spiegel soll genau ihr Bild zeigen.
+
+   Diese Regel ist das Gegenstück, nicht eine zweite Wahrheit — dieselbe
+   Bauart wie .cr-felt__field--mirror.cr-felt__field--line > .cr-felt__leg
+   weiter oben, die aus demselben Grund existiert. Sie kommt OHNE
+   [data-ck-field] aus und greift stattdessen die Rolle des Aufschriftteils
+   ab: innerhalb eines Zahlenkastens ist genau der ausgeschriebene Aufdruck
+   ein „word" (BetLayout::POINT_PRINT, role 'word'), die vier Ziffern sind
+   'number'. Sie trifft damit genau dieselben zwei Kästen.
+
+   Prüfung F-21 bleibt die maßgebliche Stelle: sie sammelt die Feldkennungen
+   aus JEDER Regel mit transform: rotate( und verlangt genau place-6 und
+   place-9. Diese Regel nennt keine Kennung und verändert diese Menge
+   deshalb nicht — die Zuordnung wird weiterhin an der Regel darüber
+   geprüft, dort, wo sie steht. */
+.cr-felt__field--mirror.cr-felt__field--place .cr-felt__print--word {
+	display: inline-block;
+	font-size: 1rem;
+	transform: rotate(-16deg);
+}
+
+/* DER ZAHLENAUFDRUCK — „8 FOR 1“, englisch wie auf der Vorlage.
+
+   Er steht NICHT auf jedem Feld: die Vorlage druckt eine Zahl nur dort, wo ein
+   echter Tisch sie druckt — auf den zehn Feldern der Mittensektion und in den
+   zwei Kreisen des FIELD. Die Auszahlung der übrigen Felder steht im
+   erreichbaren Namen, und Prüfung F-15 rechnet jeden gedruckten Wert aus
+   derselben Quote nach, die auch ausgezahlt wird.
+
+   text-transform bleibt WEG: die Aufschrift ist wörtlich abgeschrieben („Seven“
+   mit kleinem e, „Any Craps“, „Don't Pass Bar“), und eine CSS-Regel, die alles
+   in Großbuchstaben zwingt, wäre eine zweite, unsichtbare Wahrheit neben dem
+   Klartext in BetLayout.php. Wo die Vorlage Versalien zeigt, stehen sie schon
+   im Klartext. */
+.cr-felt__payout {
+	font-family: var(--ck-font-display);
+	font-size: 0.6rem;
+	letter-spacing: 0.04em;
+	pointer-events: none;
+}
+
+/* Die Vorlage druckt den Zahlenaufdruck bei Seven und Any Craps ZWEIMAL, links
+   und rechts vom Wort — einmal für jede Tischseite. Beide Abdrucke sind
+   dieselbe Zusage; der zweite trägt aria-hidden (Felt.html) und wird deshalb
+   nicht doppelt vorgelesen. Die Reihe steht in einer Zeile: Zahl, Wort, Zahl. */
+.cr-felt__field--single .cr-felt__row,
+.cr-felt__field--hard .cr-felt__row {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: var(--ck-space-2);
+	inline-size: 100%;
+}
+
+/* Die gezeichnete, nicht bespielbare linke Tischseite. Sie zeigt genau das
+   Bild der Vorlage — die Vorlage stellt EINE Tischhälfte dar, und das ist
+   diese; die bespielbare rechte Hälfte ist ihr Spiegelbild.
+
+   pointer-events: none sorgt dafür, dass gar kein Klickziel entsteht — ein
+   Klick fällt auf die Zeichnung darunter durch, statt still zu verpuffen.
+
+   DER ZURÜCKGENOMMENE KONTRAST ÜBER opacity IST HIER UNBEDENKLICH, obwohl
+   opacity sonst auch outline und box-shadow trifft (Auditbefund H7-01, und in
+   diesem Haus insgesamt schon dreimal aufgetreten): in diesem Block liegt kein
+   fokussierbares Element, und Prüfung F-16 stellt genau das sicher. Der Wert
+   ist von 0.5 auf 0.62 angehoben, damit die Zeichnung nach dem Umbau nicht
+   unter die Bauteilgrenze fällt — sie trägt seit der Bildvorlage feine
+   Haarlinien, die bei 0.5 auf dem Tuchgrün verschwänden. */
+.cr-felt__field--mirror {
+	pointer-events: none;
+	opacity: 0.62;
+}
+
+/* Der gespiegelte Schenkel liegt auf der anderen Seite seines Bandes. Sonst
+   ragte er in die Mittensektion hinein statt zum Tischrand.
+
+   Seit Umsetzungsstück Ue rendert Felt.html den Schenkel im gemeinsamen
+   Abschnitt „Aufdruck“ und damit WIRKLICH auch hier im Spiegel (vorher stand
+   er nur im Knopf, diese Regel traf nichts — DECISIONS.md). pointer-events:
+   none nimmt ihm hier eigens das Klickziel zurück: .cr-felt__leg setzt weiter
+   oben pointer-events: auto (dort richtig, für den Knopf), und ohne diese
+   Zeile entstünde im Spiegel eine kleine Fläche, auf der ein Klick NICHT zur
+   Zeichnung darunter durchfiele — der ausdrückliche Zweck von
+   .cr-felt__field--mirror { pointer-events: none } wäre für dieses eine
+   Element unterlaufen. */
+.cr-felt__field--mirror.cr-felt__field--line > .cr-felt__leg,
+.cr-felt__field--mirror.cr-felt__field--dontline > .cr-felt__leg {
+	inset-inline-start: auto;
+	inset-inline-end: 100%;
+	pointer-events: none;
 }
 
 .cr-felt__print {
 	font-family: var(--ck-font-display);
 	font-size: 0.7rem;
 	letter-spacing: 0.04em;
-	text-transform: uppercase;
 	pointer-events: none;
 }
 
-/* Die sechs Come-Zahlen sind die Marken des Tuchs: groß, ohne Sperrung. */
-.cr-felt__field--point .cr-felt__print {
-	font-size: 1.6rem;
-	letter-spacing: 0;
+/* Die Punktreihe des FIELD ist sprachneutral (Ziffern und Trennpunkte) und
+   trägt deshalb kein lang-Attribut. Sie steht über dem Wort FIELD, wie auf der
+   Vorlage. */
+.cr-felt__print--number {
+	font-family: var(--ck-font-numeric);
+	font-size: 0.65rem;
+	letter-spacing: 0.08em;
+	color: var(--ck-brass-100);
 }
 
-/* Die vierzehn Odds-Streifen liegen tiefer im Tuch — dunkler, damit die
-   Zugehörigkeit zur Grundwette darüber ablesbar ist. --ck-felt-line auf
-   --ck-felt-green-dark liegt deutlich über den 4,5 : 1, die WCAG 2.2 für
-   Text verlangt (nachgerechnet und in Prüfung F-9 belegt). */
+/* Die vierzehn Odds-Felder liegen tiefer im Tuch — dunkler, damit die
+   Zugehörigkeit zur Grundwette daneben ablesbar ist. --ck-felt-line auf
+   --ck-felt-green-dark liegt deutlich über den 4,5 : 1, die WCAG 2.2 für Text
+   verlangt (Prüfung F-9 rechnet es nach).
+
+   DAS IST EINE ABWEICHUNG VON DER VORLAGE, und zwar eine bewusste: sie zeigt
+   alle Kästen im selben Grün. Fünf gleich gefärbte Zonen übereinander wären
+   aber nicht mehr unterscheidbar, und die Bedienbarkeit steht in der Ansage
+   ausdrücklich über der Farbverteilung. Die Farbe ist dabei NICHT die einzige
+   Aussage (WCAG 2.2 SC 1.4.1): jeder Odds-Streifen liegt an der Zahl, während
+   die flachen Wetten außen liegen, und sein erreichbarer Name beginnt mit
+   „Odds hinter …". */
 .cr-felt__field--odds {
 	background-color: var(--ck-felt-green-dark);
 }
 
-.cr-felt__field--odds .cr-felt__print {
-	font-size: 0.6rem;
+/* DIE SCHULTER — die zwei Linien-Odds, unterhalb der PASS LINE und damit
+   AUSSERHALB der weißen Umrandung des gedruckten Plans.
+
+   Sie bekommen KEINE volle Umrandung, sondern einen gestrichelten Umriss: am
+   echten Tisch ist die Schulter nicht bedruckt, dort liegen die Chips des
+   Spielers frei. Der gestrichelte Umriss sagt „hier darf etwas liegen", ohne
+   den Plan um zwei Kästen zu erweitern, die es auf der Vorlage nicht gibt.
+   Die Strichart ist zugleich die FORM-Unterscheidung zu jedem anderen Feld,
+   also nicht nur eine Farbe (SC 1.4.1). */
+.cr-felt__field--apron {
+	background-color: transparent;
+	border-style: dashed;
+	border-color: var(--ck-ivory-300);
+}
+
+.cr-felt__field--apron .cr-felt__print {
+	font-size: 0.55rem;
+	letter-spacing: 0.14em;
 }
 
 /* Die dunkle Seite bekommt eine eigene FORM, nicht nur eine eigene Farbe
    (WCAG 1.4.1): ein doppelter Rahmen. Wer nicht zwischen den beiden Grüns
    unterscheiden kann, sieht trotzdem, dass hier gegen den Schützen gesetzt
-   wird. Der ausgeschriebene Name „Don't …" steht ohnehin im Aufdruck. */
+   wird. Der ausgeschriebene Name „Don't …" steht ohnehin im Aufdruck.
+
+   AUSGENOMMEN ist die L-förmige Don't Pass Bar: sie nimmt ihren Rahmen weiter
+   unten ausdrücklich zurück (Abschnitt 3c), weil ihr Umriss als geschwungener
+   Pfad in der Zeichenschicht liegt (Cloth.html). Diese Regel steht deshalb
+   VOR jener Rücknahme — die spätere Regel gewinnt, und genau das ist hier
+   beabsichtigt: bei .cr-felt__field--dontcome und .cr-felt__field--dcstrip
+   bleibt der doppelte Rahmen bestehen, bei .cr-felt__field--dontline wird er
+   von der L-Regel überschrieben. */
 .cr-felt__field--dontline,
 .cr-felt__field--dontcome,
-.cr-felt__field--dontpoint {
+.cr-felt__field--dcstrip {
 	border-style: double;
 	border-width: 4px;
+}
+
+/* ==========================================================================
+   3c  Die zwei L-förmigen Linienwetten
+   ========================================================================== */
+
+/* PASS LINE und Don't Pass Bar sind auf der Vorlage KEINE Rechtecke: sie
+   laufen um die Ecke herum und werden dort geschwungen. Ein Knopf ist aber
+   immer ein Rechteck.
+
+   DIE LÖSUNG, IN DREI SÄTZEN.
+   1  Der <button> ist das QUERBAND. Er trägt den Namen, den Fokusrahmen und
+      die Chipstapel.
+   2  In ihm steckt ein <span class="cr-felt__leg">, absolut gelegt über den
+      senkrechten SCHENKEL. Weil es ein Nachfahre des Knopfes ist, löst ein
+      Klick oder ein Finger darauf denselben Knopf aus — der Schenkel ist also
+      kein toter Bereich, sondern gehört zur Bedienfläche. Er trägt
+      aria-hidden, damit seine wiederholte Aufschrift nicht ein zweites Mal
+      vorgelesen wird.
+   3  Der UMRISS mit der geschwungenen Ecke wird gar nicht hier gezeichnet,
+      sondern als Pfad in der Zeichenschicht (Cloth.html). Deshalb nehmen
+      diese beiden Knöpfe ihren Rahmen zurück: sonst stünde um das Querband
+      ein Rechteck, das die Vorlage nicht kennt, und die Ecke wäre zweimal
+      gezeichnet — genau der Fehler „ein geteilter Klassenname zeichnet eine
+      zweite deckende Fläche", der in diesem Haus schon einmal aufgetreten ist.
+
+   WARUM KEIN clip-path. Ein clip-path, der ein Rechteck zum L beschneidet,
+   beschneidet den FOKUSRAHMEN gleich mit — derselbe Fehler wie opacity, der
+   hier schon dreimal aufgetreten ist. Der Fokusrahmen ist deshalb
+   ausdrücklich zweiteilig: Band und Schenkel leuchten gemeinsam auf.
+
+   DIE MASSE DES SCHENKELS stehen als Prozentwerte des Knopfes da, nicht als
+   rem — der Knopf wächst mit dem Tisch, der Schenkel muss mitwachsen. Die
+   Rechnungen stehen ausgeschrieben, damit man sie gegen BetLayout::legLanes()
+   lesen kann. Prüfung F-17 rechnet beide Regeln dagegen nach — dieselbe
+   Bauart wie die sechs Puck-Regeln.
+
+     PASS LINE:       Band 65…93 = 28 Spuren, Zeile 10…11 = 1 Zeile
+                      Schenkel 93…97 = 4 Spuren, Zeile 2…11 = 9 Zeilen
+     Don't Pass Bar:  Band 65…90 = 25 Spuren, Zeile 9…10 = 1 Zeile
+                      Schenkel 90…93 = 3 Spuren, Zeile 2…10 = 8 Zeilen
+
+   inset-inline-start ist 100%: der Schenkel beginnt genau dort, wo das Band
+   endet, und liegt AUSSERHALB von ihm — sein Elternknopf hat deshalb
+   overflow: visible.
+
+   position: relative steht hier und nicht nur auf .ck-felt__field
+   (table.css): der Knopf der bespielbaren Seite erbt es von dort bereits,
+   aber die gezeichnete Gegenseite (.cr-felt__field--mirror, ein <span>, kein
+   <button>, trägt die Klasse ck-felt__field nicht) tut das nicht. Seit
+   Umsetzungsstück Ue rendert auch sie einen Schenkel (derselbe Abschnitt
+   „Aufdruck“, zweimal gerendert) — ohne diese Zeile positionierte er sich
+   absolut gegen das ferne .cr-felt-Gitter statt gegen sein eigenes Feld. */
+.cr-felt__field--line,
+.cr-felt__field--dontline {
+	position: relative;
+	border: 0;
+	overflow: visible;
+}
+
+.cr-felt__leg {
+	position: absolute;
+	inset-block-end: 0;
+	inset-inline-start: 100%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	/* Die Aufschrift steht auf dem Schenkel senkrecht und wird von unten nach
+	   oben gelesen — wie auf der Vorlage. writing-mode dreht die Zeile,
+	   rotate(180deg) dreht die Leserichtung um; zusammen ergibt das die
+	   aufsteigende Schrift. */
+	writing-mode: vertical-rl;
+	rotate: 180deg;
+	pointer-events: auto;
+}
+
+.cr-felt__field--line > .cr-felt__leg {
+	inline-size: calc(100% * 4 / 28);
+	block-size: calc(100% * 9 / 1);
+}
+
+.cr-felt__field--dontline > .cr-felt__leg {
+	inline-size: calc(100% * 3 / 25);
+	block-size: calc(100% * 8 / 1);
+}
+
+/* DER FOKUSRAHMEN UMFASST BEIDE TEILE. .ck-felt__field:focus-visible
+   (table.css) legt den Messingring um das Band; ohne diese zweite Regel bliebe
+   der Schenkel beim Tastaturfokus unmarkiert, obwohl er zur selben
+   Bedienfläche gehört. Es ist NICHT zulässig, das über opacity, clip-path,
+   overflow: hidden oder eine Maske zu lösen: jedes davon nimmt den Ring mit. */
+.cr-felt__field--line:focus-visible > .cr-felt__leg,
+.cr-felt__field--dontline:focus-visible > .cr-felt__leg {
+	outline: 3px solid var(--ck-brass-200);
+	outline-offset: 2px;
+}
+
+.cr-felt__leg .cr-felt__print {
+	font-size: 0.7rem;
+	letter-spacing: 0.14em;
 }
 
 /* Die Einmalwetten der Mitte: die schlechtesten Wetten des Tisches. Sie
@@ -174,6 +769,166 @@
 .cr-felt__field--single .cr-felt__print,
 .cr-felt__field--hard .cr-felt__print {
 	font-size: 0.65rem;
+}
+
+/* Die Regel für .cr-felt__mirror-hint (die sichtbare Beschriftung der
+   gezeichneten, nicht bespielbaren linken Tischseite) steht seit
+   Umsetzungsstück Td in Abschnitt 1 — dort, wo seither auch der Absatz
+   selbst steht (Table.html). Zwei Regeln für denselben Selektor an zwei
+   Stellen dieser Datei wären zwei Wahrheiten. */
+
+/* ==========================================================================
+   3d  Das Bild der Vorlage: Farben, Würfel, Kreise, Kette
+   ========================================================================== */
+
+/* DIE DREI ROTEN WÖRTER. Auf der Vorlage sind COME, Seven und Any Craps die
+   einzigen roten — und die einzigen kursiven. Beides wird übernommen, und das
+   zweite ist der Grund, warum das erste zulässig ist: die Farbe ist nicht die
+   einzige Aussage (WCAG 2.2 SC 1.4.1), und Rot auf Grün ist genau die Paarung,
+   die bei der häufigsten Farbfehlsichtigkeit zusammenfällt.
+
+   --ck-felt-red erreicht auf --ck-felt-green 4,67 : 1 (tokens.css, dort
+   nachgerechnet; F-9 rechnet es erneut nach). */
+.cr-felt__field--come .cr-felt__print,
+[data-ck-field='any-seven'] .cr-felt__print,
+[data-ck-field='any-craps'] .cr-felt__print {
+	color: var(--ck-felt-red);
+	font-style: italic;
+}
+
+/* COME ist das größte Wort des Tuchs — auf der Vorlage füllt es sein Band
+   fast aus. */
+.cr-felt__field--come .cr-felt__print {
+	font-size: 2rem;
+	letter-spacing: 0.08em;
+	font-style: normal;   /* auf der Vorlage steht COME aufrecht in einer Serifenschrift */
+}
+
+/* Die gelbe Aufschrift: PASS LINE, FIELD, die sechs Zahlen, ODDS.
+   --ck-brass-100 auf --ck-felt-green erreicht 6,16 : 1. */
+.cr-felt__field--line .cr-felt__print,
+.cr-felt__field--field .cr-felt__print,
+.cr-felt__field--apron .cr-felt__print {
+	color: var(--ck-brass-100);
+}
+
+/* DIE DUNKLE SEITE STEHT AUF DER VORLAGE IN SCHWARZ — das geht hier nicht:
+   Schwarz auf dem Tuchgrün erreicht 2,6 : 1 und ist für Text unzulässig.
+   Sie behält deshalb die helle Aufschriftfarbe und bleibt ohne Farbe
+   erkennbar: an ihrer eigenen Rahmenform (border-style: double, Abschnitt 3)
+   und an dem ausgeschriebenen „Don't“ (Prüfung F-10). Kursiv wie auf der
+   Vorlage. */
+.cr-felt__field--dontline .cr-felt__print,
+.cr-felt__field--dontcome .cr-felt__print {
+	color: var(--ck-felt-line);
+	font-style: italic;
+}
+
+/* DIE GEDRUCKTEN WÜRFEL. Sie benutzen dieselben Formen wie die echten Würfel
+   (Partial Table/Craps/DiceSprite) und deshalb auch dieselben Farben —
+   Elfenbein mit dunklen Augen. Die Vorlage druckt sie schwarz; das wäre auf
+   dem Tuchgrün wieder eine Grenze unter 3 : 1, und heller ist außerdem
+   näher an dem, was auf einem echten Tisch als aufgemaltes Würfelpaar zu
+   sehen ist. Größe und Abstand sind das Einzige, was hier festgelegt wird. */
+.cr-felt__dice {
+	display: inline-flex;
+	gap: 0.35em;
+	pointer-events: none;
+}
+
+.cr-felt__dicepair {
+	display: inline-flex;
+	gap: 0.12em;
+}
+
+.cr-felt__die {
+	inline-size: 1.1em;
+	block-size: 1.1em;
+}
+
+/* DIE ZWEI KREISE IM FIELD. Auf der Vorlage stehen die 2 und die 12 in je
+   einem gelben Kreis an den Enden des Kastens, mit ihrer Sonderquote darin.
+   Sie sind Aufdruck, kein Bedienteil: der ganze FIELD-Kasten ist EIN Feld,
+   und ein Klick auf den Kreis setzt auf das Field — genau wie am echten
+   Tisch. */
+.cr-felt__circles {
+	position: absolute;
+	inset-block: 0;
+	inset-inline: 0;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding-inline: var(--ck-space-1);
+	pointer-events: none;
+}
+
+.cr-felt__circle {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	aspect-ratio: 1;
+	block-size: 88%;
+	border: 2px solid var(--ck-brass-100);
+	border-radius: 50%;
+	color: var(--ck-brass-100);
+	line-height: 1;
+}
+
+.cr-felt__circle-number {
+	font-family: var(--ck-font-display);
+	font-size: 1.1rem;
+}
+
+.cr-felt__circle-text {
+	font-family: var(--ck-font-display);
+	font-size: 0.34rem;
+	letter-spacing: 0.02em;
+}
+
+/* DIE E/C-KREISKETTE. Sieben Paare, senkrecht gestapelt, jedes Paar leicht
+   versetzt — wie auf der Vorlage. Sie sind der Zierrat EINES Feldes, kein
+   eigenes Bedienteil: ein Klick irgendwo in der Spalte setzt auf C & E. */
+.cr-felt__field--crapseleven {
+	justify-content: space-evenly;
+	border: 0;
+	padding: 0;
+}
+
+.cr-felt__chain {
+	display: flex;
+	flex-direction: column;
+	align-items: stretch;
+	justify-content: space-evenly;
+	inline-size: 100%;
+	block-size: 100%;
+	pointer-events: none;
+}
+
+.cr-felt__chain-pair {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+}
+
+.cr-felt__chain-e,
+.cr-felt__chain-c {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	aspect-ratio: 1;
+	inline-size: 1.15em;
+	border: 1.5px solid var(--ck-felt-line);
+	border-radius: 50%;
+	font-family: var(--ck-font-display);
+	font-size: 0.6rem;
+	line-height: 1;
+}
+
+/* Der Versatz der Vorlage: das C sitzt eine halbe Kreishöhe tiefer als das E,
+   sodass die Kette in einer Zickzacklinie nach unten läuft. */
+.cr-felt__chain-c {
+	transform: translateY(45%);
 }
 
 /* ==========================================================================
@@ -185,7 +940,9 @@
    nach jedem Wurf einmal angesagt. */
 .cr-puck {
 	grid-row: 1 / 2;
-	grid-column: 1 / 3;
+	/* OFF: über der Mitte der Mittensektion, wie der Puck am echten Tisch
+	   neben dem Spielplan liegt, solange kein Point läuft. */
+	grid-column: 46 / 52;
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -195,12 +952,26 @@
 	   erreicht auf --ck-felt-green 4,28 : 1 und ist derselbe Ton, den die
 	   ON-Regeln unten für den Rahmen ohnehin schon benutzen. */
 	border: 2px solid var(--ck-brass-200);
-	border-radius: 999px;
+	border-radius: var(--ck-radius-pill);
 	background-color: var(--ck-ivory-100);
 	color: var(--ck-print-ink);
 	font-family: var(--ck-font-display);
 	font-size: 0.7rem;
 	letter-spacing: 0.12em;
+	/* GESTALTUNG 2026-09-09: der Puck LIEGT auf dem Tuch, er ist nicht darauf
+	   gedruckt. Zwei Lagen sagen das: ein enger dunkler Saum unmittelbar
+	   unter der Scheibe (die Aufstandsfläche) und ein weiterer, weicherer
+	   darunter (der Schlagschatten). Dieselbe Bauart wie beim Chip des
+	   geteilten Blatts, der über filter: drop-shadow() aus der flachen
+	   Scheibe ein Stück Material macht.
+
+	   Der Aufdruck bleibt --ck-print-ink auf --ck-ivory-100 (15,0 : 1) und
+	   der Rand --ck-brass-200 auf --ck-felt-green (4,28 : 1, Prüfung F-9).
+	   Beide Schatten liegen AUSSERHALB der Scheibe und berühren keinen
+	   dieser Werte. */
+	box-shadow:
+		0 0.05rem 0 var(--ck-shadow-hard),
+		0 0.2rem 0.35rem var(--ck-shadow-pool);
 	transition: grid-column 200ms ease, background-color 200ms ease;
 }
 
@@ -239,12 +1010,15 @@
 	display: block;
 }
 
-[data-cr-point='4'] .cr-puck { grid-column: 1 / 3; }
-[data-cr-point='5'] .cr-puck { grid-column: 3 / 5; }
-[data-cr-point='6'] .cr-puck { grid-column: 5 / 7; }
-[data-cr-point='8'] .cr-puck { grid-column: 7 / 9; }
-[data-cr-point='9'] .cr-puck { grid-column: 9 / 11; }
-[data-cr-point='10'] .cr-puck { grid-column: 11 / 13; }
+/* Die Reihenfolge ist die des TUCHS: die 10 liegt innen an der Mittensektion,
+   die 4 außen am Don't-Come-Kasten (BetLayout::POINTS_ON_CLOTH). Wer sie nach
+   der Größe der Zahl ordnete, legte den Puck über den falschen Kasten. */
+[data-cr-point='10'] .cr-puck { grid-column: 61 / 65; }
+[data-cr-point='9'] .cr-puck  { grid-column: 65 / 69; }
+[data-cr-point='8'] .cr-puck  { grid-column: 69 / 73; }
+[data-cr-point='6'] .cr-puck  { grid-column: 73 / 77; }
+[data-cr-point='5'] .cr-puck  { grid-column: 77 / 81; }
+[data-cr-point='4'] .cr-puck  { grid-column: 81 / 85; }
 
 /* Die Bewegungsdrosselung gilt projektweit (CONCEPT.md B.6.1). */
 @media (prefers-reduced-motion: reduce) {
@@ -257,19 +1031,81 @@
    5  Point-Anzeige und Place-Schalter
    ========================================================================== */
 
+/* DER POINT-STAND — das eine Schild, das den Zustand des Tisches ansagt.
+
+   GESTALTUNG 2026-09-09. Bisher eine Textzeile unter vier anderen
+   Textzeilen. Der Point ist aber die wichtigste Angabe der ganzen Seite:
+   von ihm hängt ab, welche Wetten überhaupt möglich sind. Deshalb wird er
+   zum eingelassenen SCHILD — dunkles Holz, Messingfase, gesperrte
+   Schmuckschrift —, in derselben Machart wie das Namensschild eines Geräts
+   im Saal.
+
+   Es ist ausdrücklich KEIN Bedienteil und wird auch nicht zu einem: kein
+   Zeigerhinweis, kein Fokusrahmen, keine Mindestgröße. Es ist Auskunft.
+   inline-size: fit-content, damit das Schild so breit ist wie sein Satz und
+   nicht so breit wie der Saal — ein Schild, das über die halbe Seite läuft,
+   sieht nicht nach Messing aus, sondern nach einem Absatz mit Rahmen.
+
+   Kontrast nachgerechnet (WCAG-2.2-Formel): --ck-text-primary #f4e8d4 auf
+   --ck-wood-500 #1a0f08 ergibt 15,54 : 1, weit über den 4,5 : 1 für Text.
+   Die Messingfase --ck-brass-400 #8c6a1f auf demselben Grund erreicht
+   3,76 : 1 und trägt damit auch als grafische Grenze, obwohl hier keine
+   gefordert ist. */
 .cr-round__point {
+	display: inline-block;
+	inline-size: fit-content;
+	max-inline-size: 68ch;
 	margin: var(--ck-space-2) 0;
+	padding: var(--ck-space-2) var(--ck-space-3);
+	border: 1px solid var(--ck-brass-400);
+	border-radius: var(--ck-radius-sm);
+	background-color: var(--ck-wood-500);
+	box-shadow:
+		inset 0 0.06rem 0 var(--ck-brass-500),
+		0 0.15rem 0.4rem var(--ck-shadow-soft);
 	color: var(--ck-text-primary);
 	font-family: var(--ck-font-display);
-	font-size: 0.95rem;
+	font-size: 1.05rem;
+	letter-spacing: 0.06em;
+	line-height: 1.4;
 }
 
+/* DER PLACE-SCHALTER — dasselbe Schild wie der Point-Stand.
+
+   GESTALTUNG 2026-09-09. Beide sagen etwas über den Zustand des Tisches:
+   der eine, ob ein Point steht, der andere, ob die Place-Wetten arbeiten.
+   Sie bekommen deshalb dieselbe Machart — dunkles Holz, Messingfase — und
+   stehen zusammen als Instrumentenreihe unter dem Tisch, statt als zwei
+   lose Absätze im Saal zu schweben.
+
+   Der Unterschied zwischen beiden bleibt sichtbar und ist der richtige: der
+   Point-Stand ist so breit wie sein Satz (fit-content), der Schalter füllt
+   die Reihe — er ist ein Bedienteil und darf eine Trefferfläche haben.
+
+   Nachgerechnet auf --ck-wood-500 #1a0f08 (WCAG-2.2-Formel):
+     --ck-text-primary #f4e8d4   15,54 : 1   (Aufschrift des Schalters)
+     --ck-text-muted   #b39c80    7,16 : 1   (die Erläuterung daneben)
+     --ck-brass-200    #dfb964   10,09 : 1   (der Fokusrahmen)
+     --ck-brass-300    #bd9333    6,62 : 1   (das gesetzte Kästchen)
+   Alle vier über ihrem jeweiligen Sollwert. Der Fokusrahmen gewinnt durch
+   das Schild: auf dem Teppich des Saals lag er bei 8,98 : 1, auf dem
+   Schild bei 10,09 : 1. Nachgerechnet wurde beides, damit die Fläche nicht
+   auf gut Glück eingezogen wird — genau an dieser Stelle sind in diesem
+   Haus schon zweimal Ersatztokens nötig geworden. */
 .cr-felt__working {
 	display: flex;
 	flex-wrap: wrap;
 	align-items: baseline;
-	gap: var(--ck-space-2);
-	margin-block-start: var(--ck-space-2);
+	gap: var(--ck-space-2) var(--ck-space-4);
+	max-inline-size: 68ch;
+	margin-block-start: var(--ck-space-3);
+	padding: var(--ck-space-1) var(--ck-space-3);
+	border: 1px solid var(--ck-brass-400);
+	border-radius: var(--ck-radius-sm);
+	background-color: var(--ck-wood-500);
+	box-shadow:
+		inset 0 0.06rem 0 var(--ck-brass-500),
+		0 0.15rem 0.4rem var(--ck-shadow-soft);
 }
 
 /* Mindestens 2,75 rem hoch, wie jedes Bedienteil eines Tisches (SC 2.5.8). */
@@ -321,17 +1157,48 @@
    Bedienleiste (dieselbe Begründung wie bei roulette/…/felt.css, .ro-sound):
    Mindestgröße 2,75rem in beide Richtungen wie jedes andere Bedienteil dieses
    Tisches. */
+/* GESTALTUNGSLAUF 2026-09-09 — EIN LAYOUTFUND UND SEINE BEHEBUNG.
+
+   display: inline-flex beschreibt, wie der Knopf INNEN aufgebaut ist, nicht,
+   wie breit er ist. Der Knopf ist ein unmittelbares Kind von .ck-table, und
+   das ist ein Flex-Container in Spaltenrichtung (table.css). Dessen Vorgabe
+   align-items: stretch zieht jedes Kind auf die volle Breite — der
+   Ton-Schalter lief deshalb über die ganze Seitenbreite, mit dem Wort „Ton"
+   ganz links darin (gemessen im Bildschirmfoto vom 2026-09-09 bei 1440 und
+   bei 320 Bildpunkten). Ein Knopf, der aussieht wie eine Leiste, wird auch
+   wie eine Leiste gelesen: man vermutet weitere Bedienteile darin.
+
+   align-self: flex-start nimmt ihn aus dem Strecken heraus. Die Zielgröße
+   ändert sich dadurch nicht — min-inline-size und min-block-size stehen
+   unverändert bei 2,75 rem (WCAG 2.2 SC 2.5.8), und die untere Grenze war
+   nie das Problem, sondern die obere.
+
+   MATERIAL: dieselbe Bakelit-Bauart wie .ck-table__button des geteilten
+   Blatts — eine flache Kappe mit einer dunkleren Unterkante, die beim
+   Drücken schmaler wird. Neu ist nur, dass die Kante jetzt aus Messing
+   statt aus Holz besteht: der Ton-Schalter ist das einzige Bedienteil
+   AUSSERHALB der beiden Leisten, und die Messingkante ist das, was ihn mit
+   dem Tisch darüber verbindet.
+   Gewählt ist --ck-brass-300, nicht --ck-brass-400: auf dem Holzkörper
+   --ck-wood-300 #452b19 erreicht --ck-brass-300 #bd9333 nachgerechnet
+   4,58 : 1, --ck-brass-400 #8c6a1f dagegen nur 2,60 : 1. Gefordert sind
+   hier keine 3 : 1 — die Kante ist Zierrat auf dem Knopf und nicht sein
+   Umriss, und die Aussage des Schalters steht im Namensschild und in
+   aria-pressed. Der stärkere Ton ist trotzdem der richtige: eine Kante, die
+   man nicht sieht, ist keine. */
 .cr-sound {
 	display: inline-flex;
+	align-self: flex-start;
 	align-items: center;
 	gap: var(--ck-space-2);
 	min-inline-size: 2.75rem;
 	min-block-size: 2.75rem;
 	padding-inline: var(--ck-space-3);
 	border: 0;
-	border-block-end: 3px solid var(--ck-wood-400);
+	border-block-end: 3px solid var(--ck-brass-300);
 	border-radius: var(--ck-radius-pill);
 	background-color: var(--ck-wood-300);
+	box-shadow: 0 0.15rem 0.4rem var(--ck-shadow-soft);
 	cursor: pointer;
 }
 

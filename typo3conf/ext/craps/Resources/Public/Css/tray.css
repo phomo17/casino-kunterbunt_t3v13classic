@@ -30,29 +30,60 @@
    1  Anordnung
    ========================================================================== */
 
-/* .ck-table ist ein Flex-Container (table.css); overflow: auto sorgt dafür,
-   dass auf einem niedrigen Bildschirm gescrollt wird, statt den Vertrag
-   ck-room-fill zu brechen — dieselbe Bauart wie beim Rad des anderen
-   Tisches (roulette/…/wheel.css). */
+/* Der Tisch bringt seine eigene Rollkette mit (felt.css, Abschnitt 1);
+   min-inline-size: 0 gibt die Bildschirmbreite an sie weiter. overflow: auto
+   bleibt für den senkrechten Fall: auf einem niedrigen Bildschirm wird
+   gescrollt, statt den Vertrag ck-room-fill zu brechen — dieselbe Bauart wie
+   beim Rad des anderen Tisches (roulette/…/wheel.css).
+
+   Seit Umsetzungsstück Td (eine Fläche statt zweier) entfallen .cr-tray und
+   .cr-tray__drawing ersatzlos: die Wanne ist keine eigene, für sich
+   ausgerichtete Box mehr, sondern eine von drei Schichten in .cr-cloth
+   (felt.css). Die KLASSE cr-tray__drawing bleibt am SVG-Element stehen
+   (Cloth.html) — verify-cabinet.mjs und verify-tray.mjs suchen weiterhin
+   danach —, nur ihre eigene Layoutregel hier entfällt. */
 .cr-table {
 	overflow: auto;
-}
-
-.cr-tray {
-	inline-size: min(56rem, 100%);
-	margin-inline: auto;
-}
-
-.cr-tray__drawing {
-	display: block;
-	inline-size: 100%;
-	block-size: auto;
+	min-inline-size: 0;
 }
 
 
 /* ==========================================================================
-   2  Die Lage eines Würfels — Drehmatrix statt Winkel
+   2  Die Lage eines Würfels — Drehmatrix statt Winkel, und der Körper
    ========================================================================== */
+
+/* DIE EINE REGEL, AN DER DIE GANZE BEWEGUNG HÄNGT — unverändert seit C6d:
+   dice-physics.js führt die Gierlage als EINHEITSVEKTOR (zwei Zahlen), nicht
+   als Winkel. Die vier Zahlen einer Drehmatrix sind UNMITTELBAR die beiden
+   Vektoren; ein Winkel für rotate() müsste erst über Math.atan2()
+   zurückgerechnet werden. dice-view.js schreibt vier Zahlen und rechnet
+   nichts.
+
+   NEU SEIT DER ANSAGE VOM 2026-09-07: DER WÜRFEL IST EIN KÖRPER.
+   Die Gruppe .cr-die trägt selbst KEINE Transformation mehr. Stattdessen
+   trägt jede ihrer vier Schichten die vollständige Kette und wird um ein
+   Vielfaches von (--cr-dx, --cr-dy) versetzt:
+
+     --cr-lift  0  Deckfläche       kein Versatz
+     --cr-lift  1  nahe Körperfläche
+     --cr-lift  2  ferne Körperfläche
+     --cr-lift  2+ Schatten          zusätzlich mit der Flughöhe wachsend
+
+   WARUM DER VERSATZ IM BILDSCHIRMRAUM LIEGT UND NICHT IM KÖRPERRAUM.
+   Ein Würfel dreht sich um die senkrechte Achse (Gierlage). Die Richtung, in
+   die man an ihm „vorbeisieht", ändert sich dabei NICHT — sie ist die
+   Projektion der Senkrechten und steht fest. Läge der Versatz innerhalb der
+   Drehung, schwänke der Körper mit jeder Drehung hin und her, als kippte der
+   Tisch. Deshalb steht translate() VOR matrix() in der Kette: die
+   Verschiebung geschieht im Bildschirmraum, die Drehung danach im
+   Körperraum.
+
+   WARUM VIER GESCHWISTER UND NICHT VIER GESCHACHTELTE GRUPPEN.
+   transform-box: view-box bezieht transform-origin: 0 0 auf den Ursprung der
+   Zeichenfläche. In einer bereits verschobenen Elterngruppe zeigt dieser
+   Ursprung nicht mehr auf den Würfel, sondern auf die linke obere Ecke des
+   Tisches — die Drehung liefe dann um den Tischrand. Vier flache
+   Geschwister mit je einer vollständigen Kette haben dieses Problem nicht. */
 
 .cr-die {
 	--cr-m11: 1;
@@ -61,28 +92,91 @@
 	--cr-m22: 1;
 	--cr-sx: 1;
 	--cr-sy: 1;
+	/* Der Versatz je Schicht, in Einheiten der Zeichenfläche. Bei einer
+	   Kantenlänge von 12 sind 0,75 / 1,05 rund 6 % beziehungsweise 9 % —
+	   ein Würfel von rund zwei Einheiten Höhe, aus einem Winkel von etwa
+	   zehn Grad neben der Senkrechten gesehen. Groß genug, dass man den
+	   Körper sieht; klein genug, dass die Deckfläche die ablesbare Fläche
+	   bleibt (CONCEPT.md C.8.3). */
+	--cr-dx: 0.75;
+	--cr-dy: 1.05;
+	--cr-lift: 0;
+	/* Der Handversatz. Vorgabe 0; geschrieben ausschließlich von
+	   throw-input.js, und nur solange data-cr-hand am Würfel steht. */
+	--cr-hx: 0;
+	--cr-hy: 0;
+}
+
+/* Die gemeinsame Kette aller vier Schichten. */
+.cr-die__face,
+.cr-die__side,
+.cr-die__shadow {
 	transform-box: view-box;
 	transform-origin: 0 0;
 	transform:
-		translate(calc(var(--cr-x) * 1px), calc(var(--cr-y) * 1px))
+		translate(
+			calc((var(--cr-x) + var(--cr-dx) * var(--cr-lift)) * 1px),
+			calc((var(--cr-y) + var(--cr-dy) * var(--cr-lift)) * 1px))
 		matrix(var(--cr-m11), var(--cr-m12), var(--cr-m21), var(--cr-m22), 0, 0)
 		scale(var(--cr-sx), var(--cr-sy));
 }
+
+/* Während des Aufnehmens und Schüttelns führt throw-input.js den Würfel über
+   --cr-hx/--cr-hy. --cr-x/--cr-y stünden zu diesem Zeitpunkt noch auf dem
+   Ruheplatz des letzten Wurfs und werden deshalb NICHT mitgerechnet. Der
+   Schalter ist data-cr-hand am Würfel — ein Attribut, kein zweiter Schreiber
+   derselben Eigenschaft (Prüfung V-2). */
+.cr-die[data-cr-hand] .cr-die__face,
+.cr-die[data-cr-hand] .cr-die__side,
+.cr-die[data-cr-hand] .cr-die__shadow {
+	transform:
+		translate(
+			calc((var(--cr-hx) + var(--cr-dx) * var(--cr-lift)) * 1px),
+			calc((var(--cr-hy) + var(--cr-dy) * var(--cr-lift)) * 1px))
+		matrix(var(--cr-m11), var(--cr-m12), var(--cr-m21), var(--cr-m22), 0, 0)
+		scale(var(--cr-sx), var(--cr-sy));
+}
+
+.cr-die__side--near { --cr-lift: 1; }
+.cr-die__side--far  { --cr-lift: 2; }
 
 
 /* ==========================================================================
    3  Schatten
    ========================================================================== */
 
-/* Ein Würfel in der Luft wirft einen größeren, blasseren Schatten. Rein
-   optisch; kein Rückfluss in die Physik. --cr-h (die Höhe über dem Tuch)
-   steht bis Umsetzungsstück C6d fest auf 0 (Tray.html). */
+/* Ein Würfel in der Luft wirft einen größeren, blasseren und weiter
+   versetzten Schatten. Rein optisch; kein Rückfluss in die Physik. --cr-h ist
+   die Höhe über dem Tuch und kommt aus dice-view.js.
+
+   Die eigene transform-Regel überschreibt die gemeinsame Kette oben (sie
+   steht danach und hat dieselbe Spezifität): der Schatten braucht keine
+   Drehung — ein Kreis sieht gedreht gleich aus — wohl aber die Aufweitung. */
+/* GESTALTUNGSLAUF 2026-09-09: der Schatten ist kein schwarzer Fleck mehr,
+   sondern ein Farbgeber mit weichem Auslauf (#cr-die-shadow, definiert in
+   DiceSprite.html). Ein Schlagschatten mit scharfer Kante gehört zu einer
+   punktförmigen Lichtquelle; über einem Spieltisch hängt keine. Die
+   Höhenabhängigkeit (Aufweitung, Abblassen) bleibt unverändert — sie ist
+   Verhalten, nicht Material. url(#…) ist ein Verweis innerhalb des
+   Dokuments (Prüfung A-3 schneidet ihn heraus). */
 .cr-die__shadow {
-	fill: var(--ck-shadow-hard);
-	opacity: calc(0.45 - var(--cr-h) * 0.008);
-	transform: scale(calc(1 + var(--cr-h) * 0.02));
-	transform-box: fill-box;
-	transform-origin: center;
+	fill: url(#cr-die-shadow);
+	opacity: calc(0.55 - var(--cr-h) * 0.008);
+	transform-box: view-box;
+	transform-origin: 0 0;
+	transform:
+		translate(
+			calc((var(--cr-x) + var(--cr-dx) * (2 + var(--cr-h) * 0.15)) * 1px),
+			calc((var(--cr-y) + var(--cr-dy) * (2 + var(--cr-h) * 0.15)) * 1px))
+		scale(calc(1 + var(--cr-h) * 0.02));
+}
+
+.cr-die[data-cr-hand] .cr-die__shadow {
+	transform:
+		translate(
+			calc((var(--cr-hx) + var(--cr-dx) * (2 + var(--cr-h) * 0.15)) * 1px),
+			calc((var(--cr-hy) + var(--cr-dy) * (2 + var(--cr-h) * 0.15)) * 1px))
+		scale(calc(1 + var(--cr-h) * 0.02));
 }
 
 
@@ -108,18 +202,88 @@
 
 /* Dieselbe Optik wie die geteilte Bedienleiste des Site Packages
    (.ck-table__controls), damit Phase C7 sie ersetzen kann, ohne dass sich
-   das Bild ändert. */
+   das Bild ändert. Diese Regel FOLGT dem geteilten Blatt, sie entscheidet
+   nichts selbst.
+
+   NACHGEZOGEN AM 2026-09-09: das geteilte Blatt hat sich entschieden. Die
+   Bedienleiste ist dort keine Chromfläche mehr, sondern die hölzerne
+   Vorderzarge des Tisches (Begründung und alle nachgerechneten Kontraste
+   stehen bei .ck-table__controls in casino_startpage/…/table.css). Die
+   Wurfleiste steht unmittelbar darunter und muss dasselbe Material zeigen —
+   bliebe sie Chrom, stünde auf /craps eine hölzerne Zarge über einer
+   silbernen, und der Bruch wäre größer als vorher. Übernommen sind Verlauf,
+   Maserung, Messingkante und Rundung wörtlich; craps-eigen bleiben nur die
+   drei Absätze darunter (Ausrichtung, Polster, Abstand nach oben).
+
+   AUSRICHTUNG: align-items war flex-end. Damit hing jede Spalte der Leiste
+   an ihrer Unterkante — die Modewahl trägt aber unter jeder Option eine
+   zweizeilige Erläuterung, und die schob den Kasten nach unten aus der
+   Leiste heraus (gemessen im Bildschirmfoto vom 2026-09-09, 1440 und 320
+   Bildpunkte: die Erläuterung lief über die untere Kante der Leiste
+   hinweg). flex-start richtet alle Spalten an ihrer OBERKANTE aus, wo sie
+   gemeinsam beginnen, und der Kasten wächst nach unten mit.
+
+   ABSTAND NACH OBEN: die Wurfleiste steht unmittelbar unter der geteilten
+   Bedienleiste, und beide sind Holz mit Messingkante. Ohne Zwischenraum
+   lesen sie sich als ein einziger, sehr hoher Block; mit einem halben
+   Grundabstand als zwei Bauteile desselben Tisches. */
 .cr-throw {
 	display: flex;
 	flex-wrap: wrap;
-	align-items: flex-end;
+	align-items: flex-start;
 	gap: var(--ck-space-3);
-	padding: var(--ck-space-3);
-	border-radius: var(--ck-radius-md);
-	background-image: var(--ck-chrome-polish);
+	margin-block-start: var(--ck-space-2);
+	/* Polster: die Modewahl ist die einzige Spalte mit einer zweiten Zeile
+	   (der Erläuterung), und die läuft bei breitem Fenster bis dicht an die
+	   Unterkante. Ein Kasten, dessen Inhalt die Kante berührt, sieht aus, als
+	   wäre er zu klein geraten. Bis zum 2026-09-09 stand deshalb unten mehr
+	   Polster als oben (1 rem / 1,5 rem); seit die Leiste eine Zarge ist,
+	   steht oben derselbe Betrag — das ist genau die Maßangabe der geteilten
+	   Leiste darüber, und zwei gleiche Bauteile bekommen dieselben Maße. Das
+	   Polster unten wird dabei nicht kleiner. */
+	padding: var(--ck-space-4) var(--ck-space-3);
+	border-radius: var(--ck-radius-lg);
+	background-color: var(--ck-wood-300);
+	background-image: var(--ck-wood-grain-lines), var(--ck-wood-polish);
+	color: var(--ck-text-primary);
 	box-shadow:
+		inset 0 0.14rem 0 var(--ck-brass-200),
 		inset 0 0 0 0.12rem var(--ck-brass-300),
-		0 0.2rem 0.5rem var(--ck-shadow-soft);
+		0 0.4rem 1rem var(--ck-shadow-hard);
+}
+
+/* DIE ZWEI NAMENSSCHILDER SIND AM 2026-09-09 ENTFALLEN — und das ist der
+   eigentliche Sinn der Übung.
+
+   Bis dahin stand hier eine Regel, die zwei Aufschriften der Wurfleiste
+   (die Frage über der Modewahl und die Beschriftung der Wurfkraft-Schiene)
+   auf ein blickdichtes Chrom-Namensschild setzte. Der Grund war ein echter
+   Fund: --ck-text-inverse erreichte auf dem dunklen Band des Chromverlaufs
+   nur 1,93 : 1 statt der geforderten 4,5 : 1, und sobald die Leiste umbrach,
+   wanderte die Aufschrift genau dorthin.
+
+   Der Fund war aber nie craps-eigen. Die beiden Klassen .ck-table__chips
+   und .ck-table__buyin-label gehören dem geteilten Blatt, und dieselbe
+   Paarung stand dort unverändert — Roulette, Blackjack und der Mustertisch
+   trugen das Risiko weiter. Eine Behebung, die nur den eigenen Tisch heilt
+   und die Ursache stehen lässt, ist eine Umgehung.
+
+   Behoben ist es jetzt an der Quelle (casino_startpage/…/table.css): auf der
+   hölzernen Zarge gibt es kein helles Band mehr, gegen das eine feste
+   Schriftfarbe scheitern könnte, und --ck-text-primary trägt dort an jeder
+   Stelle des Verlaufs. Damit ist diese Regel überflüssig — und ein
+   Chromschild auf einer Nussbaumzarge wäre inzwischen selbst der Fehler.
+   Zwei Stellen, die dasselbe regeln, sind eine zu viel.
+
+   WAS BLEIBT: der Abstand unter dem Label. KEIN margin-block-end AN DER
+   <legend> — die gerenderte Legende eines <fieldset> ist ein Sonderkasten,
+   dessen unterer Rand nicht in die Höhe des Fieldsets eingerechnet wird. Ein
+   Rand von 0,25 rem an dieser Stelle schob den Inhalt genau um diese
+   0,25 rem über die untere Kante der Leiste hinaus (gemessen am
+   Bildschirmfoto vom 2026-09-09 bei 1440 Bildpunkten). Der Abstand steht
+   deshalb nur am gewöhnlichen Label. */
+.cr-throw .ck-table__buyin-label {
+	margin-block-end: var(--ck-space-1);
 }
 
 /* Trägt eine Option der Modewahl UND ihre Erläuterung (throw.mode.*.hint) —
@@ -133,34 +297,110 @@
 	max-inline-size: 14rem;
 }
 
+/* BEHEBUNG EINES KONTRASTFUNDES, GEFUNDEN IM GESTALTUNGSLAUF 2026-09-09,
+   NACHGEZOGEN AM SELBEN TAG.
+
+   Der Fund: diese Erläuterung stand in --ck-text-muted auf dem Chromverlauf
+   und erreichte dort nachgerechnet (WCAG-2.2-Formel, relative Leuchtdichte
+   mit sRGB-Rücktransformation)
+
+     --ck-text-muted #b39c80 auf --ck-chrome-100 #f6f9fb   2,49 : 1
+     --ck-text-muted #b39c80 auf --ck-chrome-500 #3d454c   3,70 : 1
+
+   — an JEDER Stelle des Verlaufs unter den 4,5 : 1 aus SC 1.4.3. Die erste
+   Antwort war ein blickdichtes Chrom-Namensschild hinter der Schrift.
+
+   Seit die Wurfleiste eine hölzerne Zarge ist, braucht es das Schild nicht
+   mehr, und es wäre auf Holz auch das falsche Bauteil (ein heller
+   Chromfleck auf Nussbaum liest sich als aufgeklebter Zettel). Der Ton
+   wechselt stattdessen auf die Schriftfarbe des Hauses:
+
+     --ck-text-primary #f4e8d4 auf --ck-wood-100 #7a5232   5,63 : 1
+     --ck-text-primary #f4e8d4 auf --ck-wood-500 #1a0f08  15,54 : 1
+
+   --ck-text-muted bleibt hier ausdrücklich AUSGESCHLOSSEN: er erreicht auf
+   demselben hellsten Stopp nur 2,59 : 1 — nachgerechnet, nicht geschätzt.
+   Ein Token ist nicht an sich gut oder schlecht, sondern nur auf einem
+   bestimmten Untergrund.
+
+   Der Text bleibt sekundär — nicht über seine Farbe, sondern über
+   Schriftgrad und Zeilenbreite. Das ist ohnehin das verlässlichere Mittel:
+   ein Graustufen- oder Kontrastmodus nimmt einer abgeschwächten Farbe ihre
+   Wirkung, einem kleineren Schriftgrad nicht. */
 .cr-throw__option-hint {
-	color: var(--ck-text-muted);
+	color: var(--ck-text-primary);
+	font-family: var(--ck-font-ui);
 	font-size: 0.75rem;
+	line-height: 1.35;
 }
 
 /* 2,75 rem ist die Mindest-Zielgröße aus WCAG 2.2 SC 2.5.8 mit Reserve —
-   dieselbe Zahl wie an jedem anderen Bedienteil eines Tisches. */
+   dieselbe Zahl wie an jedem anderen Bedienteil eines Tisches.
+
+   GESTALTUNG 2026-09-09: die Schiene bekommt die Messingfarbe des Hauses
+   statt der Systemfarbe des Browsers. accent-color färbt Laufbalken und
+   Griff und ändert an der Bedienung nichts — sie bleibt ein natives
+   <input type="range"> mit Pfeiltasten, Pos1/Ende und angesagtem Wert.
+   Sie wächst außerdem mit dem Platz, statt bei 12 rem stehen zu bleiben;
+   auf 320 Bildpunkten bleibt sie durch max-inline-size innerhalb der
+   Leiste. */
 .cr-throw__slider {
 	inline-size: 12rem;
 	block-size: 2.75rem;
+	max-inline-size: 100%;
+	accent-color: var(--ck-brass-300);
 }
 
 /* Wörtlich die Regel von .ck-table__button:focus-visible samt dem zweiten,
    dunklen Ring aus dem Behebungslauf vom 2026-09-06 (Befund H-02): der
-   Messingring allein erreicht auf der hellen Bedienleiste nur 1,03:1 bis
-   2,68:1 gegen die Nachbarfarben, verlangt sind 3:1 (SC 1.4.11). */
+   Messingring allein erreichte auf der damals hellen Bedienleiste nur 1,03:1
+   bis 2,68:1 gegen die Nachbarfarben, verlangt sind 3:1 (SC 1.4.11).
+   Nachtrag 2026-09-09: auf der hölzernen Zarge trägt der Messingring mit
+   nachgerechneten 3,66:1 (--ck-brass-200 #dfb964 auf --ck-wood-100 #7a5232)
+   von selbst. Die Regel bleibt trotzdem wörtlich gleich — sie soll die des
+   geteilten Blattes abbilden und nicht von ihr abweichen. */
 .cr-throw__slider:focus-visible {
 	outline: 3px solid var(--ck-brass-200);
 	outline-offset: 2px;
 	box-shadow: 0 0 0 2px var(--ck-print-ink);
 }
 
-/* Die Zeile springt nicht, wenn eine Ansage kommt — wörtlich .ck-table__status. */
+/* DIE ANSAGEZEILE. Die Zeile springt nicht, wenn eine Ansage kommt — die
+   Mindesthöhe stammt wörtlich von .ck-table__status.
+
+   GESTALTUNG 2026-09-09: sie bekommt eine Messing-Anrisslinie an der
+   Innenkante und rückt um denselben Betrag ein. Das ist kein Zierrat,
+   sondern eine Ortsangabe: dieser Absatz ist der einzige LIVE-Bereich des
+   Tisches, hier und nur hier erscheint nach jedem Wurf neuer Text. Wer nicht
+   weiß, wo er hinsehen soll, sucht ihn sonst zwischen vier gleich
+   aussehenden Absätzen.
+
+   Die Zeilenbreite ist begrenzt. Über etwa 70 Zeichen findet das Auge beim
+   Zeilenwechsel den Anfang der nächsten Zeile schlechter — auf einem
+   1440 Bildpunkte breiten Bildschirm lief diese Zeile bisher über die volle
+   Saalbreite.
+
+   Der Kontrast bleibt der geprüfte: --ck-text-primary auf dem Teppich des
+   Saals, unverändert; es kommt keine Fläche hinter den Text. */
 .cr-status {
 	margin: 0;
 	min-block-size: 1.5em;
+	max-inline-size: 68ch;
+	padding-inline-start: var(--ck-space-3);
+	border-inline-start: 2px solid var(--ck-brass-400);
 	color: var(--ck-text-primary);
-	font-size: 0.95rem;
+	font-size: 1rem;
+	line-height: 1.5;
+}
+
+/* Solange nichts angesagt wurde, ist der Absatz LEER — er wird leer
+   ausgeliefert, das ist die Regel für Live-Bereiche (Prüfung A-10, V-1).
+   Eine Anrisslinie ohne Text daneben sieht aus wie ein Fehler in der
+   Zeichnung. Sie wird deshalb erst sichtbar, wenn wirklich etwas dasteht.
+   Der Platz bleibt reserviert (min-block-size oben) — die Zeile springt
+   nicht, wenn die erste Ansage kommt. */
+.cr-status:empty {
+	border-inline-start-color: transparent;
 }
 
 /* .cr-tray { touch-action: none; } steht ABSICHTLICH NICHT hier — sie wird

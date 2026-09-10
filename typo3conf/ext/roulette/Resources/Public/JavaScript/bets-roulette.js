@@ -24,6 +24,17 @@
  * und lässt Zeichenketten ausdrücklich zu. Deshalb sind ALLE covers-
  * Einträge Zeichenketten — durchgehend, ohne Ausnahme.
  *
+ * WAS HIER STEHT — UND WAS SEIT DEM UMBAU NACH DER BILDVORLAGE NICHT MEHR
+ * ------------------------------------------------------------------------
+ * Diese Datei führt, was die BUCHFÜHRUNG braucht: Kennung, Art, abgedeckte
+ * Zahlen, Auszahlung, Höchsteinsatz und die Lage im Gitter. Was gezeichnet
+ * und vorgelesen wird — die englische Aufschrift, das farbige Oval, die
+ * Raute, der deutsche Name —, steht ausschließlich in Classes/BetLayout.php.
+ * Bis zum Umbau standen die drei Eigenschaften printed, labelKey und
+ * labelArgs auch hier; gelesen hat sie im Browser nie eine Zeile. Sie waren
+ * ein toter Zwilling, den der Nachweis F-1 mitpflegen musste. Dieselbe
+ * Aufteilung wie am Würfeltisch.
+ *
  * DIE ANORDNUNG DES TUCHS, AUS DER ALLES FOLGT
  * ----------------------------------------------
  * Zwölf Tuchspalten i = 1…12, drei Zeilen r = 1…3. Tuchspalte i trägt die
@@ -117,9 +128,6 @@ function buildFields() {
 			covers: Object.freeze([...covers]),
 			payout,
 			max: fieldMax(covers.length),
-			labelKey: opts.labelKey,    // XLIFF-Schlüssel des erreichbaren Namens (Phase C3b)
-			labelArgs: Object.freeze(opts.labelArgs ?? []),
-			printed: opts.printed ?? '',// sichtbare Aufschrift (Ziffer oder XLIFF-Schlüssel), '' = Linienfeld
 			col: opts.col,              // CSS-Grid-Spaltenlinie (Anfang)
 			colEnd: opts.colEnd ?? null,
 			row: opts.row,              // CSS-Grid-Zeilenlinie (Anfang)
@@ -128,12 +136,12 @@ function buildFields() {
 	};
 
 	// 1  Die beiden grünen Fächer und die 36 Zahlen  → 38 Felder
-	push('n-0', 'number', ['0'], { printed: '0', col: 1, row: 2, rowEnd: 4 });
-	push('n-00', 'number', ['00'], { printed: '00', col: 1, row: 5, rowEnd: 7 });
+	push('n-0', 'number', ['0'], { col: 1, row: 2, rowEnd: 4 });
+	push('n-00', 'number', ['00'], { col: 1, row: 5, rowEnd: 7 });
 	for (let i = 1; i <= 12; i++) {
 		for (let r = 1; r <= 3; r++) {
 			const zahl = numberAt(i, r);
-			push(`n-${zahl}`, 'number', [zahl], { printed: zahl, col: 2 * i + 1, row: 2 * r });
+			push(`n-${zahl}`, 'number', [zahl], { col: 2 * i + 1, row: 2 * r });
 		}
 	}
 
@@ -143,7 +151,6 @@ function buildFields() {
 			const a = numberAt(i, r);
 			const b = numberAt(i, r + 1);
 			push(`s-${a}-${b}`, 'split', [a, b], {
-				labelKey: 'felt.name.split', labelArgs: [`${a} und ${b}`],
 				col: 2 * i + 1, row: 2 * r + 1,
 			});
 		}
@@ -153,33 +160,30 @@ function buildFields() {
 			const a = numberAt(i, r);
 			const b = numberAt(i + 1, r);
 			push(`s-${a}-${b}`, 'split', [a, b], {
-				labelKey: 'felt.name.split', labelArgs: [`${a} und ${b}`],
 				col: 2 * i + 2, row: 2 * r,
 			});
 		}
 	}
-	push('s-0-00', 'split', ['0', '00'], { labelKey: 'felt.name.split', labelArgs: ['0 und 00'], col: 1, row: 4 });
-	push('s-0-1', 'split', ['0', '1'], { labelKey: 'felt.name.split', labelArgs: ['0 und 1'], col: 2, row: 2 });
-	push('s-00-3', 'split', ['00', '3'], { labelKey: 'felt.name.split', labelArgs: ['00 und 3'], col: 2, row: 6 });
+	push('s-0-00', 'split', ['0', '00'], { col: 1, row: 4 });
+	push('s-0-1', 'split', ['0', '1'], { col: 2, row: 2 });
+	push('s-00-3', 'split', ['00', '3'], { col: 2, row: 6 });
 
 	// 3  Dreierreihen 12 + Trios 3 → 15 Felder
 	for (let i = 1; i <= 12; i++) {
 		const covers = [numberAt(i, 1), numberAt(i, 2), numberAt(i, 3)];
 		push(`st-${covers[0]}`, 'street', covers, {
-			labelKey: 'felt.name.street', labelArgs: [covers.join(', ')],
 			col: 2 * i + 1, row: 1,
 		});
 	}
-	push('t-0-1-2', 'trio', ['0', '1', '2'], { labelKey: 'felt.name.trio', labelArgs: ['0, 1 und 2'], col: 2, row: 3 });
-	push('t-0-00-2', 'trio', ['0', '00', '2'], { labelKey: 'felt.name.trio', labelArgs: ['0, 00 und 2'], col: 2, row: 4 });
-	push('t-00-2-3', 'trio', ['00', '2', '3'], { labelKey: 'felt.name.trio', labelArgs: ['00, 2 und 3'], col: 2, row: 5 });
+	push('t-0-1-2', 'trio', ['0', '1', '2'], { col: 2, row: 3 });
+	push('t-0-00-2', 'trio', ['0', '00', '2'], { col: 2, row: 4 });
+	push('t-00-2-3', 'trio', ['00', '2', '3'], { col: 2, row: 5 });
 
 	// 4  Viererblöcke → 22 Felder
 	for (let i = 1; i <= 11; i++) {
 		for (let r = 1; r <= 2; r++) {
 			const covers = [numberAt(i, r), numberAt(i, r + 1), numberAt(i + 1, r), numberAt(i + 1, r + 1)];
 			push(`c-${numberAt(i, r)}`, 'corner', covers, {
-				labelKey: 'felt.name.corner', labelArgs: [covers.join(', ')],
 				col: 2 * i + 2, row: 2 * r + 1,
 			});
 		}
@@ -193,7 +197,6 @@ function buildFields() {
 	// hält diese Ausnahme fest (Lage UND die genau zwei berührten Zahlen),
 	// statt sie stillschweigend zu übergehen.
 	push('five', 'five', ['0', '00', '1', '2', '3'], {
-		labelKey: 'felt.name.five', labelArgs: ['0, 00, 1, 2 und 3'],
 		col: 2, row: 1,
 	});
 
@@ -204,7 +207,6 @@ function buildFields() {
 			numberAt(i + 1, 1), numberAt(i + 1, 2), numberAt(i + 1, 3),
 		];
 		push(`sl-${covers[0]}`, 'sixline', covers, {
-			labelKey: 'felt.name.sixline', labelArgs: [covers.join(', ')],
 			col: 2 * i + 2, row: 1,
 		});
 	}
@@ -213,8 +215,6 @@ function buildFields() {
 	for (let r = 1; r <= 3; r++) {
 		const covers = columnNumbers(r);
 		push(`col-${r}`, 'column', covers, {
-			printed: 'felt.print.column',
-			labelKey: 'felt.name.column', labelArgs: [String(r), covers.join(', ')],
 			col: 27, row: 2 * r,
 		});
 	}
@@ -224,22 +224,20 @@ function buildFields() {
 			covers.push(String(n));
 		}
 		push(`dz-${d}`, 'dozen', covers, {
-			printed: `felt.print.dozen.${d}`,
 			col: 8 * d - 5, colEnd: 8 * d + 2, row: 8,
 		});
 	}
 	const EINFACHE_CHANCEN = [
-		{ id: 'low', printed: 'felt.print.low', covers: Array.from({ length: 18 }, (_, k) => String(k + 1)) },
-		{ id: 'even', printed: 'felt.print.even', covers: Array.from({ length: 18 }, (_, k) => String(2 * (k + 1))) },
-		{ id: 'red', printed: 'felt.print.red', covers: RED },
-		{ id: 'black', printed: 'felt.print.black', covers: BLACK },
-		{ id: 'odd', printed: 'felt.print.odd', covers: Array.from({ length: 18 }, (_, k) => String(2 * k + 1)) },
-		{ id: 'high', printed: 'felt.print.high', covers: Array.from({ length: 18 }, (_, k) => String(k + 19)) },
+		{ id: 'low', covers: Array.from({ length: 18 }, (_, k) => String(k + 1)) },
+		{ id: 'even', covers: Array.from({ length: 18 }, (_, k) => String(2 * (k + 1))) },
+		{ id: 'red', covers: RED },
+		{ id: 'black', covers: BLACK },
+		{ id: 'odd', covers: Array.from({ length: 18 }, (_, k) => String(2 * k + 1)) },
+		{ id: 'high', covers: Array.from({ length: 18 }, (_, k) => String(k + 19)) },
 	];
 	EINFACHE_CHANCEN.forEach((chance, index) => {
 		const j = index + 1;
 		push(chance.id, 'even', chance.covers, {
-			printed: chance.printed,
 			col: 4 * j - 1, colEnd: 4 * j + 2, row: 9,
 		});
 	});

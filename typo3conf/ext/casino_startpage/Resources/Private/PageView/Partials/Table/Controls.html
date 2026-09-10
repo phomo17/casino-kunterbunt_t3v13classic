@@ -6,7 +6,9 @@
 	               Auslöser ausgegeben — der Mustertisch hat keinen, weil er
 	               kein Spiel ist (C.9: „ein Beispieltisch ohne Spiel").
 	  {chips}      Reihenfolge der Chipwahl, absteigend. Je Eintrag: value,
-	               symbolId (siehe Table/ChipSprite.html).
+	               symbolId (siehe Table/ChipSprite.html). Dieselbe Liste
+	               bekommt Table/BuyIn für die Chipkasse — sie soll die
+	               Chipwerte nicht ein zweites Mal kennen.
 	  {splittable} Chipwerte, die sich kleiner wechseln lassen (alle außer 1).
 	  {mergeable}  Chipwerte, in die sich kleinere zusammenfassen lassen
 	               (alle außer 100).
@@ -40,16 +42,22 @@
 	am Ansagebereich (Table/Status.html, Teilstück C1-C) und werden von dort
 	gelesen; sie werden hier nicht zweimal geführt.
 
-	data-message-buyin-done, data-message-exchange-down-done und
+	data-message-chip-buy-done, data-message-chip-sell-done,
+	data-message-chip-sell-none und data-message-chip-full: Ansagen der
+	Chipkasse (Ansage vom 2026-09-07, ersetzt das frühere
+	data-message-buyin-done und data-message-invalid des Betragsformulars,
+	das ersatzlos entfallen ist). data-message-exchange-down-done und
 	data-message-exchange-up-done (Audit M7-01, 2026-09-07): Erfolgsansagen für
-	Buy-in und die beiden Wechselrichtungen, die bis dahin stumm blieben.
+	die beiden Wechselrichtungen, die bis dahin stumm blieben.
 </f:comment>
 <div class="ck-table__controls" data-ck-table-controls=""
 	data-message-nocash="{f:translate(key: 'LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:table.buyin.nocash')}"
-	data-message-invalid="{f:translate(key: 'LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:table.buyin.invalid')}"
 	data-message-cashout-blocked="{f:translate(key: 'LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:table.cashout.blocked')}"
 	data-message-cashout-done="{f:translate(key: 'LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:table.cashout.done')}"
-	data-message-buyin-done="{f:translate(key: 'LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:table.buyin.done')}"
+	data-message-chip-buy-done="{f:translate(key: 'LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:table.chip.buy.done')}"
+	data-message-chip-sell-done="{f:translate(key: 'LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:table.chip.sell.done')}"
+	data-message-chip-sell-none="{f:translate(key: 'LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:table.chip.sell.none')}"
+	data-message-chip-full="{f:translate(key: 'LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:table.chip.full')}"
 	data-message-exchange-down-done="{f:translate(key: 'LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:table.exchange.down.done')}"
 	data-message-exchange-up-done="{f:translate(key: 'LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:table.exchange.up.done')}"
 	data-text-rack-count="{f:translate(key: 'LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:table.rack.count')}"
@@ -109,5 +117,5 @@
 	</div>
 
 	<f:comment>4 — Wechselfeld und Auszahlung</f:comment>
-	<f:render partial="Table/BuyIn" arguments="{splittable: splittable, mergeable: mergeable}" />
+	<f:render partial="Table/BuyIn" arguments="{chips: chips, splittable: splittable, mergeable: mergeable}" />
 </div>

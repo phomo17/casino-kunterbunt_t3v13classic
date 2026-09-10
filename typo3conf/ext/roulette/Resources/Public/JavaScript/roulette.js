@@ -389,6 +389,11 @@ function bindTable(root) {
 				nochip: feltStatusEl?.dataset.textNochip ?? '',
 				fieldname: feltStatusEl?.dataset.textFieldname ?? '',
 				fieldnameEmpty: feltStatusEl?.dataset.textFieldnameEmpty ?? '',
+				// Behebungslauf 2026-09-09 (Befund M-02): nur bei den drei
+				// Kolonnen nötig (ihre Grundbeschriftung nennt "2 zu 1" schon,
+				// Prüfung F-20) — table-felt.js wählt diese Fassung selbst.
+				fieldnameStated: feltStatusEl?.dataset.textFieldnameStated ?? '',
+				fieldnameStatedEmpty: feltStatusEl?.dataset.textFieldnameStatedEmpty ?? '',
 			},
 		});
 

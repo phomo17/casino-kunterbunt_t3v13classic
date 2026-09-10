@@ -1,6 +1,6 @@
 # Casino Kunterbunt
 
-**Version 0.3.0 — alpha.** Frühe Entwicklungsfassung, nichts ist stabil.
+**Version 0.4.0 — alpha.** Frühe Entwicklungsfassung, nichts ist stabil.
 
 Quelltext: <https://github.com/phomo17/casino-kunterbunt_t3v13classic>
 
@@ -39,14 +39,15 @@ Gebaut ist die Welt, in der das Spiel stattfinden wird:
 
 | | Stand |
 |---|---|
-| **Roulette** — amerikanisches Rad mit doppelter Null, echter Kugelphysik, vollständigem Tuch und Auszahlung | fertig |
+| **Roulette** — amerikanisches Rad mit doppelter Null auf **einer** Fläche mit Holzrahmen ringsum, echter Kugelphysik, Tableau nach Bildvorlage (Pfeilfelder für `0`/`00`, farbige Zahlenovale, 159 Felder) und Auszahlung | fertig |
 | **Mustertisch** — kein eigenes Spiel, sondern die Vorlage der Gattung Tisch (Chips, Setzfläche, Bedienleiste, Buy-in), Beleg dafür, dass ein neuer Tisch mit denselben Bausteinen auskommt | fertig als Vorlage |
 | **Blackjack** — Kartenschlitten, Mischverfahren, Regelwerk, Rundenlogik, Tuch mit selbst gezeichneten Karten und vollständige Bedienung | fertig |
-| **Craps** — zwei selbst geworfene Würfel mit echter Physik in einer Wanne mit Banden, dazu 47 Wettfelder, Point und Puck, Odds nach der Staffel 3-4-5×, Place-Wetten und Auszahlung | fertig; Wanne und Tuch werden im nächsten Bauabschnitt zu **einer** Fläche zusammengelegt |
+| **Craps** — zwei selbst geworfene Würfel mit echter Physik auf **einer** Fläche mit Banden, dazu 48 Wettfelder nach einer Bildvorlage (Aufschriften englisch, Vorlesetext deutsch), Point und Puck, Odds nach der Staffel 3-4-5×, Place-Wetten und Auszahlung | fertig |
 
 | | Stand |
 |---|---|
-| Konten, Lobbys und weitere Geräte | geplant |
+| **Konten** — Backend-Reiter „Casino", Verwaltung der Spielenden, persönliche QR-Codes | Phase D1 fertig; QR-Modus, Frontend-Anmeldung und serverseitiges Guthaben stehen noch aus |
+| Lobbys und weitere Geräte | geplant |
 | Rollen, Regeln, Rundenablauf des Gesellschaftsspiels | geplant |
 
 ## Wie es gebaut ist
@@ -58,6 +59,14 @@ lokal in DDEV. Das Frontend hat bewusst enge Grenzen:
 - **keine Fremdbibliothek** — kein Framework, kein fremdes JavaScript
 - **keine externen Dateien** — kein Bild, keine Schriftdatei, keine Einbindung
   von außen
+
+Diese drei Grenzen gelten für das **Frontend** — dort stimmen sie
+uneingeschränkt weiter. Im **Backend** benutzt `casino_account` für die
+persönlichen QR-Codes der Spielenden die Bibliothek `bacon/bacon-qr-code`.
+Das ist **keine neue Abhängigkeit**: TYPO3 13.4 bringt sie selbst als harte
+Voraussetzung mit und benutzt sie für den QR-Code der eigenen
+Zwei-Faktor-Anmeldung (`typo3_src/vendor/bacon/bacon-qr-code/`). Die
+`composer.json` dieses Projekts bleibt davon unberührt.
 
 Alles Sichtbare entsteht im Browser: die Gehäuse aus CSS und eingebettetem
 SVG, die Anzeigen aus Custom Properties, die Geräusche aus der
@@ -112,10 +121,11 @@ Assistenten die Datenbankdaten von DDEV eintragen — Benutzer `db`, Passwort
 einem eigenen Container). Beim Schritt „Was möchten Sie tun?" **„Leere
 Startseite"** wählen.
 
-### 4. Die acht Extensions aktivieren
+### 4. Die neun Extensions aktivieren
 
 ```bash
 ddev exec php typo3/sysext/core/bin/typo3 extension:activate casino_startpage
+ddev exec php typo3/sysext/core/bin/typo3 extension:activate casino_account
 ddev exec php typo3/sysext/core/bin/typo3 extension:activate reel_slot
 ddev exec php typo3/sysext/core/bin/typo3 extension:activate video_slot
 ddev exec php typo3/sysext/core/bin/typo3 extension:activate coin_pusher
@@ -127,8 +137,9 @@ ddev exec php typo3/sysext/core/bin/typo3 dumpautoload
 ddev exec php typo3/sysext/core/bin/typo3 cache:flush
 ```
 
-Wichtig: `casino_startpage` **zuerst** — alle sieben Geräte- und Tisch-Extensions
-bauen darauf auf. Untereinander haben die sieben keine Reihenfolge.
+Wichtig: `casino_startpage` **zuerst** — alle acht übrigen Extensions bauen
+darauf auf, `casino_account` genauso wie die sieben Geräte- und
+Tisch-Extensions. Untereinander haben die acht keine Reihenfolge.
 
 ### 5. Seiten und Inhalte anlegen
 
@@ -181,6 +192,7 @@ nachweisen, steht im Abschnitt „Prüfskripte" ihrer eigenen `README.md`.
 | Extension | Aufgabe |
 |---|---|
 | `typo3conf/ext/casino_startpage` | Site Package: der Saal, die Design-Tokens, die geteilten Bausteine (Kasse, Gerätekredit, Klang, Risiko-Leiter, Chips, Setzfläche, Rundenablauf, Buy-in) und die Registry, bei der sich jedes Gerät und jeder Tisch anmeldet. Enthält außerdem den Mustertisch als Vorlage der Gattung Tisch |
+| `typo3conf/ext/casino_account` | Konten der Spielenden: eigener Backend-Reiter „Casino" mit dem Modul „Spielende", automatische Kennung, persönlicher QR-Code (Ansehen, Herunterladen, Drucken). Die erste rein backend-seitige Extension des Projekts — kein eigenes Inhaltselement, keine eigene Frontend-Seite |
 | `typo3conf/ext/reel_slot` | der Drei-Walzen-Automat |
 | `typo3conf/ext/video_slot` | der Fünf-Walzen-Automat |
 | `typo3conf/ext/coin_pusher` | der Münzschieber — eingefroren, wird später zurückgebaut |
@@ -191,7 +203,8 @@ nachweisen, steht im Abschnitt „Prüfskripte" ihrer eigenen `README.md`.
 
 Ein Gerät oder ein Tisch ist ein eigenständiges Inhaltselement. Das Site
 Package kennt keinen einzelnen davon und muss nicht geändert werden, wenn
-ein weiteres dazukommt.
+ein weiteres dazukommt. `casino_account` ist die Ausnahme: Es liefert kein
+Inhaltselement und keine Spielseite, sondern ausschließlich ein Backend-Modul.
 
 Jede Extension hat ihre eigene `README.md` mit den Einzelheiten.
 
@@ -223,7 +236,7 @@ Es gibt zwei Ebenen, die getrennt gezählt werden:
   des Spiels als Ganzes.
 - **Die einzelnen Extensions** — je eine Version in ihrer `ext_emconf.php`.
 
-Zurzeit stehen alle acht Extensions wie das Projekt auf **0.3.0** im
+Zurzeit stehen alle neun Extensions wie das Projekt auf **0.4.0** im
 Zustand **alpha**. Solange die Spielregeln des Gesellschaftsspiels noch nicht
 existieren, sagt eine höhere Zahl ohnehin wenig über Reife aus — sie zählt
 bislang nur mit, wie viele Geräte und Tische dazugekommen sind.
@@ -249,6 +262,13 @@ Ebenfalls ausgeschlossen sind die `build-*-structure.php`-Wegwerfskripte im
 Projektstamm, mit denen Seite und Inhaltselemente der einzelnen Geräte und
 Tische einmalig angelegt wurden: einmal gelaufen, nicht wiederverwendbar und
 kein Teil des Aufbauwegs aus Schritt 5.
+
+Nicht im Repository sind außerdem die Arbeitsdateien der Entwicklung selbst —
+sie sind Werkzeug, nicht Teil der laufenden Anwendung: `Plans/` und
+`Reviews/` (die Ausgabedateien der planenden und prüfenden Agenten), `Tests/`
+und `test.txt` (Testpläne und Testprotokolle) sowie die Begleitdateien im
+Projektstamm `APPROVAL.md`, `CONCEPT.md`, `DECISIONS.md`, `DESIGNBRIEF.md`,
+`MEMORY.md`, `OPINION.txt` und `RESEARCH.md`.
 
 ## Rechtliches
 

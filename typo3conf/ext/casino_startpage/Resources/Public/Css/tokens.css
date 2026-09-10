@@ -38,11 +38,91 @@
 	);
 
 	/* --- Dunkles Nussbaumholz --------------------------------------------- */
+	/* --ck-wood-100 ist die BELICHTETE OBERKANTE eines Holzteils, nicht eine
+	   neue Holzsorte: derselbe Nussbaum, nur dort, wo das Deckenlicht des
+	   Saals auf die gerundete Schulter fällt. Die Reihe begann bisher erst
+	   bei 200 (dem hellsten Ton der Fläche); für einen Rahmen, der als
+	   KÖRPER und nicht als Farbfläche gelesen werden soll, fehlte genau die
+	   Stufe darüber. Ein Verlauf von 100 nach 500 über die Höhe des Rahmens
+	   ist der ganze Unterschied zwischen „brauner Kasten" und „gerundete
+	   Holzkante".
+
+	   Warum hier und nicht in einer Geräte-Extension: Holz ist ein Werkstoff
+	   des Projekts (Regel „Design-Token-Namensschema" in
+	   casino_startpage/README.md). Jeder Tisch und jedes Gehäuse mit einem
+	   Holzrahmen braucht dieselbe Lichtkante.
+
+	   Nachgerechnet (WCAG-2.2-Formel, relative Leuchtdichte mit
+	   sRGB-Rücktransformation), weil auf dieser Kante die Messingkante des
+	   Tisches liegt:
+	     --ck-brass-200 #dfb964 auf --ck-wood-100 #7a5232   3,62 : 1
+	   Damit über den 3 : 1 einer Bauteilgrenze — obwohl hier keine gefordert
+	   sind: die Wanne ist eine aria-hidden-Zeichnung ohne Text und ohne
+	   Bedienfläche. Der Wert ist trotzdem nachgerechnet und nicht geschätzt,
+	   damit die Kante auch dann trägt, wenn später einmal eine Aufschrift
+	   auf ihr landet. Kein Text steht auf diesem Ton. */
+	--ck-wood-100: #7a5232;
 	--ck-wood-200: #5d3c24;
 	--ck-wood-300: #452b19;
 	--ck-wood-400: #2e1c10;
 	--ck-wood-500: #1a0f08;
 	--ck-wood-grain: rgba(20, 10, 4, 0.45);
+
+	/* Die Politur einer HOLZFLÄCHE — der dritte Werkstoff neben
+	   --ck-chrome-polish und --ck-brass-polish, in derselben Bauart und aus
+	   denselben Gründen: eine Fläche, die aus einem einzigen Farbwert
+	   besteht, sieht aus wie lackierter Karton und nicht wie ein Möbelstück.
+
+	   DIE TONFOLGE IST NICHT NEU ERFUNDEN. Sie ist die des Holzrahmens, den
+	   der Craps-Tisch als SVG zeichnet (Verlauf "cr-wood-face" in Cloth.html,
+	   Gestaltungslauf vom 2026-09-09): oben die vom Deckenlicht des Saals
+	   belichtete Schulter (--ck-wood-100), darunter der schnelle Abfall in
+	   die Fläche, unten der Schatten der Unterkante. Damit zeigen eine
+	   Holzfläche aus CSS und eine aus SVG dasselbe Material — das ist der
+	   ganze Zweck einer geteilten Token-Datei.
+
+	   DIE STOPPS STEHEN IN rem UND NICHT IN PROZENT, und das ist der einzige
+	   echte Unterschied zur SVG-Fassung. Ein Rahmen ist überall gleich
+	   breit; eine Zarge kann 6 rem oder 40 rem hoch sein. Bei prozentualen
+	   Stopps würde die Lichtkante mit der Höhe MITWACHSEN — aus einer
+	   belichteten Oberkante würde bei einer hohen Fläche ein Farbverlauf über
+	   die halbe Leiste, und das sieht nach Farbverlauf aus und nicht nach
+	   Holz. Licht und Schatten liegen deshalb als feste Bänder an den beiden
+	   Kanten, und dazwischen steht die Fläche ruhig auf --ck-wood-300. Wird
+	   eine Fläche kleiner als die Summe der Bänder, klemmt der Browser die
+	   Stopps von selbst zusammen — es gibt keine Höhe, bei der der Verlauf
+	   bricht.
+
+	   NICHT NACHZURECHNEN, WEIL KEIN KONTRASTWERT DARANHÄNGT: der Verlauf
+	   selbst trägt keine Aussage. Was auf ihm steht, wird gegen seinen
+	   HELLSTEN Stopp gerechnet (--ck-wood-100), denn nur dort ist der
+	   Abstand zu heller Schrift am kleinsten. Diese Rechnung steht bei den
+	   Regeln, die den Verlauf benutzen (table.css, Abschnitt 6). */
+	--ck-wood-polish: linear-gradient(
+		180deg,
+		var(--ck-wood-100) 0,
+		var(--ck-wood-200) 0.4rem,
+		var(--ck-wood-300) 1.7rem,
+		var(--ck-wood-300) calc(100% - 2.4rem),
+		var(--ck-wood-400) calc(100% - 0.5rem),
+		var(--ck-wood-500) 100%
+	);
+
+	/* Die Maserung als zwei übereinanderliegende Linienscharen mit
+	   UNGLEICHEN Wiederholungslängen (7 und 4,1 Bildpunkte). Gleichmäßige
+	   Linien lesen sich als Raster, ungleichmäßige als Holz — dieselbe
+	   Überlegung wie beim <pattern> "cr-wood-grain" des Craps-Tisches und wie
+	   bei --ck-felt-weave unter dem Tuch. Zwei Wiederholungslängen ohne
+	   gemeinsamen Teiler ergeben ein Muster, das sich erst nach rund 29
+	   Bildpunkten wiederholt.
+
+	   --ck-wood-grain ist ein SCHWARZANTEIL und dunkelt nur ab. Ein Text auf
+	   einer Fläche mit dieser Maserung hat deshalb IMMER mindestens den
+	   Kontrast, der ohne sie gerechnet wurde — die Maserung kann eine
+	   Messung nie verschlechtern. */
+	--ck-wood-grain-lines:
+		repeating-linear-gradient(180deg, var(--ck-wood-grain) 0 1px, transparent 1px 7px),
+		repeating-linear-gradient(180deg, var(--ck-wood-grain) 0 1px, transparent 1px 4.1px);
 
 	/* --- Messing ----------------------------------------------------------- */
 	--ck-brass-100: #f6e0a4;
@@ -171,6 +251,26 @@
 	--ck-felt-line: #ede4cf;
 	--ck-felt-weave: rgba(0, 0, 0, 0.10);
 
+	/* Das Rot des Spielplans — für COME, Seven und Any Craps.
+
+	   DIE VORLAGE DRUCKT EIN SATTES ROT AUF GRÜN. Das ist zweimal untauglich:
+	   es erreicht rund 1,4 : 1 und ist damit für Text unlesbar, und Rot auf
+	   Grün ist genau die Paarung, die bei der häufigsten Farbfehlsichtigkeit
+	   zusammenfällt. Unser Rot ist deshalb so weit aufgehellt, dass es auf
+	   --ck-felt-green 4,67 : 1 erreicht (nachgerechnet nach der WCAG-Formel,
+	   Prüfung F-9 rechnet es aus dieser Datei erneut nach) — über den 4,5 : 1
+	   für Text.
+
+	   UND DIE FARBE IST NICHT DIE EINZIGE AUSSAGE (WCAG 2.2 SC 1.4.1): die
+	   drei roten Wörter sind zugleich die einzigen KURSIVEN des Tuchs. Das ist
+	   keine Erfindung, sondern von der Vorlage abgelesen — sie setzt dieselben
+	   drei Wörter als einzige kursiv.
+
+	   Nicht zu verwechseln mit --ck-print-red: das ist die Druckfarbe auf
+	   Papier (--ck-paper-100) und dort richtig; auf grünem Tuch trüge es
+	   nicht. */
+	--ck-felt-red: #ffb3a7;
+
 	/* --- Spielkarten -------------------------------------------------------- */
 	/* Eine Spielkarte ist in diesem Haus bedrucktes Papier: ihre Fläche ist
 	   --ck-paper-100, ihre Druckfarben sind --ck-print-ink und --ck-print-red
@@ -220,6 +320,21 @@
 	--ck-pocket-mark: #f4efe2;
 	--ck-pocket-edge: rgba(0, 0, 0, 0.45);
 	--ck-ivory-100: #f2ead6;
+
+	/* Die beiden Körperflächen eines Würfels. Elfenbein bleibt Elfenbein; was
+	   sich ändert, ist der Lichteinfall: die zugewandte Seitenfläche liegt
+	   im Halblicht, die abgewandte im Schatten. Zwei Töne statt eines, weil
+	   ein einfarbiger Rand wie ein Umriss aussieht und nicht wie ein Körper.
+
+	   Nachgerechnet (WCAG-2.2-Formel, relative Leuchtdichte mit
+	   sRGB-Rücktransformation) gegen das Tuch, auf dem sie liegen:
+	     --ck-ivory-200 auf --ck-felt-green   5,10 : 1
+	     --ck-ivory-300 auf --ck-felt-green   3,32 : 1   (Bauteilgrenze 3 : 1)
+	   Beide tragen damit als Bauteilgrenze; die Deckfläche --ck-ivory-100
+	   erreicht auf demselben Grund 6,79 : 1. verify-tray.mjs D-7 rechnet die
+	   Werte aus DIESER Datei nach, statt sie zu glauben. */
+	--ck-ivory-200: #d8cdb2;
+	--ck-ivory-300: #b3a687;
 
 	/* --- Spieltisch: der Pyramidengummi der Bande ------------------------- */
 	/* Die Innenseite einer hohen Tischbande ist mit gezacktem Gummi belegt.
@@ -385,6 +500,16 @@
 	--ck-shadow-hard: rgba(0, 0, 0, 0.78);
 	--ck-shadow-pool: rgba(0, 0, 0, 0.62);
 	--ck-shadow-inset: rgba(0, 0, 0, 0.35);
+
+	/* Die auslaufende Kante eines rollenden Tischkastens (DECISIONS.md,
+	   2026-09-09T12:23:41). 0,25 ist NACHGERECHNET und darf nicht ohne neue
+	   Rechnung erhöht werden: eine schwarze Auflage der Deckung a
+	   multipliziert jeden Kanal mit (1 − a). Die ungünstigste Paarung ist der
+	   Fokusrahmen eines Wettfeldes auf dem Tuch (--ck-brass-200 auf
+	   --ck-felt-green, beide abgedunkelt): ohne Auflage 4,29 : 1, bei 0,25
+	   noch 3,37 : 1 (über der Grenze von 3 : 1 aus SC 1.4.11), bei 0,35 nur
+	   noch 2,93 : 1 — darunter. */
+	--ck-shadow-edge: rgba(0, 0, 0, 0.25);
 
 	/* --- Schrift ----------------------------------------------------------- */
 	--ck-text-primary: #f4e8d4;

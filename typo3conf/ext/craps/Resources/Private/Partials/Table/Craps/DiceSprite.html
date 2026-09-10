@@ -23,6 +23,43 @@
 </f:comment>
 <svg class="cr-dicesprite" aria-hidden="true" focusable="false" width="0" height="0">
 	<defs>
+		<f:comment>
+			ZWEI FARBGEBER FÜR DEN WÜRFELKÖRPER (Gestaltungslauf 2026-09-09).
+
+			Sie stehen hier und nicht in Dice.html, weil dieses Partial der
+			Vorlagensatz des Hauses ist: die gedruckten Würfelbilder des Tuchs
+			(Felt.html) und die zwei echten Würfel benutzen denselben
+			<symbol>-Satz, und sie sollen aus demselben Material sein.
+
+			Ein Farbgeber in einem unsichtbaren <svg> wird selbst nicht
+			gezeichnet; er wird über fill: url(#…) in dice.css und tray.css
+			gelesen. Das ist ein Verweis INNERHALB des Dokuments und lädt
+			nichts nach (Prüfung A-3 schneidet url(#…) eigens heraus).
+
+			Beide bestehen ausschließlich aus vorhandenen Tokens; in dieser
+			Datei steht kein Farbwert (Prüfung A-1). Die Deckfläche bleibt
+			--ck-ivory-100 auf ihrer belichteten Seite — der Ton, für den
+			verify-tray.mjs D-7 die Augen mit 14,95 : 1 nachrechnet. Nur die
+			abgewandte Ecke geht auf --ck-ivory-200 über, und dort steht kein
+			Auge: die Augen liegen auf dem Raster der Viertelkanten, der
+			äußerste Verlaufsstopp beginnt erst dahinter.
+		</f:comment>
+		<linearGradient id="cr-die-top" x1="0" y1="0" x2="1" y2="1">
+			<stop offset="0" stop-color="var(--ck-ivory-100)" />
+			<stop offset="0.62" stop-color="var(--ck-ivory-100)" />
+			<stop offset="1" stop-color="var(--ck-ivory-200)" />
+		</linearGradient>
+
+		<f:comment>Der Schatten unter einem Würfel. Bisher eine harte
+			schwarze Ellipse — ein Schlagschatten mit scharfer Kante gehört
+			zu einer punktförmigen Lichtquelle, und über einem Spieltisch
+			hängt keine. Innen satt, nach außen auslaufend.</f:comment>
+		<radialGradient id="cr-die-shadow" cx="0.5" cy="0.5" r="0.5">
+			<stop offset="0.3" stop-color="var(--ck-shadow-hard)" stop-opacity="0.95" />
+			<stop offset="0.68" stop-color="var(--ck-shadow-hard)" stop-opacity="0.45" />
+			<stop offset="1" stop-color="var(--ck-shadow-hard)" stop-opacity="0" />
+		</radialGradient>
+
 		<symbol id="cr-face-1" viewBox="-6 -6 12 12">
 			<rect class="cr-die__body" x="-6" y="-6" width="12" height="12" rx="2" />
 			<circle class="cr-die__pip" cx="0" cy="0" r="1.32" />

@@ -23,6 +23,18 @@
  *   P-8   die Würfel erleben wirklich etwas, und das Auslegungsband stimmt
  *   P-9   die doppelt geführten Zahlen (dice-physics.js/dice-geometry.js) stimmen überein
  *   P-10  das Verwerfungsverfahren zieht sauber, keine frühe Schieflage
+ *   P-11  (neu, Te) dice-physics.js und dice-geometry.js sind buchstabengleich
+ *         zu ihrem Stand vor Phase T — der Nachweis über 500.000 Würfe bleibt
+ *         damit gültig, ohne dass diese Datei ihn wiederholen muss
+ *
+ * ZUR KENNUNG VON P-11 (Plan Teil 2, Abschnitt 4.27, nennt sie "P-10 (neu)")
+ * -----------------------------------------------------------------------------
+ * Die Kennung P-10 ist in dieser Datei bereits vergeben ("das
+ * Verwerfungsverfahren zieht sauber, keine frühe Schieflage") und bedeutet
+ * dort etwas völlig anderes als der Plan-Text für die neue Prüfung. Um weder
+ * eine bestehende Prüfung umzubenennen noch zwei Prüfungen dieselbe Kennung
+ * tragen zu lassen, bekommt die neue Prüfung die nächste freie Kennung, P-11.
+ * EIGENE AUSLEGUNG dieses Umsetzerlaufs, siehe DECISIONS.md.
  *
  * WARUM DIESE DATEI SICH SELBST NICHT AUSFÜHRT, WENN SIE IMPORTIERT WIRD
  * ------------------------------------------------------------------------
@@ -48,6 +60,7 @@
  */
 
 import { readFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { chiSquareUniform, chiSquareIndependence, selbsttest } from './stats.mjs';
@@ -548,6 +561,44 @@ async function main() {
 			`gefunden: [${gegenprobeAbweichungen.join(', ')}]`);
 	}
 
+	/* ========================================================= P-11 ===== */
+
+	console.log('\nP-11  dice-physics.js und dice-geometry.js sind buchstabengleich zu ihrem Stand vor Phase T (neu, Te)');
+	{
+		// Dieselbe Bauart wie M-9 in casino_startpage/…/verify-table-money.mjs:
+		// eine Prüfsumme statt einer Behauptung. ANDERS ALS M-9 gilt hier aber
+		// KEINE Ausnahme für eine additive Änderung — eine gewollte Änderung an
+		// dice-physics.js oder dice-geometry.js entwertet nicht nur eine
+		// Prüfsumme, sondern den über 500.000 Würfe geführten Nachweis
+		// (measure-dice.mjs) selbst und verlangt einen ERNEUTEN vollen
+		// Messlauf, nicht nur einen neuen Hash-Wert in dieser Datei.
+		const GEOMETRY_PATH = path.join(EXT, 'Resources/Public/JavaScript/dice-geometry.js');
+		const GEOMETRY_SOURCE = lies(GEOMETRY_PATH);
+
+		function sha256(text) {
+			return createHash('sha256').update(text, 'utf8').digest('hex');
+		}
+
+		const ERWARTETE_PRUEFSUMMEN = {
+			'dice-physics.js': '5fc48fd5308d42dead34c920a67e78d4ad482d762d48e40e30dd9f3516b9f7d7',
+			'dice-geometry.js': '4e5d18c49e911742fcf322b90128515d00b003c542b31fcf3c80493125f6772d',
+		};
+		const GEMESSEN = {
+			'dice-physics.js': sha256(PHYSICS_SOURCE),
+			'dice-geometry.js': sha256(GEOMETRY_SOURCE),
+		};
+		for (const [name, erwartet] of Object.entries(ERWARTETE_PRUEFSUMMEN)) {
+			check(GEMESSEN[name] === erwartet,
+				`${name}: SHA-256 unverändert (${GEMESSEN[name]})`,
+				`erwartet: ${erwartet}`);
+		}
+
+		console.log('     Gegenprobe P-11-G: eine künstlich angehängte Zeile muss auffallen');
+		const verfaelscht = sha256(`${PHYSICS_SOURCE}\n// eine einzige zusätzliche Zeile\n`);
+		check(verfaelscht !== ERWARTETE_PRUEFSUMMEN['dice-physics.js'],
+			'P-11-G: eine um eine Zeile veränderte Datei erhält eine andere Prüfsumme und wird erkannt');
+	}
+
 	/* ------------------------------------------------------------- Ergebnis */
 
 	console.log(fehler === 0
@@ -555,7 +606,9 @@ async function main() {
 		+ '\nverlässt den Tisch nie, bleibt nie auf einer Kante liegen, endet immer'
 		+ '\nmit zwei Augenzahlen, die Notbremse greift nie, alle sechs Flächen'
 		+ '\nkommen vor, die Würfel erleben wirklich etwas, die doppelt geführten'
-		+ '\nZahlen stimmen überein, und das Verwerfungsverfahren zieht sauber.'
+		+ '\nZahlen stimmen überein, das Verwerfungsverfahren zieht sauber, und'
+		+ '\ndice-physics.js/dice-geometry.js sind buchstabengleich zu ihrem Stand'
+		+ '\nvor Phase T.'
 		: `\nERGEBNIS: ${fehler} Prüfung${fehler === 1 ? '' : 'en'} fehlgeschlagen.`);
 
 	process.exit(fehler === 0 ? 0 : 1);

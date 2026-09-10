@@ -13,6 +13,7 @@ typo3temp
 APPROVAL.md
 build-blackjack-structure.php
 build-coin-pusher-structure.php
+build-craps-structure.php
 build-fruit-risk-structure.php
 build-roulette-structure.php
 build-video-slot-structure.php
@@ -20,7 +21,7 @@ CONCEPT.md
 DECISIONS.md
 DESIGNBRIEF.md
 MEMORY.md
-OPINIONS.txt
+OPINION.txt
 RESEARCH.md
 test.txt
 /.ddev/*

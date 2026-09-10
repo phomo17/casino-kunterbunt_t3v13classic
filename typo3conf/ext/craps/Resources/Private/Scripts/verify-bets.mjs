@@ -163,11 +163,11 @@ try {
 const { FIELDS, fieldById, ROUND_MAX, LINE_MAX, POINTS, ODDS_MULT, RATIO, payout, oddsMax, ratioFor, stakeUnit } = modul;
 const { BetField } = tischModul;
 
-/* ============================================ B-2 47 Felder, eindeutig */
+/* ============================================ B-2 48 Felder, eindeutig */
 
-console.log('\nB-2  Genau 47 Felder, jede Kennung genau einmal, jede Kennung im richtigen Muster');
+console.log('\nB-2  Genau 48 Felder, jede Kennung genau einmal, jede Kennung im richtigen Muster');
 {
-	check(FIELDS.length === 47, `genau 47 Felder (gefunden: ${FIELDS.length})`);
+	check(FIELDS.length === 48, `genau 48 Felder (gefunden: ${FIELDS.length})`);
 
 	const zaehlung = new Map();
 	for (const f of FIELDS) {
@@ -191,6 +191,7 @@ console.log('\nB-2  Genau 47 Felder, jede Kennung genau einmal, jede Kennung im 
 		field: ['field'],
 		hard: [4, 6, 8, 10].map((n) => `hard-${n}`),
 		einmal: ['any-seven', 'any-craps', 'two', 'three', 'eleven', 'twelve'],
+		abgeleitet: ['craps-eleven'],
 	};
 	const vorhandeneIds = new Set(FIELDS.map((f) => f.id));
 	const fehlend = [];
@@ -202,7 +203,7 @@ console.log('\nB-2  Genau 47 Felder, jede Kennung genau einmal, jede Kennung im 
 		}
 	}
 	check(fehlend.length === 0,
-		'alle acht Kennungsfamilien sind vollzählig (4 Linien, 2 Linien-Odds, 6+6+6+6 Come/Odds, 6 Place, 1 Field, 4 Hard, 6 Einmalwetten = 47)',
+		'alle neun Kennungsfamilien sind vollzählig (4 Linien, 2 Linien-Odds, 6+6+6+6 Come/Odds, 6 Place, 1 Field, 4 Hard, 6 Einmalwetten, 1 abgeleitete = 48)',
 		...fehlend);
 
 	console.log('     Gegenprobe B-2-G: eine Kopie mit einem doppelten Eintrag muss auffallen');
@@ -245,23 +246,66 @@ function wettartVon(id) {
 	if (id === 'three') { return 'Three'; }
 	if (id === 'eleven') { return 'Eleven'; }
 	if (id === 'twelve') { return 'Twelve'; }
+	if (id === 'craps-eleven') { return 'Craps & Eleven'; }
 	return null;
 }
+
+/**
+ * Wettarten, die NICHT in Anhang H stehen, sondern aus Wettarten aus Anhang H
+ * ABGELEITET sind. Jede Zeile nennt ihre Bestandteile und die Zeile, deren
+ * Erwartungswert sie treffen muss — geprüft wird beides, nicht bloß der Name.
+ * Ohne diese zweite Bedingung wäre die Liste eine Hintertür, durch die jede
+ * beliebige Wette hereinkäme.
+ */
+const ABGELEITETE_WETTARTEN = [
+	{
+		name: 'Craps & Eleven',
+		ids: ['craps-eleven'],
+		bestandteile: ['Any Craps', 'Eleven'],
+		erwartungswertWieBei: 'Any Craps',
+	},
+];
 
 console.log('\nB-3  Jede Wettart aus Anhang H kommt vor, und keine, die Anhang H nicht kennt');
 {
 	check(WETTARTEN_ANHANG_H.length === 22, `die eigene Abschrift von Anhang H hat 22 Zeilen (gefunden: ${WETTARTEN_ANHANG_H.length})`);
 
+	const abgeleiteteNamen = ABGELEITETE_WETTARTEN.map((w) => w.name);
 	const gefundeneWettarten = new Set(FIELDS.map((f) => wettartVon(f.id)));
-	const unbekannt = [...gefundeneWettarten].filter((w) => w === null || !WETTARTEN_ANHANG_H.includes(w));
+	const unbekannt = [...gefundeneWettarten].filter(
+		(w) => w === null || (!WETTARTEN_ANHANG_H.includes(w) && !abgeleiteteNamen.includes(w))
+	);
 	const fehlend = WETTARTEN_ANHANG_H.filter((w) => !gefundeneWettarten.has(w));
 	check(unbekannt.length === 0 && fehlend.length === 0,
-		'genau die 22 Wettarten aus Anhang H kommen vor, keine weitere',
+		'genau die 22 Wettarten aus Anhang H plus die eine ausdrücklich abgeleitete kommen vor, keine weitere',
 		...unbekannt.map((w) => `unbekannt: ${String(w)}`), ...fehlend.map((w) => `fehlt: ${w}`));
 
 	const NICHT_ANGEBOTEN = ['Big 6', 'Big 8', 'Buy', 'Lay'];
 	const dochAngeboten = NICHT_ANGEBOTEN.filter((name) => gefundeneWettarten.has(name));
 	check(dochAngeboten.length === 0, 'Big 6, Big 8, Buy und Lay werden ausdrücklich NICHT angeboten', ...dochAngeboten);
+
+	const unzulaessigAbgeleitet = [];
+	for (const w of ABGELEITETE_WETTARTEN) {
+		for (const teil of w.bestandteile) {
+			if (!WETTARTEN_ANHANG_H.includes(teil)) {
+				unzulaessigAbgeleitet.push(`${w.name}: Bestandteil "${teil}" steht nicht in Anhang H`);
+			}
+		}
+		if (!WETTARTEN_ANHANG_H.includes(w.erwartungswertWieBei)) {
+			unzulaessigAbgeleitet.push(`${w.name}: Bezugszeile "${w.erwartungswertWieBei}" steht nicht in Anhang H`);
+		}
+	}
+	check(unzulaessigAbgeleitet.length === 0,
+		'jede abgeleitete Wettart besteht ausschließlich aus Wettarten, die Anhang H führt', ...unzulaessigAbgeleitet);
+
+	console.log('     Gegenprobe B-3-G2: eine abgeleitete Wette aus einem Bestandteil, den Anhang H nicht führt, muss auffallen');
+	// Der Name dieser erfundenen Wette ist bewusst frei erfunden und steht auf KEINER
+	// Negativliste. Ein echter Handelsname (etwa der einer geschützten Zusatzwette) darf
+	// hier nicht stehen: A-5 in verify-cabinet.mjs liest den vollen Text jeder Datei,
+	// Kommentare und Zeichenketten eingeschlossen, und würde ihn als Treffer melden.
+	const erfunden = { name: 'Regenbogenwette', ids: ['regenbogen'], bestandteile: ['Regenbogen'], erwartungswertWieBei: 'Any Craps' };
+	check(!WETTARTEN_ANHANG_H.includes(erfunden.bestandteile[0]),
+		'B-3-G2: „Regenbogen“ steht nicht in Anhang H und würde die Zusatzbedingung verletzen');
 
 	console.log('     Gegenprobe B-3-G: eine Kopie ohne hard-8 lässt "Hard 8" aus der gefundenen Menge verschwinden');
 	const kopieOhneHard8 = FIELDS.filter((f) => f.id !== 'hard-8');
@@ -287,6 +331,10 @@ const ANHANG_H_RATIO = {
 	three: { num: 15, den: 1 },
 	eleven: { num: 15, den: 1 },
 	twelve: { num: 30, den: 1 },
+	// ABGELEITET, nicht abgeschrieben: 8 × ½ = 4 → 3 zu 1, 16 × ½ = 8 → 7 zu 1.
+	// Die Herleitung steht als Rechnung in B-13, nicht als Behauptung hier.
+	crapsElevenCraps: { num: 3, den: 1 },
+	crapsElevenEleven: { num: 7, den: 1 },
 };
 
 console.log('\nB-4  RATIO stimmt Bruch für Bruch mit einer eigenen Abschrift von Anhang H überein');
@@ -315,6 +363,8 @@ console.log('\nB-4  RATIO stimmt Bruch für Bruch mit einer eigenen Abschrift vo
 	vergleiche('RATIO.three', RATIO.three, ANHANG_H_RATIO.three);
 	vergleiche('RATIO.eleven', RATIO.eleven, ANHANG_H_RATIO.eleven);
 	vergleiche('RATIO.twelve', RATIO.twelve, ANHANG_H_RATIO.twelve);
+	vergleiche('RATIO.crapsElevenCraps', RATIO.crapsElevenCraps, ANHANG_H_RATIO.crapsElevenCraps);
+	vergleiche('RATIO.crapsElevenEleven', RATIO.crapsElevenEleven, ANHANG_H_RATIO.crapsElevenEleven);
 	check(abweichungen.length === 0, 'RATIO stimmt Bruch für Bruch mit Anhang H überein', ...abweichungen);
 
 	console.log('     BetField.payout stimmt mit num/den überein (Platzhalter 1 bei den zwei kontextabhängigen Odds-Feldern)');
@@ -371,6 +421,9 @@ console.log('\nB-5  Jeder Höchsteinsatz stimmt mit Anhang H überein');
 	for (const id of ['any-seven', 'any-craps', 'two', 'three', 'eleven', 'twelve']) {
 		ERWARTETER_MAX[id] = 10;
 	}
+	// C & E: 10 €, weil ihre höhere Quote 7 zu 1 IST (Anhang H, C.8.4:
+	// „Wetten mit einer Auszahlung ab 7:1 höchstens 10 €“).
+	ERWARTETER_MAX['craps-eleven'] = 10;
 
 	// Die acht Odds-Obergrenzen liegen zusätzlich als literal nachgerechnete
 	// Werte vor (Plan, Abschnitt 4.1, "Nachgerechnete Grenzen") — ein Vergleich
@@ -432,7 +485,7 @@ console.log('\nB-6  ROUND_MAX ist 300; countsToRoundMax ist false bei genau den 
 			abweichungen.push(`${f.id}: countsToRoundMax=${f.countsToRoundMax}, erwartet true`);
 		}
 	}
-	check(abweichungen.length === 0, 'countsToRoundMax ist false bei genau den 14 Odds-Feldern und true bei den übrigen 33', ...abweichungen);
+	check(abweichungen.length === 0, 'countsToRoundMax ist false bei genau den 14 Odds-Feldern und true bei den übrigen 34', ...abweichungen);
 
 	console.log('     Gegenprobe B-6-G: eine Kopie, die field auf false setzt, muss auffallen');
 	const feldKopie = { ...fieldById('field'), countsToRoundMax: false };
@@ -502,7 +555,7 @@ console.log('\nB-8  ratioFor() liefert für jede Kennung und jede Summe eine Quo
 		}
 	}
 	check(abweichungen.length === 0,
-		'jede der 47 Kennungen liefert für jede der 11 Summen eine Quote (die zwei Linien-Odds ohne point ausdrücklich null)',
+		'jede der 48 Kennungen liefert für jede der 11 Summen eine Quote (die zwei Linien-Odds ohne point ausdrücklich null)',
 		...abweichungen);
 
 	const mitPointAbweichungen = [];
@@ -528,6 +581,15 @@ console.log('\nB-8  ratioFor() liefert für jede Kennung und jede Summe eine Quo
 	console.log('     Gegenprobe B-8-G: field müsste bei Summe 12 nur 2:1 liefern');
 	const verfaelschtesFeldZwoelf = { num: 2, den: 1 };
 	check(!(verfaelschtesFeldZwoelf.num === 3), 'B-8-G: 2:1 stimmt nicht mit der erwarteten 3:1 bei Summe 12 überein');
+
+	const elf = ratioFor('craps-eleven', { sum: 11 });
+	check(elf !== null && elf.num === 7 && elf.den === 1,
+		'craps-eleven liefert bei Summe 11 die Quote 7 zu 1');
+	const crapsSummen = [2, 3, 12].every((s) => {
+		const r = ratioFor('craps-eleven', { sum: s });
+		return r !== null && r.num === 3 && r.den === 1;
+	});
+	check(crapsSummen, 'craps-eleven liefert bei Summe 2, 3 und 12 die Quote 3 zu 1');
 }
 
 /* ============================================== BigInt-Bruchrechnung */
@@ -682,6 +744,25 @@ function evOddsDark(n) {
 	return minus(mal(pWin, r), pLose);
 }
 
+/**
+ * Erwartungswert je 1 € von C & E. Eine Einwurfwette mit ZWEI Quoten:
+ * 3 zu 1 auf 2, 3 und 12 und 7 zu 1 auf die 11. Gerechnet wird über alle
+ * elf Summen, wie bei jeder anderen Einwurfwette — ohne die Halbierung
+ * überhaupt anzufassen, denn sie steckt bereits in den beiden Quoten.
+ */
+function evCrapsEleven() {
+	let ev = bruch(0);
+	for (let s = 2; s <= 12; s++) {
+		const gewinnt = s === 2 || s === 3 || s === 11 || s === 12;
+		if (gewinnt) {
+			ev = plus(ev, mal(bruch(WAYS[s], 36), ratioBruch('craps-eleven', { sum: s })));
+		} else {
+			ev = plus(ev, bruch(-WAYS[s], 36));
+		}
+	}
+	return ev;
+}
+
 /** Erwartungswert einer beliebigen Feldkennung, über die passende Zerlegung. */
 function evFuer(id) {
 	if (id === 'pass' || id === 'come') { return evLinie(false); }
@@ -697,6 +778,7 @@ function evFuer(id) {
 	if (id === 'three') { return evEinmal('three', [3]); }
 	if (id === 'eleven') { return evEinmal('eleven', [11]); }
 	if (id === 'twelve') { return evEinmal('twelve', [12]); }
+	if (id === 'craps-eleven') { return evCrapsEleven(); }
 	return null;
 }
 
@@ -718,6 +800,10 @@ console.log('\nB-9  Der rechnerische Quotennachweis je Wettart (36 gleich wahrsc
 		{ name: 'Any Craps', ids: ['any-craps'], erwartet: bruch(-1, 9), prozent: 11.11 },
 		{ name: 'Die 2, Die 12', ids: ['two', 'twelve'], erwartet: bruch(-5, 36), prozent: 13.89 },
 		{ name: 'Die 3, Die 11', ids: ['three', 'eleven'], erwartet: bruch(-1, 9), prozent: 11.11 },
+		// Abgeleitet, und deshalb NICHT aus Anhang H abgeschrieben, sondern
+		// aus den 36 Würfelpaaren hergeleitet: sie muss auf denselben Wert
+		// kommen wie die Zeile „Any Craps“, sonst stimmt die Aufteilung nicht.
+		{ name: 'Craps & Eleven', ids: ['craps-eleven'], erwartet: bruch(-1, 9), prozent: 11.11 },
 	];
 
 	const abweichungen = [];
@@ -749,7 +835,7 @@ console.log('\nB-9  Der rechnerische Quotennachweis je Wettart (36 gleich wahrsc
 	}
 
 	check(abweichungen.length === 0,
-		'jede der 13 Zeilen aus Anhang H stimmt mit dem exakt hergeleiteten Erwartungswert überein, als Bruch UND als gerundeter Prozentwert',
+		'jede der 14 Zeilen aus Anhang H stimmt mit dem exakt hergeleiteten Erwartungswert überein, als Bruch UND als gerundeter Prozentwert',
 		...abweichungen);
 
 	console.log('     Gegenprobe B-9-G: Place 6 mit 8:6 statt 7:6 gerechnet ergibt einen anderen Bruch als -1/66');
@@ -813,7 +899,7 @@ console.log('\nB-11  matches() jedes Feldes wirft; new BetField(beschreibung) le
 		}
 	}
 	check(abweichungen.length === 0,
-		'alle 47 Felder lassen sich als BetField anlegen (table-bets.js), und jedes feld.outcome(7) wirft (settle() ist an diesem Tisch verboten)',
+		'alle 48 Felder lassen sich als BetField anlegen (table-bets.js), und jedes feld.outcome(7) wirft (settle() ist an diesem Tisch verboten)',
 		...abweichungen);
 }
 
@@ -824,7 +910,7 @@ console.log('\nB-12  ROUND_MAX ist kleiner als die Summe der Feldhöchsteinsätz
 	check(ROUND_MAX === 300, `ROUND_MAX ist 300 (gefunden: ${ROUND_MAX})`);
 
 	const ohneOdds = FIELDS.filter((f) => f.countsToRoundMax === true);
-	check(ohneOdds.length === 33, `33 Felder zählen in den Rundenhöchstbetrag (gefunden: ${ohneOdds.length})`);
+	check(ohneOdds.length === 34, `34 Felder zählen in den Rundenhöchstbetrag (gefunden: ${ohneOdds.length})`);
 
 	const summe = ohneOdds.reduce((s, f) => s + f.max, 0);
 	check(ROUND_MAX < summe, `ROUND_MAX (${ROUND_MAX}) ist kleiner als die Summe der Feldhöchsteinsätze ohne Odds (${summe})`);
@@ -833,15 +919,93 @@ console.log('\nB-12  ROUND_MAX ist kleiner als die Summe der Feldhöchsteinsätz
 	check(ROUND_MAX > groessterEinzelwert, `ROUND_MAX (${ROUND_MAX}) ist größer als der größte Einzelhöchsteinsatz ohne Odds (${groessterEinzelwert})`);
 }
 
+/* ================================ B-13 Die Halbierung von C & E geht auf */
+
+console.log('\nB-13  C & E: die Halbierung geht bei JEDEM ganzen Einsatz auf, ohne Rundungsverlust');
+{
+	/*
+	 * DIE FRAGE. Ein Chip zu 1 € lässt sich nicht halbieren. Muss es eine
+	 * Hausregel für ungerade Einsätze geben — abrunden, aufrunden, den
+	 * überzähligen Euro auf eine der beiden Hälften legen?
+	 *
+	 * DIE ANTWORT: nein. Gerechnet wird gar nicht mit Hälften. Wer s Euro
+	 * setzt, hat s/2 auf Any Craps (zahlt 7 zu 1, Rückgabe 8 × s/2 = 4s) und
+	 * s/2 auf die Elf (zahlt 15 zu 1, Rückgabe 16 × s/2 = 8s). 4s und 8s sind
+	 * für jedes ganze s wieder ganz. Die Halbierung ist die Erklärung der
+	 * Wette, kein Rechenschritt — und deshalb gibt es hier keinen Rest, der
+	 * irgendwohin müsste.
+	 *
+	 * Diese Prüfung rechnet beide Wege getrennt aus und vergleicht sie als
+	 * exakte Brüche: den Weg über die halben Einsätze (mit den Quoten aus
+	 * Anhang H) und den Weg über die abgeleiteten Quoten auf den ganzen
+	 * Einsatz (mit denen der Tisch tatsächlich rechnet).
+	 */
+	const abweichungen = [];
+	const HALB_CRAPS = bruch(RATIO.anyCraps.num, RATIO.anyCraps.den);   // 7:1 aus Anhang H
+	const HALB_ELF = bruch(RATIO.eleven.num, RATIO.eleven.den);         // 15:1 aus Anhang H
+
+	for (let s = 1; s <= 10; s++) {
+		const halb = bruch(s, 2);
+		const rueckgabeCrapsHalb = mal(halb, plus(HALB_CRAPS, bruch(1)));
+		const rueckgabeElfHalb = mal(halb, plus(HALB_ELF, bruch(1)));
+
+		const rueckgabeCrapsGanz = bruch(payout(s, RATIO.crapsElevenCraps) + s);
+		const rueckgabeElfGanz = bruch(payout(s, RATIO.crapsElevenEleven) + s);
+
+		if (!gleich(rueckgabeCrapsHalb, rueckgabeCrapsGanz)) {
+			abweichungen.push(`Einsatz ${s} €, Craps: über Hälften ${alsText(rueckgabeCrapsHalb)}, über die abgeleitete Quote ${alsText(rueckgabeCrapsGanz)}`);
+		}
+		if (!gleich(rueckgabeElfHalb, rueckgabeElfGanz)) {
+			abweichungen.push(`Einsatz ${s} €, Elf: über Hälften ${alsText(rueckgabeElfHalb)}, über die abgeleitete Quote ${alsText(rueckgabeElfGanz)}`);
+		}
+		// Und: der Abrundungsschritt in payout() darf hier NIE etwas
+		// wegnehmen — 3s und 7s sind für jedes ganze s bereits ganz.
+		if (payout(s, RATIO.crapsElevenCraps) !== 3 * s) {
+			abweichungen.push(`Einsatz ${s} €: payout(…, 3:1) = ${payout(s, RATIO.crapsElevenCraps)}, erwartet ${3 * s}`);
+		}
+		if (payout(s, RATIO.crapsElevenEleven) !== 7 * s) {
+			abweichungen.push(`Einsatz ${s} €: payout(…, 7:1) = ${payout(s, RATIO.crapsElevenEleven)}, erwartet ${7 * s}`);
+		}
+	}
+	check(abweichungen.length === 0,
+		'für jeden Einsatz von 1 bis 10 € stimmen beide Rechenwege exakt überein, auch für die ungeraden Beträge 1, 3, 5, 7 und 9',
+		...abweichungen);
+
+	check(stakeUnit('craps-eleven') === 1,
+		`die Einsatz-Einheit von C & E ist 1 € (gefunden: ${stakeUnit('craps-eleven')}) — es gibt keinen Betrag, der einen Teil der Auszahlung verschenkt`);
+
+	console.log('     Gegenprobe B-13-G: eine verfälschte Craps-Quote (6 zu 1 statt 3 zu 1) muss bei ungeradem Einsatz auffallen');
+	{
+		const falsch = { num: 6, den: 1 };
+		const s = 5;
+		const ueberHaelften = mal(bruch(s, 2), plus(HALB_CRAPS, bruch(1)));       // 20/1
+		const ueberFalscheQuote = bruch(payout(s, falsch) + s);                    // 35/1
+		check(!gleich(ueberHaelften, ueberFalscheQuote),
+			'B-13-G: mit 6 zu 1 stimmen die beiden Rechenwege bei 5 € Einsatz nicht mehr überein',
+			`über Hälften ${alsText(ueberHaelften)}, über die verfälschte Quote ${alsText(ueberFalscheQuote)}`);
+	}
+
+	console.log('     Gegenprobe B-13-G2: eine Quote mit Nenner 2 würde bei ungeradem Einsatz tatsächlich abrunden');
+	{
+		// Nicht unsere Quote — der Beweis, dass die Prüfung oben nicht leerläuft:
+		// hätte C & E eine Quote wie 7 zu 2, verlöre ein Einsatz von 5 € beim
+		// Abrunden einen halben Euro, und stakeUnit() müsste 2 melden.
+		const mitNenner2 = { num: 7, den: 2 };
+		check(payout(5, mitNenner2) * 2 !== 5 * 7,
+			'B-13-G2: eine Quote mit Nenner 2 verliert bei 5 € Einsatz tatsächlich einen Teil der Auszahlung — die Prüfung oben ist also nicht leer');
+	}
+}
+
 /* ------------------------------------------------------------- Ergebnis */
 
 if (fehler === 0) {
-	console.log('\nERGEBNIS: alle Prüfungen bestanden. 47 Felder, alle 22 Wettarten aus Anhang H'
-		+ '\nund keine weitere, jede Auszahlung und jeder Höchsteinsatz gegen eine eigene'
-		+ '\nAbschrift von Anhang H, die Staffel 3-4-5× hält bei jedem Point denselben'
-		+ '\nHöchstgewinn, und der rechnerische Quotennachweis stimmt für alle 13 Zeilen aus'
+	console.log('\nERGEBNIS: alle Prüfungen bestanden. 48 Felder, alle 22 Wettarten aus Anhang H'
+		+ '\nund die eine daraus abgeleitete, jede Auszahlung und jeder Höchsteinsatz gegen eine'
+		+ '\neigene Abschrift von Anhang H, die Staffel 3-4-5× hält bei jedem Point denselben'
+		+ '\nHöchstgewinn, und der rechnerische Quotennachweis stimmt für alle 14 Zeilen aus'
 		+ '\nAnhang H exakt als Bruch UND gerundet als Prozentwert — die Odds mit einem'
-		+ '\nHausvorteil von genau 0/1.');
+		+ '\nHausvorteil von genau 0/1, C & E mit einer Halbierung, die bei jedem ganzen'
+		+ '\nEinsatz ohne Rundungsverlust aufgeht.');
 } else {
 	console.log(`\nERGEBNIS: ${fehler} Prüfung${fehler === 1 ? '' : 'en'} fehlgeschlagen.`);
 }

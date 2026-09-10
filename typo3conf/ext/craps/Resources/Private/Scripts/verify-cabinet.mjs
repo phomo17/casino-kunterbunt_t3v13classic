@@ -41,15 +41,39 @@
  * über JEDE Zeile, Kommentare eingeschlossen — das ist die rechtliche
  * Prüfung (CONCEPT.md B.3 Nr. 4, V.7 Nr. 5) und wird nicht angetastet.
  *
- * A-7 SEIT UMSETZUNGSSTÜCK C6b: VOLLSTÄNDIG DURCHGEFÜHRT
+ * SEIT DEM UMBAU NACH DER BILDVORLAGE (2026-09-08) steht die Aufschrift des
+ * Tuchs auf Englisch als Klartext in Classes/BetLayout.php: PASS LINE, COME,
+ * FIELD, Don't Pass Bar, Don't Come, Bar, Seven, Any Craps, SIX, NINE,
+ * PAYS DOUBLE, PAYS TRIPLE, ODDS, OFF, ON, E, C. Das sind samt und sonders
+ * BRANCHENÜBLICHE Gattungsbegriffe des Spiels — kein Hersteller, kein Modell,
+ * keine Spielbank, kein Spieltitel. Sie stehen deshalb NICHT auf der
+ * Negativliste und dürfen es auch künftig nicht. Welche ECHTEN geschützten
+ * Zusatzwetten weiterhin auf der Liste stehen und warum, steht dort selbst
+ * mit Begründung (casino_startpage/…/negativliste.mjs, Ergänzung
+ * Umsetzungsstück Tf) — nicht hier, denn diese Datei prüft sich seit Befund
+ * B-4 der Copyright-Prüfung craps vom 2026-09-09 selbst mit und darf
+ * geschützte Namen deshalb nur noch in der Liste selbst nennen. BIG 6 / BIG 8
+ * stehen ABSICHTLICH NICHT auf dieser Liste — anders als der Plantext zu
+ * Umsetzungsstück Ue an dieser Stelle annimmt, waren sie nie darauf: es sind
+ * branchenübliche, ungeschützte Wettnamen, keine fremden Marken, und gehören
+ * deshalb nicht in eine Negativliste für Markenrecht. Dass der Tisch sie
+ * dennoch nicht anbietet, ist eine eigene Designentscheidung (CONCEPT.md,
+ * Anhang H) und wird an zwei Stellen bewiesen: verify-bets.mjs (kein Feld
+ * dieses Namens im Wettwerk) und verify-felt.mjs F-19 (die Ecke, in der ein
+ * anderes Haus BIG 6 / BIG 8 druckt, trägt auf diesem Tuch kein Feld).
+ *
+ * A-7 SEIT UMSETZUNGSSTÜCK Td: GEGEN Cloth.html UND Dice.html
  * -----------------------------------------------------------
- * Table/Craps/Tray.html existiert seit Umsetzungsstück C6b; A-7 vergleicht
- * seither Merkmal für Merkmal zwischen Kachel und Spielseite (siehe Prüfung
- * unten). In Umsetzungsstück C6a, als die Datei noch fehlte, meldete sich
- * A-7 ausdrücklich als „übersprungen" statt stillschweigend zu bestehen —
- * dieser Absatz ist die Nachpflege für die nächste Person, damit niemand von
- * diesem inzwischen überholten Zwischenstand ausgeht (DECISIONS.md
- * 2026-09-04 17:45, Punkt 6, dieselbe Nachpflegeregel).
+ * Bis Umsetzungsstück Tc/Td zeichnete die vormalige Datei Tray.html die
+ * ganze Spielseite in einem Stück; A-7 verglich Merkmal für Merkmal dagegen. Der
+ * Umbau „der Tisch als eine Fläche" (Ansage vom 2026-09-07) hat Tray.html
+ * aufgelöst in Cloth.html (Wanne, Tuch, Pyramidengummi) und Dice.html
+ * (die Würfelschicht) — A-7 vergleicht seither gegen die Summe beider
+ * Dateien. In Umsetzungsstück C6a, als noch keine Spielseiten-Zeichnung
+ * existierte, meldete sich A-7 ausdrücklich als „übersprungen" statt
+ * stillschweigend zu bestehen; dieser Absatz ist die Nachpflege für die
+ * nächste Person, damit niemand von diesem längst überholten Zwischenstand
+ * ausgeht (DECISIONS.md 2026-09-04 17:45, Punkt 6, dieselbe Nachpflegeregel).
  *
  * A-11 IN UMSETZUNGSSTÜCK C6a: NULL TREFFER SIND RICHTIG
  * ---------------------------------------------------------
@@ -62,6 +86,7 @@
 import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
+import { NEGATIVLISTE, MINDESTLAENGE, musterFuer } from '../../../../casino_startpage/Resources/Private/Scripts/negativliste.mjs';
 
 const HIER = path.dirname(fileURLToPath(import.meta.url));
 /** typo3conf/ext/craps/ */
@@ -71,7 +96,16 @@ const EXT_ROOT = path.resolve(EXT, '..');
 const SITE = path.join(EXT_ROOT, 'casino_startpage');
 /** Der eigene Extension-Schlüssel, ABGELEITET aus dem Verzeichnisnamen. */
 const EIGENER_SCHLUESSEL = path.basename(EXT);
-/** diese Datei selbst, für die Ausnahme in A-5 */
+/**
+ * Diese Datei selbst — nicht mehr für eine Namensausnahme (siehe A-5 unten:
+ * die Negativliste steht seit Befund B-6 nicht mehr hier), sondern nur noch
+ * dafür, dass A-5 die drei Zeichen ©/™/® ausschließlich in DIESER Datei
+ * unschädlich macht, bevor sie geprüft wird. Diese Datei muss die drei
+ * Zeichen wörtlich enthalten — als Prüf-Array UND im Ausgabetext —, um
+ * überhaupt gegen sie prüfen zu können; jede andere Datei bleibt unangetastet
+ * und wird normal auf die Zeichen geprüft (dieselbe Art Ausnahme wie
+ * fruit_risk/…/verify-cabinet.mjs seit Stand F2).
+ */
 const DIESE_DATEI = fileURLToPath(import.meta.url);
 
 let fehler = 0;
@@ -218,6 +252,15 @@ console.log('\nA-3  Keine Datei von außen; kein createElementNS in JavaScript')
 		const rel = path.relative(EXT, datei);
 		const istIcon = ICONS.includes(rel);
 		for (const zeile of lies(datei).split('\n')) {
+			// SEIT DEM UMBAU NACH DER BILDVORLAGE: die gedruckten Würfelbilder
+			// des Tuchs (Felt.html) entstehen wie die zwei echten Würfel
+			// (Dice.html, schon seit Phase C7f) über <use href="#cr-face-N">.
+			// Das ist ein Verweis INNERHALB des Dokuments und lädt nichts
+			// nach — genauso wie url(#…), das diese Prüfung schon vorher aus
+			// derselben Zeile herausschnitt. Ohne dieselbe Ausnahme für
+			// href="#…" meldete A-3 einen Fund, der keiner ist, und die
+			// nächste Person striche die Prüfung entnervt statt sie zu
+			// verstehen.
 			const gesaeubert = zeile
 				.replace(/url\(#[^)]*\)/g, '')
 				.replace(/href="#[^"]*"/g, '');
@@ -269,8 +312,17 @@ console.log(`\nA-4  casino_startpage kennt "${EIGENER_SCHLUESSEL}" nicht (im Cod
 		new RegExp(roh.charAt(0).toUpperCase() + roh.slice(1)),
 	];
 	const PRAEFIX = new RegExp(`(^|[^-a-z])${kuerzel}-[a-z]`);
+	// Ausnahme für genau eine Datei: die geteilte Negativliste
+	// casino_startpage/…/negativliste.mjs (Befund B-6 der Copyright-Prüfung
+	// craps vom 2026-09-09) muss als ausführbares JS-Array wörtlich
+	// craps-spezifische Handelsnamen enthalten, die den Wortbestandteil des
+	// Spielnamens tragen — das koppelt casino_startpage nicht an dieses
+	// Gerät, es ist derselbe Schutzzweck wie A-5 selbst. Dieselbe Art
+	// Ausnahme wie A-5s Selbstausnahme oben. Bis Befund B-6 stand hier
+	// stattdessen verify-gattung.mjs, das die Liste vorher selbst trug.
+	const A4_AUSGENOMMEN = [path.join(SITE, 'Resources/Private/Scripts/negativliste.mjs')];
 	const treffer = [];
-	for (const datei of alleDateien(SITE)) {
+	for (const datei of alleDateien(SITE).filter((d) => !A4_AUSGENOMMEN.includes(d))) {
 		const zeilen = ohneAlleKommentare(lies(datei)).split('\n');
 		zeilen.forEach((zeile, n) => {
 			if (NAMEN.some((m) => m.test(zeile)) || PRAEFIX.test(zeile)) {
@@ -289,96 +341,38 @@ console.log(`\nA-4  casino_startpage kennt "${EIGENER_SCHLUESSEL}" nicht (im Cod
 
 console.log('\nA-5  Kein fremder Hersteller-, Modell- oder Spieltitel');
 {
-	const NEGATIVLISTE = [
-		// Spielautomatenhersteller und Spieltitel (CONCEPT.md B.3 Nr. 4)
-		'Novomatic', 'Novomatix', 'Greentube', 'Merkur', 'Gauselmann', 'Bally',
-		'Aristocrat', 'IGT', 'Mills', 'Jennings', 'Watling', 'Light & Wonder',
-		'Bell-Fruit', 'Sizzling Hot', 'Book of Ra', 'Book of Sand',
-		"Lucky Lady's Charm", 'Penny Falls',
-		// Rad- und Tischhersteller sowie deren Modell-/Bauteilnamen
-		'TCSJohnHuxley', 'John Huxley', 'Cammegh', 'Abbiati', 'Matsui',
-		'CTC Holdings', 'Alfastreet', 'Interblock', 'Mercury 360', 'Slingshot',
-		'Saturn Glo', 'Garnite', 'EyeBall', 'Velstone', 'Starburst',
-		// Chiphersteller
-		'Gaming Partners International', 'GPI', 'Paulson', 'Bud Jones',
-		'Chipco', 'Dal Negro',
-		// Spielbanken und Casinomarken
-		'Bellagio', 'Caesars', 'Wynn', 'Venetian', 'MGM', 'Mirage', 'Flamingo',
-		'Golden Nugget', 'Tropicana', 'Stardust', 'Riviera', 'Sands', 'Luxor',
-		'Harrah', 'Monte Carlo',
-		// Live-Casino- und Spielesoftwaremarken
-		'Evolution Gaming', 'Playtech', 'Pragmatic Play', 'Microgaming',
-		'NetEnt', 'Scientific Games', 'WMS', 'Barcrest', 'Cirsa', 'Konami',
-		'All rights reserved',
-		// Zusätzlich zu B.3 Nr. 4: geschützte Mechanik-Bezeichnungen (übernommen
-		// aus roulette/…/verify-cabinet.mjs, Befund C-2 der Copyright-Prüfung
-		// vom 2026-09-06). Erfasst in Klein-, GROSS- und camelCase-/
-		// Bindestrich-Schreibweisen.
-		'Megaways', 'MEGAWAYS', 'megaways',
-		'Cluster Pays', 'CLUSTER PAYS', 'cluster pays', 'ClusterPays', 'clusterPays', 'cluster-pays',
-		'InfiniReels', 'INFINIREELS', 'infinireels', 'Infini Reels', 'infini-reels',
-		'Tumbling Reels', 'TUMBLING REELS', 'tumbling reels', 'TumblingReels', 'tumblingReels', 'tumbling-reels',
-		// Ergänzung des Kartentisches (CONCEPT.md C.14, Kartenspiel-spezifisch):
-		// Spielkartenhersteller.
-		'Bicycle', 'Bee', 'Tally-Ho', 'KEM', 'Copag', 'Fournier', 'Modiano',
-		'Piatnik', 'Cartamundi', 'Gemaco', 'Aristocrat Playing Cards',
-		// Kartenschlitten und Mischmaschinen.
-		'Shuffle Master', 'ShuffleMaster', 'Deckmate', 'DeckMate', 'i-Deal',
-		'MD3', 'One2Six', 'Angel Eye', 'SecureStep',
-		// Handelsnamen von Blackjack-Seitenwetten und -Varianten.
-		'Perfect Pairs', '21+3', 'Lucky Ladies', 'Royal Match', 'Super Sevens',
-		'Blackjack Switch', 'Free Bet Blackjack', 'Spanish 21', 'Pontoon',
-		'Zappit', 'Buster Blackjack', 'Bet Behind', 'Infinite Blackjack',
-		'Lightning Blackjack', 'Power Blackjack',
-		// Zusätzlich zur Zeichenprüfung: Zähl-/Autorennamen, damit das Gerät
-		// nicht versehentlich einen geschützten Zählnamen statt des
-		// ungeschützten Gattungsnamens "Hi-Lo" trägt (der selbst NICHT auf
-		// dieser Liste steht — er ist die in C.7.3 vorgegebene Bezeichnung).
-		'Hi-Opt', 'Wong Halves', 'KO Count', 'Omega II',
-		// Kartenhersteller, Kartenmarken und benannte Rückenmuster des
-		// Kartentisches.
-		'Bee Diamond Back', 'Diamond Back', 'Bicycle Rider Back', 'Rider Back',
-		// Neue Kategorie dieser Extension — Würfel und Craps-Seitenwetten
-		// (Plan-Abschnitt 4.18). Aus allgemein bekanntem Marktwissen, NICHT
-		// aus einer förmlichen Markenrecherche. NICHT ABSCHLIESSEND GEKLÄRT:
-		// zwei Aufträge bleiben offen, die kein Agent leisten kann und die im
-		// Copyright-Bericht (DECISIONS.md, Umsetzungsstück C6e) benannt sind —
-		// (1) die förmliche Markenrecherche bei DPMA und EUIPO zu den Namen
-		// dieser Liste und den Bauteilen der Wanne (V.7 Nr. 2), und (2) die
-		// Bildrückwärtssuche mit einem Bildschirmfoto der fertigen Wanne
-		// (V.7 Nr. 4) — beides Aufträge an den Auftraggeber.
-		'Midwest Game Supply', 'Paul-Son', 'Paulson Dice', 'Blue Chip Dice',
-		'Fire Bet', 'Bonus Craps', 'All Tall', 'All Small', "Make 'Em All",
-		'Crapless Craps', 'High Point Craps', 'Sharpshooter', 'Repeater Bet',
-		'Sidewinder', 'Muggsy',
-		// Ergänzung Umsetzungsstück C7f: Handelsnamen elektronischer
-		// Craps-Geräte und weiterer Craps-Seitenwetten. Ausschließlich
-		// MEHRWORTIGE Einträge — ein einzelnes Craps-Fachwort (Craps, Come,
-		// Pass, Field, Odds, Place, Hard, Puck, Yo, Boxcars) darf NICHT auf
-		// diese Liste, weil es im eigenen, erlaubten Text vorkommt und A-5
-		// mit includes() ohne Wortgrenzen sucht. Aus allgemein bekanntem
-		// Marktwissen, NICHT aus einer förmlichen Markenrecherche —
-		// NICHT ABSCHLIESSEND GEKLÄRT, siehe Auftrag A im Copyright-Bericht.
-		'Shoot to Win', 'Roll to Win', 'Bubble Craps', 'Card Craps',
-		'Die Rich Craps', 'Rapid Craps', 'Craps Cubed', 'Dice Duel',
-		'Lightning Dice', 'Super Sic Bo', 'Hot Roller', 'Twice as Nice',
-		'Ride the Line', 'Bonus Frenzy',
-	];
+	// Struktureller Befund der Copyright-Prüfung roulette vom 2026-09-09:
+	// NEGATIVLISTE.length wurde weiter unten nur AUSGEGEBEN, nie GEPRÜFT —
+	// eine leere oder halb geschriebene Liste hätte diese Prüfung mit
+	// "bestanden" durchlaufen lassen, ohne dass ein einziger Name wirklich
+	// geprüft worden wäre. MINDESTLAENGE ist in negativliste.mjs begründet.
+	check(NEGATIVLISTE.length >= MINDESTLAENGE,
+		`NEGATIVLISTE trägt mindestens ${MINDESTLAENGE} Einträge (tatsächlich`
+		+ ` ${NEGATIVLISTE.length}) — sonst liefe diese Prüfung mit einer`
+		+ ' leeren oder halb geschriebenen Liste weiter und meldete'
+		+ ' fälschlich "bestanden"');
+
+	// Die Negativliste selbst führt seit Befund B-6 der Copyright-Prüfung
+	// craps vom 2026-09-09 nur noch EINE Datei für alle acht Geräte:
+	// casino_startpage/…/negativliste.mjs (siehe deren Kopfkommentar). Diese
+	// Datei hier enthält die Liste nicht mehr wörtlich und braucht deshalb
+	// auch keine Namensausnahme mehr — anders als bis zum 2026-09-08, als
+	// die Liste noch als eigenes Array in dieser Datei stand.
 	const ALLE = alleDateien(EXT);
-	// Ausnahme für genau eine Datei: diese Prüfskript-Datei selbst muss die
-	// Negativliste als ausführbares JS-Array wörtlich enthalten, um überhaupt
-	// gegen sie prüfen zu können — dieselbe Art Ausnahme wie in
-	// verify-gattung.mjs G-7 und roulette/…/verify-cabinet.mjs A-5.
-	const GEPRUEFT = ALLE.filter((d) => d !== DIESE_DATEI);
 	const treffer = [];
-	for (const datei of GEPRUEFT) {
+	for (const datei of ALLE) {
 		// KEIN Kommentar-Ausschnitt hier: A-5 ist die rechtliche Prüfung
 		// (CONCEPT.md B.3 Nr. 4, V.7 Nr. 5) und liest deshalb den vollen Text,
 		// Kommentare eingeschlossen — anders als A-4, die eine reine
-		// Architekturfrage prüft.
-		const inhalt = lies(datei);
+		// Architekturfrage prüft. Ausnahme: in dieser Datei selbst werden die
+		// drei Zeichen ©/™/® unschädlich gemacht (siehe DIESE_DATEI oben) —
+		// sie muss sie wörtlich enthalten, um überhaupt gegen sie prüfen zu
+		// können.
+		const roh = lies(datei);
+		const inhalt = datei === DIESE_DATEI ? roh.replace(/[©™®]/g, '·') : roh;
+		const inhaltKlein = inhalt.toLowerCase();
 		for (const name of NEGATIVLISTE) {
-			if (inhalt.includes(name)) {
+			if (musterFuer(name).test(inhaltKlein)) {
 				treffer.push(`${kurz(datei)}: „${name}"`);
 			}
 		}
@@ -389,16 +383,31 @@ console.log('\nA-5  Kein fremder Hersteller-, Modell- oder Spieltitel');
 		}
 	}
 	check(treffer.length === 0,
-		`kein Treffer der Negativliste (${NEGATIVLISTE.length} Namen) und keins`
-		+ ' der drei Zeichen ©/™/® in dieser Extension — README eingeschlossen'
-		+ ' (Ausnahme: diese Datei selbst, die die Liste als Programmzeile'
-		+ ' enthalten muss, um sie zu prüfen)',
+		`kein Treffer der Negativliste (${NEGATIVLISTE.length} Namen, geteilt mit`
+		+ ' den sieben übrigen Geräten und casino_startpage) und keins der drei'
+		+ ' Zeichen ©/™/® in dieser Extension — README eingeschlossen. Diese'
+		+ ' Datei selbst kennt keine Ausnahme mehr: sie trägt die Liste nicht'
+		+ ' mehr wörtlich (Befund B-6 der Copyright-Prüfung craps vom'
+		+ ' 2026-09-09)',
 		...treffer);
 
-	console.log('     Gegenprobe A-5-G: eine erfundene Zeile mit einem gelisteten Namen muss auffallen');
-	const erfundeneZeile = `Dieser Testtext erwähnt versehentlich ${NEGATIVLISTE[0]}.`;
-	const gefundenInGegenprobe = NEGATIVLISTE.some((name) => erfundeneZeile.includes(name));
-	check(gefundenInGegenprobe, 'A-5-G: die erfundene Zeile wird von der Negativliste erkannt');
+	console.log('     Gegenprobe A-5-G: dieselbe Prüfung (musterFuer) muss einen gelisteten Namen auch in Versalien und ohne Trennzeichen erkennen');
+	// Befund B-3 der Copyright-Prüfung craps vom 2026-09-09: die Gegenprobe
+	// benutzt dieselbe musterFuer()-Funktion wie der Hauptlauf oben, statt
+	// (wie bis 2026-09-08) mit includes() einen anderen Weg zu prüfen. Der
+	// Testname wird zur LAUFZEIT aus NEGATIVLISTE gewählt (ein mehrwortiger
+	// Eintrag aus reinen Buchstaben), statt als eigenes Zeichenkettenliteral
+	// in diese Datei geschrieben zu werden — sonst geriete der geschützte
+	// Name selbst in den Quelltext dieser Datei und A-5 schlüge gegen die
+	// eigene Gegenprobe an. Der erfundene Text testet zugleich Befund B-1:
+	// zusammengeschrieben und in Versalien — genau die Schreibweise, die vor
+	// der Behebung von B-1 durchgerutscht wäre.
+	const gegenprobeName = NEGATIVLISTE.find((name) => / /.test(name) && /^[A-Za-z ]+$/.test(name));
+	const erfundeneZeile = `Dieser Testtext erwähnt versehentlich ${gegenprobeName.toUpperCase().replace(/ /g, '')} und ${NEGATIVLISTE[0]}.`.toLowerCase();
+	const gegenprobeGefunden = NEGATIVLISTE.filter((name) => musterFuer(name).test(erfundeneZeile));
+	check(gegenprobeGefunden.length >= 2,
+		'A-5-G: sowohl der zusammengeschriebene Versalien-Name als auch der erste Listeneintrag werden erkannt',
+		...gegenprobeGefunden);
 }
 
 /* ====================================== A-6 Widerspruchsfreie Lizenzangaben */
@@ -430,35 +439,34 @@ console.log('\nA-6  Die Lizenzangaben widersprechen sich nicht');
 
 console.log('\nA-7  Kachel und Spielseite zeigen dieselbe Bauform');
 {
-	const trayDatei = path.join(EXT, 'Resources/Private/Partials/Table/Craps/Tray.html');
-	if (!existsSync(trayDatei)) {
-		console.log('  · übersprungen — Table/Craps/Tray.html existiert noch nicht (Stand'
-			+ ' Umsetzungsstück C6a). Ohne die Spielseiten-Zeichnung gibt es noch'
-			+ ' nichts, womit die Kachel verglichen werden könnte. Ab'
-			+ ' Umsetzungsstück C6b vergleicht diese Prüfung Merkmal für Merkmal.');
-	} else {
-		const cabinet = ohneKommentare(lies(path.join(EXT, 'Resources/Private/Partials/Table/Craps/Cabinet.html')));
-		const tray = ohneKommentare(lies(trayDatei));
-		const trayCssDatei = path.join(EXT, 'Resources/Public/Css/tray.css');
-		const trayCss = existsSync(trayCssDatei) ? ohneBlockKommentare(lies(trayCssDatei)) : '';
+	// Seit Umsetzungsstück Td zeichnen ZWEI Partials die Spielseite statt
+	// einer (siehe Kopfkommentar oben): Cloth.html (Wanne, Tuch,
+	// Pyramidengummi) und Dice.html (die Würfelschicht). Beide bestehen seit
+	// Td dauerhaft — anders als Tray.html in C6a gibt es hier keinen
+	// Zwischenstand mehr, in dem eine der beiden Dateien fehlen könnte.
+	const cabinet = ohneKommentare(lies(path.join(EXT, 'Resources/Private/Partials/Table/Craps/Cabinet.html')));
+	const cloth = ohneKommentare(lies(path.join(EXT, 'Resources/Private/Partials/Table/Craps/Cloth.html')));
+	const dice = ohneKommentare(lies(path.join(EXT, 'Resources/Private/Partials/Table/Craps/Dice.html')));
+	const spielseite = `${cloth}\n${dice}`;
+	const trayCssDatei = path.join(EXT, 'Resources/Public/Css/tray.css');
+	const trayCss = existsSync(trayCssDatei) ? ohneBlockKommentare(lies(trayCssDatei)) : '';
 
-		const MERKMALE = [
-			['Wanne mit hoher Bande', /cr-tile__hull|cr-tray__hull/],
-			['Messingkante', /cr-tile__brass|cr-tray__brass/],
-			['grünes Tuch', /var\(--ck-felt-green\)/],
-			['Pyramidengummi an der linken Bande', /cr-tile__pyramid|cr-tray__pyramid/],
-			['zwei Würfel', /cr-tile__die|cr-tray__die|cr-die/],
-		];
-		for (const [name, muster] of MERKMALE) {
-			check(muster.test(cabinet), `Kachel zeigt: ${name}`);
-			check(muster.test(tray) || muster.test(trayCss), `Spielseite zeigt: ${name}`);
-		}
-
-		console.log('     Gegenprobe A-7-G: ein auf der Spielseite fehlendes Merkmal muss auffallen');
-		const verstuemmelt = tray.replace(/cr-tile__pyramid|cr-tray__pyramid/g, 'entfernt');
-		check(!/cr-tile__pyramid|cr-tray__pyramid/.test(verstuemmelt),
-			'A-7-G: ein entferntes Merkmal wird von derselben Prüfung als fehlend erkannt');
+	const MERKMALE = [
+		['Wanne mit hoher Bande', /cr-tile__hull|cr-tray__hull/],
+		['Messingkante', /cr-tile__brass|cr-tray__brass/],
+		['grünes Tuch', /var\(--ck-felt-green\)/],
+		['Pyramidengummi an der linken Bande', /cr-tile__pyramid|cr-tray__pyramid/],
+		['zwei Würfel', /cr-tile__die|cr-tray__die|cr-die/],
+	];
+	for (const [name, muster] of MERKMALE) {
+		check(muster.test(cabinet), `Kachel zeigt: ${name}`);
+		check(muster.test(spielseite) || muster.test(trayCss), `Spielseite zeigt: ${name}`);
 	}
+
+	console.log('     Gegenprobe A-7-G: ein auf der Spielseite fehlendes Merkmal muss auffallen');
+	const verstuemmelt = spielseite.replace(/cr-tile__pyramid|cr-tray__pyramid/g, 'entfernt');
+	check(!/cr-tile__pyramid|cr-tray__pyramid/.test(verstuemmelt),
+		'A-7-G: ein entferntes Merkmal wird von derselben Prüfung als fehlend erkannt');
 }
 
 /* ==================================================== A-8 Gehäuse-Vertrag */
@@ -679,7 +687,8 @@ console.log(fehler === 0
 	+ '\n(einschließlich: kein <text>), das Kürzel-Präfix cr- wird eingehalten, die'
 	+ '\nAnmeldung bei der Registry stimmt, kein Live-Bereich und kein Messpunkt ist'
 	+ '\nunbeschrieben, kein echtes disabled kommt vor, und Kachel und Spielseite'
-	+ '\nzeigen seit Umsetzungsstück C6b dieselbe Bauform (A-7).'
+	+ '\nzeigen dieselbe Bauform (A-7, seit Umsetzungsstück Td gegen Cloth.html'
+	+ '\nund Dice.html geprüft).'
 	: `\nERGEBNIS: ${fehler} Prüfung${fehler === 1 ? '' : 'en'} fehlgeschlagen.`);
 
 process.exit(fehler === 0 ? 0 : 1);

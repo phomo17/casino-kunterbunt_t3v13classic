@@ -52,39 +52,24 @@
 	gap: var(--ck-space-2);
 }
 
-/*
- * Behebungslauf 2026-09-06 (AUDITREPORT-2026-09-06.md, Befund H-03 und M-05):
- * die geerbte Versteck-Position `inset-block-start: -3rem` aus base.css'
- * .ck-skiplink ist für den SEITEN-Sprunglink gerechnet, dessen Bezugsrahmen
- * der Seitenanfang ist. Dieser Sprunglink hier hat aber .bj-felt (das Tuch,
- * position: relative) als Bezugsrahmen, und das Tuch steht mitten auf der
- * Seite — -3rem darüber landet deshalb sichtbar auf dem Teppich statt
- * außerhalb der Seite (M-05, im Browser nachgemessen: y = 392, vollständig
- * im Bild). -9999px ist unabhängig davon, wo das Tuch auf der jeweiligen
- * Seite steht, garantiert außerhalb jedes Sichtfelds.
- *
- * `transition-property: none` hebt die von .ck-skiplink geerbte Überblendung
- * von inset-block-start auf (bewusst die Langform, nicht deren Kurzschreib-
- * weise mit demselben Sinn — F-9 sucht diese Kurzschreibweise textlich und
- * verlangt dafür einen prefers-reduced-motion-Block, obwohl hier das
- * Gegenteil einer Bewegung steht: nichts bewegt sich). Nachgewiesen im
- * laufenden Browser (200 % Textgröße, echte Tabtaste): Ohne diese Zeile
- * beginnt der Übergang beim EMPFANG des Fokus noch bei der alten Position;
- * der Browser prüft in diesem Augenblick, ob das Element schon sichtbar ist,
- * und findet — nur zufällig, weil das Tuch auf dieser Seite tief genug steht
- * — schon eine augenblicklich sichtbare Zwischenposition. Er rollt deshalb
- * gar nicht erst, und die Überblendung schiebt das Element anschließend
- * unbeobachtet aus dem Bild (H-03: y = 902 bei einem 900 px hohen
- * Sichtfeld). Ohne Übergang liegt die Zielposition schon im selben
- * Augenschritt fest, in dem der Fokus landet, und der Browser rollt
- * zuverlässig dorthin (nachgemessen: y = 409, vollständig im Bild,
- * Tests/Acceptance/specs/sprunglink-fokus-200prozent.spec.ts).
- */
-.bj-felt__skip {
-	position: absolute;
-	inset-block-start: -9999px;
-	transition-property: none;
-}
+/* Der Sprunglink: .ck-skiplink (base.css) versteckt sich über
+   position: absolute. Seine Feinlage steht AUSDRÜCKLICH nur unter
+   :focus-visible — eine bedingungslose Fassung hübe die Versteck-Position aus
+   base.css auf und ließe den Link dauerhaft sichtbar stehen (felt.css lädt
+   nach base.css, gleiche Spezifität — die spätere Regel gewinnt).
+
+   Behebungslauf 2026-09-09 (AUDITREPORT-2026-09-09-c8.md, Befund L-01): die
+   frühere Regel .bj-felt__skip { position: absolute; inset-block-start:
+   -9999px; transition-property: none; } (Behebungslauf 2026-09-06, H-03/M-05)
+   ist ERSATZLOS ENTFALLEN — Craps und Roulette haben sie am selben Tag schon
+   gestrichen, dieser eine Aufrufer war beim Umstellen übersehen worden. Sie
+   war eine Gegenmaßnahme gegen das Verstecken über eine negative LAGE; seit
+   dem 2026-09-09 versteckt sich .ck-skiplink über seine GRÖSSE (1 × 1
+   Bildpunkt, clip-path: inset(50%)) und ist damit unsichtbar, wo immer es
+   steht. Eine Lage von -9999px war zusätzlich ein eigenes Risiko: wanderte
+   der Fokus ohne :focus-visible auf den Link (per Skript, per Zeiger), blieb
+   er 9999 Bildpunkte weit weg und der Browser rollte dorthin (nachgemessen:
+   y = -9559 in Ruhelage). */
 .bj-felt__skip:focus-visible {
 	inset-block-start: var(--ck-space-2);
 	inset-inline-start: var(--ck-space-2);

@@ -27,6 +27,9 @@
  *   G-8  Keine Datei von außen
  *   G-9  Das Site Package nennt im CODE keine der Geräte-Extensions beim
  *        Namen (Kommentare dürfen ein Spiel benennen, siehe unten)
+ *   G-10 Dieselbe Negativliste wie G-7, aber für die nicht ignorierten
+ *        Dateien der Projektwurzel (Befund B-4 der Copyright-Prüfung craps
+ *        vom 2026-09-08 — weder A-5 noch G-7 reichten bis dorthin)
  *
  * WARUM G-7 UND G-8 HIER STEHEN
  * -----------------------------
@@ -79,12 +82,15 @@
 import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
+import { NEGATIVLISTE, MINDESTLAENGE, musterFuer } from './negativliste.mjs';
 
 const HIER = path.dirname(fileURLToPath(import.meta.url));
 /** typo3conf/ext/casino_startpage/ */
 const EXT = path.resolve(HIER, '../../..');
 /** typo3conf/ext/ */
 const EXT_ROOT = path.resolve(EXT, '..');
+/** die Projektwurzel, für G-10 (Befund B-4 der Copyright-Prüfung craps vom 2026-09-08) */
+const PROJEKT_WURZEL = path.resolve(EXT_ROOT, '../..');
 /** diese Datei selbst, für die Ausnahme in G-9 */
 const DIESE_DATEI = fileURLToPath(import.meta.url);
 
@@ -421,58 +427,64 @@ console.log('\nG-6  Keine ausgeschriebene Farbe außerhalb von tokens.css');
 
 /* ========================================= G-7 Kein fremder Name */
 
+// Die Negativliste selbst führt seit Befund B-6 der Copyright-Prüfung craps
+// vom 2026-09-09 nur noch EINE Datei für alle acht Geräte: negativliste.mjs
+// im selben Verzeichnis wie dieses Skript (siehe deren Kopfkommentar). Bis
+// dahin stand die Liste hier als eigenes, auf Modulebene deklariertes Array,
+// damit G-10 sie ohne Zweitabschrift wiederverwenden konnte — eine
+// zweite, eigene Kopie hätte genau die Auseinanderlauf-Gefahr aus Befund
+// B-2 der Copyright-Prüfung craps vom 2026-09-08 wiederholt. Der Import
+// unten löst dasselbe Problem jetzt für alle acht Geräte statt nur für G-7
+// und G-10.
+const NEGATIVLISTE_PFAD = path.join(EXT, 'Resources/Private/Scripts/negativliste.mjs');
+
 console.log('\nG-7  Kein fremder Hersteller-, Modell-, Casino- oder Spieltitel');
 {
-	// Negativliste wörtlich aus CONCEPT.md B.3 Regel 4, erweitert um Rad-,
-	// Tisch- und Chiphersteller, Modellnamen, Spielbanken und Live-Casino-
-	// Marken (Befund B-2 der Copyright-Prüfung roulette vom 2026-09-04),
-	// synchron mit verify-cabinet.mjs der Geräte-Extensions. Wird NICHT
-	// aufgeweicht.
-	const NEGATIVLISTE = [
-		// Spielautomatenhersteller und Spieltitel (CONCEPT.md B.3 Nr. 4)
-		'Novomatic', 'Novomatix', 'Greentube', 'Merkur', 'Gauselmann', 'Bally',
-		'Aristocrat', 'IGT', 'Mills', 'Jennings', 'Watling', 'Light & Wonder',
-		'Bell-Fruit', 'Sizzling Hot', 'Book of Ra', 'Book of Sand',
-		"Lucky Lady's Charm", 'Penny Falls',
-		// Rad- und Tischhersteller sowie deren Modell-/Bauteilnamen
-		'TCSJohnHuxley', 'John Huxley', 'Cammegh', 'Abbiati', 'Matsui',
-		'CTC Holdings', 'Alfastreet', 'Interblock', 'Mercury 360', 'Slingshot',
-		'Saturn Glo', 'Garnite', 'EyeBall', 'Velstone', 'Starburst',
-		// Chiphersteller
-		'Gaming Partners International', 'GPI', 'Paulson', 'Bud Jones',
-		'Chipco', 'Dal Negro',
-		// Spielbanken und Casinomarken
-		'Bellagio', 'Caesars', 'Wynn', 'Venetian', 'MGM', 'Mirage', 'Flamingo',
-		'Golden Nugget', 'Tropicana', 'Stardust', 'Riviera', 'Sands', 'Luxor',
-		'Harrah', 'Monte Carlo',
-		// Live-Casino- und Spielesoftwaremarken
-		'Evolution Gaming', 'Playtech', 'Pragmatic Play', 'Microgaming',
-		'NetEnt', 'Scientific Games', 'WMS', 'Barcrest', 'Cirsa', 'Konami',
-		'All rights reserved',
-		// Zusätzlich zu B.3 Nr. 4: geschützte Mechanik-Bezeichnungen aus der
-		// Recherche zu diesem Gerät (CONCEPT.md C.14.18). Sie erscheinen
-		// nirgends — nicht in sichtbarem Text, nicht in Dateinamen, nicht in
-		// CSS-Klassen, nicht in Kommentaren, nicht in Variablennamen. Erfasst
-		// sind neben der Marken-Schreibweise auch Klein-, GROSS- und
-		// Bindestrich-Schreibweisen, wie ein Name realistisch in einer
-		// CSS-Klasse, einem Bezeichner oder einem Kommentar auftauchen würde
-		// (Befund C-2 der Copyright-Prüfung vom 2026-09-06; gemessen statt
-		// vermutet — keine der Varianten löst einen Fehlalarm im vorhandenen
-		// Bestand aus, siehe DECISIONS.md).
-		'Megaways', 'MEGAWAYS', 'megaways',
-		'Cluster Pays', 'CLUSTER PAYS', 'cluster pays', 'ClusterPays', 'clusterPays', 'cluster-pays',
-		'InfiniReels', 'INFINIREELS', 'infinireels', 'Infini Reels', 'infini-reels',
-		'Tumbling Reels', 'TUMBLING REELS', 'tumbling reels', 'TumblingReels', 'tumblingReels', 'tumbling-reels',
-	];
-	// Ausnahme fuer genau eine Datei: diese Prüfskript-Datei selbst muss die
-	// Negativliste als ausführbares JS-Array wörtlich enthalten, um überhaupt
-	// gegen sie prüfen zu können - andernfalls würde sie sich immer selbst
-	// melden. Dieselbe Art Ausnahme wie bei G-9 (dort ebenfalls nur diese
-	// eine Datei, aus demselben Grund: G-2 bzw. G-7 müssen Zeichenketten
-	// nennen, die sie selbst prüfen).
-	const GEPRUEFT_G7 = ALLE.filter((d) => d !== DIESE_DATEI);
+	// Struktureller Befund der Copyright-Prüfung roulette vom 2026-09-09:
+	// NEGATIVLISTE.length wurde weiter unten nur AUSGEGEBEN, nie GEPRÜFT —
+	// eine leere oder halb geschriebene Liste hätte diese Prüfung mit
+	// "bestanden" durchlaufen lassen, ohne dass ein einziger Name wirklich
+	// geprüft worden wäre. MINDESTLAENGE ist in negativliste.mjs begründet.
+	check(NEGATIVLISTE.length >= MINDESTLAENGE,
+		`NEGATIVLISTE trägt mindestens ${MINDESTLAENGE} Einträge (tatsächlich`
+		+ ` ${NEGATIVLISTE.length}) — sonst liefe diese Prüfung mit einer`
+		+ ' leeren oder halb geschriebenen Liste weiter und meldete'
+		+ ' fälschlich "bestanden"');
+
+	/*
+	 * Zwei getrennte, je enge Ausnahmen für zwei verschiedene Dateien:
+	 *
+	 * 1) negativliste.mjs — wörtlich aus fruit_risk/…/verify-cabinet.mjs
+	 *    (Stand F2) übernommen: übersprungen wird nur noch der eine Bereich
+	 *    zwischen "export const NEGATIVLISTE = [" und der zugehörigen
+	 *    schließenden "];" — er muss die Liste als ausführbares JS-Array
+	 *    wörtlich enthalten, um überhaupt gegen sie prüfen zu können. Der
+	 *    Rest von negativliste.mjs, Kommentare eingeschlossen, wird
+	 *    mitgeprüft.
+	 * 2) diese Datei selbst (DIESE_DATEI, oben bereits für G-9 deklariert) —
+	 *    hier werden nur die drei Zeichen ©/™/® unschädlich gemacht, denn
+	 *    G-7 muss sie als Prüf-Array UND im Ausgabetext wörtlich enthalten,
+	 *    um überhaupt gegen sie prüfen zu können (dasselbe gilt für G-10
+	 *    weiter unten in derselben Datei). Bis zum 2026-09-08 stand hier
+	 *    stattdessen `ALLE.filter((d) => d !== DIESE_DATEI)` — die gesamte
+	 *    Datei war ausgenommen.
+	 */
+	function ohneEigeneFundstellen(inhalt, pfad) {
+		if (pfad === NEGATIVLISTE_PFAD) {
+			const start = inhalt.indexOf('export const NEGATIVLISTE = [\n');
+			const ende = inhalt.indexOf('\n];', start);
+			if (start === -1 || ende === -1) {
+				return inhalt;
+			}
+			return inhalt.slice(0, start) + alsLeerzeilen(inhalt.slice(start, ende + 3)) + inhalt.slice(ende + 3);
+		}
+		if (pfad === DIESE_DATEI) {
+			return inhalt.replace(/[©™®]/g, '·');
+		}
+		return inhalt;
+	}
 	const treffer = [];
-	for (const datei of GEPRUEFT_G7) {
+	for (const datei of ALLE) {
 		// KEIN Kommentar-Ausschnitt hier: G-7 ist die rechtliche Prüfung
 		// (CONCEPT.md B.3 Nr. 4, V.7 Nr. 5) und liest deshalb den vollen Text,
 		// Kommentare eingeschlossen — anders als G-9, die eine reine
@@ -483,9 +495,10 @@ console.log('\nG-7  Kein fremder Hersteller-, Modell-, Casino- oder Spieltitel')
 		// gegenteiligen Aussage im Kopfkommentar dieser Datei genau die
 		// Fluid-Kommentare heraus, in denen am 2026-09-02 sechs von sieben
 		// Funden der ersten Copyright-Prüfung lagen.
-		const inhalt = lies(datei);
+		const inhalt = ohneEigeneFundstellen(lies(datei), datei);
+		const inhaltKlein = inhalt.toLowerCase();
 		for (const name of NEGATIVLISTE) {
-			if (inhalt.includes(name)) {
+			if (musterFuer(name).test(inhaltKlein)) {
 				treffer.push(`${kurz(datei)}: „${name}"`);
 			}
 		}
@@ -496,11 +509,29 @@ console.log('\nG-7  Kein fremder Hersteller-, Modell-, Casino- oder Spieltitel')
 		}
 	}
 	check(treffer.length === 0,
-		`kein Treffer der Negativliste (${NEGATIVLISTE.length} Namen) und keins der drei Zeichen ©/™/®`
-		+ ` in ${GEPRUEFT_G7.length} Dateien dieser Extension — README und die übrigen`
-		+ ' Prüfskripte eingeschlossen (Ausnahme: diese Datei selbst, die die Liste als'
-		+ ' Programmzeile enthalten muss, um sie zu prüfen)',
+		`kein Treffer der Negativliste (${NEGATIVLISTE.length} Namen, geteilt mit den`
+		+ ` sieben Geräte-Extensions) und keins der drei Zeichen ©/™/® in ${ALLE.length}`
+		+ ' Dateien dieser Extension — README und die übrigen Prüfskripte eingeschlossen'
+		+ ' (Ausnahme: der NEGATIVLISTE-Programmblock in negativliste.mjs selbst, der die'
+		+ ' Liste wörtlich enthalten muss, um sie zu prüfen)',
 		...treffer);
+
+	console.log('     Gegenprobe G-7-G: dieselbe Prüfung (musterFuer) muss einen gelisteten Namen auch in Versalien und ohne Trennzeichen erkennen');
+	// Befund B-3 der Copyright-Prüfung craps vom 2026-09-09: diese Datei
+	// hatte zu ihrer Negativliste bislang keine Gegenprobe. Die Gegenprobe
+	// benutzt dieselbe musterFuer()-Funktion wie der Hauptlauf oben. Der
+	// Testname wird zur LAUFZEIT aus NEGATIVLISTE gewählt (ein mehrwortiger
+	// Eintrag aus reinen Buchstaben), statt als eigenes Zeichenkettenliteral
+	// in diese Datei geschrieben zu werden — sonst geriete der geschützte
+	// Name selbst in den Quelltext dieser Datei und G-7 schlüge gegen die
+	// eigene Gegenprobe an. Der erfundene Text testet zugleich Befund B-1:
+	// zusammengeschrieben und in Versalien.
+	const gegenprobeName = NEGATIVLISTE.find((name) => / /.test(name) && /^[A-Za-z ]+$/.test(name));
+	const erfundeneZeile = `Dieser Testtext erwähnt versehentlich ${gegenprobeName.toUpperCase().replace(/ /g, '')} und ${NEGATIVLISTE[0]}.`.toLowerCase();
+	const gegenprobeGefunden = NEGATIVLISTE.filter((name) => musterFuer(name).test(erfundeneZeile));
+	check(gegenprobeGefunden.length >= 2,
+		'G-7-G: sowohl der zusammengeschriebene Versalien-Name als auch der erste Listeneintrag werden erkannt',
+		...gegenprobeGefunden);
 }
 
 /* ================================================== G-8 Keine Datei von außen */
@@ -555,8 +586,16 @@ console.log('\nG-9  Das Site Package nennt im Code keine der Geräte-Extensions 
 	 *
 	 * Zeilennummern bleiben erhalten, weil ohneAlleKommentare() jeden
 	 * entfernten Block durch ebenso viele Zeilenumbrüche ersetzt.
+	 *
+	 * Zweite Ausnahme seit Befund B-6 der Copyright-Prüfung craps vom
+	 * 2026-09-09: negativliste.mjs muss als ausführbares JS-Array wörtlich
+	 * Handelsnamen enthalten, die den Wortbestandteil eines installierten
+	 * Gerätenamens tragen (z. B. Blackjack- oder Craps-Seitenwetten) — das
+	 * koppelt casino_startpage an kein bestimmtes Gerät, es ist derselbe
+	 * Schutzzweck wie G-7 selbst. Dieselbe Art Ausnahme wie in
+	 * craps/…/verify-cabinet.mjs A-4 und blackjack/…/verify-cabinet.mjs A-4.
 	 */
-	const G9_AUSGENOMMEN = [DIESE_DATEI];
+	const G9_AUSGENOMMEN = [DIESE_DATEI, NEGATIVLISTE_PFAD];
 	const treffer = [];
 	for (const datei of ALLE.filter((d) => !G9_AUSGENOMMEN.includes(d))) {
 		const zeilen = ohneAlleKommentare(lies(datei)).split('\n');
@@ -572,6 +611,62 @@ console.log('\nG-9  Das Site Package nennt im Code keine der Geräte-Extensions 
 		+ ' — außer dieser einen ausdrücklich benannten Datei selbst (siehe "VIER ECHTE'
 		+ ' AUSNAHMEN" oben). Erklärende Kommentare dürfen ein Spiel beim Namen'
 		+ ' nennen (CONCEPT.md C.2: allgemeine Spielnamen); sie koppeln nichts.',
+		...treffer);
+}
+
+/* ============================ G-10 Nicht ignorierte Wurzeldateien */
+
+console.log('\nG-10 Kein fremder Name in den nicht ignorierten Wurzeldateien des Projekts');
+{
+	// Befund B-4 der Copyright-Prüfung craps vom 2026-09-08: weder A-5 (die
+	// Geräte-Extensions) noch G-7 (diese Extension) reichen bis in die
+	// Projektwurzel. Was dort liegt und nicht über die Wurzel-.gitignore
+	// ausgenommen ist, würde trotzdem mit veröffentlicht — README.md allen
+	// voran. Ausgewertet werden nur einfache, wortgleiche .gitignore-Zeilen
+	// (kein Glob, keine Negation, kein Verzeichnispfad); das reicht für die
+	// heutige, kurze Wurzel-.gitignore. Verzeichnisse fallen ohnehin durch
+	// den anschließenden isFile()-Filter heraus, unabhängig davon, ob sie in
+	// der .gitignore stehen.
+	const GITIGNORE_PFAD = path.join(PROJEKT_WURZEL, '.gitignore');
+	const IGNORIERTE_NAMEN = new Set(
+		existsSync(GITIGNORE_PFAD)
+			? lies(GITIGNORE_PFAD)
+				.split('\n')
+				.map((zeile) => zeile.trim())
+				.filter((zeile) => zeile !== '' && !zeile.startsWith('#') && !zeile.startsWith('!') && !zeile.includes('*'))
+				.map((zeile) => zeile.replace(/^\//, '').replace(/\/$/, ''))
+			: []
+	);
+	const WURZELDATEIEN = readdirSync(PROJEKT_WURZEL)
+		.filter((name) => name !== '.gitignore' && !IGNORIERTE_NAMEN.has(name))
+		.map((name) => path.join(PROJEKT_WURZEL, name))
+		.filter((voll) => statSync(voll).isFile());
+	const treffer = [];
+	for (const datei of WURZELDATEIEN) {
+		const inhalt = lies(datei);
+		// Dasselbe musterFuer() wie A-5/G-7 (Befund B-1 und B-3 der
+		// Copyright-Prüfung craps vom 2026-09-09): derselbe Musterbau wie im
+		// Hauptlauf, statt einer eigenen, hier nicht mehr getrennt geführten
+		// Abschrift des Regex — eine reine Groß-/Kleinschreibungs-
+		// Unempfindlichkeit ohne Wortgrenzen würde kurze, mehrdeutige Kürzel
+		// der Liste mitten in gewöhnlichen Wörtern der Wurzeldateien
+		// anschlagen.
+		const inhaltKlein = inhalt.toLowerCase();
+		for (const name of NEGATIVLISTE) {
+			if (musterFuer(name).test(inhaltKlein)) {
+				treffer.push(`${path.relative(PROJEKT_WURZEL, datei)}: „${name}"`);
+			}
+		}
+		for (const zeichen of ['©', '™', '®']) {
+			if (inhalt.includes(zeichen)) {
+				treffer.push(`${path.relative(PROJEKT_WURZEL, datei)}: Zeichen „${zeichen}"`);
+			}
+		}
+	}
+	check(treffer.length === 0,
+		`kein Treffer der Negativliste (${NEGATIVLISTE.length} Namen) und keins der drei`
+		+ ` Zeichen ©/™/® in ${WURZELDATEIEN.length} nicht ignorierten Wurzeldateien`
+		+ ' (ermittelt aus der Wurzel-.gitignore, einfache Zeilen ohne Glob/Negation)',
 		...treffer);
 }
 

@@ -36,16 +36,30 @@
  * dice-view.js ist der EINZIGE Schreiber der Custom Properties --cr-x, --cr-y
  * und der Drehmatrix an einer Würfelgruppe (Prüfung V-2) — und das zu Recht:
  * die Physik hat während des Aufnehmens/Schüttelns noch gar nicht zu laufen
- * begonnen (table.phase bleibt 'ruht', kein Wurf ist gestartet). Diese Datei
- * bewegt die beiden Gruppen deshalb über eine EIGENE, unabhängige Eigenschaft
- * — die Inline-Eigenschaft style.transform, die jede CSS-Regel (auch die
- * durch --cr-* gesteuerte matrix()-Regel aus tray.css) so lange überschreibt,
- * wie sie gesetzt ist. Beim Loslassen oder Abbrechen wird sie wieder entfernt
- * (raeumeDarstellungAuf()), bevor onThrow()/onCancel() gerufen wird — erst
- * danach darf dice-view.js die Gruppe wieder über --cr-* führen. Zwei
- * getrennte, sich zeitlich nie überlappende Schreibwege statt eines
- * gemeinsamen: EIGENE ENTSCHEIDUNG dieses Umsetzungsstücks, siehe
- * DECISIONS.md.
+ * begonnen (table.phase bleibt 'ruht', kein Wurf ist gestartet).
+ *
+ * SEIT DEN PLASTISCHEN WÜRFELN (Ansage vom 2026-09-07) TRÄGT DIE GRUPPE
+ * SELBST KEINE TRANSFORMATION MEHR — jede ihrer vier Schichten (Schatten,
+ * beide Körperflächen, Deckfläche) trägt eine EIGENE, vollständige Kette
+ * (tray.css). Eine Inline-Transformation an der Gruppe, wie sie diese Datei
+ * früher gesetzt hat, käme zu diesen vier Ketten HINZU statt sie zu
+ * ersetzen — und die vier Ketten rechnen mit --cr-x/--cr-y, die zu diesem
+ * Zeitpunkt noch auf dem Ruheplatz des letzten Wurfs stehen. Die Würfel
+ * lägen doppelt versetzt.
+ *
+ * DIE LÖSUNG, UND WARUM SIE DEN EIN-SCHREIBER-VERTRAG NICHT AUFWEICHT.
+ * Statt einer Inline-Transformation setzt diese Datei zwei EIGENE Custom
+ * Properties --cr-hx/--cr-hy und ein Attribut data-cr-hand. Solange das
+ * Attribut steht, benutzt tray.css diese beiden statt --cr-x/--cr-y für alle
+ * vier Schichten. dice-view.js bleibt damit weiterhin der EINZIGE Schreiber
+ * von --cr-x, --cr-y, --cr-h, --cr-m11…--cr-m22, --cr-sx, --cr-sy;
+ * throw-input.js ist der einzige Schreiber von --cr-hx, --cr-hy und
+ * data-cr-hand. Beim Loslassen oder Abbrechen werden alle drei wieder
+ * entfernt (raeumeDarstellungAuf()), bevor onThrow()/onCancel() gerufen
+ * wird. Zwei getrennte, sich zeitlich nie überlappende Schreibmengen statt
+ * eines gemeinsamen Satzes von Eigenschaften: EIGENE ENTSCHEIDUNG dieses
+ * Umsetzungsstücks, siehe DECISIONS.md. Prüfung V-2 wird um diese zweite,
+ * ebenso scharfe Zusage erweitert.
  *
  * DIE WURFKRAFT AUS DER ZEIGERGESCHWINDIGKEIT DER LETZTEN AUGENBLICKE
  * -----------------------------------------------------------------------
@@ -170,7 +184,12 @@ export function connectThrow(root, hooks) {
 		};
 	}
 
-	/** Bewegt beide Gruppen über eine eigene Inline-Eigenschaft, siehe Dateikopf. */
+	/**
+	 * Bewegt beide Würfel über die EIGENEN Eigenschaften --cr-hx/--cr-hy,
+	 * siehe Dateikopf. --cr-x/--cr-y gehören dice-view.js und werden hier
+	 * nicht angefasst; data-cr-hand schaltet die Regel in tray.css um, die
+	 * entscheidet, welches Paar gilt.
+	 */
 	function male() {
 		for (let i = 0; i < 2; i++) {
 			const g = gruppen[i];
@@ -178,7 +197,9 @@ export function connectThrow(root, hooks) {
 				continue;
 			}
 			const p = positionen[i];
-			g.style.transform = `translate(${p.x}px, ${p.y}px)`;
+			g.setAttribute('data-cr-hand', '');
+			g.style.setProperty('--cr-hx', String(p.x));
+			g.style.setProperty('--cr-hy', String(p.y));
 			const use = flaechen[i];
 			if (use) {
 				use.setAttribute('href', `#cr-face-${lagen[i].top}`);
@@ -186,10 +207,12 @@ export function connectThrow(root, hooks) {
 		}
 	}
 
-	/** Gibt die Gruppen wieder an die --cr-*-gesteuerte CSS-Regel zurück. */
+	/** Gibt die Würfel wieder an die --cr-x/--cr-y-gesteuerte Regel zurück. */
 	function raeumeDarstellungAuf() {
 		for (const g of gruppen) {
-			g?.style.removeProperty('transform');
+			g?.removeAttribute('data-cr-hand');
+			g?.style.removeProperty('--cr-hx');
+			g?.style.removeProperty('--cr-hy');
 		}
 	}
 

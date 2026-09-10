@@ -15,7 +15,9 @@
  * WAS HIER BEWIESEN WIRD (Plan Abschnitt 4.44 [C6d] und 4.25 [C7e])
  * ---------------------------------------------------------------------
  *   V-1   genau ein f:asset.module, und es ist craps.js
- *   V-2   jeder Live-Bereich leer, jeder Messpunkt genau ein Schreiber
+ *   V-2   (erweitert, Te) jeder Live-Bereich leer, jeder Messpunkt genau ein
+ *         Schreiber; die Ruhelage-Eigenschaften ausschließlich dice-view.js,
+ *         --cr-hx, --cr-hy und data-cr-hand ausschließlich throw-input.js
  *   V-3   die sechs rechnenden Dateien sind import- und dokumentfrei
  *   V-4   jedes Bedienteil ist ein natives Element
  *   V-5   Zielgrößen und Fokus
@@ -127,7 +129,8 @@ const TRAY_CSS_PFAD = path.join(EXT, 'Resources/Public/Css/tray.css');
 const FELT_CSS_PFAD = path.join(EXT, 'Resources/Public/Css/felt.css');
 const TABLE_CSS_PFAD = path.join(EXT_ROOT, 'casino_startpage/Resources/Public/Css/table.css');
 const TABLE_HTML_PFAD = path.join(EXT, 'Resources/Private/ContentElements/Table.html');
-const TRAY_HTML_PFAD = path.join(EXT, 'Resources/Private/Partials/Table/Craps/Tray.html');
+const CLOTH_HTML_PFAD = path.join(EXT, 'Resources/Private/Partials/Table/Craps/Cloth.html');
+const DICE_HTML_PFAD = path.join(EXT, 'Resources/Private/Partials/Table/Craps/Dice.html');
 const DICESPRITE_HTML_PFAD = path.join(EXT, 'Resources/Private/Partials/Table/Craps/DiceSprite.html');
 const STATUS_HTML_PFAD = path.join(EXT, 'Resources/Private/Partials/Table/Craps/Status.html');
 const THROW_HTML_PFAD = path.join(EXT, 'Resources/Private/Partials/Table/Craps/Throw.html');
@@ -139,7 +142,7 @@ for (const [name, pfad] of [
 	['rng.js', RNG_PFAD], ['dice-geometry.js', GEOMETRY_PFAD], ['dice-physics.js', PHYSICS_PFAD],
 	['dice-view.js', DICE_VIEW_PFAD], ['throw-input.js', THROW_INPUT_PFAD], ['craps.js', CRAPS_PFAD],
 	['bets-craps.js', BETS_CRAPS_PFAD], ['wagers-craps.js', WAGERS_CRAPS_PFAD], ['round-craps.js', ROUND_CRAPS_PFAD],
-	['Table.html', TABLE_HTML_PFAD], ['Tray.html', TRAY_HTML_PFAD], ['Status.html', STATUS_HTML_PFAD],
+	['Table.html', TABLE_HTML_PFAD], ['Cloth.html', CLOTH_HTML_PFAD], ['Dice.html', DICE_HTML_PFAD], ['Status.html', STATUS_HTML_PFAD],
 	['Throw.html', THROW_HTML_PFAD], ['Felt.html', FELT_HTML_PFAD], ['Round.html', ROUND_HTML_PFAD],
 ]) {
 	if (!existsSync(pfad)) {
@@ -167,7 +170,8 @@ const roundCrapsOhneKommentare = ohneKommentare(roundCrapsQuelltext);
 
 const tableHtml = lies(TABLE_HTML_PFAD);
 const tableHtmlOhneKommentare = ohneKommentare(tableHtml);
-const trayHtml = lies(TRAY_HTML_PFAD);
+const clothHtml = lies(CLOTH_HTML_PFAD);
+const diceHtml = lies(DICE_HTML_PFAD);
 const throwHtml = lies(THROW_HTML_PFAD);
 const throwHtmlOhneKommentare = ohneKommentare(throwHtml);
 const statusHtml = lies(STATUS_HTML_PFAD);
@@ -178,7 +182,7 @@ const roundHtml = lies(ROUND_HTML_PFAD);
 
 console.log('V-1  Genau ein f:asset.module, und es ist craps.js');
 {
-	const HTML_DATEIEN = [TABLE_HTML_PFAD, TRAY_HTML_PFAD, DICESPRITE_HTML_PFAD, STATUS_HTML_PFAD, THROW_HTML_PFAD, FELT_HTML_PFAD, ROUND_HTML_PFAD];
+	const HTML_DATEIEN = [TABLE_HTML_PFAD, CLOTH_HTML_PFAD, DICE_HTML_PFAD, DICESPRITE_HTML_PFAD, STATUS_HTML_PFAD, THROW_HTML_PFAD, FELT_HTML_PFAD, ROUND_HTML_PFAD];
 	const treffer = HTML_DATEIEN.flatMap((d) => [...ohneKommentare(lies(d)).matchAll(/<f:asset\.module identifier="([^"]+)"/g)].map((m) => m[1]));
 	check(treffer.length === 1, `genau ein f:asset.module (gefunden: ${treffer.length})`, ...treffer);
 	check(treffer[0] === '@phomo17/craps/craps.js', `das eine Modul ist @phomo17/craps/craps.js (gefunden: ${treffer[0] ?? 'keins'})`);
@@ -261,7 +265,11 @@ console.log('\nV-2  Jeder Live-Bereich leer, jeder Messpunkt genau ein Schreiber
 		}
 	}
 
-	// (d) --cr-* an den Würfelgruppen wird NUR von dice-view.js geschrieben.
+	// (d) --cr-* an den Würfelgruppen: ZWEI GETRENNTE MENGEN, je genau ein
+	// Schreiber (erweitert, Te — vorher schrieb throw-input.js gar kein
+	// --cr-*, seit den plastischen Würfeln führt es den Handversatz über
+	// --cr-hx/--cr-hy statt über eine Inline-transform-Eigenschaft).
+	// dice-view.js bleibt der EINZIGE Schreiber der Ruhelage-Eigenschaften.
 	const CR_PROPERTIES = ['--cr-x', '--cr-y', '--cr-h', '--cr-m11', '--cr-m12', '--cr-m21', '--cr-m22', '--cr-sx', '--cr-sy'];
 	for (const prop of CR_PROPERTIES) {
 		const schreiber = [];
@@ -272,8 +280,33 @@ console.log('\nV-2  Jeder Live-Bereich leer, jeder Messpunkt genau ein Schreiber
 		}
 		check(schreiber.length === 1 && schreiber[0] === 'dice-view.js', `${prop} wird ausschließlich von dice-view.js geschrieben`, ...schreiber);
 	}
-	check(!/setProperty\(\s*'--cr-/.test(throwInputOhneKommentare),
-		'throw-input.js schreibt keine einzige --cr-*-Eigenschaft (es bewegt Würfel über eine eigene Inline-transform-Eigenschaft, siehe Dateikopf)');
+
+	// throw-input.js ist der EINZIGE Schreiber des Handversatzes --cr-hx/--cr-hy
+	// und des Schalters data-cr-hand (Prüfung V-2, zweite Zusage). Keine der
+	// beiden Mengen überschneidet sich mit der anderen.
+	const CR_HAND_PROPERTIES = ['--cr-hx', '--cr-hy'];
+	for (const prop of CR_HAND_PROPERTIES) {
+		const schreiber = [];
+		for (const [name, quelltext] of [['dice-view.js', diceViewOhneKommentare], ['throw-input.js', throwInputOhneKommentare], ['craps.js', crapsOhneKommentare]]) {
+			if (quelltext.includes(`setProperty('${prop}'`)) {
+				schreiber.push(name);
+			}
+		}
+		check(schreiber.length === 1 && schreiber[0] === 'throw-input.js', `${prop} wird ausschließlich von throw-input.js geschrieben`, ...schreiber);
+	}
+	check(!CR_HAND_PROPERTIES.some((prop) => diceViewOhneKommentare.includes(`setProperty('${prop}'`)),
+		'dice-view.js schreibt keine der beiden Handversatz-Eigenschaften');
+	check(!CR_PROPERTIES.some((prop) => throwInputOhneKommentare.includes(`setProperty('${prop}'`)),
+		'throw-input.js schreibt keine der Ruhelage-Eigenschaften');
+
+	const handAttributSchreiber = [];
+	for (const [name, quelltext] of [['dice-view.js', diceViewOhneKommentare], ['throw-input.js', throwInputOhneKommentare], ['craps.js', crapsOhneKommentare]]) {
+		if (/(?:set|remove)Attribute\(\s*'data-cr-hand'/.test(quelltext)) {
+			handAttributSchreiber.push(name);
+		}
+	}
+	check(handAttributSchreiber.length === 1 && handAttributSchreiber[0] === 'throw-input.js',
+		'data-cr-hand wird ausschließlich von throw-input.js gesetzt und entfernt', ...handAttributSchreiber);
 
 	console.log('     Gegenprobe V-2-G: eine erfundene zweite Schreibstelle für --cr-x muss auffallen');
 	const verfaelscht = `${throwInputOhneKommentare}\nfoo.style.setProperty('--cr-x', '1');`;
@@ -360,6 +393,25 @@ console.log('\nV-5  Zielgrößen und Fokus');
 	check(!/outline\s*:\s*(none|0)\b/i.test(tableCssOhneKommentare), 'table.css enthält kein outline: none / outline: 0');
 	check(/\.ck-table__button:focus-visible/.test(tableCss), '.ck-table__button:focus-visible ist definiert');
 	check(/\.ck-table__chip:has\(:focus-visible\)/.test(tableCss), '.ck-table__chip:has(:focus-visible) ist definiert (Fokus der Modewahl)');
+
+	// NEU IN UMSETZUNGSSTÜCK Ue: eine ausdrückliche Gegenprobe, dass DAS TUCH
+	// selbst keine feste Mindestgröße mehr trägt.
+	//
+	// ANMERKUNG DES UMSETZERS: der Plantext zu Ue (Abschnitt 4.23) beschreibt
+	// diese Stelle als „SEIT UMSETZUNGSSTÜCK Ub geändert" und unterstellt, V-5
+	// habe vorher `.cr-felt__field` mit `min-inline-size: 2.75rem` geprüft.
+	// Das trifft auf DIESE Datei nicht zu — V-5 prüfte hier zu keinem
+	// Zeitpunkt `.cr-felt__field`, nur `.cr-throw__slider` und
+	// `.ck-table__button` (siehe oben). Bereits in Umsetzungsstück Ub
+	// festgestellt und dort als „Kleinstfund 6" unbehoben liegen gelassen,
+	// weil außerhalb von dessen Dateiumfang (DECISIONS.md). Die ZUSAGE selbst
+	// ist trotzdem richtig und gehört hierher (SC 2.5.8): die tatsächliche
+	// Zielgröße rechnet verify-felt.mjs F-7 feldweise nach; diese Zeile ist
+	// die dazu passende Gegenprobe an der Stelle, an der ein Leser eine feste
+	// Mindestgröße für Wettfelder am ehesten erwarten würde.
+	const feltCssV5 = lies(FELT_CSS_PFAD);
+	check(!/\.cr-felt__field\b[^}]*min-inline-size:\s*2\.75rem/.test(feltCssV5),
+		'die Wettfelder tragen keine feste Mindestgröße mehr (die Zielgröße rechnet verify-felt.mjs F-7 feldweise nach)');
 }
 
 /* ========================================= V-6 Nur echter Zufall im Spiel */
@@ -468,23 +520,29 @@ console.log('\nV-11  Alle benutzten XLIFF-Kennungen gibt es, und keine ist unben
 	// Table.html, Felt.html) und die eingebettete Ausdrucksform
 	// {f:translate(key: '…')} (Status.html, Round.html, Felt.html, data-text-*).
 	// Beide werden erfasst. Seit C7e um Felt.html und Round.html erweitert.
-	const HTML_ALLER_PARTIALS = [tableHtml, trayHtml, statusHtml, throwHtml, feltHtml, roundHtml].join('\n');
+	const HTML_ALLER_PARTIALS = [tableHtml, clothHtml, diceHtml, statusHtml, throwHtml, feltHtml, roundHtml].join('\n');
 	const benutztInHtml = new Set([...HTML_ALLER_PARTIALS.matchAll(/key[:=]\s*['"]LLL:EXT:craps\/Resources\/Private\/Language\/locallang\.xlf:([a-zA-Z0-9_.{}]+)['"]/g)].map((m) => m[1]));
 
-	// Felt.html löst eine Kennung dynamisch auf ({field.labelKey} bzw.
-	// {field.printed}) — das erscheint hier als LITERALE Zeichenkette mit
+	// Felt.html löst eine Kennung dynamisch auf ({field.labelKey}, aufgerufen
+	// über field.labelKey selbst, das keine "LLL:EXT:…"-Zeichenkette im
+	// Quelltext bildet) — das erscheint hier als LITERALE Zeichenkette mit
 	// geschweiften Klammern und ist keine Karteileiche, sondern die einzige
 	// Stelle, an der F-5 (verify-felt.mjs) statt dieser Prüfung greift: F-5
 	// vergleicht die AUFGELÖSTEN Kennungen aus BetLayout.php gegen
 	// locallang.xlf. Diese Prüfung hier zieht solche dynamischen Ausdrücke ab,
 	// statt sie fälschlich als "unbekannt" zu meldem.
+	//
+	// SEIT DEM UMBAU NACH DER BILDVORLAGE (2026-09-08): {field.printed} gibt
+	// es nicht mehr — die Aufschrift läuft seither gar nicht mehr durch
+	// f:translate (Vorbemerkung E des Plans, Prüfung F-24). Übrig bleibt genau
+	// EIN dynamischer Ausdruck: die Gruppenüberschrift felt.group.{gruppe}.
 	const dynamisch = [...benutztInHtml].filter((id) => id.includes('{'));
 	const statisch = new Set([...benutztInHtml].filter((id) => !id.includes('{')));
 
 	const unbekannt = [...statisch].filter((id) => !definiert.has(id));
 	check(unbekannt.length === 0, `${statisch.size} in den Partials statisch benutzte Kennungen existieren alle in locallang.xlf`, ...unbekannt);
-	check(dynamisch.length === 2 && dynamisch.every((id) => id.startsWith('felt.') || id === '{field.printed}'),
-		'genau die zwei dynamisch aufgelösten Ausdrücke aus Felt.html wurden erkannt und nicht als Karteileiche gewertet',
+	check(dynamisch.length === 1 && dynamisch.every((id) => id.startsWith('felt.')),
+		'genau der eine dynamisch aufgelöste Ausdruck aus Felt.html (felt.group.{gruppe}) wurde erkannt und nicht als Karteileiche gewertet',
 		...dynamisch);
 
 	const NEUE_KENNUNGEN = [
@@ -493,16 +551,16 @@ console.log('\nV-11  Alle benutzten XLIFF-Kennungen gibt es, und keine ist unben
 		'throw.announce.picked', 'throw.announce.rolling', 'throw.announce.result',
 		'throw.announce.short', 'throw.announce.blocked', 'throw.announce.norandom', 'throw.announce.power',
 		// Seit C7e (Umsetzungsstück C7d/C7e): Tuch, Runde, Ansagen, Absagen.
+		// Seit dem Umbau nach der Bildvorlage (2026-09-08, Ub): die dreißig
+		// felt.print.*- und die zwei felt.puck.*-Kennungen sind entfallen —
+		// die Aufschrift steht seither als Klartext in BetLayout.php und läuft
+		// nicht mehr durch f:translate (Vorbemerkung E des Plans).
 		'felt.label', 'felt.skip', 'felt.group.numbers', 'felt.group.lines', 'felt.group.hardways', 'felt.group.single',
-		'felt.puck.off', 'felt.puck.on', 'felt.point.none', 'felt.point.set', 'felt.fieldname', 'felt.fieldname.empty',
-		'felt.print.pass', 'felt.print.dontpass', 'felt.print.come', 'felt.print.dontcome', 'felt.print.odds', 'felt.print.field',
-		'felt.print.dontcome.4', 'felt.print.dontcome.5', 'felt.print.dontcome.6', 'felt.print.dontcome.8', 'felt.print.dontcome.9', 'felt.print.dontcome.10',
-		'felt.print.place.4', 'felt.print.place.5', 'felt.print.place.6', 'felt.print.place.8', 'felt.print.place.9', 'felt.print.place.10',
-		'felt.print.hard.4', 'felt.print.hard.6', 'felt.print.hard.8', 'felt.print.hard.10',
-		'felt.print.seven', 'felt.print.craps', 'felt.print.two', 'felt.print.three', 'felt.print.eleven', 'felt.print.twelve',
+		'felt.point.none', 'felt.point.set', 'felt.fieldname', 'felt.fieldname.empty',
 		'felt.name.pass', 'felt.name.dontpass', 'felt.name.come', 'felt.name.dontcome', 'felt.name.passodds', 'felt.name.dontpassodds',
-		'felt.name.comepoint', 'felt.name.dontcomepoint', 'felt.name.comeodds', 'felt.name.dontcomeodds', 'felt.name.place', 'felt.name.field',
-		'felt.name.hard', 'felt.name.seven', 'felt.name.craps', 'felt.name.two', 'felt.name.three', 'felt.name.eleven', 'felt.name.twelve',
+		'felt.name.comepoint', 'felt.name.dontcomepoint', 'felt.name.comeodds', 'felt.name.dontcomeodds', 'felt.name.place', 'felt.name.place.word',
+		'felt.name.field', 'felt.name.hard', 'felt.name.seven', 'felt.name.craps', 'felt.name.two', 'felt.name.three', 'felt.name.eleven',
+		'felt.name.twelve', 'felt.name.crapseleven',
 		'felt.place.working', 'felt.place.hint',
 		'round.announce.natural', 'round.announce.craps', 'round.announce.pointset', 'round.announce.pointmade', 'round.announce.sevenout', 'round.announce.roll',
 		'round.announce.money.win', 'round.announce.money.partial', 'round.announce.money.loss', 'round.announce.money.none',
@@ -518,13 +576,13 @@ console.log('\nV-11  Alle benutzten XLIFF-Kennungen gibt es, und keine ist unben
 	//   - throw.announce.*             reisen als data-text-* (Status.html)
 	//   - felt.fieldname(.empty)       reisen als data-text-* (Felt.html)
 	//   - round.*                      reisen als data-text-* (Round.html)
-	//   - felt.print.*, felt.name.*,   werden NIE literal geschrieben, sondern
-	//     felt.group.*                 über field.labelKey/field.printed bzw.
-	//                                  {gruppe} dynamisch aufgelöst — das prüft
-	//                                  F-5 in verify-felt.mjs, nicht diese Stelle.
+	//   - felt.name.*, felt.group.*    werden NIE literal geschrieben, sondern
+	//                                  über field.labelKey bzw. {gruppe}
+	//                                  dynamisch aufgelöst — das prüft F-5 in
+	//                                  verify-felt.mjs, nicht diese Stelle.
 	const UEBER_DATA_ATTRIBUT_ODER_DYNAMISCH = (id) => id.startsWith('throw.announce.') || id.startsWith('round.')
 		|| id === 'felt.fieldname' || id === 'felt.fieldname.empty'
-		|| id.startsWith('felt.print.') || id.startsWith('felt.name.') || id.startsWith('felt.group.');
+		|| id.startsWith('felt.name.') || id.startsWith('felt.group.');
 	const unbenutzt = NEUE_KENNUNGEN.filter((id) => !statisch.has(id) && !UEBER_DATA_ATTRIBUT_ODER_DYNAMISCH(id));
 	check(unbenutzt.length === 0, 'jede neue, weder als data-text-* noch dynamisch (F-5) transportierte Kennung wird in einem Partial per f:translate benutzt', ...unbenutzt);
 
@@ -748,7 +806,7 @@ console.log('\nV-18  Genau ein Rundenauslöser auf der Seite (neu, C7e)');
 		'Table.html rendert Table/Controls OHNE go:-Argument');
 	check(!/<f:render partial="Table\/Controls"[^>]*\bgo:/.test(tableHtml), 'Table.html übergibt kein go:-Argument an Table/Controls');
 
-	const HTML_DIESER_EXTENSION = [tableHtml, trayHtml, lies(DICESPRITE_HTML_PFAD), statusHtml, throwHtml, feltHtml, roundHtml].join('\n');
+	const HTML_DIESER_EXTENSION = [tableHtml, clothHtml, diceHtml, lies(DICESPRITE_HTML_PFAD), statusHtml, throwHtml, feltHtml, roundHtml].join('\n');
 	const goTreffer = [...HTML_DIESER_EXTENSION.matchAll(/data-ck-table-go=/g)];
 	check(goTreffer.length === 1, `data-ck-table-go steht genau einmal im Markup dieser Extension (gefunden: ${goTreffer.length})`);
 	check(/data-ck-table-go=/.test(throwHtml), 'die eine Stelle liegt in Throw.html');

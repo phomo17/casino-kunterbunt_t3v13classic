@@ -37,27 +37,24 @@
    1  Anordnung
    ========================================================================== */
 
-/* Seit Phase C3 stehen Rad und Tuch nebeneinander (CONCEPT.md C.6.1: links
-   das Rad, rechts das Tuch). Die Anordnung der beiden steht in felt.css bei
-   .ro-table__stage; hier bleibt nur, was das Rad selbst betrifft.
-   .ck-table ist ein Flex-Container (table.css); overflow: auto sorgt dafür,
-   dass auf einem niedrigen Bildschirm nichts abgeschnitten wird, statt den
-   Vertrag ck-room-fill zu brechen (siehe README.md, Abschnitt
-   „Barrierefreiheit" und die nachgemessenen Werte dort). */
+/* SEIT DEM UMBAU NACH DER BILDVORLAGE ist das Rad eine SCHICHT des Tisches
+   und keine eigene Kachel mehr neben dem Tuch. Seine Lage und seine Größe
+   stehen deshalb in felt.css (.ro-wheel, .ro-wheel__drawing, Abschnitt 2
+   dort) — sie folgen aus der Radmulde in der Maßordnung von
+   Classes/BetLayout.php und nicht aus einer eigenen Höchstgröße. Die frühere
+   Regel .ro-wheel { inline-size: min(28rem, 100%) } ist damit entfallen: eine
+   zweite Größenangabe hätte das Rad aus seiner Mulde geschoben.
+
+   Was hier bleibt, ist die ROLLKETTE. .ck-table ist ein Flex-Container
+   (table.css); overflow: auto sorgt dafür, dass auf einem niedrigen
+   Bildschirm nichts abgeschnitten wird, statt den Vertrag ck-room-fill zu
+   brechen. min-inline-size: 0 ist das dritte Glied der Rollkette (siehe den
+   Kopfkommentar von felt.css): ohne diese Zeile gäbe .ro-table die
+   Bildschirmbreite nicht nach unten weiter, und der Rollbereich des Tisches
+   bekäme nie eine Breite, unter der er rollen müsste. */
 .ro-table {
 	overflow: auto;
-}
-
-/* Größenbegrenzung: das Rad wird nie größer als sein Platz, aber auch nie
-   größer als eine handliche Höchstgröße auf breiten Bildschirmen. */
-.ro-wheel {
-	inline-size: min(28rem, 100%);
-}
-
-.ro-wheel__drawing {
-	display: block;
-	inline-size: 100%;
-	block-size: auto;
+	min-inline-size: 0;
 }
 
 

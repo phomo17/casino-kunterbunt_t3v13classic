@@ -52,6 +52,20 @@
  *                                               {2}=Limit {3}=gesetzter Betrag
  *   texts.fieldnameEmpty (optional)
  *                     table.field.name.empty  {0}=Feldname {1}=Auszahlung {2}=Limit
+ *   texts.fieldnameStated (optional, Behebungslauf 2026-09-09, Befund M-02)
+ *                     table.field.name.stated  dieselben Platzhalter wie
+ *                                               texts.fieldname, aber ohne {1}
+ *                                               im Satzbau — für Felder, deren
+ *                                               EIGENE Aufschrift (Feldname)
+ *                                               die Auszahlung schon nennt.
+ *                                               nameField() wählt sie SELBST,
+ *                                               sobald der Feldname bereits
+ *                                               "zahlt … zu …" enthält; fehlt
+ *                                               texts.fieldnameStated, bleibt
+ *                                               es unverändert bei
+ *                                               texts.fieldname.
+ *   texts.fieldnameStatedEmpty (optional)
+ *                     table.field.name.stated.empty  derselbe Fall, leeres Feld
  *
  * table.announce.cleared, table.announce.doubled und table.announce.repeated
  * werden nicht von dieser Datei angesagt — sie betreffen die Bedienleiste
@@ -173,6 +187,15 @@ export function connectFelt(root, bets, options) {
 	}
 
 	/**
+	 * Eine Grundbeschriftung, die ihre eigene Auszahlung schon nennt — bei
+	 * Roulette die drei Kolonnen ("… zahlt 2 zu 1", Prüfung F-20/SC 2.5.3
+	 * verlangt das dort wörtlich). Erkannt am deutschen Satzbau "zahlt … zu",
+	 * denselben zwei Wörtern, mit denen jede Auszahlung in diesem Haus
+	 * angesagt wird (table.field.name selbst eingeschlossen).
+	 */
+	const NENNT_AUSZAHLUNG_SCHON = /\bzahlt\b.*\bzu\b/i;
+
+	/**
 	 * Der erreichbare Name eines Feldes: sichtbarer Text zuerst (WCAG 2.5.3).
 	 *
 	 * Liegt nichts auf dem Feld, wird — falls verdrahtet — texts.fieldnameEmpty
@@ -180,6 +203,14 @@ export function connectFelt(root, bets, options) {
 	 * 0 ("…, 0 Euro gesetzt"). Ohne texts.fieldnameEmpty (ältere Einbindung, die
 	 * das Attribut noch nicht liefert) bleibt die bisherige Zusage unverändert:
 	 * table.field.name trägt dann auch den Fall "nichts gesetzt" mit.
+	 *
+	 * Behebungslauf 2026-09-09 (Befund M-02): nennt die Grundbeschriftung
+	 * (labelOf(fieldId)) die Auszahlung bereits, tritt — falls verdrahtet —
+	 * texts.fieldnameStated/-StatedEmpty an die Stelle von texts.fieldname/
+	 * -Empty, damit die Auszahlung nicht ein zweites Mal gesagt wird. Fehlt
+	 * texts.fieldnameStated (ältere Einbindung, die das Attribut noch nicht
+	 * liefert), bleibt es unverändert bei texts.fieldname — dieselbe
+	 * Rückwärtsverträglichkeit wie bei texts.fieldnameEmpty oben.
 	 */
 	function nameField(fieldId) {
 		const button = knoepfe.get(fieldId);
@@ -188,9 +219,13 @@ export function connectFelt(root, bets, options) {
 			return;
 		}
 		const gesetzt = bets.stakeOn(fieldId);
-		const name = gesetzt === 0 && texts.fieldnameEmpty
-			? fuelle(texts.fieldnameEmpty, [labelOf(fieldId), feld.payout, feld.max])
-			: fuelle(texts.fieldname, [labelOf(fieldId), feld.payout, feld.max, gesetzt]);
+		const label = labelOf(fieldId);
+		const nenntSchon = NENNT_AUSZAHLUNG_SCHON.test(label);
+		const vorlageVoll = nenntSchon && texts.fieldnameStated ? texts.fieldnameStated : texts.fieldname;
+		const vorlageLeer = nenntSchon && texts.fieldnameStatedEmpty ? texts.fieldnameStatedEmpty : texts.fieldnameEmpty;
+		const name = gesetzt === 0 && vorlageLeer
+			? fuelle(vorlageLeer, [label, feld.payout, feld.max])
+			: fuelle(vorlageVoll, [label, feld.payout, feld.max, gesetzt]);
 		if (name !== '') {
 			button.setAttribute('aria-label', name);
 		}

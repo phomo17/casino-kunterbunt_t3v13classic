@@ -17,7 +17,7 @@ Verlustschächte.
 | CSS-Präfix | `cp-` |
 | Import-Präfix | `@phomo17/coin-pusher/` |
 | TYPO3-Version | 13.4 (klassische, nicht Composer-basierte Installation) |
-| Version | 0.3.0 (alpha) |
+| Version | 0.4.0 (alpha) |
 | Lizenz | AGPL-3.0-or-later |
 
 ## Stand

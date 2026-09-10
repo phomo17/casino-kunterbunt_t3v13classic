@@ -19,6 +19,13 @@
  * damit als Bauteilgrenze. verify-tray.mjs D-7 rechnet beide Verhältnisse
  * aus tokens.css nach, statt sie zu glauben.
  *
+ * Seit der Ansage vom 2026-09-07 kommen zwei weitere Töne hinzu,
+ * --ck-ivory-200 und --ck-ivory-300, für die beiden Körperflächen des
+ * plastischen Würfels (Umsetzungsstück Te). Nachgerechnet gegen das Tuch:
+ * --ck-ivory-200 5,10 : 1, --ck-ivory-300 3,32 : 1 — beide über der
+ * Bauteilgrenze von 3 : 1 (siehe tokens.css). Auch hier gilt weiterhin: KEIN
+ * ausgeschriebener Farbwert in dieser Datei.
+ *
  * Alle Farbwerte kommen aus casino_startpage/Resources/Public/Css/tokens.css.
  * In dieser Datei steht kein ausgeschriebener Farbwert (Nachweis A-1).
  */
@@ -30,8 +37,23 @@
 	overflow: hidden;
 }
 
+/* DIE DECKFLÄCHE (Gestaltungslauf 2026-09-09).
+   Der Farbgeber #cr-die-top steht in DiceSprite.html und läuft von
+   --ck-ivory-100 auf --ck-ivory-200: derselbe Werkstoff, nur die vom Licht
+   abgewandte Ecke im Halbschatten. Ein Würfel aus einem einzigen Ton sieht
+   aus wie ein aufgeklebtes Quadrat.
+
+   DER NACHWEIS BLEIBT GÜLTIG. Die Augen liegen auf dem Raster der
+   Viertelkanten (± 3 Einheiten um die Mitte); der Verlauf steht bis 62 %
+   seiner Diagonalen auf --ck-ivory-100 und beginnt erst dahinter zu kippen.
+   Unter keinem Auge liegt also ein anderer Ton als der, für den
+   verify-tray.mjs D-7 die 14,95 : 1 nachrechnet. Und --ck-ivory-200 trägt
+   auf dem Tuch ohnehin mit 5,10 : 1 (tokens.css).
+
+   fill: url(#…) ist ein Verweis INNERHALB des Dokuments und lädt nichts
+   nach — Prüfung A-3 schneidet ihn eigens heraus. */
 .cr-die__body {
-	fill: var(--ck-ivory-100);
+	fill: url(#cr-die-top);
 	stroke: var(--ck-card-edge);
 	stroke-width: 0.5;
 }
@@ -39,3 +61,15 @@
 .cr-die__pip {
 	fill: var(--ck-print-ink);
 }
+
+/* Die zwei Körperflächen. Sie tragen KEINE Augen: was oben liegt, entscheidet
+   (CONCEPT.md C.8.3), und Augen auf einem 0,75 Einheiten breiten Streifen
+   wären ohnehin nicht lesbar. Die Kante ist dieselbe wie an der Deckfläche,
+   damit der Körper eine durchgehende Silhouette hat. */
+.cr-die__side {
+	stroke: var(--ck-card-edge);
+	stroke-width: 0.5;
+}
+
+.cr-die__side--near { fill: var(--ck-ivory-200); }
+.cr-die__side--far  { fill: var(--ck-ivory-300); }

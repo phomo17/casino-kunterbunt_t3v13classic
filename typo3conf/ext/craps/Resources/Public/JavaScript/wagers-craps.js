@@ -48,6 +48,10 @@
  *    etwas anderes".
  * 2. Hardways arbeiten IMMER. Die Hausvorteile 11,11 % und 9,09 % aus
  *    Anhang H sind genau für diesen Fall gerechnet.
+ * 3. C & E arbeitet IMMER, auch beim Come-out. Sie ist eine Einwurfwette wie
+ *    Any Craps und die Elf, aus denen sie zusammengesetzt ist; beide arbeiten
+ *    ebenfalls immer. Der Hausvorteil −1/9 ist genau für diesen Fall
+ *    gerechnet.
  * Place-Wetten ruhen dagegen beim Come-out IMMER (klassische Regel, für den
  * Spieler günstig) und sind während des Points über einen Schalter an- und
  * abschaltbar (C.8.4 verlangt die Schaltbarkeit ausdrücklich). Ihre
@@ -384,9 +388,18 @@ export class CrapsWagers {
 				three: (w) => w === 3,
 				eleven: (w) => w === 11,
 				twelve: (w) => w === 12,
+				// C & E gewinnt auf VIER Summen, aber mit ZWEI verschiedenen
+				// Quoten. Deshalb steht sie hier in der Tabelle (damit sie
+				// nie 'stay' wird) und bekommt zusätzlich unten den
+				// Zusammenhang { sum } mitgegeben — genau wie „field".
+				'craps-eleven': (w) => w === 2 || w === 3 || w === 11 || w === 12,
 			}[fieldId];
 			if (typeof einmal === 'function') {
-				if (einmal(sum)) { gewinnt(fieldId, {}); } else { verliert(fieldId); }
+				// { sum } schadet den sechs quotenfesten Einmalwetten nicht
+				// (ratioFor beachtet sum bei ihnen gar nicht) und ist für
+				// craps-eleven zwingend: ohne sum bekäme die 11 die
+				// Craps-Quote 3 zu 1 statt ihrer 7 zu 1.
+				if (einmal(sum)) { gewinnt(fieldId, { sum }); } else { verliert(fieldId); }
 				continue;
 			}
 			// Eine Kennung, die diese Datei nicht kennt, wird NICHT stillschweigend

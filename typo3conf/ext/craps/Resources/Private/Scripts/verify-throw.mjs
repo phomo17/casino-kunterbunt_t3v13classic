@@ -28,6 +28,18 @@
  *   T-7  die Schüttellage wirkt, wird aber nicht zum Ergebnis
  *   T-8  die Umrechnung der Zeigergeschwindigkeit ist im Quelltext nachvollziehbar
  *   T-9  die Wanne bleibt dicht, auch bei sinnlosen Eingaben
+ *   T-10 (neu, Te) der Handversatz wird vollständig abgeräumt: jeder Weg zu
+ *        raeumeDarstellungAuf() entfernt data-cr-hand UND --cr-hx/--cr-hy;
+ *        male() setzt alle drei
+ *
+ * ZUR KENNUNG VON T-10 (Plan 4.27 nennt sie "T-7 (neu)")
+ * -----------------------------------------------------------------
+ * Die Kennung T-7 ist in dieser Datei bereits seit Umsetzungsstück C6d
+ * vergeben ("Die Schüttellage wirkt, wird aber nicht zum Ergebnis") und
+ * bedeutet dort etwas völlig anderes als der Plan-Text für die neue Prüfung.
+ * Um weder eine bestehende Prüfung umzubenennen noch zwei Prüfungen dieselbe
+ * Kennung tragen zu lassen, bekommt die neue Prüfung die nächste freie
+ * Kennung, T-10. EIGENE AUSLEGUNG dieses Umsetzerlaufs, siehe DECISIONS.md.
  */
 
 import { readFileSync } from 'node:fs';
@@ -360,6 +372,41 @@ console.log('\nT-9  Die Wanne bleibt dicht, auch bei sinnlosen Eingaben');
 	}
 }
 
+/* ==================== T-10 Der Handversatz wird vollständig abgeräumt */
+
+console.log('\nT-10  Der Handversatz wird vollständig abgeräumt (neu, Te)');
+{
+	const maleBlock = /function male\(\) \{[\s\S]*?\n\t\}/.exec(THROW_INPUT_QUELLTEXT);
+	check(maleBlock !== null, 'die Funktion male() wurde im Quelltext gefunden');
+	if (maleBlock !== null) {
+		check(/setAttribute\('data-cr-hand', ''\)/.test(maleBlock[0]), 'male() setzt data-cr-hand');
+		check(/setProperty\('--cr-hx'/.test(maleBlock[0]), 'male() setzt --cr-hx');
+		check(/setProperty\('--cr-hy'/.test(maleBlock[0]), 'male() setzt --cr-hy');
+	}
+
+	const raeumeBlock = /function raeumeDarstellungAuf\(\) \{[\s\S]*?\n\t\}/.exec(THROW_INPUT_QUELLTEXT);
+	check(raeumeBlock !== null, 'die Funktion raeumeDarstellungAuf() wurde im Quelltext gefunden');
+	if (raeumeBlock !== null) {
+		check(/removeAttribute\('data-cr-hand'\)/.test(raeumeBlock[0]), 'raeumeDarstellungAuf() entfernt data-cr-hand');
+		check(/removeProperty\('--cr-hx'\)/.test(raeumeBlock[0]), 'raeumeDarstellungAuf() entfernt --cr-hx');
+		check(/removeProperty\('--cr-hy'\)/.test(raeumeBlock[0]), 'raeumeDarstellungAuf() entfernt --cr-hy');
+	}
+
+	// Jeder Weg, der raeumeDarstellungAuf() erreicht, ruft es auch WIRKLICH auf:
+	// beendeGeste() (Loslassen/Abbruch) und destroy().
+	const beendeGesteBlock = /function beendeGeste\(\) \{[\s\S]*?\n\t\}/.exec(THROW_INPUT_QUELLTEXT);
+	check(beendeGesteBlock !== null && /raeumeDarstellungAuf\(\)/.test(beendeGesteBlock[0]),
+		'beendeGeste() (Loslassen/Abbruch) ruft raeumeDarstellungAuf() auf');
+	const destroyBlock = /function destroy\(\) \{[\s\S]*?\n\t\}/.exec(THROW_INPUT_QUELLTEXT);
+	check(destroyBlock !== null && /raeumeDarstellungAuf\(\)/.test(destroyBlock[0]),
+		'destroy() ruft raeumeDarstellungAuf() auf');
+
+	console.log('     Gegenprobe T-10-G: eine Fassung, die nur die Eigenschaften entfernt, aber das Attribut stehen lässt, muss auffallen');
+	const verstuemmelt = 'function raeumeDarstellungAuf() {\n\t\tfor (const g of gruppen) {\n\t\t\tg?.style.removeProperty(\'--cr-hx\');\n\t\t\tg?.style.removeProperty(\'--cr-hy\');\n\t\t}\n\t}';
+	check(!/removeAttribute\('data-cr-hand'\)/.test(verstuemmelt),
+		'T-10-G: eine Fassung ohne removeAttribute wird von derselben Prüfung als unvollständig erkannt');
+}
+
 /* ------------------------------------------------------------- Ergebnis */
 
 console.log(fehler === 0
@@ -368,8 +415,9 @@ console.log(fehler === 0
 	+ '\nMindestwurf-Regel greift in beide Richtungen, wurfBisGueltig() wiederholt'
 	+ '\ntatsächlich, die Wurfkraft wirkt monoton auf die Wurfweite, macht das'
 	+ '\nErgebnis aber nicht steuerbar, die Schüttellage wirkt ohne das Ergebnis zu'
-	+ '\nbestimmen, SPEED_MIN liegt unter dem kleinsten gültigen Tempo, und die Wanne'
-	+ '\nbleibt auch bei sinnlosen Eingaben dicht.'
+	+ '\nbestimmen, SPEED_MIN liegt unter dem kleinsten gültigen Tempo, die Wanne'
+	+ '\nbleibt auch bei sinnlosen Eingaben dicht, und der Handversatz wird bei'
+	+ '\njedem Weg vollständig abgeräumt.'
 	: `\nERGEBNIS: ${fehler} Prüfung${fehler === 1 ? '' : 'en'} fehlgeschlagen.`);
 
 process.exit(fehler === 0 ? 0 : 1);

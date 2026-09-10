@@ -65,7 +65,7 @@
  * Regeln in diesem Zustand überhaupt zulassen (Pass/Don't Pass beim
  * Come-out; Come/Don't Come und ihre Odds mit stehendem Point; ALLE sechs
  * Place-Nummern, sofern gerade frei; Field und alle vier Hardways und alle
- * sechs Einmalwetten JEDEN Wurf, weil sie ohnehin nach jedem Wurf aufgelöst
+ * sieben Einmalwetten JEDEN Wurf, weil sie ohnehin nach jedem Wurf aufgelöst
  * werden) — jedes Feld, das schon eine Wette trägt (stakeOn > 0), wird
  * übersprungen, nie erhöht. Das deckt über 500.000 Würfe JEDE der Wettarten
  * mit reichlich Stichprobenumfang ab, bleibt weit unter ROUND_MAX (300 €
@@ -87,17 +87,19 @@
  * beschränkt, statt eine geschätzte Menge auf Vorrat zu kaufen.
  *
  *
- * WARUM DIE 13 ZEILEN AUS B-9 STATT WÖRTLICH „22 WETTARTEN"
+ * WARUM DIE 14 ZEILEN AUS B-9 STATT WÖRTLICH „22 WETTARTEN"
  * ---------------------------------------------------------------
  * Der Plantext (Abschnitt 4.29) spricht von 22 Wettarten. verify-bets.mjs,
  * B-9 — der bereits bestehende, geprüfte rechnerische Nachweis — gliedert
  * Anhang H stattdessen in 12 benannte Gruppen (21 Feldkennungen, weil Paare
  * wie „Pass Line, Come" denselben Erwartungswert teilen) plus eine 13.
- * Zeile für ALLE Odds zusammen (deren Hausvorteil in jedem Fall exakt 0
- * ist, B-10). Diese Datei übernimmt GENAU diese bereits geprüfte Gliederung,
- * statt eine zweite, unabhängig erfundene 22er-Aufteilung einzuführen, die
- * an keiner Stelle nachgewiesen wäre. Jede der 47 Feldkennungen ist in genau
- * einer der 13 Zeilen enthalten. → DECISIONS.md.
+ * Zeile für die eine ABGELEITETE Wette Craps & Eleven (Umsetzungsstück Ua,
+ * dieselbe −1/9 wie Any Craps) plus eine 14. Zeile für ALLE Odds zusammen
+ * (deren Hausvorteil in jedem Fall exakt 0 ist, B-10). Diese Datei übernimmt
+ * GENAU diese bereits geprüfte Gliederung, statt eine zweite, unabhängig
+ * erfundene 22er-Aufteilung einzuführen, die an keiner Stelle nachgewiesen
+ * wäre. Jede der 48 Feldkennungen ist in genau einer der 14 Zeilen
+ * enthalten. → DECISIONS.md.
  *
  * Die Odds-Zeile selbst mischt sechs Points mit UNTERSCHIEDLICHER Streuung
  * (die Staffel 3-4-5× ändert die Auszahlungshöhe je Point). Da der
@@ -238,7 +240,7 @@ function odds(n, dark, ratioNum, ratioDen) {
 }
 
 /**
- * Baut die 13 Berichtsgruppen. Die Quoten (RATIO) kommen als Argumente herein
+ * Baut die 14 Berichtsgruppen. Die Quoten (RATIO) kommen als Argumente herein
  * (aus bets-craps.js, siehe main()) statt hier ein zweites Mal abgeschrieben
  * zu werden — nur die WAHRSCHEINLICHKEITEN sind eigenständig hergeleitet.
  * @param {object} RATIO aus bets-craps.js
@@ -255,6 +257,25 @@ function baueGruppen(RATIO) {
 			const p = WAYS[s] / 36;
 			const gewinnt = [2, 3, 4, 9, 10, 11, 12].includes(s);
 			const R = gewinnt ? 1 + feld(s).num / feld(s).den : 0;
+			eR += p * R;
+			eR2 += p * R * R;
+		}
+		return { eR, eR2 };
+	}
+
+	/**
+	 * C & E ist wie Field eine Mischung mit UNTERSCHIEDLICHEN Quoten je Summe:
+	 * 3 zu 1 bei 2, 3 oder 12, 7 zu 1 bei der 11 (Umsetzungsstück Ua) — ebenfalls
+	 * direkt über alle elf Summen gerechnet, kein (pWin,X)-Paar.
+	 */
+	function crapsElevenVerteilung() {
+		let eR = 0;
+		let eR2 = 0;
+		for (let s = 2; s <= 12; s++) {
+			const p = WAYS[s] / 36;
+			const gewinnt = [2, 3, 11, 12].includes(s);
+			const ratio = s === 11 ? RATIO.crapsElevenEleven : RATIO.crapsElevenCraps;
+			const R = gewinnt ? 1 + ratio.num / ratio.den : 0;
 			eR += p * R;
 			eR2 += p * R * R;
 		}
@@ -290,6 +311,10 @@ function baueGruppen(RATIO) {
 		{ name: 'Any Craps', ids: ['any-craps'], dist: ausVerteilung(einmal([2, 3, 12], RATIO.anyCraps.num, RATIO.anyCraps.den)) },
 		{ name: 'Die 2, Die 12', ids: ['two', 'twelve'], dist: ausVerteilung(einmal([2], RATIO.two.num, RATIO.two.den)) },
 		{ name: 'Die 3, Die 11', ids: ['three', 'eleven'], dist: ausVerteilung(einmal([3], RATIO.three.num, RATIO.three.den)) },
+		// Abgeleitet, nicht aus Anhang H: dieselbe −1/9 wie Any Craps
+		// (Umsetzungsstück Ua). ausVerteilung() passt hier nicht, weil die
+		// Quote je nach Summe wechselt — wie bei Field.
+		{ name: 'Craps & Eleven', ids: ['craps-eleven'], dist: crapsElevenVerteilung() },
 		{
 			name: 'Odds (hell und dunkel, alle Points)',
 			ids: [
@@ -506,7 +531,7 @@ async function main() {
 		for (const n of [4, 6, 8, 10]) {
 			if (bets.stakeOn(`hard-${n}`) === 0) { await placeAmount(`hard-${n}`, 5); }
 		}
-		for (const id of ['any-seven', 'any-craps', 'two', 'three', 'eleven', 'twelve']) {
+		for (const id of ['any-seven', 'any-craps', 'two', 'three', 'eleven', 'twelve', 'craps-eleven']) {
 			if (bets.stakeOn(id) === 0) { await placeAmount(id, 5); }
 		}
 	}
@@ -601,7 +626,7 @@ async function main() {
 	console.log(`Gesamtrückfluss   ${gesamtReturned} €`);
 	console.log(`Bilanz            ${bilanzStimmt ? 'STIMMT — auf den Euro' : 'STIMMT NICHT'} (tatsächliches Delta ${bilanzDelta}, erwartet ${erwarteteBilanzDelta})`);
 
-	console.log('\nBlock 2 — Rückflussquote je Wettart (13 Zeilen aus Anhang H/B-9, siehe Dateikopf):');
+	console.log('\nBlock 2 — Rückflussquote je Wettart (14 Zeilen aus Anhang H/B-9, siehe Dateikopf):');
 	console.log('Schranke = 4 × Standardabweichung DIESER Zeile bei DIESER tatsächlichen Rundenzahl.\n');
 	const GRUPPEN = baueGruppen(RATIO);
 	let alleQuotenInToleranz = true;

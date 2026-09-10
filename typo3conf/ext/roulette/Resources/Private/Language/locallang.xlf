@@ -43,22 +43,40 @@
 				<source>Grün</source>
 			</trans-unit>
 
-			<!-- Das Tuch: die Namen der Felder. %1$s ist die Liste der
-				 abgedeckten Zahlen (bei Kolonnen: %1$s die Kolonnennummer,
-				 %2$s die Zahlen). SPRINTF-PLATZHALTER, NICHT {0}-STIL: diese
-				 Namen werden von Felt.html serverseitig über
-				 f:translate(arguments: …) aufgelöst, weil sie schon beim
-				 ersten Aufruf ohne JavaScript vollständig und unterscheidbar
-				 dastehen müssen (WCAG 2.4.6/2.5.3, Prüfung F-4). Fluids
-				 f:translate-Argument „arguments" ruft intern vsprintf() auf
-				 und erwartet deshalb %1$s/%2$s — anders als die {0}/{1}-
-				 Platzhalter bei table.field.name, round.announce.* und
-				 wheel.announce.*, die absichtlich UNAUFGELÖST bleiben und
-				 erst zur Laufzeit von JavaScript ersetzt werden (dort sind
-				 die Werte erst beim Klick bekannt). felt.name.number entfällt
-				 bewusst: ein Zahlenfeld bekommt kein labelKey (es trägt seine
-				 Ziffer sichtbar), ein unbenutzter Schlüssel wäre nur eine
-				 Fehlerquelle ohne Nutzen. -->
+			<!-- Das Tuch: die NAMEN der Felder — der deutsche Vorlesetext.
+				 SPRINTF-PLATZHALTER, NICHT {0}-STIL: diese Namen werden von
+				 Felt.html serverseitig über f:translate(arguments: …)
+				 aufgelöst, weil sie schon beim ersten Aufruf ohne JavaScript
+				 vollständig und unterscheidbar dastehen müssen (WCAG 2.4.6
+				 und 2.5.3, Prüfungen F-4 und F-20). Fluids f:translate-
+				 Argument „arguments" ruft intern vsprintf() auf und erwartet
+				 deshalb %1$s/%2$s — anders als die {0}/{1}-Platzhalter bei
+				 round.announce.* und wheel.announce.*, die absichtlich
+				 UNAUFGELÖST bleiben und erst zur Laufzeit von JavaScript
+				 ersetzt werden (dort sind die Werte erst beim Klick bekannt).
+
+				 SEIT DEM UMBAU NACH DER BILDVORLAGE trägt JEDES der 159
+				 Felder einen Namen, auch die Zahlen-, Dutzend- und
+				 Chancenfelder. Vorher hatten sie keinen, weil ihre sichtbare
+				 Aufschrift deutsch und eindeutig war („1. Dutzend"). Jetzt ist
+				 sie englisch (Even, 1st 12) oder fehlt ganz (die zwei Rauten)
+				 — ohne eigenen Namen bliebe das Feld für ein Vorleseprogramm
+				 unverständlich oder stumm.
+
+				 JEDER NAME BEGINNT MIT DER SICHTBAREN AUFSCHRIFT (%1$s), wo es
+				 eine gibt. WCAG 2.2, Erfolgskriterium 2.5.3 („Label in Name"):
+				 wer den Rechner mit der Stimme bedient, sagt das Wort, das er
+				 SIEHT. Stünde auf dem Tuch „Even" und im Namen nur „Gerade",
+				 passierte bei „klick Even" nichts. Prüfung F-20 rechnet das
+				 für jedes Feld nach.
+
+				 DIE AUFSCHRIFT SELBST steht seit dem Umbau NICHT mehr hier,
+				 sondern als Klartext in Classes/BetLayout.php: sie ist
+				 englisch und wörtlich die der Vorlage und damit kein
+				 übersetzbarer Text, sondern die Beschriftung eines
+				 Spielgeräts. Die zehn früheren felt.print.*-Kennungen sind
+				 deshalb entfallen; Prüfung F-5 hält fest, dass keine von ihnen
+				 zurückkommt. -->
 			<trans-unit id="felt.label">
 				<source>Setzfläche</source>
 			</trans-unit>
@@ -97,43 +115,99 @@
 				<source>Sechserreihe %1$s</source>
 			</trans-unit>
 
-			<!-- Die aufgedruckten Aufschriften der äußeren Felder -->
-			<trans-unit id="felt.print.column">
-				<source>2 zu 1</source>
+			<!-- Die 38 Zahlenfelder. %1$s ist die Ziffer. Die Farbe steht im
+				 Namen, weil sie auf dem Tuch seit dem Umbau nur noch als
+				 farbiges Oval erscheint — eine Aussage, die allein über die
+				 Farbe transportiert wird, ist für einen Teil der Spieler nicht
+				 lesbar (WCAG 2.2, Erfolgskriterium 1.4.1). Drei Kennungen
+				 statt einer mit Farbargument: so steht kein deutsches Wort im
+				 PHP, und die Farbe kommt aus WheelGeometry, nicht aus einer
+				 Zeichenkette. -->
+			<trans-unit id="felt.name.number.red">
+				<source>%1$s, rot</source>
 			</trans-unit>
-			<trans-unit id="felt.print.dozen.1">
-				<source>1. Dutzend</source>
+			<trans-unit id="felt.name.number.black">
+				<source>%1$s, schwarz</source>
 			</trans-unit>
-			<trans-unit id="felt.print.dozen.2">
-				<source>2. Dutzend</source>
-			</trans-unit>
-			<trans-unit id="felt.print.dozen.3">
-				<source>3. Dutzend</source>
-			</trans-unit>
-			<trans-unit id="felt.print.low">
-				<source>1–18</source>
-			</trans-unit>
-			<trans-unit id="felt.print.even">
-				<source>Gerade</source>
-			</trans-unit>
-			<trans-unit id="felt.print.red">
-				<source>Rot</source>
-			</trans-unit>
-			<trans-unit id="felt.print.black">
-				<source>Schwarz</source>
-			</trans-unit>
-			<trans-unit id="felt.print.odd">
-				<source>Ungerade</source>
-			</trans-unit>
-			<trans-unit id="felt.print.high">
-				<source>19–36</source>
+			<trans-unit id="felt.name.number.green">
+				<source>%1$s, grün</source>
 			</trans-unit>
 
-			<!-- Die Namen der Kolonnen: die aufgedruckte Aufschrift ist bei
-				 allen drei "2 zu 1", deshalb braucht jede Kolonne einen
-				 eigenen, unterscheidenden Namen (WCAG 2.4.6 und 2.5.3). -->
+			<!-- Die drei Kolonnen. %1$s ist die Aufschrift „2 to 1", %2$s die
+				 Nummer, %3$s die zwölf Zahlen. Alle drei tragen dieselbe
+				 sichtbare Aufschrift und wären für ein Vorleseprogramm sonst
+				 nicht auseinanderzuhalten (WCAG 2.4.6).
+
+				 „2 to 1" und „2 zu 1" sind DIESELBE Zählweise — der Einsatz
+				 ist bei beiden nicht eingerechnet. Anders als am Würfeltisch,
+				 wo die Vorlage „N for 1" druckt und der Name deshalb beide
+				 Zählweisen nennen muss, gibt es hier nur eine. Der Name nennt
+				 sie einmal; Prüfung F-18 rechnet zusätzlich nach, dass die
+				 aufgedruckte Zahl unsere Quote aus Anhang F ist.
+
+				 Behebungslauf 2026-09-09 (AUDITREPORT-2026-09-09-c8.md,
+				 Befund M-02): die zwölf einfachen/Kolonnen-/Dutzend-Felder
+				 trugen ihre Auszahlung noch einmal HIER in der Grundbeschriftung
+				 UND ein zweites Mal in table.field.name (casino_startpage/…/
+				 locallang.xlf, "{0}, zahlt {1} zu 1, …" — table-felt.js setzt
+				 {0} auf genau diesen Text). Ein Bildschirmleser sagte die Quote
+				 deshalb zweimal. Die 38 Zahlenfelder und die Fünferwette waren
+				 nie betroffen: ihre Grundbeschriftung endet nicht auf der
+				 Auszahlung, table.field.name ergänzt sie dort richtig genau
+				 einmal. Bei den Dutzenden und den sechs einfachen Chancen gilt
+				 jetzt dasselbe: die Grundbeschriftung benennt nur noch das Feld,
+				 table.field.name nennt die Auszahlung als Zustandsteil wie
+				 „nichts gesetzt".
+
+				 DIE DREI KOLONNEN BLEIBEN AUSDRÜCKLICH ANDERS: Prüfung F-20
+				 (SC 2.5.3, „Label in Name") verlangt für sie „2 zu 1" WÖRTLICH
+				 in dieser Grundbeschriftung, weil die Vorlage für die Kolonnen
+				 als einzige der zwölf Felder eine Quote aufdruckt („2 to 1") —
+				 der erreichbare Name muss die sichtbare Aufschrift enthalten,
+				 und "2 zu 1" ist unsere Schreibweise derselben Quote (siehe
+				 oben). Die doppelte Ansage ist deshalb NICHT hier behoben,
+				 sondern in table-felt.js: nameField() erkennt an genau diesem
+				 Text, dass die Auszahlung bereits genannt ist, und lässt
+				 table.field.name sie dort NICHT ein zweites Mal einsetzen
+				 (texts.fieldnameStated). -->
 			<trans-unit id="felt.name.column">
-				<source>Kolonne %1$s, die Zahlen %2$s</source>
+				<source>%1$s — Kolonne %2$s, die Zahlen %3$s, zahlt 2 zu 1</source>
+			</trans-unit>
+
+			<!-- Die drei Dutzende. %1$s ist die Aufschrift („1st 12"), %2$s
+				 und %3$s die erste und letzte abgedeckte Zahl. Drei Kennungen
+				 statt einer, weil die deutsche Ordnungszahl gebeugt wird
+				 („das erste", nicht „das 1."). -->
+			<trans-unit id="felt.name.dozen.1">
+				<source>%1$s — das erste Dutzend, die Zahlen %2$s bis %3$s</source>
+			</trans-unit>
+			<trans-unit id="felt.name.dozen.2">
+				<source>%1$s — das zweite Dutzend, die Zahlen %2$s bis %3$s</source>
+			</trans-unit>
+			<trans-unit id="felt.name.dozen.3">
+				<source>%1$s — das dritte Dutzend, die Zahlen %2$s bis %3$s</source>
+			</trans-unit>
+
+			<!-- Die sechs einfachen Chancen. %1$s ist jeweils die sichtbare
+				 Aufschrift; die zwei Rauten haben keine und brauchen deshalb
+				 keinen Platzhalter. -->
+			<trans-unit id="felt.name.low">
+				<source>%1$s — die niedrigen Zahlen 1 bis 18</source>
+			</trans-unit>
+			<trans-unit id="felt.name.even">
+				<source>%1$s — Gerade, die achtzehn geraden Zahlen</source>
+			</trans-unit>
+			<trans-unit id="felt.name.red">
+				<source>Rote Raute — Rot, die achtzehn roten Zahlen</source>
+			</trans-unit>
+			<trans-unit id="felt.name.black">
+				<source>Schwarze Raute — Schwarz, die achtzehn schwarzen Zahlen</source>
+			</trans-unit>
+			<trans-unit id="felt.name.odd">
+				<source>%1$s — Ungerade, die achtzehn ungeraden Zahlen</source>
+			</trans-unit>
+			<trans-unit id="felt.name.high">
+				<source>%1$s — die hohen Zahlen 19 bis 36</source>
 			</trans-unit>
 
 			<!-- Ansage der Runde. EIN Satz je Runde. {0} Zahl, {1} Farbe,

@@ -6,41 +6,71 @@
 	wie das freie Setzen am Leuchtschild (B.5.1), derjenige ist, der sich
 	ändert, sobald das Guthaben in Stufe 3 vom Server kommt.
 
-	Das Formular ist ein echtes <form> mit einem <input type="number">. Damit
-	greift die Formularprüfung des Browsers (min, max, step) noch vor der
-	eigenen — dieselbe doppelte Absicherung wie am Leuchtschild, und sie
-	schadet nicht.
+	STAND SEIT DER ANSAGE VOM 2026-09-07: JE CHIPSORTE EIN EIGENER WEG
+	------------------------------------------------------------------
+	Bis dahin stand hier ein Formular: Betrag eintippen oder +25/+100/+500,
+	und das Haus zerlegte ihn selbsttätig in möglichst große Chips. Der
+	Auftraggeber hat das ersetzt — für JEDE Chipsorte gibt es jetzt eine
+	eigene Möglichkeit, EINEN Chip zu kaufen und EINEN zurückzugeben. Das
+	Betragsformular ist ersatzlos entfallen; die Schnittstelle bank.buyIn()
+	besteht dahinter weiter, nur führt kein Bedienteil mehr dorthin.
 
-	Der Chipbestand steht schon in der Chipwahl (Controls.html); hier stehen
-	nur die zwei Wechselrichtungen. Sie sind ein <fieldset>, weil vier bis
-	zehn Knöpfe ohne Gruppenüberschrift beim Durchgehen als loser Haufen
-	ankommen.
+	WARUM KEINE ZAHLENEINGABE MEHR
+	-------------------------------
+	Ein Chip ist die Recheneinheit des Tisches (C.4.1: „gelegt, gestapelt und
+	zurückgenommen wird immer ein Chip, nie ein frei eingetippter Betrag").
+	Ein Kaufweg, der Beträge kennt, aber Chips ausgibt, war der letzte Ort, an
+	dem beides vermischt war.
 
-	Aufrufargumente: {splittable} und {mergeable}, je eine Liste von
-	Chipbeschreibungen mit .value (siehe Controls.html).
+	WARUM DER BESTAND HIER EIN ZWEITES MAL STEHT
+	---------------------------------------------
+	Die Chipwahl in Controls.html zeigt ebenfalls eine Stückzahl. Beide tragen
+	denselben Haken data-ck-table-rack; table-controls.js füllt sie in
+	EINER Schleife über querySelectorAll — es gibt also keine zweite Wahrheit,
+	nur eine zweite Ansicht. Sie beantworten verschiedene Fragen: die Chipwahl
+	„welchen Chip lege ich als Nächstes", die Chipkasse „wie viele habe ich".
+
+	DIE BESCHRIFTUNG DER KNÖPFE (WCAG 2.2 SC 2.5.3, Label in Name)
+	---------------------------------------------------------------
+	Sichtbar steht „Kaufen" bzw. „Zurück". Der erreichbare Name muss mit
+	genau diesem sichtbaren Text BEGINNEN — deshalb hängt die Ergänzung („ein
+	Chip zu 25 Euro") als nur für Hilfsmittel sichtbarer Text HINTER dem
+	sichtbaren Wort, statt als aria-label davor. Genau dieser Fehler war
+	Auditbefund H7-02 vom 2026-09-07.
+
+	Aufrufargumente: {chips}, {splittable} und {mergeable} (siehe
+	Controls.html).
 </f:comment>
 <div class="ck-table__bank">
 
-	<form class="ck-table__buyin" data-ck-table-buyin-form="">
-		<span class="ck-table__buyin-legend"><f:translate key="LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:table.buyin.legend" /></span>
-		<button type="button" class="ck-table__button" data-ck-table-buyin-add="25">
-			<f:translate key="LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:table.buyin.add.25" />
-		</button>
-		<button type="button" class="ck-table__button" data-ck-table-buyin-add="100">
-			<f:translate key="LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:table.buyin.add.100" />
-		</button>
-		<button type="button" class="ck-table__button" data-ck-table-buyin-add="500">
-			<f:translate key="LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:table.buyin.add.500" />
-		</button>
-		<label class="ck-table__buyin-label">
-			<span><f:translate key="LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:table.buyin.label" /></span>
-			<input type="number" class="ck-table__buyin-input" data-ck-table-buyin-input=""
-				inputmode="numeric" min="1" max="999999999" step="1" value="" />
-		</label>
-		<button type="submit" class="ck-table__button">
-			<f:translate key="LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:table.buyin.apply" />
-		</button>
-	</form>
+	<fieldset class="ck-table__chipbank">
+		<legend><f:translate key="LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:table.chipbank.legend" /></legend>
+		<f:for each="{chips}" as="chip">
+			<div class="ck-table__chipbank-row">
+				<svg class="ck-chip ck-table__chipbank-chip" aria-hidden="true" focusable="false">
+					<use href="#{chip.symbolId}"></use>
+				</svg>
+				<span class="ck-table__chipbank-name">
+					<f:translate key="LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:table.chip.{chip.value}" />
+				</span>
+				<span class="ck-table__chipbank-count" data-ck-table-rack="{chip.value}">0</span>
+				<button type="button" class="ck-table__button ck-table__button--chip"
+					data-ck-table-chip-buy="{chip.value}">
+					<f:translate key="LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:table.chip.buy" />
+					<span class="ck-table__hidden-detail">
+						<f:translate key="LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:table.chip.buy.detail" arguments="{0: chip.value}" />
+					</span>
+				</button>
+				<button type="button" class="ck-table__button ck-table__button--chip"
+					data-ck-table-chip-sell="{chip.value}" aria-disabled="true">
+					<f:translate key="LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:table.chip.sell" />
+					<span class="ck-table__hidden-detail">
+						<f:translate key="LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:table.chip.sell.detail" arguments="{0: chip.value}" />
+					</span>
+				</button>
+			</div>
+		</f:for>
+	</fieldset>
 
 	<fieldset class="ck-table__exchange">
 		<legend><f:translate key="LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:table.exchange.legend" /></legend>
@@ -54,6 +84,12 @@
 			Listen. {splittable} und {mergeable} sind hier deshalb dieselbe
 			Menge; sie kommen dennoch getrennt als Argumente herein, weil
 			diese Datei die Chipwerte nicht ein zweites Mal kennen soll.
+
+			Das Wechseln bleibt neben der Chipkasse bestehen, obwohl man
+			dasselbe seit dem 2026-09-07 auch über Zurückgeben und Kaufen
+			erreichen könnte: ein 25er kleiner zu wechseln ist EIN Klick, der
+			Umweg über die Kasse wären sechs — und er ginge über die Kasse,
+			während das Wechseln sie nie berührt.
 		</f:comment>
 		<f:for each="{splittable}" as="chip">
 			<button type="button" class="ck-table__button ck-table__button--small"

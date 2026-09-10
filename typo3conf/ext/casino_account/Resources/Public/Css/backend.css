@@ -1,0 +1,89 @@
+/*
+ * Casino Kunterbunt – das Modul „Spielende" im Backend
+ * ====================================================
+ *
+ * Absichtlich klein. Das Backend bringt sein Aussehen selbst mit; hier steht
+ * nur, was TYPO3 nicht wissen kann.
+ *
+ * KEINE FARBE. Nicht ausgeschrieben, nicht als Token. Die Design-Tokens des
+ * Hauses beschreiben den Spielsaal (Chrom, Messing, Holz, Filz) und wären im
+ * Backend ein Fremdkörper; ein ausgeschriebener Farbwert wäre ein Verstoß
+ * gegen die Hausregel. Der QR-Code selbst ist die eine begründete Ausnahme —
+ * sie steht in QrSvgRenderer.php (Klassenkopf dort), nicht hier.
+ *
+ * UMSETZUNGSSTÜCK Dd: die QR-Ansicht und die Druckregeln kommen hinzu.
+ * M-6 bleibt eingehalten: auch hier setzt keine Regel eine Größe an einem
+ * .btn.
+ */
+
+/* Zahlen rechtsbündig und in gleicher Zeichenbreite: so stehen die Stellen
+   untereinander und man sieht auf einen Blick, wer mehr hat. */
+.ca-players__number {
+	text-align: right;
+	font-variant-numeric: tabular-nums;
+}
+
+/* Die beiden Knöpfe je Zeile nebeneinander, mit Abstand, und ohne dass die
+   Spalte breiter wird als nötig. */
+.ca-players__actions {
+	white-space: nowrap;
+	text-align: right;
+}
+
+.ca-players__actions .btn + .btn {
+	margin-left: 0.25rem;
+}
+
+/* Die drei Schaltflächen der QR-Ansicht nebeneinander, mit Abstand. */
+.ca-qr__tools {
+	display: flex;
+	gap: 0.5rem;
+	flex-wrap: wrap;
+}
+
+/* Das QR-Bild selbst darf so breit werden, wie der Platz es hergibt — die
+   feste Bildpunktgröße aus QrSvgRenderer.php ist die Druckqualität, nicht
+   die Bildschirmgröße. */
+.ca-qr__image {
+	width: 100%;
+	max-width: 20rem;
+	height: auto;
+}
+
+/* Die Kennung im Klartext (D.6.1) in derselben Zeichenbreite wie die
+   Zahlenspalten der Liste — sie besteht aus Buchstaben und Ziffern, die
+   gleich breit stehen sollen, damit sie sich leicht abtippen lässt. */
+.ca-qr__token {
+	font-family: monospace;
+	word-break: break-all;
+}
+
+/*
+ * DER AUSDRUCK (D.3.4): NUR .ca-qr__print, SONST NICHTS.
+ *
+ * Die Umkehrung statt einer Liste des Auszublendenden: erst wird ALLES
+ * unsichtbar gemacht, dann NUR der Druckbereich wieder sichtbar. Eine Liste
+ * der auszublendenden Elemente (Modulleiste, Knöpfe, Meldebereich, Adresse)
+ * wäre nie vollständig — jedes künftig hinzukommende Element im Layout des
+ * Kerns wäre sonst eine neue Lücke.
+ *
+ * visibility statt display: das erhält den Dokumentfluss, sodass
+ * .ca-qr__print anschließend mit position: absolute zuverlässig oben links
+ * auf der Seite landet, unabhängig davon, wo es im Dokument stand.
+ */
+@media print {
+	body * {
+		visibility: hidden;
+	}
+
+	.ca-qr__print,
+	.ca-qr__print * {
+		visibility: visible;
+	}
+
+	.ca-qr__print {
+		position: absolute;
+		top: 0;
+		left: 0;
+	}
+}

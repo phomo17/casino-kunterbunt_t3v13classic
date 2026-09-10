@@ -59,27 +59,76 @@ input {
 }
 
 /* Sprunglink (Audit A-04, WCAG 2.4.1). Erstes Element im Dokument
-   (Layouts/Default.html), auf allen sechs Seiten gleich. Verborgen über
-   position: absolute außerhalb des sichtbaren Bereichs statt display: none —
-   sonst bekäme er nie den Tastaturfokus. Bei :focus-visible fährt er sichtbar
-   in den Raum ein. */
+   (Layouts/Default.html) und außerdem erstes Kind jedes Tuchs — dieselbe
+   Klasse trägt beide Fälle. Verborgen wird er NIE über display: none oder
+   visibility: hidden: beides nähme ihm den Tastaturfokus, und ein
+   Sprunglink, den man nicht anspringen kann, ist keiner.
+
+   UMBAU 2026-09-09 — DER VERSTECKTE ZUSTAND HÄNGT NICHT MEHR AN EINER LAGE.
+   Bis hierher versteckte sich der Link über inset-block-start: -3rem, also
+   „48 Bildpunkte oberhalb meiner selbst". Was das bedeutet, hängt davon ab,
+   WORAUF sich diese Lage bezieht — auf den nächsten positionierten Vorfahren.
+   Für den Sprunglink am Seitenanfang ist das der Seitenanfang, und dort trug
+   die Zahl. Für den Sprunglink IM TUCH ist es .ck-felt, und das steht mitten
+   auf der Seite. Am Craps-Tisch liegt .cr-felt seit der Zusammenlegung von
+   Wanne und Tuch rund 115 Bildpunkte unterhalb der Oberkante der Zeichnung —
+   48 Bildpunkte darüber landen deshalb nicht außerhalb des Bildes, sondern
+   sichtbar auf dem Holzrahmen des Tisches. Genau so stand er dort auch:
+   dauerhaft lesbar, ohne dass ihn jemand angesprungen hätte.
+
+   Zwei Behebungswege waren möglich, und beide sind an anderer Stelle
+   ausführlich abgewogen (DECISIONS.md, 2026-09-09). Der eine wäre eine
+   bedingungslose Regel im Stylesheet des jeweiligen Tisches gewesen — die
+   verbieten die Nachweise der Tische ausdrücklich, weil eine solche Regel
+   bei gleicher Spezifität und späterer Ladereihenfolge die Versteck-Regel
+   VON HIER aufheben kann. Der andere ist dieser: das Verstecken so bauen,
+   dass es überhaupt keinen Bezugsrahmen mehr braucht.
+
+   1 × 1 Bildpunkt plus clip-path: inset(50%) ist genau das. Das Element ist
+   dann unsichtbar, WO IMMER es steht — es gibt keine Lage mehr, die richtig
+   oder falsch sein könnte. Die Bauart ist im Haus nicht neu: sie steht
+   wörtlich so an .ck-table__hidden-detail (table.css) und an
+   .ck-credit__announce weiter unten in dieser Datei. Der Fokus holt alles
+   zurück: Größe, Innenabstand, Sichtbarkeit.
+
+   KEIN padding IM VERSTECKTEN ZUSTAND. Bei box-sizing: border-box (Anfang
+   dieser Datei) wäre der Kasten sonst nicht 1 × 1, sondern so breit wie sein
+   Innenabstand — das Verstecken hinge dann wieder an einer Zahl. Der
+   Innenabstand kommt deshalb erst mit dem Fokus.
+
+   KEIN transition MEHR. Der Übergang auf inset-block-start war die Ursache
+   von Auditbefund H-03: beim Empfang des Fokus prüft der Browser, ob das
+   Element schon sichtbar ist, BEVOR die Überblendung fertig ist — er rollte
+   deshalb einmal gar nicht erst hin, und die Überblendung schob das Element
+   danach unbeobachtet aus dem Bild. Ohne Übergang steht die Zielposition im
+   selben Augenschritt fest, in dem der Fokus landet. Zwei Tische heben ihn
+   bis heute einzeln wieder auf (transition-property: none); diese Zeilen
+   bleiben dort als Doppelsicherung stehen und schaden nicht. */
 .ck-skiplink {
 	position: absolute;
 	z-index: 10;
-	inset-block-start: -3rem;
-	inset-inline-start: 0.5rem;
-	padding: 0.6rem 1rem;
+	inset-block-start: var(--ck-space-2);
+	inset-inline-start: var(--ck-space-2);
+	inline-size: 1px;
+	block-size: 1px;
+	padding: 0;
+	overflow: hidden;
+	clip-path: inset(50%);
+	white-space: nowrap;
 	background-color: var(--ck-chrome-shadow);
 	color: var(--ck-text-primary);
 	font-family: var(--ck-font-ui);
 	font-size: 0.9rem;
 	text-decoration: none;
 	border-radius: var(--ck-radius-sm);
-	transition: inset-block-start var(--ck-duration-fast) var(--ck-ease-mech);
 }
 
 .ck-skiplink:focus-visible {
-	inset-block-start: 0.5rem;
+	inline-size: auto;
+	block-size: auto;
+	padding: 0.6rem 1rem;
+	overflow: visible;
+	clip-path: none;
 	outline: 0.18rem solid var(--ck-bulb-core);
 	outline-offset: 0.12rem;
 }
@@ -285,9 +334,9 @@ body:has(.ck-room-fill) {
    Bestandteil, und .ck-room (overflow-x: clip) schnitt den Ueberstand ab —
    clip laesst sich nicht rollen, das Abgeschnittene war unerreichbar. Mit 0
    gibt die Kette die Bildschirmbreite nach unten weiter, und der Baustein,
-   der ausdruecklich rollen soll (beim Roulette .ro-felt__scroll), rollt
-   wieder. Nur unter :has(.ck-room-fill) — der Saal selbst (Kachelraster)
-   bleibt unberuehrt. */
+   der ausdruecklich rollen soll (an einem Tisch der eigene Rollbereich des
+   Tisches), rollt wieder. Nur unter :has(.ck-room-fill) — der Saal selbst
+   (Kachelraster) bleibt unberuehrt. */
 .ck-room:has(.ck-room-fill) .ck-hall__content {
 	display: flex;
 	flex: 1 1 0;

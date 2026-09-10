@@ -298,7 +298,11 @@ check(chipSpriteIndex !== -1 && controlsRenderIndex !== -1 && chipSpriteIndex < 
 console.log('\nV-5 — Fokus bleibt sichtbar');
 
 check(!/outline\s*:\s*(none|0)\b/i.test(css), 'table.css enthält kein outline: none / outline: 0');
-for (const klasse of ['.ck-table__button', '.ck-table__buyin-input', '.ck-felt__field']) {
+/* .ck-table__buyin-input ist mit Umsetzungsstück Tf entfallen (totes CSS seit
+   dem Betragsformular-Rückbau in Tb, kein Markup benutzte die Klasse mehr).
+   .ck-table__button deckt die Chipkasse bereits ab: ihre Knöpfe tragen
+   class="ck-table__button ck-table__button--chip" (siehe BuyIn.html). */
+for (const klasse of ['.ck-table__button', '.ck-felt__field']) {
 	const re = new RegExp(`\\${klasse}\\s*:focus-visible`);
 	check(re.test(css), `${klasse}:focus-visible ist definiert`);
 }
@@ -321,7 +325,9 @@ function ruleBody(selector) {
 	return match ? match[1] : null;
 }
 
-for (const selector of ['.ck-table__button', '.ck-table__chip', '.ck-felt__field', '.ck-table__buyin-input']) {
+/* .ck-table__buyin-input ebenfalls hier entfernt, dieselbe Begründung wie bei
+   V-5 oben. */
+for (const selector of ['.ck-table__button', '.ck-table__chip', '.ck-felt__field']) {
 	const body = ruleBody(selector);
 	check(body !== null, `${selector} hat eine eigene Regel in table.css`);
 	if (body === null) {

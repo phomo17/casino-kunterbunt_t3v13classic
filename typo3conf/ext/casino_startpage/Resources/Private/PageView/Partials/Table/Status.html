@@ -27,6 +27,12 @@
 	data-text-frozen (Phase C7): eine Vertragswette liegt fest und kann nicht
 	zurückgenommen werden — beim Craps die Pass Line, sobald ihr Point steht.
 	table-felt.js und table-controls.js lesen ihn von hier.
+
+	data-text-fieldname-stated / -stated-empty (Behebungslauf 2026-09-09,
+	Befund M-02): dieselben zwei Sätze wie data-text-fieldname/-empty, aber
+	ohne die Auszahlung — table-felt.js benutzt sie von selbst, sobald ein
+	Feld die Auszahlung schon in seiner eigenen Aufschrift trägt (bei
+	Roulette die drei Kolonnen), damit kein Bildschirmleser sie zweimal sagt.
 </f:comment>
 <p class="ck-table__hint">
 	<f:translate key="LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:table.hint.keyboard" />
@@ -44,4 +50,6 @@
 	data-text-locked="{f:translate(key: 'LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:table.announce.locked')}"
 	data-text-frozen="{f:translate(key: 'LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:table.announce.frozen')}"
 	data-text-fieldname="{f:translate(key: 'LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:table.field.name')}"
-	data-text-fieldname-empty="{f:translate(key: 'LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:table.field.name.empty')}"></p>
+	data-text-fieldname-empty="{f:translate(key: 'LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:table.field.name.empty')}"
+	data-text-fieldname-stated="{f:translate(key: 'LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:table.field.name.stated')}"
+	data-text-fieldname-stated-empty="{f:translate(key: 'LLL:EXT:casino_startpage/Resources/Private/Language/locallang.xlf:table.field.name.stated.empty')}"></p>

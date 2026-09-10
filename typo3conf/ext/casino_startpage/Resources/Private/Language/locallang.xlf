@@ -96,6 +96,22 @@
 			<trans-unit id="table.field.name.empty">
 				<source>{0}, zahlt {1} zu 1, Höchsteinsatz {2} Euro, nichts gesetzt</source>
 			</trans-unit>
+
+			<!-- Behebungslauf 2026-09-09 (AUDITREPORT-2026-09-09-c8.md, Befund M-02):
+				 dieselben zwei Sätze OHNE die Auszahlung — für Felder, deren EIGENE
+				 Grundbeschriftung {0} die Auszahlung bereits nennt (bei einem Spiel
+				 dessen Tuch eine Quote aufdruckt und der erreichbare Name diesen
+				 Aufdruck deshalb wörtlich tragen muss, SC 2.5.3). table-felt.js wählt
+				 diese Fassung selbst, sobald {0} bereits "zahlt … zu …" enthält;
+				 kein Aufrufer muss dafür etwas umstellen. {1} bleibt unbenutzt, damit
+				 nameField() denselben Werte-Vierling an beide Fassungen reichen
+				 kann. -->
+			<trans-unit id="table.field.name.stated">
+				<source>{0}, Höchsteinsatz {2} Euro, {3} Euro gesetzt</source>
+			</trans-unit>
+			<trans-unit id="table.field.name.stated.empty">
+				<source>{0}, Höchsteinsatz {2} Euro, nichts gesetzt</source>
+			</trans-unit>
 			<trans-unit id="table.announce.placed">
 				<source>{0} Euro auf {1} gelegt. Gesamteinsatz {2} Euro.</source>
 			</trans-unit>
@@ -168,36 +184,52 @@
 				<source>Gesamteinsatz</source>
 			</trans-unit>
 
-			<trans-unit id="table.buyin.legend">
-				<source>In Chips wechseln</source>
-			</trans-unit>
-			<trans-unit id="table.buyin.add.25">
-				<source>+25</source>
-			</trans-unit>
-			<trans-unit id="table.buyin.add.100">
-				<source>+100</source>
-			</trans-unit>
-			<trans-unit id="table.buyin.add.500">
-				<source>+500</source>
-			</trans-unit>
-			<trans-unit id="table.buyin.label">
-				<source>Betrag</source>
-			</trans-unit>
-			<trans-unit id="table.buyin.apply">
-				<source>Wechseln</source>
-			</trans-unit>
 			<trans-unit id="table.buyin.nocash">
 				<source>Die Kasse reicht nicht — {0} Euro fehlen.</source>
 			</trans-unit>
-			<trans-unit id="table.buyin.invalid">
-				<source>Bitte eine ganze Zahl von 1 bis 999.999.999 eingeben.</source>
+
+			<!-- Die Chipkasse (Ansage des Auftraggebers vom 2026-09-07): je
+			     Chipsorte ein eigener Kauf- und Rückgabeweg. Sie ersetzt das
+			     Betragsformular, das einen Betrag selbsttätig in möglichst
+			     große Chips zerlegte. -->
+			<trans-unit id="table.chipbank.legend">
+				<source>Chips kaufen und zurückgeben</source>
 			</trans-unit>
-			<!-- Erfolgsansage des Buy-ins (Audit M7-01, 2026-09-07): der bisherige
-			     Text meldete nur den Fehlschlag, nie den Erfolg. {0} = tatsächlich
-			     eingewechselter Betrag, {1} = neuer Buy-in insgesamt — der neue
-			     Bestand, nicht nur die Handlung. -->
-			<trans-unit id="table.buyin.done">
-				<source>{0} Euro eingewechselt. Buy-in jetzt {1} Euro.</source>
+			<!-- Der SICHTBARE Text der beiden Knöpfe. Der erreichbare Name
+			     muss mit ihm beginnen (WCAG 2.2 SC 2.5.3) — die Ergänzung
+			     steht deshalb als .detail dahinter, nicht als aria-label
+			     davor. -->
+			<trans-unit id="table.chip.buy">
+				<source>Kaufen</source>
+			</trans-unit>
+			<trans-unit id="table.chip.sell">
+				<source>Zurück</source>
+			</trans-unit>
+			<!-- %s = der Chipwert in Euro. Serverseitig von f:translate
+			     eingesetzt, deshalb %s und nicht {0} (dieselbe Regel wie bei
+			     table.exchange.down). -->
+			<trans-unit id="table.chip.buy.detail">
+				<source>: ein Chip zu %s Euro</source>
+			</trans-unit>
+			<trans-unit id="table.chip.sell.detail">
+				<source>: ein Chip zu %s Euro</source>
+			</trans-unit>
+			<!-- Erfolgsansagen. {0} = Chipwert, {1} = neue Stückzahl dieser
+			     Sorte, {2} = Buy-in insgesamt danach. Von JavaScript
+			     eingesetzt, deshalb {0} und nicht %s. Sie nennen den neuen
+			     BESTAND, nicht nur die Handlung — Auflage aus Auditbefund
+			     M7-01 vom 2026-09-07. -->
+			<trans-unit id="table.chip.buy.done">
+				<source>Chip zu {0} Euro gekauft. Jetzt {1} davon, Buy-in {2} Euro.</source>
+			</trans-unit>
+			<trans-unit id="table.chip.sell.done">
+				<source>Chip zu {0} Euro zurückgegeben. Jetzt {1} davon, Buy-in {2} Euro.</source>
+			</trans-unit>
+			<trans-unit id="table.chip.sell.none">
+				<source>Von {0} Euro liegt kein Chip im Bestand.</source>
+			</trans-unit>
+			<trans-unit id="table.chip.full">
+				<source>Die Kasse ist voll — der Chip zu {0} Euro bleibt am Tisch.</source>
 			</trans-unit>
 
 			<trans-unit id="table.cashout">

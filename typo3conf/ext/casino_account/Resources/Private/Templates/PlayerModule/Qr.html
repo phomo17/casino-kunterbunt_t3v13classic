@@ -1,0 +1,84 @@
+<html
+	xmlns:f="http://typo3.org/ns/TYPO3/CMS/Fluid/ViewHelpers"
+	xmlns:core="http://typo3.org/ns/TYPO3/CMS/Core/ViewHelpers"
+	data-namespace-typo3-fluid="true"
+>
+<f:layout name="Module" />
+
+<f:comment>
+	Die QR-Ansicht eines Spielenden (CONCEPT.md D.3.4, D.4).
+
+	Was auf den Ausdruck kommt, steht in .ca-qr__print — und NUR das: der
+	Code und der Name, sonst nichts. Alles andere blendet backend.css beim
+	Drucken aus, und zwar über die Umkehrung („alles aus, dieser eine
+	Bereich wieder an"), weil eine Liste des Auszublendenden nie
+	vollständig wäre.
+</f:comment>
+
+<f:section name="Content">
+
+	<div class="ca-qr">
+
+		<div class="ca-qr__print">
+			<h2 class="ca-qr__name">{player.name}</h2>
+			<f:format.raw>{svg}</f:format.raw>
+		</div>
+
+		<f:comment>
+			f:format.raw ist hier richtig und sonst fast nie: {svg} ist
+			Auszeichnung, die wir selbst in QrSvgRenderer erzeugt haben, nicht
+			Text von jemand anderem. Der einzige Teil, der von außen kommt —
+			der Name in <title> — ist dort bereits mit htmlspecialchars()
+			entschärft worden. Der Name in der Überschrift oben wird von Fluid
+			automatisch entschärft; das ist die Voreinstellung und wird hier
+			ausdrücklich NICHT abgeschaltet. D.3.2 erlaubt beliebige Zeichen
+			im Namen — auch spitze Klammern.
+		</f:comment>
+
+		<div class="ca-qr__tools">
+			<a class="btn btn-default" href="{downloadUrl}" download>
+				<core:icon identifier="actions-download" size="small" />
+				<f:translate key="LLL:EXT:casino_account/Resources/Private/Language/locallang_be.xlf:qr.download.svg" />
+			</a>
+			<button type="button" class="btn btn-default"
+			        data-ca-qr-png
+			        data-ca-qr-name="{fileName}"
+			        data-ca-qr-ready="{f:translate(key: 'LLL:EXT:casino_account/Resources/Private/Language/locallang_be.xlf:qr.status.pngReady')}"
+			        data-ca-qr-failed="{f:translate(key: 'LLL:EXT:casino_account/Resources/Private/Language/locallang_be.xlf:qr.status.pngFailed')}">
+				<core:icon identifier="actions-image" size="small" />
+				<f:translate key="LLL:EXT:casino_account/Resources/Private/Language/locallang_be.xlf:qr.download.png" />
+			</button>
+			<button type="button" class="btn btn-default" data-ca-qr-print>
+				<core:icon identifier="actions-file-print" size="small" />
+				<f:translate key="LLL:EXT:casino_account/Resources/Private/Language/locallang_be.xlf:qr.print" />
+			</button>
+		</div>
+
+		<f:comment>
+			Der Meldebereich steht LEER schon im ausgelieferten HTML. Ein
+			Bereich, den JavaScript erst anlegt und im selben Atemzug füllt,
+			wird von keinem Vorleseprogramm angesagt — es hat ihn nie als
+			„beobachte mich" registriert. Genau deshalb ist er hier und nicht
+			in qr-tools.js.
+		</f:comment>
+		<p class="ca-qr__status" role="status" data-ca-qr-status></p>
+
+		<dl class="ca-qr__facts">
+			<dt><f:translate key="LLL:EXT:casino_account/Resources/Private/Language/locallang_be.xlf:qr.token.label" /></dt>
+			<dd class="ca-qr__token">{player.token}</dd>
+			<dd class="ca-qr__hint"><f:translate key="LLL:EXT:casino_account/Resources/Private/Language/locallang_be.xlf:qr.token.hint" /></dd>
+
+			<dt><f:translate key="LLL:EXT:casino_account/Resources/Private/Language/locallang_be.xlf:qr.url.label" /></dt>
+			<dd class="ca-qr__url">{url}</dd>
+		</dl>
+
+		<p>
+			<a href="{backUrl}">
+				<f:translate key="LLL:EXT:casino_account/Resources/Private/Language/locallang_be.xlf:qr.back" />
+			</a>
+		</p>
+
+	</div>
+
+</f:section>
+</html>

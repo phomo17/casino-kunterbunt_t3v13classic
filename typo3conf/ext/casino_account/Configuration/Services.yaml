@@ -1,0 +1,38 @@
+services:
+  _defaults:
+    autowire: true
+    autoconfigure: true
+    public: false
+
+  Phomo17\CasinoAccount\:
+    resource: '../Classes/*'
+    # Reine Datenobjekte: sie werden nie aus dem Container geholt, sondern
+    # über Player::fromRow() gebaut. Ohne diese Ausnahme meldete der Container
+    # Dienste an, die es nie geben darf — dieselbe Ausnahme wie in
+    # casino_startpage/Configuration/Services.yaml.
+    exclude: '../Classes/Domain/Player.php'
+
+  # Der Controller braucht keinen eigenen Eintrag: er trägt das Attribut
+  # #[AsController], und der Kern meldet dieses Attribut in seiner eigenen
+  # Services.php für die automatische Anmeldung an
+  # (typo3/sysext/backend/Configuration/Services.php:39-44).
+  #
+  # Der DataHandler holt sein Hook-Objekt über
+  # GeneralUtility::makeInstance() (DataHandler.php:666 und :3280), nicht per
+  # Konstruktor-Einspritzung. makeInstance fragt den Container nur nach
+  # Klassen, die dort ÖFFENTLICH angemeldet sind — ohne diesen Eintrag bekäme
+  # der Hook seine sechs Helfer nicht und stürzte beim ersten Speichern ab.
+  Phomo17\CasinoAccount\Hook\PlayerDataHandlerHook:
+    public: true
+
+  # Der Ereignis-Zuhörer (ActivateExtension) braucht keinen eigenen Eintrag:
+  # er trägt #[AsEventListener] (TYPO3\CMS\Core\Attribute\AsEventListener,
+  # in 13.4 vorhanden — nachgesehen, nicht angenommen).
+
+  # UMSETZUNGSSTÜCK Dd: die QR-Schnittstelle. PlayerModuleController fragt
+  # den Container nach Phomo17\CasinoAccount\Qr\QrCodeFactory (der
+  # Schnittstelle, nicht der Umsetzung) — 'alias' sagt dem Container, welche
+  # Klasse er dafür tatsächlich baut. Ein künftiger Rückweg (Abschnitt 4.5.1
+  # des Plans) ändert genau diese eine Zeile.
+  Phomo17\CasinoAccount\Qr\QrCodeFactory:
+    alias: Phomo17\CasinoAccount\Qr\BaconQrCodeFactory

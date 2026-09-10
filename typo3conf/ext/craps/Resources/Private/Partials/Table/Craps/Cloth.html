@@ -1,0 +1,291 @@
+<f:comment>
+	Der Tisch: Rahmen, Messingkante, Bande, Tuch, Pyramidengummi.
+
+	Untere von drei Schichten (siehe Kopfkommentar von Table.html). Sie zeigt
+	NICHTS, was nicht auch als Text dasteht, und trägt deshalb aria-hidden.
+
+	viewBox 0 0 240 140. DIESELBE Maßordnung, in der dice-physics.js rechnet;
+	verify-tray.mjs vergleicht beide Zahl für Zahl (D-1, D-2).
+
+	MASSORDNUNG (von außen nach innen):
+	  Wannenaußenkante            x 2…238   y 2…138
+	  Messingkante                x 8…232   y 8…132
+	  Bandeninnenkante = Tuch     x 20…220  y 20…120   ← hier spielt die Physik
+	  Teilung des Pyramidengummis 10
+	  Zackenhöhe                  5
+	  Kantenlänge eines Würfels   12
+	  Die drei Bandlinien    aus BetLayout::bandPaths(), gerechnet aus der
+	                         Gitter-Maßordnung 96 × 11 (Prüfung F-18)
+
+	Die Spielfläche misst 200 × 100 — genau 2 : 1, das Querformat des üblichen
+	Craps-Tisches. Das Wettgitter liegt prozentual genau darauf (felt.css).
+
+	GEWORFEN WIRD VON RECHTS. Die Gegenbande ist die LINKE (x = 20): sie muss
+	von beiden Würfeln erreicht werden, sonst zählt der Wurf nicht
+	(Mindestwurf-Regel, C.8.2). Die rechte Bande trägt deshalb eine
+	Messing-Wurfkante als sichtbares Zeichen, wo die Hand steht — und auf
+	derselben Seite liegt seit der Zusammenlegung die bespielbare
+	Seitensektion: der Spieler wirft und setzt an derselben Tischseite.
+
+	Die Zackenleisten entstehen aus ZWEI <pattern>-Kacheln, nicht aus sechzig
+	Dreiecken. fill="url(#…)" ist ein Verweis INNERHALB dieses Dokuments und
+	lädt nichts nach — Prüfung A-3 schneidet url(#…) vor ihrer Suche heraus.
+
+	Alle Farben kommen aus den Design-Tokens in tokens.css.
+</f:comment>
+<svg class="cr-cloth__ground cr-tray__drawing" viewBox="0 0 240 140"
+	preserveAspectRatio="xMidYMid meet" focusable="false" aria-hidden="true">
+
+	<defs>
+		<f:comment>Eine Kachel Pyramidengummi für die waagerechten Banden
+			(oben und unten): 10 breit, 5 hoch, eine Zacke.</f:comment>
+		<pattern id="cr-pyramid-h" width="10" height="5" patternUnits="userSpaceOnUse">
+			<path d="M0 5 L5 0 L10 5 Z" fill="var(--ck-rubber-pyramid)" />
+			<path d="M0 5 L5 0 L10 5" fill="none"
+				stroke="var(--ck-rubber-pyramid-edge)" stroke-width="0.4" />
+		</pattern>
+
+		<f:comment>Dieselbe Kachel, um eine Vierteldrehung gedreht, für die
+			senkrechten Banden (links und rechts).</f:comment>
+		<pattern id="cr-pyramid-v" width="5" height="10" patternUnits="userSpaceOnUse">
+			<path d="M5 0 L0 5 L5 10 Z" fill="var(--ck-rubber-pyramid)" />
+			<path d="M5 0 L0 5 L5 10" fill="none"
+				stroke="var(--ck-rubber-pyramid-edge)" stroke-width="0.4" />
+		</pattern>
+
+		<f:comment>
+			DIE WERKSTOFFE (Gestaltungslauf vom 2026-09-09).
+
+			Bis hierher war jedes Bauteil der Wanne eine FLÄCHE in genau einem
+			Ton: brauner Rahmen, braune Bande, gelbe Linie, grünes Tuch. Das
+			liest sich als technische Zeichnung, nicht als Gegenstand. Was
+			fehlt, ist nicht Farbe, sondern LICHT: ein Körper zeigt sich
+			dadurch, dass er oben heller ist als unten.
+
+			Alle Verläufe unten bestehen ausschließlich aus vorhandenen
+			Design-Tokens; kein Farbwert steht in dieser Datei (Prüfung A-1).
+			Die Verweise sind url(#…) — Verweise INNERHALB dieses Dokuments,
+			die nichts nachladen (Prüfung A-3 schneidet sie eigens heraus).
+
+			WARUM AUF DEM TUCH NUR ABGEDUNKELT UND NIE AUFGEHELLT WIRD.
+			Jede Aufschrift dieses Tuchs ist HELL auf Grün: --ck-felt-line,
+			--ck-brass-100, --ck-felt-red, --ck-ivory-300. Ein aufhellender
+			Lichtschein senkte jeden dieser Kontraste; ein abdunkelnder hebt
+			sie. Deshalb liegt das warme Licht auf dem HOLZ, und auf dem Tuch
+			liegt ausschließlich Schatten. Nachgerechnet an der dunkelsten
+			Stelle des Tuchs (Rand, 55 % Deckung von --ck-felt-green-dark
+			über --ck-felt-green, ergibt #184c2b):
+			  --ck-felt-line  7,87 : 1   (vorher 6,40 : 1)
+			  --ck-brass-100  7,62 : 1   (vorher 6,16 : 1)
+			  --ck-felt-red   5,81 : 1   (vorher 4,67 : 1)
+			  --ck-ivory-300  4,13 : 1   (vorher 3,32 : 1)
+			Keine dieser vier Paarungen wird durch die Gestaltung schlechter,
+			jede wird besser. Prüfung F-9 rechnet weiterhin mit den reinen
+			Tokens und bleibt davon unberührt — sie misst also ab jetzt die
+			UNGÜNSTIGSTE, nicht die tatsächliche Lage. Das ist die richtige
+			Richtung für einen Nachweis.
+		</f:comment>
+
+		<f:comment>Der Holzrahmen im Deckenlicht des Saals: oben die belichtete
+			Schulter (--ck-wood-100), unten der Schatten. Vier Stopps statt
+			zweier, weil ein zweistufiger Verlauf wie ein Farbverlauf aussieht
+			und ein vierstufiger wie eine gerundete Kante.</f:comment>
+		<linearGradient id="cr-wood-face" x1="0" y1="0" x2="0" y2="1">
+			<stop offset="0" stop-color="var(--ck-wood-100)" />
+			<stop offset="0.16" stop-color="var(--ck-wood-200)" />
+			<stop offset="0.58" stop-color="var(--ck-wood-300)" />
+			<stop offset="1" stop-color="var(--ck-wood-500)" />
+		</linearGradient>
+
+		<f:comment>Die hohe Bande. Sie fällt zur Spielfläche hin ab, ist also
+			an ihrer Oberkante am dunkelsten (Schatten der Außenwange) und in
+			der oberen Hälfte am hellsten.</f:comment>
+		<linearGradient id="cr-rail-face" x1="0" y1="0" x2="0" y2="1">
+			<stop offset="0" stop-color="var(--ck-wood-400)" />
+			<stop offset="0.3" stop-color="var(--ck-wood-200)" />
+			<stop offset="1" stop-color="var(--ck-wood-400)" />
+		</linearGradient>
+
+		<f:comment>Die Maserung. Zwei feine waagerechte Linien je Kachel, in
+			ungleichem Abstand — gleichmäßige Linien lesen sich als Raster,
+			ungleichmäßige als Holz. Sie liegt über Rahmen und Bande und
+			bricht beide Verläufe, damit keine Fläche wie lackierter Karton
+			wirkt (dieselbe Absicht wie --ck-felt-weave beim Tuch).</f:comment>
+		<pattern id="cr-wood-grain" width="24" height="7" patternUnits="userSpaceOnUse">
+			<path d="M0 1.3 H24" fill="none"
+				stroke="var(--ck-wood-grain)" stroke-width="0.45" />
+			<path d="M0 4.1 H24" fill="none"
+				stroke="var(--ck-wood-500)" stroke-width="0.25" stroke-opacity="0.55" />
+		</pattern>
+
+		<f:comment>Die Messingkante als Fase statt als Strich: hell an der
+			Oberkante, satt in der Mitte, dunkel am unteren Umlauf. Messing
+			reflektiert breiter und weicher als Chrom (DESIGNBRIEF.md
+			Abschnitt 4), deshalb ein weicher Mittelbereich statt eines
+			harten Glanzbands.</f:comment>
+		<linearGradient id="cr-brass-bevel" x1="0" y1="0" x2="0" y2="1">
+			<stop offset="0" stop-color="var(--ck-brass-100)" />
+			<stop offset="0.34" stop-color="var(--ck-brass-200)" />
+			<stop offset="0.62" stop-color="var(--ck-brass-300)" />
+			<stop offset="0.88" stop-color="var(--ck-brass-500)" />
+			<stop offset="1" stop-color="var(--ck-brass-300)" />
+		</linearGradient>
+
+		<f:comment>Die Webung des Tuchs: zwei sich kreuzende Fadenscharen,
+			ungleich stark, damit eine Richtung führt. --ck-felt-weave ist ein
+			Schwarzanteil und dunkelt ab — siehe die Rechnung oben.</f:comment>
+		<pattern id="cr-felt-weave" width="1.6" height="1.6" patternUnits="userSpaceOnUse">
+			<path d="M0 1.6 L1.6 0" fill="none"
+				stroke="var(--ck-felt-weave)" stroke-width="0.45" />
+			<path d="M0 0 L1.6 1.6" fill="none"
+				stroke="var(--ck-felt-weave)" stroke-width="0.25" />
+		</pattern>
+
+		<f:comment>Der Lichtkegel über dem Tisch. Er ist als SCHATTEN gebaut,
+			nicht als Licht: in der Mitte durchsichtig, zum Rand hin
+			zunehmend --ck-felt-green-dark. Der Mittelpunkt liegt etwas über
+			der Tuchmitte, weil eine Lampe über dem Tisch hängt und nicht in
+			ihm.</f:comment>
+		<radialGradient id="cr-felt-pool" cx="0.5" cy="0.44" r="0.62">
+			<stop offset="0.34" stop-color="var(--ck-felt-green-dark)" stop-opacity="0" />
+			<stop offset="0.74" stop-color="var(--ck-felt-green-dark)" stop-opacity="0.26" />
+			<stop offset="1" stop-color="var(--ck-felt-green-dark)" stop-opacity="0.55" />
+		</radialGradient>
+
+		<f:comment>Der Schatten, den die hohe Bande auf das Tuch wirft. Nur
+			oben: das Licht kommt von vorn oben, und nur dort steht eine Wand
+			zwischen Lampe und Tuch.</f:comment>
+		<linearGradient id="cr-rail-drop" x1="0" y1="0" x2="0" y2="1">
+			<stop offset="0" stop-color="var(--ck-shadow-inset)" stop-opacity="0.9" />
+			<stop offset="1" stop-color="var(--ck-shadow-inset)" stop-opacity="0" />
+		</linearGradient>
+
+		<f:comment>Der Schatten des ganzen Tisches auf dem Teppich. Er steht
+			INNERHALB der Zeichenfläche und nicht als box-shadow am Kasten:
+			.cr-cloth__scroll rollt waagerecht, und ein überstehender Schatten
+			erzwänge dort einen zweiten, senkrechten Rollbalken. Deshalb ist
+			der Rahmen um drei Einheiten nach innen gerückt — der gewonnene
+			Rand ist der Platz für diesen Schatten.</f:comment>
+		<filter id="cr-table-shadow" x="-0.08" y="-0.08" width="1.16" height="1.2">
+			<feGaussianBlur stdDeviation="1.9" />
+		</filter>
+	</defs>
+
+	<f:comment>
+		1  DIE WANNE: Schatten auf dem Teppich, Holzaußenkante mit Maserung,
+		Messingfase, hohe Bande.
+
+		DER RAHMEN IST UM DREI EINHEITEN NACH INNEN GERÜCKT (x 3…237 statt
+		2…238). Das ist kein Umbau der Maßordnung: die Spielfläche bleibt
+		Zeichen für Zeichen x 20…220 / y 20…120 — das ist die einzige
+		Maßangabe, mit der dice-physics.js rechnet und die verify-tray.mjs
+		D-1 nachzählt. Gewonnen wird nur der Rand, auf dem der Tisch seinen
+		eigenen Schatten wirft. Ohne diesen Rand stünde der Tisch auf dem
+		Teppich wie aufgeklebt.
+	</f:comment>
+	<rect class="cr-tray__shadow" x="3" y="5" width="234" height="132" rx="15"
+		fill="var(--ck-shadow-pool)" filter="url(#cr-table-shadow)" />
+	<rect class="cr-tray__hull" x="3" y="3" width="234" height="132" rx="15"
+		fill="url(#cr-wood-face)" stroke="var(--ck-wood-500)" stroke-width="1.2" />
+	<rect class="cr-tray__hull-grain" x="3" y="3" width="234" height="132" rx="15"
+		fill="url(#cr-wood-grain)" />
+
+	<f:comment>Die Messingkante: die Fase als breiter Strich, darunter eine
+		Haarlinie im dunkelsten Messing als Absatz zur Bande hin. Zwei Linien
+		statt einer — eine einzelne Linie liest sich als Kontur, zwei als
+		Kante.</f:comment>
+	<rect class="cr-tray__brass" x="8" y="8" width="224" height="124" rx="12"
+		fill="none" stroke="url(#cr-brass-bevel)" stroke-width="2.4" />
+	<rect class="cr-tray__brass-seam" x="9.8" y="9.8" width="220.4" height="120.4" rx="10.6"
+		fill="none" stroke="var(--ck-brass-500)" stroke-width="0.4" stroke-opacity="0.75" />
+
+	<rect class="cr-tray__rail" x="11" y="11" width="218" height="118" rx="10"
+		fill="url(#cr-rail-face)" />
+	<rect class="cr-tray__rail-grain" x="11" y="11" width="218" height="118" rx="10"
+		fill="url(#cr-wood-grain)" opacity="0.6" />
+
+	<f:comment>2  Das Tuch — die Spielfläche der Physik, x 20…220, y 20…120,
+		und zugleich die Fläche, auf der das Wettgitter liegt.
+
+		Die beiden ersten Rechtecke sind unverändert: das dunkle darunter als
+		Naht, das helle als die Fläche selbst (Prüfung D-1 zählt seine vier
+		Zahlen nach). Neu sind die drei Lagen DARÜBER — Webung, Lichtkegel,
+		Bandenschatten —, und alle drei dunkeln ab. Warum ausschließlich
+		abgedunkelt wird, steht im Werkstoff-Abschnitt oben.</f:comment>
+	<rect x="18" y="18" width="204" height="104" rx="5" fill="var(--ck-felt-green-dark)" />
+	<rect class="cr-tray__felt" x="20" y="20" width="200" height="100"
+		fill="var(--ck-felt-green)" />
+	<rect class="cr-tray__weave" x="20" y="20" width="200" height="100"
+		fill="url(#cr-felt-weave)" />
+	<rect class="cr-tray__pool" x="20" y="20" width="200" height="100"
+		fill="url(#cr-felt-pool)" />
+	<rect class="cr-tray__railshadow" x="20" y="20" width="200" height="11"
+		fill="url(#cr-rail-drop)" />
+
+	<f:comment>3  Der Pyramidengummi auf allen vier Banden. Die Zacken sitzen
+		INNERHALB der Spielfläche auf der Bandeninnenkante; die Physik lenkt
+		an genau dieser Kante ab (dice-physics.js, hitWall).</f:comment>
+	<rect class="cr-tray__pyramid" x="20" y="20" width="5" height="100"
+		fill="url(#cr-pyramid-v)" />
+	<rect class="cr-tray__pyramid" x="215" y="20" width="5" height="100"
+		fill="url(#cr-pyramid-v)" />
+	<rect class="cr-tray__pyramid" x="20" y="20" width="200" height="5"
+		fill="url(#cr-pyramid-h)" />
+	<rect class="cr-tray__pyramid" x="20" y="115" width="200" height="5"
+		fill="url(#cr-pyramid-h)" />
+
+	<f:comment>4  Die Wurfkante rechts: eine Messinglinie auf der Bande, an
+		der die Hand steht. Reines Zeichen, ohne Wirkung auf die Physik.
+
+		Zwei Linien statt einer, um eine halbe Einheit versetzt: die helle
+		obenauf, die dunkle als ihr Schattenkante darunter. Eine eingelegte
+		Messingschiene ist genau das — ein Streifen mit zwei Kanten.</f:comment>
+	<line class="cr-tray__edge-shade" x1="222.9" y1="24" x2="222.9" y2="116"
+		stroke="var(--ck-brass-500)" stroke-width="1.2" stroke-linecap="round" />
+	<line class="cr-tray__edge" x1="222" y1="24" x2="222" y2="116"
+		stroke="var(--ck-brass-200)" stroke-width="1.6" stroke-linecap="round" />
+
+	<f:comment>
+		5  DIE DREI GESCHWUNGENEN LINIEN DER LINIENWETTEN.
+
+		PASS LINE und Don't Pass Bar laufen auf der Vorlage um die Ecke herum
+		und werden dort geschwungen. Ein L-förmiges Band lässt sich mit den
+		Rahmen zweier rechteckiger Kästen nicht ohne Naht zeichnen — an der
+		Ecke müsste eine Linie mitten in einem Kasten aufhören. Und ein
+		clip-path, der ein Rechteck zum L beschneidet, nähme den FOKUSRAHMEN
+		gleich mit (derselbe Fehler wie opacity, der in diesem Haus schon
+		dreimal aufgetreten ist).
+
+		Deshalb steht der Umriss HIER, in der Zeichenschicht: drei Pfade, von
+		außen nach innen die Außenkante der PASS LINE, die Linie zwischen
+		beiden Bändern und die Innenkante der Don't Pass Bar. Genau diese drei
+		zeigt die Vorlage. Die zugehörigen Knöpfe (Felt.html) tragen an dieser
+		Stelle KEINEN eigenen Rahmen — sonst wäre die Ecke zweimal gezeichnet.
+
+		DIE PFADANGABEN WERDEN GERECHNET, NICHT ABGESCHRIEBEN. Sie kommen aus
+		BetLayout::bandPaths() über den FeltProcessor, in derselben Maßordnung
+		wie diese Zeichnung. Stünden sie als feste Zeichenkette hier, wären sie
+		eine zweite Wahrheit neben der Gitter-Maßordnung: verschöbe sich eine
+		Gitterlinie, liefe der Umriss stillschweigend daneben. Prüfung F-18
+		rechnet die Umrechnung ein zweites Mal nach und vergleicht Zahl für
+		Zahl.
+
+		DIE GESPIEGELTE TISCHHÄLFTE entsteht aus DENSELBEN Pfaden über eine
+		Spiegelung an der Mitte der Spielfläche (x = 120): translate(240 0)
+		gefolgt von scale(-1 1). Eine zweite Pfadberechnung wäre eine zweite
+		Wahrheit — und eine, die man erst am schiefen Bild bemerkte.
+	</f:comment>
+	<g class="cr-cloth__bands" fill="none"
+		stroke="var(--ck-felt-line)" stroke-width="0.9" stroke-linecap="round">
+		<f:for each="{felt.bandPaths}" as="band">
+			<path class="cr-cloth__band cr-cloth__band--{band.id}" d="{band.d}" />
+		</f:for>
+	</g>
+	<g class="cr-cloth__bands cr-cloth__bands--mirror" fill="none"
+		stroke="var(--ck-felt-line)" stroke-width="0.9" stroke-linecap="round"
+		transform="translate(240 0) scale(-1 1)">
+		<f:for each="{felt.bandPaths}" as="band">
+			<path class="cr-cloth__band cr-cloth__band--{band.id}" d="{band.d}" />
+		</f:for>
+	</g>
+</svg>

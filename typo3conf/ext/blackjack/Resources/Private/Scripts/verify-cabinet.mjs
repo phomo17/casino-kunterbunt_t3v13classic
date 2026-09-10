@@ -75,6 +75,7 @@
 import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import path from 'node:path';
+import { NEGATIVLISTE, MINDESTLAENGE, musterFuer } from '../../../../casino_startpage/Resources/Private/Scripts/negativliste.mjs';
 
 const HIER = path.dirname(fileURLToPath(import.meta.url));
 /** typo3conf/ext/blackjack/ */
@@ -84,7 +85,16 @@ const EXT_ROOT = path.resolve(EXT, '..');
 const SITE = path.join(EXT_ROOT, 'casino_startpage');
 /** Der eigene Extension-Schlüssel, ABGELEITET aus dem Verzeichnisnamen. */
 const EIGENER_SCHLUESSEL = path.basename(EXT);
-/** diese Datei selbst, für die Ausnahme in A-5 */
+/**
+ * Diese Datei selbst — nicht mehr für eine Namensausnahme (siehe A-5 unten:
+ * die Negativliste steht seit Befund B-6 nicht mehr hier), sondern nur noch
+ * dafür, dass A-5 die drei Zeichen ©/™/® ausschließlich in DIESER Datei
+ * unschädlich macht, bevor sie geprüft wird. Diese Datei muss die drei
+ * Zeichen wörtlich enthalten — als Prüf-Array UND im Ausgabetext —, um
+ * überhaupt gegen sie prüfen zu können; jede andere Datei bleibt unangetastet
+ * und wird normal auf die Zeichen geprüft (dieselbe Art Ausnahme wie
+ * fruit_risk/…/verify-cabinet.mjs seit Stand F2).
+ */
 const DIESE_DATEI = fileURLToPath(import.meta.url);
 
 let fehler = 0;
@@ -282,8 +292,17 @@ console.log(`\nA-4  casino_startpage kennt "${EIGENER_SCHLUESSEL}" nicht (im Cod
 		new RegExp(roh.charAt(0).toUpperCase() + roh.slice(1)),
 	];
 	const PRAEFIX = new RegExp(`(^|[^-a-z])${kuerzel}-[a-z]`);
+	// Ausnahme für genau eine Datei: die geteilte Negativliste
+	// casino_startpage/…/negativliste.mjs (Befund B-6 der Copyright-Prüfung
+	// craps vom 2026-09-09) muss als ausführbares JS-Array wörtlich
+	// kartenspiel-spezifische Handelsnamen enthalten, die den Wortbestandteil
+	// des Spielnamens tragen — das koppelt casino_startpage nicht an dieses
+	// Gerät, es ist derselbe Schutzzweck wie A-5 selbst. Dieselbe Art
+	// Ausnahme wie A-5s Selbstausnahme oben. Bis Befund B-6 stand hier
+	// stattdessen verify-gattung.mjs, das die Liste vorher selbst trug.
+	const A4_AUSGENOMMEN = [path.join(SITE, 'Resources/Private/Scripts/negativliste.mjs')];
 	const treffer = [];
-	for (const datei of alleDateien(SITE)) {
+	for (const datei of alleDateien(SITE).filter((d) => !A4_AUSGENOMMEN.includes(d))) {
 		const zeilen = ohneAlleKommentare(lies(datei)).split('\n');
 		zeilen.forEach((zeile, n) => {
 			if (NAMEN.some((m) => m.test(zeile)) || PRAEFIX.test(zeile)) {
@@ -302,80 +321,38 @@ console.log(`\nA-4  casino_startpage kennt "${EIGENER_SCHLUESSEL}" nicht (im Cod
 
 console.log('\nA-5  Kein fremder Hersteller-, Modell- oder Spieltitel');
 {
-	const NEGATIVLISTE = [
-		// Spielautomatenhersteller und Spieltitel (CONCEPT.md B.3 Nr. 4)
-		'Novomatic', 'Novomatix', 'Greentube', 'Merkur', 'Gauselmann', 'Bally',
-		'Aristocrat', 'IGT', 'Mills', 'Jennings', 'Watling', 'Light & Wonder',
-		'Bell-Fruit', 'Sizzling Hot', 'Book of Ra', 'Book of Sand',
-		"Lucky Lady's Charm", 'Penny Falls',
-		// Rad- und Tischhersteller sowie deren Modell-/Bauteilnamen
-		'TCSJohnHuxley', 'John Huxley', 'Cammegh', 'Abbiati', 'Matsui',
-		'CTC Holdings', 'Alfastreet', 'Interblock', 'Mercury 360', 'Slingshot',
-		'Saturn Glo', 'Garnite', 'EyeBall', 'Velstone', 'Starburst',
-		// Chiphersteller
-		'Gaming Partners International', 'GPI', 'Paulson', 'Bud Jones',
-		'Chipco', 'Dal Negro',
-		// Spielbanken und Casinomarken
-		'Bellagio', 'Caesars', 'Wynn', 'Venetian', 'MGM', 'Mirage', 'Flamingo',
-		'Golden Nugget', 'Tropicana', 'Stardust', 'Riviera', 'Sands', 'Luxor',
-		'Harrah', 'Monte Carlo',
-		// Live-Casino- und Spielesoftwaremarken
-		'Evolution Gaming', 'Playtech', 'Pragmatic Play', 'Microgaming',
-		'NetEnt', 'Scientific Games', 'WMS', 'Barcrest', 'Cirsa', 'Konami',
-		'All rights reserved',
-		// Zusätzlich zu B.3 Nr. 4: geschützte Mechanik-Bezeichnungen (übernommen
-		// aus roulette/…/verify-cabinet.mjs, Befund C-2 der Copyright-Prüfung
-		// vom 2026-09-06). Erfasst in Klein-, GROSS- und camelCase-/
-		// Bindestrich-Schreibweisen.
-		'Megaways', 'MEGAWAYS', 'megaways',
-		'Cluster Pays', 'CLUSTER PAYS', 'cluster pays', 'ClusterPays', 'clusterPays', 'cluster-pays',
-		'InfiniReels', 'INFINIREELS', 'infinireels', 'Infini Reels', 'infini-reels',
-		'Tumbling Reels', 'TUMBLING REELS', 'tumbling reels', 'TumblingReels', 'tumblingReels', 'tumbling-reels',
-		// Ergänzung dieser Extension (CONCEPT.md C.14, Kartenspiel-spezifisch):
-		// Spielkartenhersteller.
-		'Bicycle', 'Bee', 'Tally-Ho', 'KEM', 'Copag', 'Fournier', 'Modiano',
-		'Piatnik', 'Cartamundi', 'Gemaco', 'Aristocrat Playing Cards',
-		// Kartenschlitten und Mischmaschinen.
-		'Shuffle Master', 'ShuffleMaster', 'Deckmate', 'DeckMate', 'i-Deal',
-		'MD3', 'One2Six', 'Angel Eye', 'SecureStep',
-		// Handelsnamen von Blackjack-Seitenwetten und -Varianten.
-		'Perfect Pairs', '21+3', 'Lucky Ladies', 'Royal Match', 'Super Sevens',
-		'Blackjack Switch', 'Free Bet Blackjack', 'Spanish 21', 'Pontoon',
-		'Zappit', 'Buster Blackjack', 'Bet Behind', 'Infinite Blackjack',
-		'Lightning Blackjack', 'Power Blackjack',
-		// Zusätzlich zur Zeichenprüfung: Zähl-/Autorennamen, damit das Gerät
-		// nicht versehentlich einen geschützten Zählnamen statt des
-		// ungeschützten Gattungsnamens "Hi-Lo" trägt (der selbst NICHT auf
-		// dieser Liste steht — er ist die in C.7.3 vorgegebene Bezeichnung).
-		'Hi-Opt', 'Wong Halves', 'KO Count', 'Omega II',
-		// Kartenhersteller, Kartenmarken und benannte Rückenmuster — seit
-		// Phase C5, weil dieses Gerät mit Karten spielt (Umsetzungsstück
-		// C5d, Plan Abschnitt 4.32). Die beiden geläufigsten Rückenmuster
-		// im US-amerikanischen Kartenspiel: das Rautenmuster der Marke Bee
-		// und das Reiter-Rückenmuster der Marke Bicycle. Nach CONCEPT.md
-		// V.7 Nr. 5 aus allgemein bekannten Marktfakten eingetragen (keine
-		// Recherche aus dem Gedächtnis über Spezifika); die förmliche
-		// Markenrecherche bei DPMA/EUIPO und die Bildrückwärtssuche des
-		// fertigen Rückens bleiben offene, im Copyright-Bericht benannte
-		// Aufträge an den Auftraggeber (Abschnitt 10, Punkte 2 und 3 des
-		// Plans) — NICHT ABSCHLIESSEND GEKLÄRT.
-		'Bee Diamond Back', 'Diamond Back', 'Bicycle Rider Back', 'Rider Back',
-	];
+	// Struktureller Befund der Copyright-Prüfung roulette vom 2026-09-09:
+	// NEGATIVLISTE.length wurde weiter unten nur AUSGEGEBEN, nie GEPRÜFT —
+	// eine leere oder halb geschriebene Liste hätte diese Prüfung mit
+	// "bestanden" durchlaufen lassen, ohne dass ein einziger Name wirklich
+	// geprüft worden wäre. MINDESTLAENGE ist in negativliste.mjs begründet.
+	check(NEGATIVLISTE.length >= MINDESTLAENGE,
+		`NEGATIVLISTE trägt mindestens ${MINDESTLAENGE} Einträge (tatsächlich`
+		+ ` ${NEGATIVLISTE.length}) — sonst liefe diese Prüfung mit einer`
+		+ ' leeren oder halb geschriebenen Liste weiter und meldete'
+		+ ' fälschlich "bestanden"');
+
+	// Die Negativliste selbst führt seit Befund B-6 der Copyright-Prüfung
+	// craps vom 2026-09-09 nur noch EINE Datei für alle acht Geräte:
+	// casino_startpage/…/negativliste.mjs (siehe deren Kopfkommentar). Diese
+	// Datei hier enthält die Liste nicht mehr wörtlich und braucht deshalb
+	// auch keine Namensausnahme mehr — anders als bis zum 2026-09-08, als
+	// die Liste noch als eigenes Array in dieser Datei stand.
 	const ALLE = alleDateien(EXT);
-	// Ausnahme für genau eine Datei: diese Prüfskript-Datei selbst muss die
-	// Negativliste als ausführbares JS-Array wörtlich enthalten, um überhaupt
-	// gegen sie prüfen zu können — dieselbe Art Ausnahme wie in
-	// verify-gattung.mjs G-7 und roulette/…/verify-cabinet.mjs A-5.
-	const GEPRUEFT = ALLE.filter((d) => d !== DIESE_DATEI);
 	const treffer = [];
-	for (const datei of GEPRUEFT) {
+	for (const datei of ALLE) {
 		// KEIN Kommentar-Ausschnitt hier: A-5 ist die rechtliche Prüfung
 		// (CONCEPT.md B.3 Nr. 4, V.7 Nr. 5) und liest deshalb den vollen Text,
 		// Kommentare eingeschlossen — anders als A-4, die eine reine
-		// Architekturfrage prüft.
-		const inhalt = lies(datei);
+		// Architekturfrage prüft. Ausnahme: in dieser Datei selbst werden die
+		// drei Zeichen ©/™/® unschädlich gemacht (siehe DIESE_DATEI oben) —
+		// sie muss sie wörtlich enthalten, um überhaupt gegen sie prüfen zu
+		// können.
+		const roh = lies(datei);
+		const inhalt = datei === DIESE_DATEI ? roh.replace(/[©™®]/g, '·') : roh;
+		const inhaltKlein = inhalt.toLowerCase();
 		for (const name of NEGATIVLISTE) {
-			if (inhalt.includes(name)) {
+			if (musterFuer(name).test(inhaltKlein)) {
 				treffer.push(`${kurz(datei)}: „${name}"`);
 			}
 		}
@@ -386,16 +363,30 @@ console.log('\nA-5  Kein fremder Hersteller-, Modell- oder Spieltitel');
 		}
 	}
 	check(treffer.length === 0,
-		`kein Treffer der Negativliste (${NEGATIVLISTE.length} Namen) und keins`
-		+ ' der drei Zeichen ©/™/® in dieser Extension — README eingeschlossen'
-		+ ' (Ausnahme: diese Datei selbst, die die Liste als Programmzeile'
-		+ ' enthalten muss, um sie zu prüfen)',
+		`kein Treffer der Negativliste (${NEGATIVLISTE.length} Namen, geteilt mit`
+		+ ' den sieben übrigen Geräten und casino_startpage) und keins der drei'
+		+ ' Zeichen ©/™/® in dieser Extension — README eingeschlossen. Diese'
+		+ ' Datei selbst kennt keine Ausnahme mehr: sie trägt die Liste nicht'
+		+ ' mehr wörtlich (Befund B-6 der Copyright-Prüfung craps vom'
+		+ ' 2026-09-09)',
 		...treffer);
 
-	console.log('     Gegenprobe A-5-G: eine erfundene Zeile mit einem gelisteten Namen muss auffallen');
-	const erfundeneZeile = `Dieser Testtext erwähnt versehentlich ${NEGATIVLISTE[0]}.`;
-	const gefundenInGegenprobe = NEGATIVLISTE.some((name) => erfundeneZeile.includes(name));
-	check(gefundenInGegenprobe, 'A-5-G: die erfundene Zeile wird von der Negativliste erkannt');
+	console.log('     Gegenprobe A-5-G: dieselbe Prüfung (musterFuer) muss einen gelisteten Namen auch in Versalien und ohne Trennzeichen erkennen');
+	// Befund B-3 der Copyright-Prüfung craps vom 2026-09-09: die Gegenprobe
+	// benutzt dieselbe musterFuer()-Funktion wie der Hauptlauf oben, statt
+	// (wie bis 2026-09-08) mit includes() einen anderen Weg zu prüfen. Der
+	// Testname wird zur LAUFZEIT aus NEGATIVLISTE gewählt (ein mehrwortiger
+	// Eintrag aus reinen Buchstaben), statt als eigenes Zeichenkettenliteral
+	// in diese Datei geschrieben zu werden — sonst geriete der geschützte
+	// Name selbst in den Quelltext dieser Datei und A-5 schlüge gegen die
+	// eigene Gegenprobe an. Der erfundene Text testet zugleich Befund B-1:
+	// zusammengeschrieben und in Versalien.
+	const gegenprobeName = NEGATIVLISTE.find((name) => / /.test(name) && /^[A-Za-z ]+$/.test(name));
+	const erfundeneZeile = `Dieser Testtext erwähnt versehentlich ${gegenprobeName.toUpperCase().replace(/ /g, '')} und ${NEGATIVLISTE[0]}.`.toLowerCase();
+	const gegenprobeGefunden = NEGATIVLISTE.filter((name) => musterFuer(name).test(erfundeneZeile));
+	check(gegenprobeGefunden.length >= 2,
+		'A-5-G: sowohl der zusammengeschriebene Versalien-Name als auch der erste Listeneintrag werden erkannt',
+		...gegenprobeGefunden);
 }
 
 /* ====================================== A-6 Widerspruchsfreie Lizenzangaben */

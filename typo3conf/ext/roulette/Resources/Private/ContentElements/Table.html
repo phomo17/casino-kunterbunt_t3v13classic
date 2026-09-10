@@ -3,11 +3,32 @@
 
 	Das Element hat keine Einstellungen und wertet keinen Datenbankwert aus.
 
-	REIHENFOLGE. Sie ist die Tastaturreihenfolge und bewusst gewählt: erst
-	Hinweis und geteilte Ansage (Table/Status), dann das Rad mit seiner
-	eigenen Rundenansage, dann das Tuch (mit einem Sprunglink an seinem
-	Anfang), dann die Bedienleiste, zuletzt der Verlauf. Wer den Tisch zum
-	ersten Mal betritt, hört zuerst, wie er bedient wird.
+	REIHENFOLGE. Sie ist die Tastaturreihenfolge und bewusst gewählt: erst die
+	geteilte Ansage (Table/Status), dann die Überschrift und der Tisch (mit
+	einem Sprunglink an seinem Anfang), dann die Rundenansage und der
+	Ton-Schalter, dann der Hinweis zum Radverhalten und die Bedienleiste,
+	zuletzt der Verlauf. Wer den Tisch zum ersten Mal betritt, hört zuerst,
+	wie er bedient wird.
+
+	SEIT DEM UMBAU NACH DER BILDVORLAGE: EINE FLÄCHE STATT ZWEIER.
+	Rad und Tuch standen bis dahin als zwei nebeneinanderliegende Kästen,
+	jeder mit seinem eigenen umschließenden Bereich — eine Folge des
+	Phasenschnitts, die keiner Prüfung auffiel, weil jede nur ihren Teil
+	ansah. Die zweite Bildvorlage sagt das Gegenteil: Rad und Spielplan auf
+	EINER Fläche, ringsum ein Holzrahmen. Seither ist der Tisch ein Kasten
+	mit festem Seitenverhältnis (504 : 160) und drei gestapelten Schichten:
+
+	  1  Cloth   Schatten, Holzrahmen, Messingfase, Zarge, Tuch, Radmulde,
+	             die zwei Pfeilumrisse
+	  2  Wheel   das Rad, unverändert, in der Radmulde
+	  3  Felt    die 159 Knöpfe als durchsichtige Überlagerung
+
+	Die Schichten liegen absolut übereinander; die Maßordnung, aus der ihre
+	Lagen gerechnet werden, steht in Classes/BetLayout.php.
+
+	Der Rollbereich liegt AUSSEN um den Kasten (.ro-cloth__scroll). Bei
+	schmalem Bildschirm rollt dieser Kasten, nie die Seite (WCAG 2.2, SC
+	1.4.10 „Reflow").
 
 	Der Chipsatz steht als Erstes im Markup: ein <use> kann nur auf ein
 	<symbol> zeigen, das im Dokument schon steht.
@@ -24,19 +45,10 @@
 	Werte lohnt kein PHP.
 
 	Die vier data-ro-state/-result/-colour/-total-Messpunkte am Wurzelelement
-	stehen seit Teilstück C3d im Markup, LEER beziehungsweise auf ihrem
-	Anfangswert ausgeliefert, und werden AUSSCHLIESSLICH von roulette.js
-	beschrieben (round-roulette.js selbst fasst kein Dokument an — siehe
-	dessen Kopfkommentar). Ein Messpunkt, ein Schreiber; verify-view.mjs
-	(V-9, V-13) prüft das in beide Richtungen.
-
-	STAND TEILSTÜCK C3e: das Tuch (Table/Roulette/Felt) steht mit allen 159
-	Feldern, einer eigenen Rundenansage (Table/Roulette/Status) und seinem
-	eigenen Stylesheet (felt.css). round-roulette.js wertet aus und zahlt
-	gegen die gemeinsame Kasse aus; roulette.js verdrahtet Geld, Tuch, Rad,
-	Bedienleiste und Klang. Der Ton-Schalter (Table/Roulette/SoundSwitch)
-	steht neben der Rundenansage im Rad-Block: dort, wo ein Besucher zuerst
-	hinschaut, wenn das Rad zu laufen beginnt.
+	stehen LEER beziehungsweise auf ihrem Anfangswert im Markup und werden
+	AUSSCHLIESSLICH von roulette.js beschrieben (round-roulette.js fasst kein
+	Dokument an — siehe dessen Kopfkommentar). Ein Messpunkt, ein Schreiber;
+	verify-view.mjs (V-9, V-13) prüft das in beide Richtungen.
 </f:comment>
 <f:variable name="chips" value="{0: {value: 100, symbolId: 'ck-chip-100'}, 1: {value: 25, symbolId: 'ck-chip-25'}, 2: {value: 20, symbolId: 'ck-chip-20'}, 3: {value: 5, symbolId: 'ck-chip-5'}, 4: {value: 1, symbolId: 'ck-chip-1'}}" />
 <f:variable name="splittable" value="{0: {value: 100}, 1: {value: 25}, 2: {value: 20}, 3: {value: 5}}" />
@@ -52,14 +64,44 @@
 	<f:render partial="Table/ChipSprite" />
 	<f:render partial="Table/Status" />
 
-	<div class="ro-table__stage">
-		<div class="ro-table__wheel">
-			<f:render partial="Table/Roulette/Wheel" arguments="{wheel: wheel}" />
-			<f:render partial="Table/Roulette/Status" />
-			<f:render partial="Table/Roulette/SoundSwitch" />
+	<section class="ro-cloth-area" aria-labelledby="ro-felt-title">
+		<h2 class="ro-felt__title" id="ro-felt-title">
+			<f:translate key="LLL:EXT:roulette/Resources/Private/Language/locallang.xlf:felt.label" />
+		</h2>
+
+		<f:comment>
+			DIE AUSLAUFENDE KANTE (DECISIONS.md, 2026-09-09T12:23:41).
+
+			.ro-cloth__frame ist das umschließende Element, das dem
+			Gestaltungslauf gefehlt hat: der Tisch ist breiter als die Seite
+			und rollt INNERHALB seines eigenen Kastens — das ist gebaut und
+			barrierefrei zulässig (die SEITE rollt nicht waagerecht), sieht
+			aber ohne Kante aus wie abgeschnitten statt wie rollbar. Die
+			Kante steht als ::before/::after am FRAME, nicht an
+			.ro-cloth__scroll selbst: ein Pseudoelement am Rollbereich wäre
+			dessen eigener Inhalt und wanderte beim Rollen mit. felt.css
+			trägt dafür pointer-events: none (die Kante darf kein
+			fokussierbares Element verdecken) und rollt selbst nicht mit.
+		</f:comment>
+		<div class="ro-cloth__frame">
+			<div class="ro-cloth__scroll">
+				<div class="ro-cloth">
+					<f:comment>
+						Cloth bekommt {felt}, weil die Umrisse der zwei Pfeilfelder
+						aus der Gitter-Maßordnung gerechnet werden
+						(BetLayout::arrowPaths()) und nicht in der Zeichnung
+						abgeschrieben stehen.
+					</f:comment>
+					<f:render partial="Table/Roulette/Cloth" arguments="{felt: felt}" />
+					<f:render partial="Table/Roulette/Wheel" arguments="{wheel: wheel}" />
+					<f:render partial="Table/Roulette/Felt" arguments="{felt: felt}" />
+				</div>
+			</div>
 		</div>
-		<f:render partial="Table/Roulette/Felt" arguments="{felt: felt}" />
-	</div>
+	</section>
+
+	<f:render partial="Table/Roulette/Status" />
+	<f:render partial="Table/Roulette/SoundSwitch" />
 
 	<div id="ro-controls" tabindex="-1">
 		<p class="ck-table__hint">

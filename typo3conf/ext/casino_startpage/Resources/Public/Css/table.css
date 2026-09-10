@@ -200,6 +200,16 @@
    und der Zeiger zeigt an, dass hier nichts zu holen ist. */
 .ck-felt__field[aria-disabled='true'] {
 	cursor: not-allowed;
+}
+
+/* Die Ausblendung gilt AUSDRUECKLICH NICHT fuer das gerade fokussierte Feld:
+   opacity wirkt auf das ganze Element einschliesslich outline — derselbe
+   Fehler, an dem der Fokusrahmen der Chipwahl auf gemessene 2,60:1 fiel
+   (Auditbefund H7-01 vom 2026-09-07). Beim Come-out bzw. zwischen zwei
+   Runden ist ein grosser Teil der Felder gesperrt; ohne diese Ausnahme
+   verloere ein Tastaturbenutzer seine Ortsangabe ueber viele Felder hinweg,
+   und zwar an allen drei Tischen, die dieses Blatt teilen. */
+.ck-felt__field[aria-disabled='true']:not(:focus-visible) {
 	opacity: 0.55;
 }
 
@@ -232,17 +242,71 @@
    6  Bedienleiste, Wechselfeld, Buy-in
    ========================================================================== */
 
-/* Die Leiste selbst: Chrom mit Messingkante, unter dem Tuch. */
+/*
+ * DIE LEISTE IST DIE VORDERZARGE DES TISCHES — Gestaltungslauf 2026-09-09.
+ *
+ * Sie war poliertes Chrom (--ck-chrome-polish) und damit an allen vier
+ * Tischen der auffälligste Bruch der Seite: über ihr ein Nussbaumtisch mit
+ * Messingkante auf rotem Teppich, darunter über die volle Breite eine
+ * glänzend silberne Fläche. Das las sich wie ein angeschraubtes Laborgerät
+ * und nicht wie ein Teil desselben Möbels.
+ *
+ * CHROM BLEIBT DABEI RICHTIG — NUR NICHT HIER. Die Frontplatte eines
+ * Spielautomaten IST verchromter Zinkdruckguss (DESIGNBRIEF.md Abschnitt 1),
+ * und genau dort bleibt --ck-chrome-polish unangetastet stehen:
+ * .ck-credit__slot in base.css und die fünf Gehäuse-Stylesheets. Ein
+ * SPIELTISCH ist kein Gehäuse, sondern ein Möbelstück: Holz, Messing, Tuch
+ * (CONCEPT.md C.2). Die Trennlinie verläuft also zwischen den beiden
+ * Gattungen und nicht quer durch eine.
+ *
+ * DREI LAGEN, VON UNTEN NACH OBEN:
+ *   1  --ck-wood-polish       die Zarge im Deckenlicht: oben die belichtete
+ *                             Schulter, unten der Schatten
+ *   2  --ck-wood-grain-lines  die Maserung, die den Verlauf bricht
+ *   3  Messing                eine umlaufende Goldlinierung (--ck-brass-300)
+ *                             und darüber die hellere Lichtkante der Fase
+ *                             (--ck-brass-200) an der Oberkante
+ *
+ * NACHGERECHNET (WCAG-2.2-Formel, relative Leuchtdichte mit
+ * sRGB-Rücktransformation) — alle Werte gegen den HELLSTEN Stopp des
+ * Verlaufs, --ck-wood-100 #7a5232, weil dort der Abstand zu heller Schrift
+ * am kleinsten ist. Auf jedem anderen Stopp wird jeder Wert größer:
+ *
+ *   Schrift der Leiste
+ *     --ck-text-primary #f4e8d4  auf --ck-wood-100   5,63 : 1   (Soll 4,5)
+ *     dieselbe Schrift           auf --ck-wood-500   15,54 : 1
+ *   Bauteilgrenzen (Soll 3 : 1, SC 1.4.11)
+ *     Tastenfläche --ck-bakelite-cream #ecdfc4        5,17 : 1
+ *     Fokusrahmen  --ck-brass-200 #dfb964             3,66 : 1
+ *     Lichtkante   --ck-brass-200 auf --ck-wood-100   3,62 : 1
+ *     Goldlinierung --ck-brass-300 gegen den Teppich  5,89 : 1
+ *
+ * DAS IST AN ZWEI STELLEN EINE VERBESSERUNG UND AN KEINER EINE
+ * VERSCHLECHTERUNG. Auf dem Chromverlauf erreichte die cremefarbene
+ * Tastenfläche gegen ihren Untergrund stellenweise nur 1,03 : 1 — genau der
+ * Grund, aus dem der Behebungslauf vom 2026-09-06 (Befund H-02) jedem
+ * Fokusrahmen einen zweiten, dunklen Innenring geben musste. Auf Holz
+ * erreicht dieselbe Fläche 5,17 : 1 und der Messingring 3,66 : 1; beide
+ * Seiten tragen jetzt, nicht nur eine. Der Innenring BLEIBT trotzdem
+ * stehen: er sitzt an der hellen Tastenfläche (13,59 : 1 gegen
+ * --ck-print-ink) und ist dort weiterhin die bessere der beiden Kanten.
+ *
+ * --ck-radius-lg statt --ck-radius-md: dieselbe Rundung wie .ck-felt weiter
+ * oben. Zwei Bauteile desselben Möbels haben denselben Kantenradius.
+ */
 .ck-table__controls {
 	display: flex;
 	flex-wrap: wrap;
 	gap: var(--ck-space-3);
-	padding: var(--ck-space-3);
-	border-radius: var(--ck-radius-md);
-	background-image: var(--ck-chrome-polish);
+	padding: var(--ck-space-4) var(--ck-space-3);
+	border-radius: var(--ck-radius-lg);
+	background-color: var(--ck-wood-300);
+	background-image: var(--ck-wood-grain-lines), var(--ck-wood-polish);
+	color: var(--ck-text-primary);
 	box-shadow:
+		inset 0 0.14rem 0 var(--ck-brass-200),
 		inset 0 0 0 0.12rem var(--ck-brass-300),
-		0 0.2rem 0.5rem var(--ck-shadow-soft);
+		0 0.4rem 1rem var(--ck-shadow-hard);
 }
 
 /* Die Chipwahl. Ein <fieldset> bringt eigene Rahmen- und Randvorgaben mit,
@@ -257,10 +321,33 @@
 	border: 0;
 }
 
+/*
+ * BEHEBUNG EINES KONTRASTRISIKOS AN DER QUELLE — Gestaltungslauf 2026-09-09.
+ *
+ * Diese Legende stand in --ck-text-inverse (einer Schriftfarbe für HELLEN
+ * Untergrund) auf dem Chromverlauf der Bedienleiste. Dieser Verlauf dunkelt
+ * in seiner Mitte bis auf --ck-chrome-500 #3d454c ab; dort erreichte die
+ * Paarung nachgemessen 1,93 : 1 statt der 4,5 : 1 aus SC 1.4.3. Solange die
+ * Leiste flach blieb, lag die Legende zufällig im hellen Bereich — sobald
+ * sie umbrach (auf 320 und 360 Bildpunkten tut sie das), wanderte sie in das
+ * dunkle Band. Ein Kontrast, der von der Fensterbreite abhängt, ist keiner.
+ *
+ * Der Craps-Tisch hatte das bereits behoben, aber nur für sich (eingegrenzt
+ * auf .cr-throw in craps/…/tray.css) — Roulette, Blackjack und der
+ * Mustertisch trugen den Fund weiter. Behoben ist er jetzt HIER, an der
+ * einzigen Stelle, die alle vier Tische teilen.
+ *
+ * Die Antwort ist nicht mehr ein blickdichtes Namensschild hinter der
+ * Schrift, sondern der neue Untergrund selbst: die Zarge aus Holz hat kein
+ * helles Band mehr in der Mitte, und --ck-text-primary #f4e8d4 trägt auf
+ * ihrem HELLSTEN Stopp 5,63 : 1 (Rechnung bei .ck-table__controls oben).
+ * Eine feste Schriftfarbe kann auf diesem Verlauf also an JEDER Stelle
+ * bestehen — das konnte sie auf dem Chromverlauf grundsätzlich nicht.
+ */
 .ck-table__chips legend {
 	inline-size: 100%;
 	margin-block-end: var(--ck-space-1);
-	color: var(--ck-text-inverse);
+	color: var(--ck-text-primary);
 	font-family: var(--ck-font-display);
 	font-size: 0.85rem;
 	letter-spacing: 0.04em;
@@ -313,7 +400,12 @@
    nachgezogen, diese Klasse aber nicht: die Modewahl des Craps-Tisches sitzt
    auf derselben hellen Bedienleiste, wo der Messingring allein nur 1,69:1
    (oben) und 1,44:1 (unten) erreicht. Mit dem Innenring hat der Rahmen
-   wieder eine Seite deutlich über 3:1. */
+   wieder eine Seite deutlich über 3:1.
+
+   NACHTRAG GESTALTUNGSLAUF 2026-09-09: derselbe Nachtrag wie bei
+   .ck-table__button:focus-visible weiter unten. Auf der hölzernen Zarge
+   trägt der Messingring mit 3,66 : 1 von selbst; der Innenring bleibt aus
+   demselben Grund stehen. */
 .ck-table__chip:has(:focus-visible) {
 	outline: 3px solid var(--ck-brass-200);
 	outline-offset: 3px;
@@ -332,15 +424,22 @@
 	opacity: 0.4;
 }
 
+/* Schrift auf der Zarge: --ck-text-primary, 5,63 : 1 auf dem hellsten Stopp
+   des Holzverlaufs (Rechnung bei .ck-table__controls). --ck-text-muted wäre
+   für diese Nebenangaben naheliegend, erreicht dort aber nur 2,59 : 1 —
+   nachgerechnet, nicht geschätzt. Nebensächlich bleiben sie deshalb über
+   ihren Schriftgrad und nicht über ihre Farbe; das ist ohnehin das
+   verlässlichere Mittel, weil ein Kontrastmodus einer abgeschwächten Farbe
+   ihre Wirkung nimmt, einem kleineren Grad nicht. */
 .ck-table__chip-name {
-	color: var(--ck-text-inverse);
+	color: var(--ck-text-primary);
 	font-family: var(--ck-font-ui);
 	font-size: 0.7rem;
 	text-align: center;
 }
 
 .ck-table__chip-count {
-	color: var(--ck-text-inverse);
+	color: var(--ck-text-primary);
 	font-family: var(--ck-font-numeric);
 	font-size: 0.7rem;
 }
@@ -384,6 +483,16 @@
  * zuverlässig über 3:1 liegt. Damit hat jede Station mindestens eine Seite
  * (innen oder außen) mit ausreichendem Kontrast, ohne die bereits
  * bestehenden Messungen auf dunklem Untergrund zu verschlechtern.
+ *
+ * NACHTRAG GESTALTUNGSLAUF 2026-09-09: die Leiste ist nicht mehr hell. Auf
+ * der hölzernen Zarge erreicht der Messingring gegen seinen Untergrund
+ * nachgerechnet 3,66 : 1 (--ck-brass-200 #dfb964 auf --ck-wood-100 #7a5232,
+ * dem hellsten Stopp) statt der 1,03–2,68 : 1 auf dem Chromverlauf — die
+ * AUSSENSEITE trägt jetzt also von selbst. Der dunkle Innenring bleibt
+ * dennoch stehen: er liegt an der cremefarbenen Tastenfläche und erreicht
+ * dort 13,59 : 1 (--ck-print-ink #1f150d auf --ck-bakelite-cream #ecdfc4).
+ * Ihn zu entfernen hieße, eine gute Messung gegen eine andere gute Messung
+ * einzutauschen und dabei eine bereits abgenommene Behebung aufzugeben.
  */
 .ck-table__button:focus-visible {
 	outline: 3px solid var(--ck-brass-200);
@@ -420,11 +529,17 @@
 }
 
 /* CASH OUT bleibt fokussierbar, wenn es gesperrt ist. aria-disabled statt
-   disabled — siehe der Vertragskommentar in Table/BuyIn.html. Der
-   Fokusrahmen bleibt trotzdem sichtbar (.ck-table__button:focus-visible
-   gilt unverändert weiter). */
+   disabled — siehe der Vertragskommentar in Table/BuyIn.html. */
 .ck-table__button--cashout[aria-disabled='true'] {
 	cursor: not-allowed;
+}
+
+/* Auch hier gilt die Ausblendung NICHT fuer den fokussierten Knopf. Der
+   Kommentar darueber behauptete frueher, .ck-table__button:focus-visible
+   bleibe "unveraendert weiter" sichtbar — das stimmt fuer die Regel, nicht
+   fuer ihre Wirkung: opacity dimmt die outline mit. Beim Betreten des
+   Tisches ist CASH OUT immer gesperrt, es ist also der Normalfall. */
+.ck-table__button--cashout[aria-disabled='true']:not(:focus-visible) {
 	opacity: 0.55;
 }
 
@@ -441,7 +556,7 @@
 }
 
 .ck-table__meter-label {
-	color: var(--ck-text-inverse);
+	color: var(--ck-text-primary);
 	font-family: var(--ck-font-ui);
 	font-size: 0.65rem;
 	letter-spacing: 0.06em;
@@ -463,11 +578,14 @@
 	align-items: center;
 	gap: var(--ck-space-3);
 	padding-block-start: var(--ck-space-2);
-	border-block-start: 1px solid var(--ck-brass-400);
+	/* Die Trennfuge der Zarge. Sie war --ck-brass-400 und erreichte auf dem
+	   Holz nachgerechnet nur 2,60 : 1 — als Zierlinie ohne Aussage zwar nicht
+	   gefordert, aber sichtbar sein soll sie schon. --ck-brass-300 erreicht
+	   auf demselben Grund (--ck-wood-300 #452b19) 4,58 : 1. */
+	border-block-start: 1px solid var(--ck-brass-300);
 	inline-size: 100%;
 }
 
-.ck-table__buyin,
 .ck-table__exchange {
 	display: flex;
 	flex-wrap: wrap;
@@ -479,57 +597,190 @@
 }
 
 /*
- * Behebungslauf 2026-09-05/06 (AUDITREPORT-2026-09-05.md, Befund A-09):
- * beide Beschriftungen liegen auf --ck-chrome-polish (.ck-table__controls
- * oben), einem Verlauf, der in der Mitte bis auf --ck-chrome-500
- * abdunkelt. --ck-text-inverse ist für HELLEN Untergrund gerechnet und
- * erreichte am dunklen Teil des Verlaufs nur 2,72:1 statt 4,5:1
- * (SC 1.4.3) — derselbe Fehlertyp wie bei den Automaten-Tasten (A-08):
- * eine feste Textfarbe kann nicht jede Stelle eines Verlaufs zugleich
- * bestehen. Ein blickdichtes Namensschild aus einem bereits vorhandenen
- * Chrom-Token dahinter macht den Kontrast unabhängig davon, über welchem
- * Teil des Verlaufs die Beschriftung liegt (übernommenes Muster aus
- * fruit_risk/machine.css).
+ * DIE GESCHICHTE DIESER REGEL, UND WARUM DAS NAMENSSCHILD JETZT WEG DARF.
+ *
+ * Behebungslauf 2026-09-05/06 (AUDITREPORT-2026-09-05.md, Befund A-09): die
+ * Beschriftung lag auf --ck-chrome-polish, einem Verlauf, der in der Mitte
+ * bis auf --ck-chrome-500 abdunkelt. --ck-text-inverse ist für HELLEN
+ * Untergrund gerechnet und erreichte am dunklen Teil des Verlaufs nur
+ * 2,72 : 1 statt der 4,5 : 1 aus SC 1.4.3. Die damalige Antwort war ein
+ * blickdichtes Namensschild aus --ck-chrome-100 hinter der Schrift: es machte
+ * den Kontrast unabhängig davon, über welchem Teil des Verlaufs die Zeile
+ * gerade lag.
+ *
+ * Der Grund dafür war der Verlauf, nicht die Zeile. Seit die Bedienleiste
+ * die HÖLZERNE ZARGE des Tisches ist (Gestaltungslauf 2026-09-09, Rechnung
+ * bei .ck-table__controls), gibt es kein helles Band mehr, gegen das eine
+ * feste Schriftfarbe scheitern könnte: --ck-text-primary trägt auf dem
+ * hellsten Stopp 5,63 : 1 und auf dem dunkelsten 15,54 : 1. Das Schild ist
+ * damit nicht nur überflüssig, sondern schädlich — eine hellgraue
+ * Chromfläche auf einer Nussbaumzarge sieht aus wie ein aufgeklebter Zettel.
+ * Es entfällt; der Kontrast ist ohne es besser als mit ihm je war.
  */
-.ck-table__buyin-legend,
 .ck-table__exchange legend {
-	padding: 0.12em 0.32em;
-	color: var(--ck-text-inverse);
-	background-color: var(--ck-chrome-100);
+	color: var(--ck-text-primary);
 	font-family: var(--ck-font-display);
 	font-size: 0.85rem;
 	letter-spacing: 0.04em;
 }
 
+/* ==========================================================================
+   Die Chipkasse (Ansage vom 2026-09-07: je Chipsorte ein Kauf- und ein
+   Rückgabeweg). Sie ersetzt das Betragsformular an derselben Stelle.
+   ========================================================================== */
+
+.ck-table__chipbank {
+	display: flex;
+	flex-direction: column;
+	gap: var(--ck-space-1);
+	margin: 0;
+	padding: 0;
+	border: 0;
+	min-inline-size: 0;
+}
+
+.ck-table__chipbank legend {
+	inline-size: 100%;
+	margin-block-end: var(--ck-space-1);
+	color: var(--ck-text-primary);
+	font-family: var(--ck-font-display);
+	font-size: 0.85rem;
+	letter-spacing: 0.04em;
+}
+
+/* Eine Zeile je Chipsorte. flex-wrap statt eines starren Gitters: bei
+   320 Bildpunkten bricht die Zeile um, statt die Knöpfe unter ihre
+   Mindestgröße zu drücken — Zielgröße ist eine Zusage, Bildschirmbreite
+   ist keine (WCAG 2.2 SC 2.5.8 und SC 1.4.10).
+
+   DER ABSTAND, GESTALTUNGSLAUF 2026-09-09. Waagerecht und senkrecht war
+   derselbe: var(--ck-space-1), also 4 Bildpunkte. Das ist der Abstand
+   zwischen zwei Zeilen einer Aufzählung und nicht der zwischen einer Münze
+   und ihrer Beschriftung. Ein Chip ist außerdem bis an den Rand seines
+   Kastens gezeichnet — die Randkerben laufen bis dorthin —, sodass die
+   Zeichnung mit vier Bildpunkten Luft am ersten Buchstaben KLEBTE und bei
+   1440 wie 320 Bildpunkten aussah, als läge sie auf ihm.
+
+   Es waren nachgemessen nie überlappende Kästen: eine Flex-Zeile ohne
+   negative Ränder kann ihre Kinder gar nicht übereinanderlegen. Es war zu
+   wenig Abstand, und das ist derselbe Fund mit einer anderen Ursache.
+
+   Getrennte Werte statt eines gemeinsamen: waagerecht trennt der Abstand
+   VERSCHIEDENE Dinge (Münze, Name, Stückzahl, zwei Knöpfe) und braucht
+   deshalb den vollen Grundabstand; senkrecht trennt er zwei Umbruchzeilen
+   DESSELBEN Dings und bleibt klein. Zusammengehöriges enger als
+   Getrenntes — das ist der ganze Rhythmus der Leiste.
+
+   UND DIE MÜNZE BEKOMMT NOCH EINMAL MEHR ALS DER REST. Sie ist das einzige
+   BILD in der Zeile, und sie ist bis an den Rand ihres Kastens gezeichnet —
+   die Randkerben laufen bis dorthin. Zwei Texte nebeneinander tragen ihren
+   Abstand in den Buchstaben selbst (Vor- und Nachbreite); eine Zeichnung tut
+   das nicht. Deshalb 0,75 rem zwischen Münze und Name und 0,5 rem zwischen
+   allem Übrigen.
+
+   WARUM NICHT ÜBERALL 1 rem: bei 320 Bildpunkten reicht die Zeile dann nicht
+   mehr für „100 Euro (schwarz)", und die längste der fünf Zeilen bräche als
+   einzige um. Fünf gleich gebaute Zeilen, von denen eine zweizeilig ist,
+   sehen kaputt aus. Nachgesehen bei 320, 360 und 1440 Bildpunkten. */
+.ck-table__chipbank-row {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	column-gap: var(--ck-space-2);
+	row-gap: var(--ck-space-1);
+	min-inline-size: 0;
+}
+
+.ck-table__chipbank-chip {
+	flex: 0 0 auto;
+	inline-size: 1.75rem;
+	block-size: 1.75rem;
+	margin-inline-end: var(--ck-space-1);
+}
+
+.ck-table__chipbank-name {
+	flex: 1 1 6rem;
+	min-inline-size: 0;
+	color: var(--ck-text-primary);
+	font-family: var(--ck-font-ui);
+	font-size: 0.75rem;
+}
+
+.ck-table__chipbank-count {
+	flex: 0 0 auto;
+	color: var(--ck-text-primary);
+	font-family: var(--ck-font-numeric);
+	font-size: 0.75rem;
+}
+
+/* Schmaler als ein voller Knopf, aber NIE unter 2,75rem in beide Richtungen. */
+.ck-table__button--chip {
+	padding-inline: var(--ck-space-2);
+	font-size: 0.8rem;
+}
+
+/* Nur für Hilfsmittel: die Ergänzung des Knopfnamens („: ein Chip zu 25
+   Euro"). Sie steht HINTER dem sichtbaren Wort, damit der erreichbare Name
+   mit dem sichtbaren Text beginnt (SC 2.5.3, Label in Name — genau der
+   Fehler von Auditbefund H7-02). Nicht display: none und nicht
+   visibility: hidden: beide nähmen den Text aus dem Barrierebaum und damit
+   aus dem Namen. Dieselbe Bauart wie .ck-credit__announce in base.css. */
+.ck-table__hidden-detail {
+	position: absolute;
+	inline-size: 1px;
+	block-size: 1px;
+	overflow: hidden;
+	clip-path: inset(50%);
+	white-space: nowrap;
+}
+
+/* Der gesperrte Rückgabeknopf. Die Ausblendung gilt AUSDRÜCKLICH NICHT für
+   den gerade fokussierten Knopf: opacity wirkt auf das ganze Element,
+   einschließlich outline und box-shadow — genau daran fiel der Fokusrahmen
+   der Chipwahl auf gemessene 2,60:1 (Auditbefund H7-01 vom 2026-09-07). Beim
+   Betreten des Tisches ist JEDE Sorte leer, also JEDER Rückgabeknopf
+   gesperrt; ohne diese Ausnahme verlöre ein Tastaturbenutzer auf fünf
+   Stationen hintereinander seine Ortsangabe. */
+.ck-table__button--chip[aria-disabled='true']:not(:focus-visible) {
+	opacity: 0.45;
+}
+
+.ck-table__button--chip[aria-disabled='true'] {
+	cursor: not-allowed;
+}
+
+/*
+ * .ck-table__buyin-label BLEIBT BESTEHEN, obwohl das Betragsformular am
+ * Tisch entfallen ist (Ansage vom 2026-09-07): sie wird von
+ * craps/…/Partials/Table/Craps/Throw.html für die Beschriftung des
+ * Wurfkraft-Reglers benutzt (<label class="ck-table__buyin-label"
+ * for="cr-power">) und von craps/…/verify-view.mjs geprüft — eine andere
+ * Extension, ein anderer Zweck, zufällig derselbe Klassenname. Der Plan
+ * (4.9) sah die Löschung vor, ohne diese Weiterverwendung zu kennen; sie zu
+ * löschen hätte den Wurfkraft-Regler unbeabsichtigt ungestylt
+ * zurückgelassen — außerhalb des Umfangs dieses Umsetzungsstücks und ohne
+ * jeden Nutzen für die Chipkasse. EIGENE ABWEICHUNG vom Plan, siehe Bericht.
+ *
+ * .ck-table__buyin-input und ihre :focus-visible-Fassung sind dagegen mit
+ * Umsetzungsstück Tf entfernt worden: seit das Betragsformular entfiel
+ * (Tb), hatte kein Markup mehr einen Leser dafür; einzig
+ * verify-table-view.mjs (V-5, V-6) nannte die Klasse noch beim Namen. Diese
+ * Prüfungen sind mit demselben Lauf auf .ck-table__button umgestellt, das
+ * die Chipkasse über class="ck-table__button ck-table__button--chip" ohnehin
+ * schon mitbenutzt.
+ */
+/* Die Schriftfarbe ist mit dem Gestaltungslauf 2026-09-09 aus demselben
+   Grund gewechselt wie bei .ck-table__chips legend weiter oben: sie stand in
+   --ck-text-inverse auf dem Chromverlauf und erreichte auf dessen dunklem
+   Band 1,93 : 1. Der Craps-Tisch hatte das nur für sich behoben; hier steht
+   es jetzt für alle vier. */
 .ck-table__buyin-label {
 	display: flex;
 	align-items: center;
 	gap: var(--ck-space-1);
-	color: var(--ck-text-inverse);
+	color: var(--ck-text-primary);
 	font-family: var(--ck-font-ui);
 	font-size: 0.8rem;
-}
-
-.ck-table__buyin-input {
-	min-inline-size: 2.75rem;
-	min-block-size: 2.75rem;
-	inline-size: 6rem;
-	padding-inline: var(--ck-space-2);
-	border: 1.5px solid var(--ck-brass-400);
-	border-radius: var(--ck-radius-sm);
-	background-color: var(--ck-paper-100);
-	color: var(--ck-print-ink);
-	font-family: var(--ck-font-numeric);
-	font-size: 1rem;
-}
-
-/* Behebungslauf 2026-09-06, Befund H-02 — dieselbe Begründung wie bei
-   .ck-table__button:focus-visible oben: das Eingabefeld sitzt auf demselben
-   hellen Untergrund der Bedienleiste. */
-.ck-table__buyin-input:focus-visible {
-	outline: 3px solid var(--ck-brass-200);
-	outline-offset: 2px;
-	box-shadow: 0 0 0 2px var(--ck-print-ink);
 }
 
 

@@ -58,7 +58,7 @@ routes:
       - [Roulette](https://casino-kunterbunt.ddev.site/roulette): amerikanisches Rad mit 38 Fächern und doppelter Null
       - [Mustertisch](https://casino-kunterbunt.ddev.site/mustertisch-testdaten-c1d): Vorlage der geteilten Tisch-Bausteine, kein eigenes Spiel
       - [Blackjack](https://casino-kunterbunt.ddev.site/blackjack): Kartentisch mit grünem Tuch, Sechs-Deck-Schlitten und fester Geber-Hausregel, spielbar mit Doppeln, Teilen und Versicherung
-      - [Craps](https://casino-kunterbunt.ddev.site/craps): Würfeltisch mit 47 Wettfeldern – Pass Line, Come, Odds, Place-Zahlen und Hardways – samt laufendem Point; zwei Würfel werden selbst geworfen, das Ergebnis entsteht aus der Simulation
+      - [Craps](https://casino-kunterbunt.ddev.site/craps): Würfeltisch mit 48 Wettfeldern – Pass Line, Come, Odds, Place-Zahlen und Hardways – samt laufendem Point; zwei Würfel werden selbst geworfen, das Ergebnis entsteht aus der Simulation
 
       ## Technik
       - TYPO3 13.4, klassische Installation

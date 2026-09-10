@@ -24,8 +24,8 @@
  *   W-8   Place-Wetten ruhen beim Come-out, sind im Point schaltbar
  *   W-9   Field löst sich in jedem Wurf auf, mit den drei Quoten
  *   W-10  Hardways über mehrere Würfe (Pasch vor der einfachen Zahl und der 7)
- *   W-11  die sechs Einmalwetten und Field lösen sich NIE als 'stay' auf
- *   W-12  erschöpfende Probe: 47 Felder × 7 Zustände × 36 Paare, je ein Urteil
+ *   W-11  die sieben Einmalwetten und Field lösen sich NIE als 'stay' auf
+ *   W-12  erschöpfende Probe: 48 Felder × 7 Zustände × 36 Paare, je ein Urteil
  *   W-13  Bilanzprobe: total/payout stimmen mit der Summe der Einzelurteile
  *   W-14  mayPlace() erteilt jede der sechs Absagen genau dort, wo sie hingehört
  *   W-15  DER QUOTENNACHWEIS AM ECHTEN ZUSTANDSWERK: derselbe Erwartungswert
@@ -494,9 +494,9 @@ console.log('\nW-10  Hardways über mehrere Würfe: Pasch gewinnt, die einfache 
 
 /* =============================================== W-11 Einmalwetten */
 
-console.log('\nW-11  Die sechs Einmalwetten und Field lösen sich in JEDEM Wurf auf, nie als \'stay\'');
+console.log('\nW-11  Die sieben Einmalwetten und Field lösen sich in JEDEM Wurf auf, nie als \'stay\'');
 {
-	const IDS = ['any-seven', 'any-craps', 'two', 'three', 'eleven', 'twelve', 'field'];
+	const IDS = ['any-seven', 'any-craps', 'two', 'three', 'eleven', 'twelve', 'craps-eleven', 'field'];
 	const abweichungen = [];
 	for (const id of IDS) {
 		for (const { sum, faces } of WUERFE) {
@@ -508,12 +508,12 @@ console.log('\nW-11  Die sechs Einmalwetten und Field lösen sich in JEDEM Wurf 
 			}
 		}
 	}
-	check(abweichungen.length === 0, 'über alle 36 Paare gibt es für keine der sieben Einwurfwetten ein \'stay\'', ...abweichungen);
+	check(abweichungen.length === 0, 'über alle 36 Paare gibt es für keine der acht Einwurfwetten ein \'stay\'', ...abweichungen);
 }
 
 /* ==================================================== W-12 Erschöpfende Probe */
 
-console.log('\nW-12  Erschöpfende Probe: alle 47 Felder gleichzeitig, 7 Zustände × 36 Paare = 11 844 Urteile');
+console.log('\nW-12  Erschöpfende Probe: alle 48 Felder gleichzeitig, 7 Zustände × 36 Paare = 12 096 Urteile');
 {
 	const ERLAUBTE_URTEILE = new Set(['win', 'loss', 'push', 'stay', 'move']);
 	const alleFieldIds = betsModul.FIELDS.map((f) => f.id);
@@ -528,13 +528,13 @@ console.log('\nW-12  Erschöpfende Probe: alle 47 Felder gleichzeitig, 7 Zustän
 			const ergebnis = wagers.resolve({ sum, faces, stakes: stakesAlle });
 			geprueft++;
 
-			if (ergebnis.fields.length !== 47) {
-				abweichungen.push(`Zustand ${zustand}, Summe ${sum}: ${ergebnis.fields.length} Urteile statt 47`);
+			if (ergebnis.fields.length !== 48) {
+				abweichungen.push(`Zustand ${zustand}, Summe ${sum}: ${ergebnis.fields.length} Urteile statt 48`);
 				continue;
 			}
 			const gefundeneIds = new Set(ergebnis.fields.map((f) => f.fieldId));
-			if (gefundeneIds.size !== 47) {
-				abweichungen.push(`Zustand ${zustand}, Summe ${sum}: ${gefundeneIds.size} verschiedene Kennungen statt 47 (ein Feld hat mehr als ein Urteil bekommen)`);
+			if (gefundeneIds.size !== 48) {
+				abweichungen.push(`Zustand ${zustand}, Summe ${sum}: ${gefundeneIds.size} verschiedene Kennungen statt 48 (ein Feld hat mehr als ein Urteil bekommen)`);
 			}
 			for (const id of alleFieldIds) {
 				if (!gefundeneIds.has(id)) { abweichungen.push(`Zustand ${zustand}, Summe ${sum}: "${id}" hat KEIN Urteil bekommen`); }
@@ -545,7 +545,7 @@ console.log('\nW-12  Erschöpfende Probe: alle 47 Felder gleichzeitig, 7 Zustän
 		}
 	}
 	check(geprueft === 7 * 36, `7 Zustände × 36 Paare = ${7 * 36} Würfe geprüft (gefunden: ${geprueft})`);
-	check(abweichungen.length === 0, 'in allen 11 844 Fällen bekommt jedes der 47 Felder genau ein Urteil aus den fünf erlaubten Wörtern', ...abweichungen.slice(0, 20));
+	check(abweichungen.length === 0, 'in allen 12 096 Fällen bekommt jedes der 48 Felder genau ein Urteil aus den fünf erlaubten Wörtern', ...abweichungen.slice(0, 20));
 
 	console.log('     Gegenprobe W-12-G: ein aus der Feldliste entferntes Feld fällt als "ohne Urteil" auf');
 	const stakesOhneField = { ...stakesAlle };
@@ -589,13 +589,13 @@ console.log('\nW-13  Bilanzprobe: total/payout stimmen mit der Summe der Einzelu
 				// Grobe, aber scharfe obere Schranke: keine Auszahlung kann das
 				// Hundertfache jedes einzelnen Einsatzes je Feld überschreiten
 				// (die höchste Quote im Haus ist 30:1, bei 6 € Einsatz also 180 €
-				// Gewinn — weit unter 100 × 6 × 47). Ein Verstoß hieße, dass Geld
+				// Gewinn — weit unter 100 × 6 × 48). Ein Verstoß hieße, dass Geld
 				// aus dem Nichts entstanden ist.
 				abweichungen.push(`Zustand ${zustand}, Summe ${sum}: payout ${ergebnis.payout} überschreitet die grobe obere Schranke — Geld aus dem Nichts?`);
 			}
 		}
 	}
-	check(abweichungen.length === 0, 'in allen 11 844 Fällen ist die Bilanz exakt: total/payout stimmen mit den Einzelurteilen, kein Geld entsteht oder verschwindet', ...abweichungen.slice(0, 20));
+	check(abweichungen.length === 0, 'in allen 12 096 Fällen ist die Bilanz exakt: total/payout stimmen mit den Einzelurteilen, kein Geld entsteht oder verschwindet', ...abweichungen.slice(0, 20));
 
 	console.log('     Gegenprobe W-13-G: returned=0 bei einem push verletzt die Gleichung push→returned===staked');
 	const verfaelschtesUrteil = { fieldId: 'dont-pass', staked: 10, outcome: 'push', payout: 0, returned: 0, movedTo: null };
@@ -759,7 +759,7 @@ function alsProzent(a) {
  * von CrapsWagers.resolve() für alle 36 Würfelpaare.
  *
  * Gilt für: Odds (an einem festen Point), Come-/Don't-Come-Zahlenkästen,
- * Place-Wetten, Hardways, Field und die sechs Einmalwetten (bei Letzteren
+ * Place-Wetten, Hardways, Field und die sieben Einmalwetten (bei Letzteren
  * gibt es kein 'stay', jeder Wurf löst auf).
  *
  * @param {string} fieldId
@@ -887,6 +887,10 @@ console.log('\nW-15  Der Quotennachweis am echten Zustandswerk (dieselbe Tabelle
 		{ name: 'Any Craps', erwartet: bruch(-1, 9), prozent: 11.11, werte: [evAbsorbierendesFeld('any-craps', 1, null)] },
 		{ name: 'Die 2, Die 12', erwartet: bruch(-5, 36), prozent: 13.89, werte: [evAbsorbierendesFeld('two', 1, null), evAbsorbierendesFeld('twelve', 1, null)] },
 		{ name: 'Die 3, Die 11', erwartet: bruch(-1, 9), prozent: 11.11, werte: [evAbsorbierendesFeld('three', 1, null), evAbsorbierendesFeld('eleven', 1, null)] },
+		// Abgeleitet, wie in verify-bets.mjs (B-9): keine eigene Zeile aus
+		// Anhang H, sondern dieselbe −1/9 wie Any Craps, hier am echten
+		// Zustandswerk hergeleitet statt aus einer Formel.
+		{ name: 'Craps & Eleven', erwartet: bruch(-1, 9), prozent: 11.11, werte: [evAbsorbierendesFeld('craps-eleven', 1, null)] },
 	];
 
 	const abweichungen = [];
@@ -915,7 +919,7 @@ console.log('\nW-15  Der Quotennachweis am echten Zustandswerk (dieselbe Tabelle
 	}
 
 	check(abweichungen.length === 0,
-		'jede der 13 Zeilen aus Anhang H stimmt mit dem am echten Zustandswerk hergeleiteten Erwartungswert überein, als Bruch UND als gerundeter Prozentwert',
+		'jede der 14 Zeilen (13 aus Anhang H plus die eine abgeleitete Craps & Eleven) stimmt mit dem am echten Zustandswerk hergeleiteten Erwartungswert überein, als Bruch UND als gerundeter Prozentwert',
 		...abweichungen);
 
 	console.log("     Gegenprobe W-15-G: Don't Pass, die bei der 12 verlöre statt Patt zu stehen, weicht von −3/220 ab");
@@ -953,7 +957,7 @@ if (fehler === 0) {
 		+ '\n36 Würfelpaare regelrecht, Come/Don\'t Come wandern korrekt auf ihre Zahl, Odds'
 		+ '\nfolgen ihrer Grundwette ohne Ausnahme, Place-Wetten ruhen beim Come-out und sind'
 		+ '\nim Point schaltbar, Hardways und Einmalwetten lösen sich zuverlässig auf, die'
-		+ '\nerschöpfende Probe über 47 Felder × 7 Zustände × 36 Paare bleibt bilanzrein, und'
+		+ '\nerschöpfende Probe über 48 Felder × 7 Zustände × 36 Paare bleibt bilanzrein, und'
 		+ '\nder Quotennachweis stimmt am ECHTEN Zustandswerk exakt mit Anhang H überein —'
 		+ '\ndieselbe Tabelle wie B-9, hier aus CrapsWagers.resolve() selbst hergeleitet.');
 } else {

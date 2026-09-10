@@ -39,6 +39,28 @@
  * wagers-craps.js. Ein matches(), das „false" lieferte, wäre eine halbe
  * Wahrheit, die jede Wette stillschweigend verlöre; deshalb wirft es. Ein
  * Aufruf ist ein Programmierfehler und soll laut sein.
+ *
+ * DIE EINZIGE ABGELEITETE WETTE DES TISCHES: C & E
+ * ------------------------------------------------
+ * „Craps & Eleven" ist keine eigene Quote, sondern eine Aufteilung: der
+ * Einsatz zählt je zur Hälfte für Any Craps (7 zu 1) und für die Elf
+ * (15 zu 1). Beide Quoten stehen in Anhang H, also braucht diese Wette
+ * KEINEN eigenen 500.000-Runden-Nachweis — nur die Rechnung, dass die
+ * Aufteilung aufgeht (verify-bets.mjs, B-13).
+ *
+ * Auf den GANZEN Einsatz umgerechnet zahlt sie
+ *   bei 2, 3 oder 12   die halbe Wette 8fach zurück  = 4 × Einsatz  →  3 zu 1
+ *   bei der 11         die halbe Wette 16fach zurück = 8 × Einsatz  →  7 zu 1
+ * Beide Ergebnisse sind für JEDEN ganzen Einsatz wieder ganzzahlig — 4s und
+ * 8s sind ganze Zahlen, auch wenn s ungerade ist. Deshalb gibt es hier KEINE
+ * Regel für ungerade Einsätze und keinen Rundungsverlust: die Halbierung ist
+ * die Erklärung der Wette, kein Rechenschritt. stakeUnit() liefert
+ * folgerichtig 1.
+ *
+ * Der Erwartungswert je 1 € ist
+ *   4/36 · (+3) + 2/36 · (+7) + 30/36 · (−1) = (12 + 14 − 30)/36 = −1/9,
+ * also 11,11 % Hausvorteil — genau die Zeile, die Anhang H für Any Craps
+ * führt. B-9 rechnet ihn nach, W-15 ein zweites Mal am echten Zustandswerk.
  */
 
 /* ----------------------------------------------------- Grenzen aus Anhang H */
@@ -102,6 +124,14 @@ export const RATIO = Object.freeze({
 	three: bruch(15, 1),
 	eleven: bruch(15, 1),
 	twelve: bruch(30, 1),
+	/*
+	 * C & E, auf den ganzen Einsatz umgerechnet. NICHT 7:1 und 15:1 — das
+	 * sind die Quoten der beiden HALBEN Einsätze. Wer die halbe Wette 8fach
+	 * zurückbekommt, bekommt 4 × den ganzen Einsatz, also 3 zu 1; wer sie
+	 * 16fach zurückbekommt, 8 × den ganzen Einsatz, also 7 zu 1.
+	 */
+	crapsElevenCraps: bruch(3, 1),
+	crapsElevenEleven: bruch(7, 1),
 });
 
 /* --------------------------------------------------------------- Rechnungen */
@@ -213,6 +243,16 @@ export function ratioFor(fieldId, ctx = {}) {
 	if (fieldId === 'twelve') {
 		return RATIO.twelve;
 	}
+	/*
+	 * C & E ist wie „field" kontextabhängig: bei der 11 zahlt sie anders als
+	 * bei 2, 3 oder 12. Ohne Zusammenhang (sum fehlt) liefert sie die
+	 * Craps-Quote — dieselbe Wahl wie bei „field", das ohne sum seine
+	 * Grundquote 1:1 liefert. So bekommt B-8 („jede Kennung liefert für jede
+	 * Summe eine Quote") auch hier nie null.
+	 */
+	if (fieldId === 'craps-eleven') {
+		return sum === 11 ? RATIO.crapsElevenEleven : RATIO.crapsElevenCraps;
+	}
 	return null;
 }
 
@@ -268,7 +308,7 @@ function feld(id, ratio, max, opts = {}) {
 }
 
 /**
- * Die 47 Felder des Tuchs.
+ * Die 48 Felder des Tuchs.
  *
  *   4  Linienwetten            pass, dont-pass, come, dont-come
  *   2  Odds hinter der Linie   pass-odds, dont-pass-odds
@@ -278,6 +318,7 @@ function feld(id, ratio, max, opts = {}) {
  *   1  Field                   field
  *   4  Hardways                hard-N
  *   6  Einmalwetten            any-seven, any-craps, two, three, eleven, twelve
+ *   1  die abgeleitete Wette   craps-eleven  (C & E)
  *
  * Die LAGE auf dem Tuch steht NICHT hier, sondern in Classes/BetLayout.php:
  * sie ist eine Gestaltungsfrage dieses Hauses, keine Regel aus Anhang H.
@@ -303,6 +344,9 @@ export const FIELDS = Object.freeze([
 	feld('three', RATIO.three, 10),
 	feld('eleven', RATIO.eleven, 10),
 	feld('twelve', RATIO.twelve, 10),
+	// C & E. Höchsteinsatz 10 € wie jede Wette ab 7:1 (Anhang H, C.8.4):
+	// ihre höhere der beiden Quoten IST 7 zu 1.
+	feld('craps-eleven', RATIO.crapsElevenCraps, 10),
 ]);
 
 /** Feld zu einer Kennung, oder undefined. */

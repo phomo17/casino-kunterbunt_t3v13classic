@@ -1,6 +1,6 @@
 /*
- * Roulette – das Tuch
- * ===================
+ * Roulette – der Tisch: eine Fläche, drei Schichten
+ * ==================================================
  *
  * Alle Farbwerte kommen aus casino_startpage/Resources/Public/Css/tokens.css.
  * In dieser Datei steht kein ausgeschriebener Farbwert (Nachweis A-1/A-2 in
@@ -9,197 +9,501 @@
  *
  * WARUM EINE EIGENE DATEI NEBEN wheel.css
  * -----------------------------------------
- * Rad und Tuch sind zwei getrennte Zeichnungen mit getrennten Maßordnungen;
- * eine Datei mit beidem wäre spätestens in Phase C4 (Blackjack, Craps) nicht
- * mehr zu übersehen. wheel.css verliert im Gegenzug die Regeln des
- * entfallenen Auslöser-Partials (Table/Roulette/Launch.html, Teilstück C3b) —
- * der Rundenauslöser trägt seither .ck-table__button--go aus table.css.
+ * wheel.css beschreibt die Bewegung des Rades — Drehung, Kugelbahn,
+ * Bewegungsdrosselung. Diese Datei beschreibt den Tisch, auf dem es steht.
+ * Seit dem Umbau nach der Bildvorlage steht hier auch die LAGE des Rades
+ * (es ist eine der drei Schichten); seine Drehung bleibt drüben.
+ *
+ * EINE FLÄCHE, DREI SCHICHTEN (Ansage des Auftraggebers, zweite Bildvorlage)
+ * --------------------------------------------------------------------------
+ * Rad und Tuch standen bis dahin als zwei Kästen nebeneinander. Jetzt liegen
+ * drei Schichten absolut übereinander in EINEM Kasten mit festem
+ * Seitenverhältnis 504 : 160:
+ *
+ *   .ro-cloth__ground   die Zeichnung (Cloth.html)        z-index auto
+ *   .ro-wheel           das Rad in der Mulde              z-index 1
+ *   .ro-felt            das Gitter der 159 Knöpfe         z-index 2
+ *
+ * Die vier Prozentzahlen jeder Schicht sind die Maßordnung aus
+ * Classes/BetLayout.php, nichts weiter. Sie stehen als RECHNUNG da und nicht
+ * als gerundete Zahl, damit man sie gegen die Maßordnung lesen kann; Prüfung
+ * F-13 rechnet sie ein zweites Mal nach.
  *
  * DIE MASSORDNUNG DES GITTERS
  * ------------------------------
- * Das Tuch ist EIN CSS-Grid mit 27 Spalten- und 9 Zeilenspuren. Zellspuren
- * (--ro-cell) tragen Zahlen und äußere Felder, Linienspuren (--ro-line)
- * tragen Splits, Ecken, Dreier- und Sechserreihen. Die Zuordnung Spur ↔ Feld
- * steht in Classes/BetLayout.php (und seinem JavaScript-Gegenstück
- * bets-roulette.js) und kommt über den FeltProcessor fertig als
- * grid-column/grid-row ins Markup (Felt.html) — die Lage ist ein Datum des
- * Feldes, kein Gestaltungsbeschluss, deshalb steht hier keine einzige der
- * 159 Positionen.
+ * 27 Spaltenspuren, 9 Zeilenspuren — unverändert seit Teilstück C3c. NEU ist,
+ * dass die Spuren VERHÄLTNISSE tragen statt fester Breiten: 2 = Zellspur
+ * (eine Zahl), 1 = Linienspur (die Linie zwischen zwei Zahlen). Die Gewichte
+ * stehen ZUGLEICH in Classes/BetLayout.php (COLUMN_FRACTIONS/ROW_FRACTIONS),
+ * weil zwei Prüfungen mit ihnen rechnen: F-7 (jedes Feld ist mindestens
+ * 24 × 24 Bildpunkte groß) und F-13 (die Spursummen passen zum Gitterkasten).
+ * F-13 hält beide Listen Zahl für Zahl gegeneinander; weichen sie ab, fällt
+ * es auf.
  *
  *   Spalte:  1    2    3…24 (11× Zelle+Linie)   25   26   27
  *            Null Kontakt  zwölf Tuchspalten    12.  Rand Kolonnen
  *                 zur Null                      Sp.
  *
- * --ro-line ist mit genau 1,5rem (= 24 Bildpunkte) festgelegt — das ist die
- * UNTERGRENZE von WCAG 2.2, Erfolgskriterium 2.5.8 (Zielgröße). Ein
- * Linienfeld ist die Linie zwischen zwei Zahlen; schmaler wäre es kein
- * zulässiges Ziel mehr, breiter sähe das Tuch nicht mehr wie ein Tuch aus.
- * Bei Platzmangel wird deshalb GEROLLT, nicht verkleinert (.ro-felt__scroll
- * unten) — die Zielgröße ist eine Zusage, die Bildschirmbreite ist keine.
+ * ZIELGRÖSSE (WCAG 2.2, SC 2.5.8). --ro-line ist mit genau 1,5rem (24
+ * Bildpunkte) festgelegt — die Untergrenze des Erfolgskriteriums. --ro-cell
+ * ist mit 3rem doppelt so breit, damit die Spuren im selben Verhältnis stehen
+ * wie ihre fr-Anteile: nur dann sind Untergrenze und Wachstum widerspruchsfrei,
+ * und nur dann liegt das Gitter bei JEDER Breite deckungsgleich auf der
+ * Zeichnung. Prüfung F-7 rechnet die Größe jedes der 159 Felder einzeln nach,
+ * statt sie an einer Spurbreite abzulesen.
+ *
+ * REFLOW STATT SCHRUMPFEN (SC 1.4.10). Der Tisch ist mindestens
+ * 41 × 1,5rem × 504/328 = 94,5rem = 1512 Bildpunkte breit. Bei Platzmangel
+ * wird GEROLLT, nicht verkleinert: die Zielgröße ist eine Zusage, die
+ * Bildschirmbreite ist keine. Damit der Rollbereich greift, muss
+ * min-inline-size: 0 die ganze Elternkette hindurch durchgelassen werden — ein
+ * Flexkind hat von Haus aus min-width: auto und schrumpft nie unter seine
+ * Inhaltsbreite:
+ *
+ *   .ck-room:has(.ck-room-fill) .ck-hall__content   min-inline-size: 0   base.css
+ *   .ck-room-fill (= .ro-table)                     min-inline-size: 0   base.css
+ *   .ro-table                                       min-inline-size: 0   wheel.css
+ *   .ro-cloth-area                                  min-inline-size: 0   hier
+ *   .ro-cloth__frame    (umschließt die Kante, kein Flex-Kind, braucht
+ *                        deshalb kein eigenes min-inline-size)            hier
+ *   .ro-cloth__scroll   overflow-x: auto            min-inline-size: 0   hier
+ *   .ro-cloth           min-inline-size: <Mindestbreite>                 hier
+ *
+ * Erst das letzte Glied ist breiter als der Bildschirm — und genau dort, und
+ * nur dort, wird gerollt.
  */
 
 /* ==========================================================================
-   1  Anordnung von Rad und Tuch, Rollverhalten
+   1  Die eine Fläche, die Rollkette, der Sprunglink
    ========================================================================== */
 
-/* min-inline-size: 0 gehoert zum Behebungslauf 2026-09-07 (Auditbefund
-   H-02): die Buehne ist selbst ein Flexkind von .ck-table und haette sonst
-   min-width: auto — sie bliebe so breit wie das Tuch, und der Rollbereich
-   .ro-felt__scroll bekaeme nie eine Breite, unter der er rollen muesste. */
-.ro-table__stage {
-	display: flex;
-	flex-wrap: wrap;
-	gap: var(--ck-space-3);
-	align-items: flex-start;
+.ro-cloth-area {
 	min-inline-size: 0;
+	margin-block-end: var(--ck-space-4);
 }
 
-.ro-table__wheel {
-	flex: 0 0 auto;
-}
+/* DIE ÜBERSCHRIFT DES TISCHES — sein Namensschild.
 
-.ro-felt-area {
-	min-inline-size: 0;
-}
+   Sie steht seit dem Umbau in Table.html, nicht mehr in Felt.html — eine
+   absolut positionierte Überlagerung hat keinen Platz mehr für etwas, das im
+   Layout VOR ihr stehen soll. Die Regel gilt unverändert für sie; CSS fragt
+   nicht, aus welcher Datei ein Element stammt.
 
+   GESTALTUNG 2026-09-09. Sie stand bisher als 1,1-rem-Zeile über einem
+   1512 Bildpunkte breiten Tisch und war damit kleiner als die Aufschriften
+   AUF dem Tuch. Ein Tisch dieser Größe braucht eine Überschrift, die ihn
+   ansagt, nicht eine, die ihn beschriftet. Maß, Laufweite, Messinglinie und
+   Abstände sind wörtlich die des Würfeltisches (craps/…/felt.css,
+   .cr-felt__title) — zwei Tische desselben Hauses tragen dasselbe
+   Namensschild, sonst ist es keins.
+
+   Der Grad wächst mit dem Bildschirm (clamp): 1,35 rem auf 320 Bildpunkten
+   bis 1,9 rem auf einem breiten. Die Stufe zur nächsten Ebene (Ansagezeile,
+   1 rem) beträgt damit 1,35 bis 1,9 — das ist die Tonleiter, in der die
+   ganze Seite steht.
+
+   Darunter eine Messinglinie über die volle Breite: dieselbe Kante, die auch
+   am Rahmen des Tisches läuft, und die Ankündigung, dass jetzt der Tisch
+   kommt. --ck-brass-400 auf dem Teppich des Saals liegt über den 3 : 1 einer
+   grafischen Grenze (dieselbe Paarung ist am Würfeltisch bereits gemessen) —
+   obwohl hier keine gefordert wäre: die Linie trägt keine Aussage; was sie
+   sagt, sagt die Überschrift selbst.
+
+   Der Textkontrast bleibt unverändert: --ck-text-primary auf dem Teppich,
+   keine Fläche dahinter. */
 .ro-felt__title {
-	margin: 0 0 var(--ck-space-2);
+	margin: 0 0 var(--ck-space-3);
+	padding-block-end: var(--ck-space-2);
+	border-block-end: 2px solid var(--ck-brass-400);
 	color: var(--ck-text-primary);
 	font-family: var(--ck-font-display);
-	font-size: 1.1rem;
-	letter-spacing: 0.05em;
+	font-size: clamp(1.35rem, 1.1rem + 1vw, 1.9rem);
+	font-weight: 400;
+	letter-spacing: 0.14em;
+	line-height: 1.2;
 }
 
-/* Reicht der Platz nicht, wird GEROLLT und nicht geschrumpft (siehe oben).
-   Der Bereich enthält 159 fokussierbare Knöpfe und ist damit auch ohne
-   eigenes tabindex mit der Tastatur erreichbar. */
-.ro-felt__scroll {
+/* DIE HINWEISZEILE ÜBER DER BEDIENLEISTE — „Das Rad läuft immer weiter …".
+
+   GESTALTUNG 2026-09-09: sie bekommt dieselbe Messing-Anrisslinie wie die
+   Ansagezeile darunter (.ro-status). Beides sind Sätze ÜBER den Tisch, im
+   Unterschied zu den Aufschriften AUF ihm; eine gemeinsame Kante macht aus
+   zwei zufällig benachbarten Absätzen eine Gattung. Dieselbe Entscheidung
+   wie am Würfeltisch (.cr-felt__mirror-hint).
+
+   AUSGEWÄHLT ÜBER #ro-controls UND NICHT ÜBER .ck-table__hint ALLEIN:
+   .ck-table__hint gehört dem geteilten Blatt und trägt an vier Tischen. Auf
+   DIESER Seite steht die Klasse zweimal — einmal als geteilte Tastaturhilfe
+   ganz oben (Table/Status.html, Site Package) und einmal als der Satz über
+   das Verhalten des Rades unmittelbar vor der Bedienleiste. Gemeint ist nur
+   der zweite: er ist die geräteeigene Erklärung und damit das Gegenstück zum
+   Absatz über die gezeichnete Gegenseite am Würfeltisch. Die geteilte
+   Tastaturhilfe bleibt unberührt — sonst sähe sie an einem der vier Tische
+   anders aus als an den drei anderen. Dieselbe Auswahlbauart benutzt der
+   Kartentisch bereits (blackjack/…/blackjack.css).
+
+   FARBE UND SCHRIFTGRAD WERDEN NICHT ANGETASTET. Sie stehen im geteilten
+   Blatt und gelten dort für vier Tische; diese Regel ändert nur Zeilenbreite
+   und Anrisslinie. Der bereits nachgerechnete Wert bleibt damit gültig:
+   --ck-text-muted #b39c80 auf --ck-carpet-base #3a0e15 erreicht 6,37 : 1
+   (Messung vom 2026-09-09, craps/…/felt.css). Auf einer hellen Fläche träge
+   derselbe Ton NICHT — ein Token ist nicht an sich gut oder schlecht,
+   sondern nur auf einem bestimmten Untergrund. */
+#ro-controls > .ck-table__hint {
+	max-inline-size: 68ch;
+	padding-inline-start: var(--ck-space-3);
+	border-inline-start: 2px solid var(--ck-brass-400);
+	line-height: 1.55;
+}
+
+/* DIE ANSAGEZEILE DER RUNDE (Table/Roulette/Status.html).
+
+   Sie hatte bis zum 2026-09-09 ÜBERHAUPT KEINE Regel: ein Absatz mit den
+   Vorgabemaßen des Browsers, der leer ausgeliefert wird und deshalb als
+   32 Bildpunkte hohe Lücke zwischen Tisch und Ton-Schalter stand (gemessen
+   im Bildschirmfoto vom 2026-09-09 bei 1440 Bildpunkten). Sie bekommt jetzt
+   wörtlich die Regel der Ansagezeile des Würfeltisches (craps/…/tray.css,
+   .cr-status):
+
+   - margin: 0 — der Abstand kommt aus dem gap von .ck-table, nicht aus zwei
+     Quellen zugleich.
+   - min-block-size: 1.5em — die Zeile springt nicht, wenn die erste Ansage
+     kommt. Der Platz ist von Anfang an reserviert.
+   - eine Messing-Anrisslinie an der Innenkante. Das ist kein Zierrat,
+     sondern eine Ortsangabe: dieser Absatz ist der Live-Bereich der Runde,
+     hier und nur hier erscheint nach jedem Lauf neuer Text. Wer nicht weiß,
+     wo er hinsehen soll, sucht ihn sonst zwischen gleich aussehenden
+     Absätzen.
+   - höchstens 68 Zeichen je Zeile. Über etwa 70 findet das Auge beim
+     Zeilenwechsel den Anfang der nächsten Zeile schlechter — auf einem
+     breiten Bildschirm lief diese Zeile bisher über die volle Saalbreite.
+
+   Der Kontrast ist der geprüfte: --ck-text-primary #f4e8d4 auf dem Teppich
+   des Saals — nachgerechnet 13,5 : 1 gegen dessen Grundton
+   --ck-carpet-base #3a0e15 und 6,7 : 1 gegen seinen hellsten Musterton
+   --ck-carpet-gold #6a4a15. Beides über den 4,5 : 1 aus SC 1.4.3. Es kommt
+   keine Fläche hinter den Text; die Anrisslinie steht daneben, nicht
+   darunter. */
+.ro-status {
+	margin: 0;
+	min-block-size: 1.5em;
+	max-inline-size: 68ch;
+	padding-inline-start: var(--ck-space-3);
+	border-inline-start: 2px solid var(--ck-brass-400);
+	color: var(--ck-text-primary);
+	font-size: 1rem;
+	line-height: 1.5;
+}
+
+/* Solange nichts angesagt wurde, ist der Absatz LEER — er wird leer
+   ausgeliefert, das ist die Regel für Live-Bereiche (Prüfung V-1/A-10). Eine
+   Anrisslinie ohne Text daneben sieht aus wie ein Fehler in der Zeichnung.
+   Sie wird deshalb erst sichtbar, wenn wirklich etwas dasteht; der Platz
+   bleibt durch min-block-size oben trotzdem reserviert. */
+.ro-status:empty {
+	border-inline-start-color: transparent;
+}
+
+/* DIE AUSLAUFENDE KANTE (DECISIONS.md, 2026-09-09T12:23:41). Der Tisch ist
+   breiter als die Seite und rollt INNERHALB seines eigenen Kastens
+   (.ro-cloth__scroll) — barrierefrei zulässig, sieht aber ohne diese Kante
+   aus wie abgeschnitten statt wie rollbar. Die Kante steht als
+   ::before/::after HIER, am umschließenden .ro-cloth__frame, und NICHT an
+   .ro-cloth__scroll selbst: ein Pseudoelement am Rollbereich gehörte zu
+   dessen eigenem Inhalt und wanderte beim Rollen mit; am Frame bleibt sie an
+   Ort und Stelle. pointer-events: none, damit sie kein fokussierbares
+   Element verdeckt oder abfängt.
+
+   Die Deckung 0,25 (--ck-shadow-edge) ist NACHGERECHNET und darf nicht ohne
+   neue Rechnung erhöht werden: der Fokusrahmen eines Wettfeldes auf dem Tuch
+   (--ck-brass-200 auf --ck-felt-green, beide abgedunkelt) erreicht ohne
+   Auflage 4,29 : 1, bei 0,25 noch 3,37 : 1 — über der Grenze von 3 : 1 aus
+   SC 1.4.11. Bei 0,35 wären es nur noch 2,93 : 1, darunter. */
+.ro-cloth__frame {
+	position: relative;
+}
+
+.ro-cloth__frame::before,
+.ro-cloth__frame::after {
+	content: '';
+	position: absolute;
+	inset-block: 0;
+	inline-size: 2rem;
+	pointer-events: none;
+	z-index: 3;
+}
+
+.ro-cloth__frame::before {
+	inset-inline-start: 0;
+	background-image: linear-gradient(to right, var(--ck-shadow-edge), transparent);
+}
+
+.ro-cloth__frame::after {
+	inset-inline-end: 0;
+	background-image: linear-gradient(to left, var(--ck-shadow-edge), transparent);
+}
+
+/* Der Rollbereich. Er enthält 159 fokussierbare Knöpfe und ist damit auch ohne
+   eigenes tabindex mit der Tastatur erreichbar: wandert der Fokus auf einen
+   Knopf außerhalb des Sichtfelds, rollt der Browser von selbst nach. */
+.ro-cloth__scroll {
 	overflow-x: auto;
 	overscroll-behavior-x: contain;
+	min-inline-size: 0;
+}
+
+/* DER TISCH.
+
+   Das Seitenverhältnis 504 : 160 und die Mindestbreite folgen aus der
+   Maßordnung in Classes/BetLayout.php (siehe Kopfkommentar). --ro-line und
+   --ro-cell stehen HIER und nicht auf .ro-felt: .ro-felt ist das KIND dieses
+   Kastens, und Custom Properties werden nur nach UNTEN vererbt — auf .ro-felt
+   selbst hätte eine spätere Änderung des Spurmaßes nur an einer der beiden
+   Stellen gewirkt. .ro-felt erbt beide Werte, ohne sie erneut zu deklarieren
+   (Prüfung F-7 hält das fest).
+
+   Die Mindestbreite: 41 Spaltenanteile zu --ro-line ergeben die Breite des
+   GITTERS; der Tisch ist um den Faktor 504/328 breiter, weil Rahmen, Zarge und
+   Radmulde dazukommen. Die Obergrenze liegt knapp darüber, damit der Tisch auf
+   einem breiten Bildschirm noch ein wenig wachsen kann, ohne höher zu werden
+   als der Saal. */
+.ro-cloth {
+	--ro-line: 1.5rem;
+	--ro-cell: 3rem;
+	position: relative;
+	inline-size: 100%;
+	min-inline-size: calc(41 * var(--ro-line) * 504 / 328);
+	max-inline-size: 96rem;
+	aspect-ratio: 504 / 160;
+	margin-inline: auto;
+}
+
+/* Schicht 1: die Zeichnung des Tisches (Cloth.html). */
+.ro-cloth__ground {
+	position: absolute;
+	inset: 0;
+	inline-size: 100%;
+	block-size: 100%;
+	pointer-events: none;
 }
 
 /* Der Sprunglink liegt als erstes Kind IN .ck-felt (Felt.html), das
-   position: relative ist (table.css) — er fährt deshalb innerhalb des Tuchs
-   herein. Nur Feinlage, und ausdrücklich nur unter :focus-visible (Behebung
-   Review C3, H1): eine bedingungslose Regel auf .ro-felt__skip hätte
-   dieselbe Spezifität (0,1,0) wie base.css' .ck-skiplink und stünde im
-   ausgelieferten <head> NACH ihr — sie würde also gewinnen und die
-   Versteck-Position von .ck-skiplink (inset-block-start: -3rem) aufheben,
-   der Link stünde dauerhaft sichtbar auf der Seite. Das Verbergen selbst
-   (position: absolute, das Hereinfahren bei Tastaturfokus) kommt
-   ausschließlich aus base.css' .ck-skiplink. */
+   position: absolute ist — er fährt deshalb innerhalb des Tisches herein.
+   Nur die Feinlage, und ausdrücklich nur unter :focus-visible: eine
+   bedingungslose Regel auf .ro-felt__skip hätte dieselbe Spezifität (0,1,0)
+   wie base.css' .ck-skiplink und stünde im ausgelieferten <head> NACH ihr —
+   sie würde also gewinnen und das Verstecken aufheben können. Prüfung F-11
+   verbietet die bedingungslose Form ausdrücklich.
+
+   Die frühere Regel .ro-felt__skip:not(:focus-visible) { inset-block-start:
+   -9999px } ist ERSATZLOS ENTFALLEN. Sie war eine Gegenmaßnahme gegen das
+   Verstecken über eine negative LAGE; seit dem 2026-09-09 versteckt sich
+   .ck-skiplink über seine GRÖSSE (1 × 1 Bildpunkt, clip-path: inset(50%)) und
+   ist damit unsichtbar, wo immer es steht. Eine Lage von -9999px innerhalb
+   eines Rollbereichs ist dagegen ein neues, vermeidbares Risiko. */
 .ro-felt__skip:focus-visible {
 	inset-block-start: var(--ck-space-1);
 	inset-inline-start: var(--ck-space-1);
 	transition-property: none;
 }
 
-/*
- * Behebungslauf 2026-09-06 (AUDITREPORT-2026-09-06.md, Befund M-05):
- * dieselbe Versteck-Position `-3rem` trifft hier denselben Fehler wie auf
- * /blackjack (siehe dort die ausführliche Begründung) — .ck-felt steht
- * mitten auf der Seite, -3rem darüber landet sichtbar auf dem Teppich statt
- * außerhalb der Seite (nachgemessen: y = 651, im Bild, teils hinter der
- * H2). Der Selektor bleibt absichtlich `:not(:focus-visible)`, nicht die
- * bedingungslose Form `.ro-felt__skip` — genau die Form, die die Prüfung
- * F-11 (H1, siehe Kommentar oben) ausdrücklich verbietet, weil sie sonst
- * mit derselben Spezifität die Versteck-Position von .ck-skiplink aufheben
- * und den Link dauerhaft sichtbar stehen lassen könnte. `:not(:focus-visible)`
- * kann das nicht: die Regel greift nur, WENN der Link ohnehin schon
- * verborgen sein soll, und schiebt ihn dann zusätzlich zuverlässig aus dem
- * Bild, unabhängig davon, wie tief das Tuch auf der jeweiligen Seite steht.
- * `transition-property: none` hebt außerdem die von .ck-skiplink geerbte
- * Überblendung von inset-block-start auf — dieselbe Ursache wie H-03 auf
- * /blackjack: bei
- * 200 % Textgröße prüft der Browser beim Empfang des Fokus, ob das Element
- * schon sichtbar ist, BEVOR die Überblendung fertig ist. Auf /roulette traf
- * das im Bericht (noch) nicht zu (y = 473, vollständig im Bild), weil das
- * Tuch dort zufällig so tief steht, dass tatsächlich gerollt wird — ohne
- * diese Zeile bliebe das aber vom Seitenaufbau abhängiges Glück statt eine
- * verlässliche Eigenschaft der Regel selbst.
- */
-.ro-felt__skip:not(:focus-visible) {
-	inset-block-start: -9999px;
-	transition-property: none;
+
+/* ==========================================================================
+   2  Das Rad als Schicht
+   ========================================================================== */
+
+/* Schicht 2: das Rad in seiner Mulde. Die vier Prozentzahlen sind die
+   Maßordnung aus BetLayout: Mittelpunkt 86/80, Halbmesser 58 — also ein
+   Quadrat von 116 Einheiten, dessen linke obere Ecke bei 28/22 liegt.
+
+   Dass 116/504 der Breite und 116/160 der Höhe DIESELBE Bildpunktzahl ergeben,
+   liegt am festen Seitenverhältnis des Elternkastens; das Rad bleibt also
+   kreisrund, ohne dass hier eine zweite Zahl nötig wäre.
+
+   pointer-events: none — die Zeichnung ist aria-hidden und nimmt keine
+   Bedienung entgegen; ein Klick fällt zur Schicht darunter durch. */
+.ro-wheel {
+	position: absolute;
+	inset-inline-start: calc(100% * 28 / 504);
+	inset-block-start: calc(100% * 22 / 160);
+	inline-size: calc(100% * 116 / 504);
+	block-size: calc(100% * 116 / 160);
+	z-index: 1;
+	pointer-events: none;
+}
+
+.ro-wheel__drawing {
+	display: block;
+	inline-size: 100%;
+	block-size: 100%;
+}
+
+/* DER SCHATTEN DER MULDENWAND AUF DEM RAD (Gestaltung 2026-09-09).
+
+   DAS RAD SELBST BLEIBT UNANGETASTET — ausdrückliche Ansage des
+   Auftraggebers. Was hier steht, ist seine EINBETTUNG: die obere Wand der
+   Mulde steht zwischen der Lampe und dem Rad und wirft einen Schatten auf
+   dessen oberen Rand. Ohne ihn liegt das Rad auf dem Tisch, mit ihm liegt es
+   darin. Keine Farbe, keine Zahl und keine Geometrie der Radzeichnung
+   (Wheel.html, wheel.css) wird dafür angefasst.
+
+   WARUM EIN PSEUDOELEMENT UND KEIN inset-box-shadow AN .ro-wheel SELBST:
+   ein innerer Schatten wird über dem Hintergrund, aber UNTER dem Inhalt
+   gezeichnet — die Radzeichnung liegt darüber und deckte ihn vollständig ab.
+
+   WARUM KEIN filter: drop-shadow AN DER ZEICHNUNG: ein Filter über einem
+   Element, dessen Inhalt sich je Bild dreht, wird je Bild neu berechnet. Der
+   Schatten gehört zum Tisch und nicht zur Bewegung; er darf sie nicht
+   verteuern.
+
+   ES WIRD AUSSCHLIESSLICH ABGEDUNKELT. Die Fachzahlen des Rades sind hell
+   auf dunklen Fächern (--ck-pocket-mark auf --ck-pocket-red/-black/-green,
+   nachgerechnet 7,4 / 16,8 / 6,0 : 1). Eine schwarze Auflage multipliziert
+   beide Leuchtdichten mit demselben Faktor und HEBT dieses Verhältnis,
+   senkt es nie — dieselbe Rechnung wie beim Lichtkegel auf dem Tuch. Die
+   Deckung von --ck-shadow-inset beträgt zudem 0,35 und liegt nur am Rand:
+   der negative Spread zieht den Schatten so weit ein, dass er die Fächer mit
+   den Zahlen (Halbmesser 50 bis 62 von 100) gar nicht erreicht.
+
+   pointer-events: none — die Auflage darf keine Bedienung abfangen; das Rad
+   ist ohnehin aria-hidden und nimmt keine entgegen. KEIN overflow: hidden
+   und KEIN clip-path an dieser Stelle: unter .ro-wheel liegt zwar nichts
+   Fokussierbares, aber beide sind in diesem Haus die Fehlerklasse, die schon
+   viermal einen Fokusrahmen mitgeschnitten hat — sie werden hier gar nicht
+   erst eingeführt. */
+.ro-wheel::after {
+	content: '';
+	position: absolute;
+	inset: 0;
+	border-radius: 50%;
+	box-shadow: inset 0 0.55rem 0.75rem -0.5rem var(--ck-shadow-inset);
+	pointer-events: none;
 }
 
 
 /* ==========================================================================
-   2  Das Gitter
+   3  Das Gitter
    ========================================================================== */
 
+/* Schicht 3: die 159 Knöpfe.
+
+   .ck-felt (table.css, geteilter Baustein) bringt einen eigenen Holzrahmen,
+   ein eigenes grünes Tuch und einen eigenen Schlagschatten mit — richtig für
+   einen Tisch, der SEIN EIGENES Tuch ist, falsch hier: seit der
+   Zusammenlegung liegt dieses Gitter nur noch als durchsichtige Überlagerung
+   auf der Zeichnung aus Cloth.html. Die drei Zeilen background/border/
+   box-shadow heben die geteilte Regel wieder auf (felt.css lädt nach
+   table.css, gleiche Spezifität, die spätere Regel gewinnt) — ohne sie
+   zeichnete .ck-felt einen zweiten Holzrahmen und ein zweites, deckendes Grün
+   genau auf die Tuchkante der Zeichnung: wieder zwei Flächen statt einer.
+   Genau dieser Fund ist am Würfeltisch beim gleichen Umbau aufgetreten.
+
+   --ro-line/--ro-cell werden hier NICHT erneut deklariert: sie stehen auf
+   .ro-cloth und werden nach unten vererbt. Zwei Deklarationen wären zwei
+   Wahrheiten. */
 .ro-felt {
-	/* Eigene, lokale Maße — wie --fr-u in fruit_risk/machine.css am
-	   Gehäuse-Wurzelelement definiert, nicht global an :root, weil sie
-	   ausschließlich dieses Gitter und seine Felder betreffen. */
-	--ro-cell: minmax(2.75rem, 1fr);
-	--ro-line: 1.5rem;
-	--ro-outer: 2.75rem;
+	position: absolute;
+	inset-inline-start: calc(100% * 152 / 504);
+	inset-block-start: calc(100% * 24 / 160);
+	inline-size: calc(100% * 328 / 504);
+	block-size: calc(100% * 112 / 160);
+	z-index: 2;
+	background: none;
+	border: 0;
+	box-shadow: none;
 	display: grid;
 	grid-template-columns:
-		var(--ro-cell)                              /*  1  Nullspalte            */
-		var(--ro-line)                               /*  2  Kontaktlinie zur Null */
-		repeat(11, var(--ro-cell) var(--ro-line))    /*  3…24                     */
-		var(--ro-cell)                                /* 25  zwölfte Tuchspalte  */
-		var(--ro-line)                                /* 26  äußere Linie rechts */
-		var(--ro-outer);                              /* 27  Kolonnen (2 zu 1)   */
+		minmax(var(--ro-cell), 2fr)                                     /*  1  Nullspalte            */
+		minmax(var(--ro-line), 1fr)                                     /*  2  Kontaktlinie zur Null */
+		repeat(11, minmax(var(--ro-cell), 2fr) minmax(var(--ro-line), 1fr))  /*  3…24                */
+		minmax(var(--ro-cell), 2fr)                                     /* 25  zwölfte Tuchspalte    */
+		minmax(var(--ro-line), 1fr)                                     /* 26  äußere Linie rechts   */
+		minmax(var(--ro-cell), 2fr);                                    /* 27  Kolonnen (2 to 1)     */
 	grid-template-rows:
-		var(--ro-line)                 /* 1  äußere Linie oben     */
-		var(--ro-cell) var(--ro-line)  /* 2  3                     */
-		var(--ro-cell) var(--ro-line)  /* 4  5                     */
-		var(--ro-cell)                 /* 6                        */
-		var(--ro-line)                 /* 7  äußere Linie unten    */
-		var(--ro-outer)                /* 8  Dutzende              */
-		var(--ro-outer);               /* 9  einfache Chancen      */
+		minmax(var(--ro-line), 1fr)                                     /* 1  äußere Linie oben      */
+		minmax(var(--ro-cell), 2fr) minmax(var(--ro-line), 1fr)         /* 2  3                      */
+		minmax(var(--ro-cell), 2fr) minmax(var(--ro-line), 1fr)         /* 4  5                      */
+		minmax(var(--ro-cell), 2fr) minmax(var(--ro-line), 1fr)         /* 6  7                      */
+		minmax(var(--ro-cell), 2fr)                                     /* 8  Dutzende               */
+		minmax(var(--ro-cell), 2fr);                                    /* 9  einfache Chancen       */
 	gap: 0;
-	padding: var(--ck-space-2);
+	min-inline-size: calc(41 * var(--ro-line));
 }
 
-/* display: contents — die vier Bildschirmleser-Gruppen (Felt.html) ordnen
-   die Knöpfe für Hilfsmittel, dürfen das Gitter selbst aber nicht
-   zerschneiden: ohne diese Regel würde jede Gruppe ihr eigenes Flussmodell
-   aufmachen und die 159 gridColumn/gridRow-Angaben liefen ins Leere. */
+/* display: contents — die vier Bildschirmleser-Gruppen (Felt.html) ordnen die
+   Knöpfe für Hilfsmittel, dürfen das Gitter selbst aber nicht zerschneiden:
+   ohne diese Regel würde jede Gruppe ihr eigenes Flussmodell aufmachen und die
+   159 gridColumn/gridRow-Angaben liefen ins Leere. */
 .ro-felt__group {
 	display: contents;
 }
 
+
+/* ==========================================================================
+   4  Ein Feld
+   ========================================================================== */
+
+/* .ck-felt__field (table.css) bringt Rahmen, Fokusrahmen und die Behandlung
+   von aria-disabled bereits mit. Hier steht nur, was am Roulette-Tuch anders
+   ist.
+
+   DIE MINDESTGRÖSSE AUS DEM GETEILTEN BAUSTEIN DARF HIER NICHT GELTEN. 44
+   Bildpunkte auf einem 24 Bildpunkte breiten Linienfeld zwängen es über seine
+   Spur hinaus und verschöben das ganze Gitter gegen die Zeichnung. Die
+   Zielgröße kommt seit dem Umbau aus dem GITTER (Prüfung F-7 rechnet sie für
+   jedes der 159 Felder einzeln nach), nicht aus einer festen Zahl am Feld.
+   Deshalb wird sie hier zurückgenommen — und deshalb ist die frühere
+   Sonderregel für die sechs Linienfeld-Arten entfallen: sie tat dasselbe,
+   nur für sechs statt für alle. */
+.ro-felt__field {
+	min-inline-size: 0;
+	min-block-size: 0;
+	padding: 0;
+}
+
 /* Ein Linienfeld hat KEINE Aufschrift und KEINEN Rahmen — es IST die Linie
    zwischen zwei Zahlen. Sichtbar wird es beim Überfahren (:hover, geerbt aus
-   .ck-felt__field), beim Fokus und sobald ein Chip darauf liegt.
-   min-inline-size/min-block-size überschreiben hier die 2,75rem von
-   .ck-felt__field auf die 1,5rem der Linienspur — das ist die einzige
-   Stelle, an der das geschieht, und sie bleibt exakt auf der Untergrenze von
-   SC 2.5.8, nicht darunter (Prüfung F-7). */
+   .ck-felt__field), beim Fokus und sobald ein Chip darauf liegt. */
 .ro-felt__field--split,
 .ro-felt__field--corner,
 .ro-felt__field--street,
 .ro-felt__field--trio,
 .ro-felt__field--sixline,
 .ro-felt__field--five {
-	min-inline-size: var(--ro-line);
-	min-block-size: var(--ro-line);
 	border: none;
 	background: transparent;
 }
 
+/* DIE ZWEI PFEILFELDER. Ihr Umriss ist ein Pfeil und wird als SVG-Pfad in der
+   Zeichenschicht gezogen (Cloth.html, aus BetLayout::arrowPaths()). Der Knopf
+   darüber nimmt deshalb seinen eigenen Rahmen zurück — sonst wäre die Kante
+   zweimal gezeichnet, einmal als Pfeil und einmal als Rechteck.
+
+   AUSDRÜCKLICH KEIN clip-path, KEIN mask, KEIN overflow: hidden an dieser
+   Stelle: alle drei schnitten den FOKUSRAHMEN mit ab. Das ist derselbe Fehler,
+   den opacity in diesem Haus schon viermal verursacht hat. Prüfung F-15 hält
+   das fest. */
+.ro-felt__field--number[data-ck-field='n-0'],
+.ro-felt__field--number[data-ck-field='n-00'] {
+	border: 0;
+}
+
 
 /* ==========================================================================
-   3  Beschriftung: das Namensschild und Rot/Schwarz ohne Farbe
+   5  Die Aufschrift
    ========================================================================== */
 
-/* Das Namensschild hinter JEDER aufgedruckten Aufschrift des Tuchs — Ziffern
-   ebenso wie „2 zu 1", „1. Dutzend", „Rot" … . Ohne dieses Schild hinge der
-   Kontrast der Schrift davon ab, über welchem Teil der Tuchwebung
-   (--ck-felt-weave, die feine diagonale Musterung des Tuchs) sie gerade
-   sitzt — dieselbe Lehre, die am vierten Gerät (fruit_risk, Behebungslauf
-   N-01) alle Tastenbeschriftungen von 2,43 : 1 auf 9,22 : 1 gehoben hat. Das
-   Schild ist blickdicht (background-color, kein Verlauf, keine
-   Transparenz): die Tuchwebung darunter kann seinen Kontrast deshalb nicht
-   verändern, ganz gleich, an welcher Stelle des Tuchs ein Feld liegt.
+/* Das Namensschild hinter jeder aufgedruckten Aufschrift des Tuchs — „2 to 1",
+   „1st 12", „Even", „1–18". Ohne dieses Schild hinge der Kontrast der Schrift
+   davon ab, über welchem Teil der Tuchwebung sie gerade sitzt — dieselbe
+   Lehre, die am vierten Gerät alle Tastenbeschriftungen von 2,43 : 1 auf
+   9,22 : 1 gehoben hat. Das Schild ist blickdicht (background-color, kein
+   Verlauf, keine Transparenz): die Webung darunter kann seinen Kontrast
+   deshalb nicht verändern.
+
    Nachgerechnet und durch Prüfung F-9 bestätigt: --ck-felt-line auf
-   --ck-felt-green-dark liegt deutlich über den 4,5 : 1, die WCAG 2.2 für
-   Text verlangt (die beiden Töne sind ohnehin die kontrastreichste Paarung
-   des Tuch-Wortschatzes, siehe tokens.css). */
+   --ck-felt-green-dark liegt deutlich über den 4,5 : 1, die WCAG 2.2 für Text
+   verlangt. */
 .ro-felt__print {
 	position: relative;
 	z-index: 1;
@@ -213,107 +517,195 @@
 }
 
 /*
- * ROT UND SCHWARZ OHNE FARBE (WCAG 1.4.1)
- * ------------------------------------------
- * Rot und Schwarz sind beim Roulette der heikelste Fall im ganzen Projekt:
- * die Farben SIND das Spiel. Zwei voneinander unabhängige Wege machen ihre
- * Bedeutung deshalb auch ohne Farbwahrnehmung erkennbar:
+ * DIE ZAHLEN ALS FARBIGE OVALE (Bildvorlage).
  *
- *   1. Der ausgeschriebene Name. printed trägt bei diesen beiden Feldern
- *      nicht ein Symbol, sondern den vollen Wortlaut „Rot"/„Schwarz"
- *      (felt.print.red/felt.print.black, siehe locallang.xlf) — er steht im
- *      Namensschild wie jede andere Aufschrift und ist für jede
- *      Bildschirmvergrößerung und jeden Kontrastmodus lesbar.
+ * Die Vorlage zeigt jede Zahl in einem Oval in ihrer Fachfarbe. Das Oval ist
+ * damit ein bedeutungstragendes grafisches Objekt und braucht 3 : 1 gegen
+ * seinen Untergrund (WCAG 2.2, SC 1.4.11). Nachgerechnet erreicht
+ * --ck-pocket-red auf --ck-felt-green nur 1,01 : 1 und --ck-pocket-black
+ * 2,31 : 1 — die Farbe allein ist auf dem Tuch praktisch unsichtbar. Erst die
+ * helle Kontur (--ck-felt-line, 6,32 : 1 gegen das Tuch) macht das Oval zu
+ * einem Körper. Sie ist zugleich die Zeichnung, die die Vorlage zeigt.
  *
- *   2. Eine EIGENE FORM. Von den sechs einfachen Chancen sind low/even/
- *      odd/high schlichte Rechtecke; genau red/black — und nur sie —
- *      bekommen zusätzlich eine Raute hinter ihrem Namensschild, in genau
- *      der Farbe, die sie bezeichnen. Diese Raute ist die klassische
- *      Tischmarkierung für die beiden Farbfelder; sie unterscheidet Rot und
- *      Schwarz schon durch ihren Umriss von den vier übrigen Chancenfeldern
- *      — auch in Graustufen oder bei einer fehlerhaften Farbwiedergabe
- *      bleibt „hier liegt eine Farbwette" ablesbar, und der Name im
- *      Namensschild bleibt in jedem Fall die Instanz, die zwischen Rot und
- *      Schwarz selbst unterscheidet (Prüfung F-10).
+ * Die Ziffer darin: --ck-pocket-mark erreicht 6,88 : 1 auf Rot, 16,10 : 1 auf
+ * Schwarz und 5,76 : 1 auf Grün — alle drei über den 4,5 : 1 für Text.
+ * Prüfung F-9 rechnet alle vier Paarungen nach.
  *
- * Ausgewählt über [data-ck-field], nicht über eine eigene CSS-Klasse: das
- * Markup (Felt.html, Teilstück C3b) ist abgeschlossen und wird für dieses
- * Teilstück nicht angefasst; data-ck-field trägt die Kennung ohnehin schon
- * für jedes Feld (Vertrag aus casino_startpage/README.md, "Vertrag für das
- * Tuch eines Spiels").
+ * DIE FARBE IST NIE DIE EINZIGE AUSSAGE (SC 1.4.1): der erreichbare Name jedes
+ * Zahlenfeldes nennt die Farbe ausgeschrieben („17, schwarz"). Prüfung F-16
+ * hält fest, dass die Farbe des Ovals mit WheelGeometry übereinstimmt, und
+ * F-10, dass sie im Namen steht.
  */
-.ro-felt__field--even[data-ck-field='red'],
-.ro-felt__field--even[data-ck-field='black'] {
-	position: relative;
+.ro-felt__print--pocket-red,
+.ro-felt__print--pocket-black,
+.ro-felt__print--pocket-green {
+	min-inline-size: 1.9rem;
+	padding: 0.1rem 0.35rem;
+	border: 1.5px solid var(--ck-felt-line);
+	border-radius: var(--ck-radius-pill);
+	color: var(--ck-pocket-mark);
+	text-align: center;
+}
+
+.ro-felt__print--pocket-red {
+	background-color: var(--ck-pocket-red);
+}
+
+.ro-felt__print--pocket-black {
+	background-color: var(--ck-pocket-black);
+}
+
+.ro-felt__print--pocket-green {
+	background-color: var(--ck-pocket-green);
 }
 
 /*
- * Die Raute ist ein ECHTES Quadrat (aspect-ratio: 1), dessen Seite sich nach
- * der HÖHE des Feldes richtet, nicht nach seiner Breite. Diese sechs
- * einfachen Chancen sind sehr viel breiter als hoch (drei Gitterspuren breit,
- * eine feste Zeilenspur --ro-outer hoch) — ein Quadrat nach der Breite
- * gedreht um 45° ragte oben und unten weit über das Feld hinaus (Behebung
- * Teilstück C3c, im Screenshot gefunden: die Rautenspitzen stachen sichtbar
- * in die Dutzend-Zeile darüber). block-size: 62% der Feldhöhe hält die
- * Diagonale (Seite × √2 ≈ 0,876 der Feldhöhe) sicher innerhalb der Box.
+ * ROT UND SCHWARZ: ZWEI RAUTEN, ZWEI UNTERSCHIEDE (SC 1.4.1)
+ * -----------------------------------------------------------
+ * Rot und Schwarz sind beim Roulette der heikelste Fall im ganzen Projekt: die
+ * Farben SIND das Spiel. Die Vorlage druckt auf diesen beiden Feldern kein
+ * Wort, sondern je eine Raute — und macht damit genau das, was SC 1.4.1
+ * verbietet: sie unterscheidet zwei Bedienteile ausschließlich über ihre
+ * Farbe. Übernommen ist deshalb das BILD, nicht der Mangel:
+ *
+ *   1  Der erreichbare Name nennt die Farbe ausgeschrieben („Rote Raute —
+ *      Rot, die achtzehn roten Zahlen …", locallang.xlf). Er trägt die
+ *      Aussage für jedes Hilfsmittel.
+ *   2  Ein zweiter, FARBUNABHÄNGIGER Unterschied im Bild: beide Rauten tragen
+ *      dieselbe helle Kontur, die SCHWARZE zusätzlich eine feine Schraffur.
+ *      Eine Schraffur ist auch in Graustufen, in einem Kontrastmodus und bei
+ *      fehlerhafter Farbwiedergabe zu erkennen; ein reiner Farbwechsel nicht.
+ *      (Die beiden Fachfarben liegen zudem im Graustufenwert nur 2,4 : 1
+ *      auseinander — ohne die Schraffur wäre das der einzige Unterschied.)
+ *
+ * Die Kontur ist nicht Zierrat, sondern Bedingung: --ck-pocket-red erreicht
+ * auf dem Tuchgrün 1,01 : 1, --ck-pocket-black 2,31 : 1 — beide unter den
+ * 3 : 1 aus SC 1.4.11. --ck-felt-line erreicht 6,32 : 1.
+ *
+ * Ausgewählt über [data-ck-field] wäre möglich; gewählt ist die eigene Klasse
+ * .ro-felt__diamond--red/--black, weil die Raute ein eigenes Element ist
+ * (Felt.html) und kein Zustand des Feldes: ein Element, das es nur gibt, wenn
+ * field.diamond gesetzt ist, soll auch seine eigene Klasse tragen.
  */
-.ro-felt__field--even[data-ck-field='red']::before,
-.ro-felt__field--even[data-ck-field='black']::before {
-	content: '';
+.ro-felt__diamond {
 	position: absolute;
-	z-index: 0;
 	inset-block-start: 50%;
 	inset-inline-start: 50%;
 	block-size: 62%;
 	aspect-ratio: 1;
+	border: 1.5px solid var(--ck-felt-line);
 	border-radius: var(--ck-radius-sm);
 	transform: translate(-50%, -50%) rotate(45deg);
+	pointer-events: none;
 }
 
-.ro-felt__field--even[data-ck-field='red']::before {
+.ro-felt__diamond--red {
 	background-color: var(--ck-pocket-red);
 }
 
-.ro-felt__field--even[data-ck-field='black']::before {
+/* Die Schraffur ist der farbunabhängige Unterschied. Sie läuft unter 45 Grad
+   im Koordinatensystem der bereits gedrehten Raute und erscheint deshalb im
+   Bild senkrecht und waagerecht. --ck-felt-line auf --ck-pocket-black
+   erreicht 14,6 : 1 — sie ist auch bei kleiner Darstellung sichtbar. */
+.ro-felt__diamond--black {
 	background-color: var(--ck-pocket-black);
+	background-image: repeating-linear-gradient(
+		45deg,
+		var(--ck-felt-line) 0 1px,
+		transparent 1px 5px
+	);
+}
+
+/* Die Raute richtet sich nach der HÖHE ihres Feldes, nicht nach seiner Breite:
+   die sechs einfachen Chancen sind sehr viel breiter als hoch, und ein Quadrat
+   nach der Breite um 45 Grad gedreht ragte oben und unten weit über das Feld
+   hinaus (Behebung Teilstück C3c, im Bildschirmfoto gefunden). block-size: 62 %
+   hält die Diagonale (Seite × √2 ≈ 0,876 der Feldhöhe) sicher innerhalb der
+   Box. Der Träger braucht dafür einen Positionskontext: */
+.ro-felt__field--even {
+	position: relative;
 }
 
 
 /* ==========================================================================
-   4  Zeitverhalten
+   6  Zeitverhalten
    ========================================================================== */
 
-/* Kein eigener prefers-reduced-motion-Block: das Tuch selbst animiert
-   nichts (keine Übergänge, keine Bewegung) — table.css deckt den ganzen
-   .ck-table bereits vollständig ab. Ein leerer Block hier würde nur
-   wiederholen, was dort schon steht. */
+/* Kein eigener prefers-reduced-motion-Block: das Tuch selbst animiert nichts
+   (keine Übergänge, keine Bewegung) — table.css deckt den ganzen .ck-table
+   bereits vollständig ab. Ein leerer Block hier würde nur wiederholen, was
+   dort schon steht. */
 
 
 /* ==========================================================================
-   5  Der Ton-Schalter (Teilstück C3e)
+   7  Der Ton-Schalter
    ========================================================================== */
 
 /* Ein eigenes Bedienteil, keine Verallgemeinerung aus der geteilten
    Bedienleiste (DECISIONS.md): Mindestgröße 2,75rem in beide Richtungen wie
-   jedes andere Bedienteil dieses Tisches (.ck-table__button), Bakelit-Optik
-   wie am Sockel des Rades. */
+   jedes andere Bedienteil dieses Tisches (.ck-table__button).
+
+   ER LIEGT AUSSERHALB DES GITTERS und bekommt seine Zielgröße deshalb
+   weiterhin aus einer festen Zahl, nicht aus einer Gitterrechnung. Prüfung
+   F-7 prüft das eigens mit (und verify-sound.mjs, S-9, tut es unabhängig
+   davon ein zweites Mal) — genau diese Teilprüfung ist am Würfeltisch beim
+   selben Umbau einmal verloren gegangen und musste nachgereicht werden.
+
+   EIN LAYOUTFUND UND SEINE BEHEBUNG (Gestaltung 2026-09-09).
+   display: inline-flex beschreibt, wie der Knopf INNEN aufgebaut ist, nicht,
+   wie breit er ist. Der Knopf ist ein unmittelbares Kind von .ck-table, und
+   das ist ein Flex-Container in Spaltenrichtung (table.css). Dessen Vorgabe
+   align-items: stretch zieht jedes Kind auf die volle Breite — der
+   Ton-Schalter lief deshalb über die ganze Seitenbreite, mit dem Wort „Ton"
+   ganz links darin (gemessen im Bildschirmfoto vom 2026-09-09 bei 1440 UND
+   bei 360 Bildpunkten). Ein Knopf, der aussieht wie eine Leiste, wird auch
+   wie eine Leiste gelesen: man vermutet weitere Bedienteile darin.
+   align-self: flex-start nimmt ihn aus dem Strecken heraus. Die Zielgröße
+   ändert sich dadurch nicht — die untere Grenze war nie das Problem,
+   sondern die obere. Derselbe Fund, dieselbe Behebung wie am Würfeltisch
+   (craps/…/felt.css, .cr-sound).
+
+   MATERIAL: Nussbaum mit Messingkante statt cremefarbenem Bakelit. Der
+   Ton-Schalter ist das einzige Bedienteil AUSSERHALB der beiden Leisten;
+   seit die Bedienleiste die hölzerne Vorderzarge des Tisches ist
+   (casino_startpage/…/table.css, 2026-09-09), stand hier als einziges
+   Bauteil der Seite noch eine helle Kunststoffkappe. Die Messingkante ist
+   das, was ihn mit dem Tisch darüber verbindet.
+   Gewählt ist --ck-brass-300, nicht --ck-brass-400: auf dem Holzkörper
+   --ck-wood-300 #452b19 erreicht --ck-brass-300 #bd9333 nachgerechnet
+   4,58 : 1, --ck-brass-400 #8c6a1f dagegen nur 2,60 : 1. Gefordert sind hier
+   keine 3 : 1 — die Kante ist Zierrat auf dem Knopf und nicht sein Umriss,
+   und die Aussage des Schalters steht im Namensschild und in aria-pressed.
+   Der stärkere Ton ist trotzdem der richtige: eine Kante, die man nicht
+   sieht, ist keine. */
 .ro-sound {
 	display: inline-flex;
+	align-self: flex-start;
 	align-items: center;
 	gap: var(--ck-space-2);
 	min-inline-size: 2.75rem;
 	min-block-size: 2.75rem;
 	padding-inline: var(--ck-space-3);
 	border: 0;
-	border-block-end: 3px solid var(--ck-bakelite-cream-shade);
+	border-block-end: 3px solid var(--ck-brass-300);
 	border-radius: var(--ck-radius-pill);
-	background-color: var(--ck-bakelite-cream);
+	background-color: var(--ck-wood-300);
+	box-shadow: 0 0.15rem 0.4rem var(--ck-shadow-soft);
 	cursor: pointer;
 }
 
+/* Messingring plus dunkler Innenring beim Fokus — dieselbe Bauart wie an
+   .ck-table__button (Behebung H-01 vom 2026-09-07): ein Messingring allein
+   erreicht auf wechselndem Untergrund keinen verlässlichen Kontrast gegen
+   jede Nachbarfarbe. Nachgerechnet auf dem neuen Untergrund:
+   --ck-brass-200 #dfb964 auf --ck-wood-300 #452b19 ergibt 6,97 : 1, weit
+   über den 3 : 1 aus SC 1.4.11; gegen den Teppich daneben
+   (--ck-carpet-base #3a0e15) rund 8,8 : 1. Der dunkle Zweitring trägt die
+   Grenze auch dort, wo der Knopf zufällig vor einer hellen Fläche steht. */
 .ro-sound:focus-visible {
 	outline: 3px solid var(--ck-brass-200);
 	outline-offset: 2px;
+	box-shadow: 0 0 0 6px var(--ck-wood-500);
 }
 
 .ro-sound:active {
@@ -321,38 +713,58 @@
 	border-block-end-width: 2px;
 }
 
-/* Das helle Namensschild hinter der Aufschrift „Ton" — derselbe Grund wie
-   bei jeder anderen Aufschrift dieses Tuchs (Abschnitt 3): der Kontrast darf
-   nicht davon abhängen, welche Bakelit-Charge gerade unter der Schrift
-   liegt. */
+/* Das helle Namensschild hinter der Aufschrift „Ton" — derselbe Grund wie bei
+   jeder anderen Aufschrift dieses Tisches (Abschnitt 5): der Kontrast darf
+   nicht davon abhängen, welcher Untergrund gerade unter der Schrift liegt.
+
+   GESTALTUNG 2026-09-09: Elfenbein statt poliertem Chrom. Chrom ist in
+   diesem Haus die Frontplatte eines Automaten (DESIGNBRIEF.md Abschnitt 1);
+   auf einem hölzernen Knopf an einem hölzernen Tisch las sich das helle
+   Silber als aufgeklebter Zettel. --ck-ivory-100 ist derselbe Werkstoff, den
+   das Namensschild des Ton-Schalters am Würfeltisch trägt. Der Kontrast wird
+   dabei besser, nicht schlechter: --ck-print-ink #1f150d auf
+   --ck-ivory-100 #f2ead6 erreicht nachgerechnet 15,0 : 1 (vorher
+   --ck-text-inverse #1a0f08 auf --ck-chrome-100 #f6f9fb: 17,7 : 1 — beide
+   weit über den 4,5 : 1 aus SC 1.4.3; verify-sound.mjs S-9 rechnet die
+   tatsächlich benutzte Paarung selbst nach). */
 .ro-sound__label {
 	padding: 0 0.4em;
 	border-radius: var(--ck-radius-sm);
-	background-color: var(--ck-chrome-100);
-	color: var(--ck-text-inverse);
+	background-color: var(--ck-ivory-100);
+	color: var(--ck-print-ink);
 	font-family: var(--ck-font-ui);
 	font-size: 0.85rem;
 	white-space: nowrap;
 }
 
-/* Der Zustand steht NICHT allein in der Farbe (WCAG 1.4.1): aria-pressed
-   trägt ihn für Hilfsmittel, und zusätzlich zur (ohnehin nur unterstützenden)
-   Farbe des Schalters ändert sich die STRICHART des Rings davor — ein reiner
-   Farbwechsel wäre für einen Graustufen- oder Kontrastmodus unsichtbar,
-   ein Wechsel von durchgezogen zu gestrichelt nicht. Der Ring selbst ist
-   erzeugter Inhalt, kein Text, und deshalb ohnehin kein Bedienteil für sich.*/
+/* Der Zustand steht NICHT allein in der Farbe (SC 1.4.1): aria-pressed trägt
+   ihn für Hilfsmittel, und zusätzlich zur (ohnehin nur unterstützenden) Farbe
+   des Schalters ändert sich die STRICHART des Rings davor — ein reiner
+   Farbwechsel wäre für einen Graustufen- oder Kontrastmodus unsichtbar, ein
+   Wechsel von durchgezogen zu gestrichelt nicht. Der Ring selbst ist erzeugter
+   Inhalt, kein Text, und deshalb ohnehin kein Bedienteil für sich. */
 .ro-sound::before {
 	content: '';
 	inline-size: 0.85rem;
 	block-size: 0.85rem;
-	border: 2px solid var(--ck-chrome-100);
+	border: 2px solid var(--ck-brass-200);
 	border-radius: 50%;
 }
 
+/* Der ausgeschaltete Schalter steht auf dem dunkleren Nussbaum derselben
+   Reihe — eine Stufe tiefer im selben Werkstoff, nicht eine andere Farbe.
+   Die Aussage trägt ohnehin aria-pressed und die Strichart des Rings; der
+   Ton unterstützt sie nur. Der Messingring bleibt auch hier lesbar:
+   --ck-brass-200 #dfb964 auf --ck-wood-400 #2e1c10 erreicht 8,47 : 1. */
 .ro-sound[aria-pressed='false'] {
-	background-color: var(--ck-chrome-400);
+	background-color: var(--ck-wood-400);
 }
 
+/* Die opacity hier trifft ein PSEUDOELEMENT (den Ring), nicht das Bedienteil:
+   der Fokusrahmen sitzt am Knopf und wird davon nicht gedimmt. Sie zeigt auch
+   keinen GESPERRTEN Zustand an, sondern einen ausgeschalteten — Prüfung F-17
+   (opacity an einem gesperrten Zustand nimmt den Fokus aus) trifft sie
+   deshalb zu Recht nicht. */
 .ro-sound[aria-pressed='false']::before {
 	border-style: dashed;
 	opacity: 0.7;

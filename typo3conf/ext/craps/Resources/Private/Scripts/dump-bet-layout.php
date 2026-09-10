@@ -26,5 +26,18 @@ echo json_encode([
     'roundMax' => \Phomo17\Craps\BetLayout::ROUND_MAX,
     'columns' => \Phomo17\Craps\BetLayout::COLUMNS,
     'rows' => \Phomo17\Craps\BetLayout::ROWS,
+    'centerCol' => \Phomo17\Craps\BetLayout::CENTER_COL,
+    'rightCol' => \Phomo17\Craps\BetLayout::RIGHT_COL,
     'puckLanes' => \Phomo17\Craps\BetLayout::puckLanes(),
+    // Neu mit dem Umbau nach der Bildvorlage (2026-09-08):
+    'rowFractions' => \Phomo17\Craps\BetLayout::ROW_FRACTIONS,
+    'legLanes' => \Phomo17\Craps\BetLayout::legLanes(),
+    'bandPaths' => \Phomo17\Craps\BetLayout::bandPaths(),
+    'pips' => \Phomo17\Craps\BetLayout::PIPS,
+    'pointsOnCloth' => \Phomo17\Craps\BetLayout::POINTS_ON_CLOTH,
+    'points' => \Phomo17\Craps\BetLayout::POINTS,
+    'pointPrint' => \Phomo17\Craps\BetLayout::POINT_PRINT,
+    'numberCol' => \Phomo17\Craps\BetLayout::NUMBER_COL,
+    'numberWidth' => \Phomo17\Craps\BetLayout::NUMBER_WIDTH,
+    'bandCol' => \Phomo17\Craps\BetLayout::BAND_COL,
 ], JSON_THROW_ON_ERROR);

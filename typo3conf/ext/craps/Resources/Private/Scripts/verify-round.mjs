@@ -408,7 +408,7 @@ console.log('\nR-3 — 300 gesetzte Würfe, die Bilanz nach jedem einzelnen gepr
 	// Nur SELBSTAUFLÖSENDE Felder (jeder Wurf: win oder loss, nie stay) — so
 	// bleibt jeder Wurf für sich unabhängig, wie bei einem Roulette-Spin, und
 	// der Rundenhöchstbetrag spielt nie eine Rolle.
-	const SELBSTAUFLOESEND = ['field', 'any-seven', 'any-craps', 'two', 'three', 'eleven', 'twelve'];
+	const SELBSTAUFLOESEND = ['field', 'any-seven', 'any-craps', 'two', 'three', 'eleven', 'twelve', 'craps-eleven'];
 
 	let abweichungen = 0;
 	for (let i = 0; i < 300; i++) {

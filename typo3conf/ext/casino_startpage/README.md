@@ -74,7 +74,7 @@ leben. Regeln dafür:
   Farbe in einer Automaten-Datei.
 - **Ausnahme von der nächsten Zeile:** Solange CONCEPT.md V.6 gilt, wird die
   Versionsnummer **nicht** erhöht — auch nicht für einen neuen Token. Die
-  Spanne `0.3.0-0.99.99` deckt jeden Zwischenstand ab.
+  Spanne `0.4.0-0.99.99` deckt jeden Zwischenstand ab.
 - Die Minor-Version des Site Packages steigt, und die Automaten-Extension
   hebt ihre Untergrenze in `ext_emconf.php` und `composer.json` mit an.
 
@@ -171,7 +171,7 @@ AutomatRegistry::register(new Automat(
 
 | Datei | Was hinein muss | Warum |
 |---|---|---|
-| `ext_emconf.php` | `'casino_startpage' => '0.3.0-0.99.99'` unter `constraints.depends` | bestimmt in der klassischen Installation die Ladereihenfolge der `ext_localconf.php`; ohne sie kann die Registry-Anmeldung vor dem Site Package laufen |
+| `ext_emconf.php` | `'casino_startpage' => '0.4.0-0.99.99'` unter `constraints.depends` | bestimmt in der klassischen Installation die Ladereihenfolge der `ext_localconf.php`; ohne sie kann die Registry-Anmeldung vor dem Site Package laufen |
 | `Configuration/JavaScriptModules.php` | `'dependencies' => ['casino_startpage']` **und** das eigene Präfix unter `imports` | ohne den `dependencies`-Eintrag liefert der Kern das Präfix `@phomo17/casino-startpage/` nicht mit aus, und der Browser bricht mit „Failed to resolve module specifier" ab, sobald ein Modul `credit.js` oder `sound.js` importiert |
 | `Configuration/TCA/Overrides/tt_content.php` | eigener `CType` über `ExtensionManagementUtility::addRecordType()`, Gruppe `AutomatContentElement::CTYPE_GROUP` | damit der Automat auf seiner eigenen Seite platziert werden kann |
 | `ext_localconf.php` | zusätzlich zur Registry-Anmeldung ein `addTypoScriptSetup()` mit der Rendering-Definition des eigenen `CType` | ein eigenes Site Set würde die Site-Konfiguration ändern und damit den Grundsatz „ohne Änderung an anderen Stellen installierbar" brechen |
@@ -330,6 +330,23 @@ bekommen. Seit Phase C3 hat auch der Auswertungsweg (`bets.settle()` →
 im README der Erweiterung, die dieses erste echte Tischspiel enthält, Abschnitt
 „Geld am Tisch".
 
+### Die Chipkasse ersetzt das Betragsformular (seit Umsetzungsstück Tb)
+
+Ansage vom 2026-09-07: an jedem Gerät mit Buy-in wird für jede Chipsorte
+einzeln gewählt, wie viele davon gekauft werden, statt einen Betrag
+einzutippen, den das Haus selbsttätig in möglichst große Chips zerlegt. Die
+Chipkasse in `Partials/Table/BuyIn.html` (`bank.buyChip(wert)` /
+`bank.sellChip(wert)`, siehe „Guthaben-Schnittstelle" unten) trägt jetzt
+einen eigenen Kauf- und Rückgabeknopf je Sorte.
+
+**Ein Tisch bekommt diese Chipkasse ohne eine einzige Zeile eigenen Codes** —
+genau wie schon den Buy-in selbst: er rendert `Table/Controls`, übergibt
+`{chips}` wie bisher, und `Table/Controls` reicht dieselbe Liste unverändert
+an `Table/BuyIn` weiter. Kein einziger der vier vorhandenen Tische (der
+Mustertisch und die drei bespielbaren Geräte der Gattung) musste dafür eine
+eigene Zeile ändern; die Änderung sitzt vollständig in den geteilten
+Bausteinen dieser Extension.
+
 ### So verdrahtet `muster-tisch.js` die Bausteine — die kürzeste vollständige Anleitung
 
 ```js
@@ -390,6 +407,32 @@ Sockel fest: bis auf diesen Betrag darf abgeräumt werden, darunter nicht.
 Ansagebereich), `undo()` überspringt geschützte Chips, `clear()` lässt den
 Sockel liegen, `double()` lässt Felder mit Sockel unangetastet. `unfreeze()`
 hebt ihn auf. Ohne `freeze()` ändert sich nichts.
+
+### Nachweisskripte des Tisches
+
+```
+ddev exec node typo3conf/ext/casino_startpage/Resources/Private/Scripts/verify-table-bets.mjs
+ddev exec node typo3conf/ext/casino_startpage/Resources/Private/Scripts/verify-table-chips.mjs
+ddev exec node typo3conf/ext/casino_startpage/Resources/Private/Scripts/verify-table-money.mjs
+ddev exec node typo3conf/ext/casino_startpage/Resources/Private/Scripts/verify-table-buyin.mjs
+ddev exec node typo3conf/ext/casino_startpage/Resources/Private/Scripts/verify-table-view.mjs
+```
+
+Alle fünf nur lesend, rechnen mit den echten Bausteindateien, Rückgabewert 0
+bei Erfolg. **`verify-table-buyin.mjs`** kam mit Umsetzungsstück Tb neu dazu
+(Kennungen B-1 bis B-12): der Nachweis der Chipkasse — genau ein Chip wird
+gekauft oder zurückgegeben, der Kaufknopf wird nie gesperrt, der
+Rückgabeknopf zeigt seinen gesperrten Zustand über `aria-disabled`, ohne den
+Fokusrahmen mitzunehmen. **`verify-table-money.mjs`** hat mit demselben
+Umsetzungsstück vier Prüfungen dazubekommen: **M-9b** (die sechs Methoden,
+auf die sich die Automaten verlassen, sind Zeichen für Zeichen unverändert —
+schärfer als die bloße Prüfsumme, die eine hinzugefügte Methode nicht mehr
+allein beweisen kann), **M-10** (`machineCredit.withdraw()` bewegt einen
+Teilbetrag, ohne dass die Summe aus Kasse und Gerätekredit sich ändert),
+**M-11** (`buyChip()`/`sellChip()` bewegen genau einen Chip und genau seinen
+Wert) und **M-12** (über 3000 zufällige Schritte hält die Invariante
+`rack.total === machineCredit.amount`, und beim Verlassen kommt die Kasse auf
+ihren Ausgangswert zurück).
 
 ## Guthaben-Schnittstelle
 
@@ -1089,7 +1132,7 @@ führt zurück zu `/`.
 
 ## Stand
 
-Version 0.3.0 (alpha). Teil A ist vollständig abgeschlossen; aus Teil B sind Phase 2,
+Version 0.4.0 (alpha). Teil A ist vollständig abgeschlossen; aus Teil B sind Phase 2,
 Phase 3, Phase 4 und der Tokenbedarf von Phase 5 eingearbeitet. Aus Teil C ist Phase C1
 „Der Tisch als Gattung" vollständig eingearbeitet — seither haben sich zwei weitere
 Tischspiele bei der Geräte-Registry angemeldet, ohne dass diese Extension dafür
@@ -1109,7 +1152,7 @@ inzwischen zehn Farbpaare. Zuletzt sind acht Werte dazugekommen —
 `--ck-fruit-pineapple`, jeweils mit ihrer Schattenstufe. Wie alle davor heißen
 sie nach ihrem Werkstoff, nicht nach dem Gerät, das sie zuerst gebraucht hat.
 Eine Automaten-Extension, die sie benutzt, verlangt in `ext_emconf.php`
-`'casino_startpage' => '0.3.0-0.99.99'`.
+`'casino_startpage' => '0.4.0-0.99.99'`.
 
 Seit dem GEO-Behebungslauf vom 2026-09-05 liefert das Site Package auf jeder
 Seite `Organization`, `WebSite` und `BreadcrumbList` als strukturierte Daten

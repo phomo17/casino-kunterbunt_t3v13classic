@@ -789,9 +789,31 @@
  * die 2,6 Einheiten der Kappe. 1,6 ist keine neue Groessenordnung — der
  * Feldtreppen-Hinweis des Gewinnplans steht bereits auf 1,6.
  */
+/*
+ * Behebungslauf 2026-09-09 (AUDITREPORT-2026-09-09-c8.md, Befund H-01):
+ * 2,6 --fr-u blieb bei JEDER Gehaeusegroesse unter 24 Bildpunkten Hoehe (74 x
+ * 12 selbst im hoehenbegrenzten Gehaeuse bei 1440 px Fensterbreite) — anders
+ * als die runden Risiko-Tasten (deren 519-px-Schwelle die dokumentierte,
+ * hingenommene Grenze bleibt, siehe README) ist das hier kein Schrumpfen auf
+ * schmalen Bildschirmen, sondern eine durchgehend zu kleine Zeichnung.
+ *
+ * min-block-size in absoluter Einheit statt einer weiteren --fr-u-Zahl, damit
+ * die Kappe nicht mit dem Gehaeuse mitschrumpft. 1,5rem (24 px) statt des im
+ * Haus sonst ueblichen 2,75rem: bei 320 px Fensterbreite bleiben zwischen der
+ * Kappe und dem Muenzschlitz (naechstes Bauteil darunter, y 141/144) nur rund
+ * 41 Bildpunkte frei — 2,75rem (44 px) liesse dort nur 1,9 Bildpunkte Luft,
+ * 1,5rem rund 22. Die Kappe waechst dabei ausschliesslich nach UNTEN (der
+ * obere Rand bleibt an seiner Fliessposition unter der Tastenzeile stehen,
+ * der Abstand von 0,2 --fr-u zum Ring der unteren Kreuztaste oben aendert
+ * sich nicht) — in den bislang leeren Bereich vor dem Muenzschlitz, ohne ein
+ * anderes Bedienteil zu beruehren. Nachgemessen (Playwright,
+ * getBoundingClientRect): 320 px -> 30 x 24, 360 px -> 34 x 24,
+ * 1440 px -> 74 x 24 (vorher 30 x 4,7 / 34 x 5,3 / 74 x 11,5).
+ */
 .fr-btn--tab .fr-btn__cap {
 	inline-size: calc(16.8 * var(--fr-u));
 	block-size: calc(2.6 * var(--fr-u));
+	min-block-size: 1.5rem;
 	border-radius: calc(0.5 * var(--fr-u));
 	box-shadow:
 		0 0 0 calc(0.3 * var(--fr-u)) var(--ck-chrome-400),

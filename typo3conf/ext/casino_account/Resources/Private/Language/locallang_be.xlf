@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" version="1.2">
+	<file source-language="de" datatype="plaintext" original="EXT:casino_account/Resources/Private/Language/locallang_be.xlf" date="2026-09-09T00:00:00Z" product-name="casino_account">
+		<header/>
+		<body>
+
+			<!-- Die Modulgruppe „Casino" (CONCEPT.md D.2) -->
+			<trans-unit id="mlang_tabs_tab">
+				<source>Casino</source>
+			</trans-unit>
+			<trans-unit id="mlang_labels_tablabel">
+				<source>Konten, Kennungen und QR-Codes des Hauses</source>
+			</trans-unit>
+			<trans-unit id="mlang_labels_tabdescr">
+				<source>Alles, was mit den Personen zu tun hat, die im Casino Kunterbunt spielen: ihre Konten, ihr Guthaben und ihr persönlicher QR-Code, mit dem sie sich anmelden.</source>
+			</trans-unit>
+
+			<!-- Das Modul „Spielende" (CONCEPT.md D.3) -->
+			<trans-unit id="module.players.title">
+				<source>Spielende</source>
+			</trans-unit>
+			<trans-unit id="module.players.tablabel">
+				<source>Wer hier spielt, und mit wie viel</source>
+			</trans-unit>
+			<trans-unit id="module.players.tabdescr">
+				<source>Legt Spielende an, zeigt ihr Gesamtvermögen und öffnet ihren persönlichen QR-Code zum Ausdrucken.</source>
+			</trans-unit>
+
+			<!-- Der Datensatz und seine Felder (CONCEPT.md D.3.2) -->
+			<trans-unit id="player">
+				<source>Spielender</source>
+			</trans-unit>
+			<trans-unit id="player.tab.general">
+				<source>Allgemein</source>
+			</trans-unit>
+			<trans-unit id="player.tab.account">
+				<source>Konto</source>
+			</trans-unit>
+			<trans-unit id="player.name">
+				<source>Name</source>
+			</trans-unit>
+			<trans-unit id="player.name.description">
+				<source>Pflichtfeld. Alle Zeichen sind erlaubt. Zwei Personen dürfen gleich heißen — unterschieden werden sie über ihre Kennung, nicht über den Namen.</source>
+			</trans-unit>
+			<trans-unit id="player.balance">
+				<source>Gesamtvermögen</source>
+			</trans-unit>
+			<trans-unit id="player.balance.description">
+				<source>Kasse, Gerätekredit und Gewinnspeicher zusammen. Nur zur Anzeige — dieses Feld selbst lässt sich nicht bearbeiten, damit hier nie ein Wert stehen kann, der von der Summe der drei Beträge abweicht.</source>
+			</trans-unit>
+			<trans-unit id="player.role">
+				<source>Rolle</source>
+			</trans-unit>
+			<trans-unit id="player.role.description">
+				<source>Noch ohne Einträge. Die Rollen kommen in einem späteren Bauabschnitt; bis dahin bleibt das Feld leer.</source>
+			</trans-unit>
+			<trans-unit id="player.role.none">
+				<source>—</source>
+			</trans-unit>
+			<trans-unit id="player.balanceCash">
+				<source>Guthaben</source>
+			</trans-unit>
+			<trans-unit id="player.balanceCash.description">
+				<source>Freiwillig. Wird nichts eingetragen, ist es 0. Nur ganze Zahlen, nicht negativ. Beim Speichern landet der eingetragene Betrag vollständig in der Kasse; Gerätekredit und Gewinnspeicher werden dabei auf 0 gesetzt. Achtung: wird ein Datensatz mitten im Spiel geöffnet, zeigt dieses Feld nur die Kasse, nicht das Gesamtvermögen — das steht daneben, nur lesbar.</source>
+			</trans-unit>
+			<trans-unit id="player.balanceMachine">
+				<source>Gerätekredit</source>
+			</trans-unit>
+			<trans-unit id="player.balanceMachine.description">
+				<source>Geld, das im gerade bespielten Gerät steckt. Nur lesbar.</source>
+			</trans-unit>
+			<trans-unit id="player.balanceWin">
+				<source>Gewinnspeicher</source>
+			</trans-unit>
+			<trans-unit id="player.balanceWin.description">
+				<source>Ein Gewinn, der weder ausgezahlt noch verspielt ist — der Betrag, der auf der Risiko-Leiter steht. Nur lesbar.</source>
+			</trans-unit>
+			<trans-unit id="player.isAdmin">
+				<source>Darf sein Guthaben selbst setzen</source>
+			</trans-unit>
+			<trans-unit id="player.isAdmin.description">
+				<source>Wird von selbst gesetzt, wenn dieser Eintrag zu einem Backend-Benutzer gehört. Nur lesbar.</source>
+			</trans-unit>
+
+			<!-- Die Liste im Modul (CONCEPT.md D.3.1) -->
+			<trans-unit id="list.caption">
+				<source>Alle Spielenden des Hauses</source>
+			</trans-unit>
+			<trans-unit id="list.column.name">
+				<source>Name</source>
+			</trans-unit>
+			<trans-unit id="list.column.total">
+				<source>Gesamtvermögen</source>
+			</trans-unit>
+			<trans-unit id="list.column.role">
+				<source>Rolle</source>
+			</trans-unit>
+			<trans-unit id="list.column.state">
+				<source>Anmeldezustand</source>
+			</trans-unit>
+			<trans-unit id="list.column.actions">
+				<source>Aktionen</source>
+			</trans-unit>
+			<trans-unit id="list.empty">
+				<source>Noch ist niemand angelegt. Mit „Neuen Spielenden anlegen" geht es los.</source>
+			</trans-unit>
+			<trans-unit id="list.new">
+				<source>Neuen Spielenden anlegen</source>
+			</trans-unit>
+			<trans-unit id="list.edit">
+				<source>%s bearbeiten</source>
+			</trans-unit>
+			<trans-unit id="list.qr">
+				<source>QR-Code von %s anzeigen</source>
+			</trans-unit>
+			<trans-unit id="list.state.online">
+				<source>angemeldet</source>
+			</trans-unit>
+			<trans-unit id="list.state.offline">
+				<source>nicht angemeldet</source>
+			</trans-unit>
+			<trans-unit id="list.hidden">
+				<source>stillgelegt</source>
+			</trans-unit>
+
+			<!-- Die QR-Ansicht (CONCEPT.md D.3.4, D.4) -->
+			<trans-unit id="qr.title">
+				<source>QR-Code von %s</source>
+			</trans-unit>
+			<trans-unit id="qr.image.label">
+				<source>QR-Code von %s. Er führt zur Anmeldung des Casino Kunterbunt.</source>
+			</trans-unit>
+			<trans-unit id="qr.token.label">
+				<source>Kennung zum Abtippen</source>
+			</trans-unit>
+			<trans-unit id="qr.token.hint">
+				<source>Wer den Code nicht scannen kann, tippt diese Zeichenfolge auf der Anmeldeseite ein.</source>
+			</trans-unit>
+			<trans-unit id="qr.url.label">
+				<source>Adresse hinter dem Code</source>
+			</trans-unit>
+			<trans-unit id="qr.download.svg">
+				<source>Als SVG herunterladen</source>
+			</trans-unit>
+			<trans-unit id="qr.download.png">
+				<source>Als PNG herunterladen</source>
+			</trans-unit>
+			<trans-unit id="qr.print">
+				<source>Drucken</source>
+			</trans-unit>
+			<trans-unit id="qr.back">
+				<source>Zurück zur Liste</source>
+			</trans-unit>
+			<trans-unit id="qr.status.pngReady">
+				<source>Das PNG-Bild ist fertig und wird heruntergeladen.</source>
+			</trans-unit>
+			<trans-unit id="qr.status.pngFailed">
+				<source>Dieser Browser kann das PNG nicht erzeugen. Das SVG lässt sich trotzdem herunterladen und drucken.</source>
+			</trans-unit>
+
+			<!-- Meldungen (CONCEPT.md D.3.3, D.6.2, D.7.3) -->
+			<trans-unit id="message.balanceWhileOnline">
+				<source>%s ist gerade angemeldet. Das eingetragene Guthaben zieht Geld aus einem laufenden Spiel ein: Gerätekredit und Gewinnspeicher wurden auf null gesetzt.</source>
+			</trans-unit>
+			<trans-unit id="message.balanceWhileOnline.title">
+				<source>Geld aus einem laufenden Spiel eingezogen</source>
+			</trans-unit>
+			<trans-unit id="message.noStorage">
+				<source>Der Ordner für die Konten fehlt und lässt sich nur von einem Administrator anlegen. Bitte einen Administrator bitten, das Modul „Spielende" einmal zu öffnen.</source>
+			</trans-unit>
+			<trans-unit id="message.noStorage.title">
+				<source>Kontenordner fehlt</source>
+			</trans-unit>
+			<trans-unit id="message.mirrored">
+				<source>%d Backend-Benutzer sind neu als Spielende angelegt worden, jeweils mit 1.000.000 in der Kasse.</source>
+			</trans-unit>
+			<trans-unit id="message.mirrored.title">
+				<source>Backend-Benutzer abgeglichen</source>
+			</trans-unit>
+			<trans-unit id="message.noCopy">
+				<source>Ein Spielender lässt sich nicht kopieren: seine Kennung ist einmalig und sein Schattendatensatz gehört ihm allein. Bitte einen neuen Spielenden anlegen.</source>
+			</trans-unit>
+			<trans-unit id="message.noCopy.title">
+				<source>Kopieren nicht möglich</source>
+			</trans-unit>
+
+			<!-- Der Ordner und die Gruppe, die die Extension anlegt (CONCEPT.md D.6.2) -->
+			<trans-unit id="storage.folder.title">
+				<source>Casino Kunterbunt — Konten</source>
+			</trans-unit>
+			<trans-unit id="storage.group.title">
+				<source>Casino Kunterbunt — Spielende</source>
+			</trans-unit>
+
+		</body>
+	</file>
+</xliff>

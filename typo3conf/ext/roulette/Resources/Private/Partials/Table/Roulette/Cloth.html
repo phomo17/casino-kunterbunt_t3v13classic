@@ -1,0 +1,354 @@
+<f:comment>
+	Der Tisch: Schatten, Holzrahmen, Maserung, Messingfase, Zarge, Tuch,
+	Radmulde und die Umrisse der zwei Pfeilfelder.
+
+	UNTERSTE VON DREI SCHICHTEN (siehe Kopfkommentar von Table.html). Sie zeigt
+	NICHTS, was nicht auch als Text dasteht, und trägt deshalb aria-hidden.
+
+	viewBox 0 0 504 160. Diese Maßordnung steht in Classes/BetLayout.php und
+	kommt über den FeltProcessor als {felt.view}, {felt.cloth}, {felt.grid},
+	{felt.wheel} und {felt.arrowPaths} herein — sie steht NICHT als feste Zahl
+	in dieser Datei. Stünde sie hier, wäre sie eine zweite Wahrheit neben dem
+	Gitter: verschöbe sich eine Gitterlinie, liefen die Pfeilumrisse
+	stillschweigend daneben. Prüfung F-13 rechnet die Umrechnung ein zweites
+	Mal nach und vergleicht Zahl für Zahl.
+
+	MASSORDNUNG (von außen nach innen):
+	  Außenkante Holz      x   3 … 501   y   3 … 157
+	  Messingfase          x   8 … 496   y   8 … 152
+	  Zarge (Bande)        x  11 … 493   y  11 … 149
+	  Tuchnaht             x  18 … 486   y  18 … 142
+	  Tuch (Spielfläche)   x  20 … 484   y  20 … 140
+	  Radmulde             Mittelpunkt 86/80, Halbmesser 58
+	  Spielplan (Gitter)   x 152 … 480   y  24 … 136   → 328 × 112
+
+	WARUM DER RAHMEN UM DREI EINHEITEN NACH INNEN GERÜCKT IST (x 3 statt 0):
+	der gewonnene Rand ist der Platz, auf dem der Tisch seinen eigenen Schatten
+	wirft. Der Schatten steht INNERHALB der Zeichenfläche und nicht als
+	box-shadow am Kasten, weil .ro-cloth__scroll waagerecht rollt und ein
+	überstehender Schatten dort einen zweiten, senkrechten Rollbalken erzwänge.
+	Dieselbe Lehre wie am Würfeltisch.
+
+	DIE RADMULDE ist eine Aussparung im Tuch, kein eigenes Bauteil: ein
+	Messingkragen mit einem weichen Schatten auf dem Tuch, in dem die
+	Radzeichnung (Schicht 2) sitzt. Das Rad selbst bleibt unverändert — der
+	Auftraggeber findet das vorhandene Raddesign gut, und diese Datei fasst es
+	nicht an.
+
+	DIE ZWEI PFEILUMRISSE für 0 und 00 stehen HIER und nicht als clip-path am
+	Knopf: clip-path schnitte den FOKUSRAHMEN gleich mit ab — derselbe Fehler,
+	den opacity in diesem Haus schon viermal verursacht hat. Die zugehörigen
+	Knöpfe (Felt.html) tragen an dieser Stelle KEINEN eigenen Rahmen, sonst
+	wäre die Kante zweimal gezeichnet (felt.css, Abschnitt 3).
+
+	DIE MASSORDNUNG UND DIE GESTALTUNG SIND GETRENNT. Diese Datei legt die
+	BAUTEILE an — Schatten, Wange, Fase, Zarge, Tuch, Mulde — und gibt jedem
+	eine eigene Klasse mit dem Kürzel ro-. Der Gestaltungslauf vom 2026-09-09
+	hat an genau diesen Klassen Verläufe, Maserung und Licht ergänzt, ohne
+	eine einzige Zahl der Maßordnung anzufassen: keine Lage, keine Größe,
+	kein Feld hat sich dabei verschoben (Prüfungen F-13 und F-15 rechnen
+	beides nach). Alle Farben kommen aus den Design-Tokens in tokens.css; in
+	dieser Datei steht kein ausgeschriebener Farbwert (Prüfung A-1), und
+	url(#…) ist ein Verweis INNERHALB dieses Dokuments, der nichts nachlädt
+	(Prüfung A-3 schneidet ihn eigens heraus).
+</f:comment>
+<svg class="ro-cloth__ground" viewBox="0 0 {felt.view.w} {felt.view.h}"
+	preserveAspectRatio="xMidYMid meet" focusable="false" aria-hidden="true">
+
+	<defs>
+		<f:comment>
+			DIE WERKSTOFFE (Gestaltungslauf vom 2026-09-09).
+
+			Bis hierher war jedes Bauteil des Tisches eine FLÄCHE in genau
+			einem Ton: brauner Rahmen, braune Zarge, gelbe Linie, grünes Tuch.
+			Das liest sich als technische Zeichnung, nicht als Gegenstand. Was
+			fehlt, ist nicht Farbe, sondern LICHT: ein Körper zeigt sich
+			dadurch, dass er oben heller ist als unten.
+
+			Dieselben sechs Verläufe trägt seit demselben Tag der Würfeltisch
+			(craps/…/Cloth.html). Das ist Absicht und der ganze Punkt der
+			Übung: die beiden Tische sollen aus DEMSELBEN Möbelhaus stammen,
+			nicht nach zwei Entwürfen aussehen.
+
+			Alle Verläufe bestehen ausschließlich aus vorhandenen
+			Design-Tokens; in dieser Datei steht kein Farbwert (Prüfung A-1),
+			und keiner lädt etwas nach — url(#…) ist ein Verweis INNERHALB
+			dieses Dokuments, den Prüfung A-3 eigens herausschneidet.
+
+			WARUM AUF DEM TUCH NUR ABGEDUNKELT UND NIE AUFGEHELLT WIRD.
+			Jede Aufschrift dieses Tuchs ist HELL auf Grün: --ck-felt-line als
+			Aufdruck und als Kontur der Ovale und Rauten, --ck-brass-200 als
+			Fokusrahmen. Ein aufhellender Lichtschein senkte jeden dieser
+			Kontraste; ein abdunkelnder hebt sie. Deshalb liegt das warme
+			Licht auf dem HOLZ, und auf dem Tuch liegt ausschließlich
+			Schatten. An der dunkelsten Stelle des Tuchs (Rand, 55 % Deckung
+			von --ck-felt-green-dark über --ck-felt-green, ergibt #184c2b)
+			steigt --ck-felt-line von 6,32 : 1 auf 7,87 : 1 und der
+			Fokusrahmen --ck-brass-200 von 4,29 : 1 auf rund 5,3 : 1.
+			Prüfung F-9 rechnet weiterhin mit den REINEN Tokens und misst
+			damit ab jetzt die ungünstigste, nicht die tatsächliche Lage —
+			das ist die richtige Richtung für einen Nachweis.
+		</f:comment>
+
+		<f:comment>Der Holzrahmen im Deckenlicht des Saals: oben die
+			belichtete Schulter (--ck-wood-100), unten der Schatten. Vier
+			Stopps statt zweier, weil ein zweistufiger Verlauf wie ein
+			Farbverlauf aussieht und ein vierstufiger wie eine gerundete
+			Kante.</f:comment>
+		<linearGradient id="ro-wood-face" x1="0" y1="0" x2="0" y2="1">
+			<stop offset="0" stop-color="var(--ck-wood-100)" />
+			<stop offset="0.16" stop-color="var(--ck-wood-200)" />
+			<stop offset="0.58" stop-color="var(--ck-wood-300)" />
+			<stop offset="1" stop-color="var(--ck-wood-500)" />
+		</linearGradient>
+
+		<f:comment>Die Zarge. Sie fällt zur Spielfläche hin ab, ist also an
+			ihrer Oberkante am dunkelsten (Schatten der Außenwange) und in der
+			oberen Hälfte am hellsten.</f:comment>
+		<linearGradient id="ro-rail-face" x1="0" y1="0" x2="0" y2="1">
+			<stop offset="0" stop-color="var(--ck-wood-400)" />
+			<stop offset="0.3" stop-color="var(--ck-wood-200)" />
+			<stop offset="1" stop-color="var(--ck-wood-400)" />
+		</linearGradient>
+
+		<f:comment>Die Messingkante als Fase statt als Strich: hell an der
+			Oberkante, satt in der Mitte, dunkel am unteren Umlauf. Messing
+			reflektiert breiter und weicher als Chrom (DESIGNBRIEF.md
+			Abschnitt 4), deshalb ein weicher Mittelbereich statt eines
+			harten Glanzbands.</f:comment>
+		<linearGradient id="ro-brass-bevel" x1="0" y1="0" x2="0" y2="1">
+			<stop offset="0" stop-color="var(--ck-brass-100)" />
+			<stop offset="0.34" stop-color="var(--ck-brass-200)" />
+			<stop offset="0.62" stop-color="var(--ck-brass-300)" />
+			<stop offset="0.88" stop-color="var(--ck-brass-500)" />
+			<stop offset="1" stop-color="var(--ck-brass-300)" />
+		</linearGradient>
+
+		<f:comment>Der Lichtkegel über dem Tisch. Er ist als SCHATTEN gebaut,
+			nicht als Licht: in der Mitte durchsichtig, zum Rand hin zunehmend
+			--ck-felt-green-dark. Der Mittelpunkt liegt etwas über der
+			Tuchmitte, weil eine Lampe über dem Tisch hängt und nicht in ihm.
+			Auf einer Fläche von 468 × 124 wird daraus von selbst eine liegende
+			Ellipse — genau das, was eine Reihe Lampen über einem langen Tisch
+			wirft.</f:comment>
+		<radialGradient id="ro-felt-pool" cx="0.5" cy="0.44" r="0.62">
+			<stop offset="0.34" stop-color="var(--ck-felt-green-dark)" stop-opacity="0" />
+			<stop offset="0.74" stop-color="var(--ck-felt-green-dark)" stop-opacity="0.26" />
+			<stop offset="1" stop-color="var(--ck-felt-green-dark)" stop-opacity="0.55" />
+		</radialGradient>
+
+		<f:comment>Der Schatten, den die Zarge auf das Tuch wirft. Nur oben:
+			das Licht kommt von vorn oben, und nur dort steht eine Wand
+			zwischen Lampe und Tuch.</f:comment>
+		<linearGradient id="ro-rail-drop" x1="0" y1="0" x2="0" y2="1">
+			<stop offset="0" stop-color="var(--ck-shadow-inset)" stop-opacity="0.9" />
+			<stop offset="1" stop-color="var(--ck-shadow-inset)" stop-opacity="0" />
+		</linearGradient>
+
+		<f:comment>DIE WAND DER RADMULDE. Sie ist als Messingkragen gebaut —
+			derselbe Werkstoff wie die Fase des Rahmens, damit die Mulde als
+			Teil DIESES Möbels liest und nicht als aufgeklebte Scheibe.
+
+			Die Tonfolge ist die einer VERTIEFUNG und nicht die einer
+			Erhebung: oben dunkel, unten hell. Das Licht fällt von oben in die
+			Mulde, streift an ihrer oberen Wand vorbei und trifft die untere —
+			die obere Wand liegt deshalb im Schatten. Eine Erhebung sähe genau
+			umgekehrt aus, und daran erkennt das Auge den Unterschied.
+
+			Warum Messing und nicht noch einmal Holz: zwischen dem Rand des
+			Rades (bei 99/100 seiner eigenen Zeichenfläche) und der Tuchkante
+			bleiben nur rund 2,6 Einheiten Platz — bei 1512 Bildpunkten
+			Tischbreite etwa acht Bildpunkte. Auf acht Bildpunkten trägt EIN
+			Merkmal, nicht zwei. Ein Messingring ist auf diesem Raum
+			eindeutig; ein zweistufiger Holzabsatz wäre auf ihm nur ein
+			unsauberer Strich.</f:comment>
+		<linearGradient id="ro-well-collar" x1="0" y1="0" x2="0" y2="1">
+			<stop offset="0" stop-color="var(--ck-brass-500)" />
+			<stop offset="0.3" stop-color="var(--ck-brass-400)" />
+			<stop offset="0.62" stop-color="var(--ck-brass-300)" />
+			<stop offset="0.86" stop-color="var(--ck-brass-200)" />
+			<stop offset="1" stop-color="var(--ck-brass-100)" />
+		</linearGradient>
+
+		<f:comment>Die Weichzeichnung des Muldenschattens auf dem Tuch. Ein
+			eigener Filter neben dem des Tischschattens, weil er über einen
+			viel kleineren Kasten läuft und die Filterfläche in Anteilen des
+			Kastens angegeben wird.</f:comment>
+		<filter id="ro-well-shadow" x="-0.2" y="-0.2" width="1.4" height="1.4">
+			<feGaussianBlur stdDeviation="2.6" />
+		</filter>
+
+		<f:comment>Die Tuchfläche als Schnittform für den Muldenschatten. Ihre
+			vier Zahlen kommen aus {felt.cloth} — dieselbe Quelle wie die
+			Fläche selbst, damit Schnittkante und Tuchkante nicht
+			auseinanderlaufen können.</f:comment>
+		<clipPath id="ro-cloth-clip">
+			<rect x="{felt.cloth.x}" y="{felt.cloth.y}"
+				width="{felt.cloth.w}" height="{felt.cloth.h}" />
+		</clipPath>
+
+		<f:comment>Die Maserung des Holzes: zwei feine waagerechte Linien je
+			Kachel, in ungleichem Abstand — gleichmäßige Linien lesen sich als
+			Raster, ungleichmäßige als Holz.</f:comment>
+		<pattern id="ro-wood-grain" width="24" height="7" patternUnits="userSpaceOnUse">
+			<path d="M0 1.3 H24" fill="none"
+				stroke="var(--ck-wood-grain)" stroke-width="0.45" />
+			<path d="M0 4.1 H24" fill="none"
+				stroke="var(--ck-wood-500)" stroke-width="0.25" stroke-opacity="0.55" />
+		</pattern>
+
+		<f:comment>Die Webung des Tuchs: zwei sich kreuzende Fadenscharen,
+			ungleich stark, damit eine Richtung führt. --ck-felt-weave ist ein
+			Schwarzanteil und dunkelt ab — es kann eine Kontrastmessung
+			deshalb nie verschlechtern, nur verbessern.</f:comment>
+		<pattern id="ro-felt-weave" width="1.6" height="1.6" patternUnits="userSpaceOnUse">
+			<path d="M0 1.6 L1.6 0" fill="none"
+				stroke="var(--ck-felt-weave)" stroke-width="0.45" />
+			<path d="M0 0 L1.6 1.6" fill="none"
+				stroke="var(--ck-felt-weave)" stroke-width="0.25" />
+		</pattern>
+
+		<f:comment>Der Schatten des ganzen Tisches auf dem Teppich.</f:comment>
+		<filter id="ro-table-shadow" x="-0.08" y="-0.08" width="1.16" height="1.2">
+			<feGaussianBlur stdDeviation="1.9" />
+		</filter>
+	</defs>
+
+	<f:comment>1  DER TISCHKÖRPER: Schatten, Holzwange mit Maserung,
+		Messingfase mit Absatz, Zarge.</f:comment>
+	<rect class="ro-cloth__shadow" x="3" y="5" width="498" height="152" rx="16"
+		fill="var(--ck-shadow-pool)" filter="url(#ro-table-shadow)" />
+	<rect class="ro-cloth__hull" x="3" y="3" width="498" height="154" rx="16"
+		fill="url(#ro-wood-face)" stroke="var(--ck-wood-500)" stroke-width="1.2" />
+	<rect class="ro-cloth__hull-grain" x="3" y="3" width="498" height="154" rx="16"
+		fill="url(#ro-wood-grain)" />
+
+	<f:comment>Die Messingkante: ein breiter Strich als Fase, darunter eine
+		Haarlinie im dunkelsten Messing als Absatz zur Zarge hin. Zwei Linien
+		statt einer — eine einzelne liest sich als Kontur, zwei als Kante.
+
+		DIE BREITE IST GESTALTUNG 2026-09-09 VON 2,4 AUF 3,2 EINHEITEN
+		GEWACHSEN, und das ist keine Geschmacksfrage, sondern eine Rechnung.
+		Beide Tische zeichnen ihre Fase mit derselben Strichstärke in
+		EINHEITEN, stehen aber in verschieden großen Zeichenflächen: der
+		Würfeltisch in 240, dieser in 504. Bei gleicher gerenderter Breite ist
+		eine Einheit hier nur halb so viele Bildpunkte wert — dieselbe Zahl
+		ergab also die halbe Kante, und die beiden Möbel sahen nach zwei
+		Entwürfen aus. 3,2 Einheiten mal 3 Bildpunkte sind rund zehn
+		Bildpunkte und liegen damit in derselben Größenordnung wie die
+		fünfzehn des Würfeltisches.
+
+		DIE OBERGRENZE STEHT FEST: die Fase liegt auf x/y = 8, die Zarge
+		beginnt bei 11, und die Haarlinie darunter läuft von 9,6 bis 10,0.
+		Ein Strich von 3,2 reicht von 6,4 bis 9,6 und stößt damit genau an
+		die Haarlinie, ohne sie zu verdecken. Breiter darf er nicht werden,
+		sonst verschluckt die Fase ihren eigenen Absatz.</f:comment>
+	<rect class="ro-cloth__brass" x="8" y="8" width="488" height="144" rx="13"
+		fill="none" stroke="url(#ro-brass-bevel)" stroke-width="3.2" />
+	<rect class="ro-cloth__brass-seam" x="9.8" y="9.8" width="484.4" height="140.4" rx="11.6"
+		fill="none" stroke="var(--ck-brass-500)" stroke-width="0.4" stroke-opacity="0.75" />
+
+	<rect class="ro-cloth__rail" x="11" y="11" width="482" height="138" rx="11"
+		fill="url(#ro-rail-face)" />
+	<rect class="ro-cloth__rail-grain" x="11" y="11" width="482" height="138" rx="11"
+		fill="url(#ro-wood-grain)" opacity="0.6" />
+
+	<f:comment>2  DAS TUCH. Das erste Rechteck ist die dunkle Naht, das zweite
+		die Fläche selbst, das dritte ihre Webung. Die vier Zahlen der Fläche
+		kommen aus {felt.cloth} und werden von Prüfung F-13 gegen
+		BetLayout::CLOTH_* gehalten.</f:comment>
+	<rect class="ro-cloth__seam" x="18" y="18" width="468" height="124" rx="5"
+		fill="var(--ck-felt-green-dark)" />
+	<rect class="ro-cloth__felt" x="{felt.cloth.x}" y="{felt.cloth.y}"
+		width="{felt.cloth.w}" height="{felt.cloth.h}"
+		fill="var(--ck-felt-green)" />
+	<rect class="ro-cloth__weave" x="{felt.cloth.x}" y="{felt.cloth.y}"
+		width="{felt.cloth.w}" height="{felt.cloth.h}"
+		fill="url(#ro-felt-weave)" />
+
+	<f:comment>Der Lichtkegel und der Schatten der Zarge. Beide DUNKELN AB —
+		warum das die einzige zulässige Richtung ist, steht im
+		Werkstoff-Abschnitt oben. Beide liegen auf denselben vier Zahlen aus
+		{felt.cloth} wie die Fläche selbst; der Zargenschatten bekommt seine
+		Höhe aus derselben Quelle nicht, weil er nur die obersten Einheiten
+		des Tuchs bedeckt — acht Einheiten sind rund ein Fünfzehntel der
+		Tuchhöhe und entsprechen der Zarge (11 bis 20), die ihn wirft.</f:comment>
+	<rect class="ro-cloth__pool" x="{felt.cloth.x}" y="{felt.cloth.y}"
+		width="{felt.cloth.w}" height="{felt.cloth.h}"
+		fill="url(#ro-felt-pool)" />
+	<rect class="ro-cloth__railshadow" x="{felt.cloth.x}" y="{felt.cloth.y}"
+		width="{felt.cloth.w}" height="8"
+		fill="url(#ro-rail-drop)" />
+
+	<f:comment>
+		3  DIE RADMULDE — der eigentliche Gewinn des Umbaus.
+
+		Das Rad liegt als eigene Schicht darüber (Table.html) und wird von
+		dieser Datei NICHT angefasst: der Auftraggeber findet das vorhandene
+		Raddesign gut. Gestaltet wird ausschließlich, WIE es in der Fläche
+		sitzt.
+
+		DREI LAGEN, VON AUSSEN NACH INNEN:
+
+		  ro-cloth__well-shade   ein weich auslaufender Schatten auf dem Tuch.
+		                         Er ist das, was die Mulde als Vertiefung
+		                         lesbar macht — nicht der Ring selbst. Ein
+		                         Loch in einer Fläche zeigt sich daran, dass
+		                         die Fläche RINGSUM dunkler wird.
+		  ro-cloth__well         die Aussparung mit ihrem Messingkragen
+		                         (Verlauf ro-well-collar: oben Schatten, unten
+		                         Licht — die Tonfolge einer Vertiefung).
+		  Rad (Schicht 2)        deckt alles bis 99/100 seines eigenen
+		                         Halbmessers ab; sichtbar bleibt vom Kragen
+		                         also nur sein äußerer Teil.
+
+		WARUM DER MITTELPUNKT NICHT ZWEIMAL DASTEHT. Beide Lagen sitzen in
+		EINER Gruppe, die um {felt.wheel.cx}/{felt.wheel.cy} verschoben ist;
+		darin rechnen alle Kreise mit cx="0" cy="0". Der Mittelpunkt der Mulde
+		steht damit an genau einer Stelle dieser Datei. Der Schatten ist
+		derselbe Kreis, nur über scale() um wenige Hundertstel größer — eine
+		zweite, ausgeschriebene Halbmesserzahl wäre eine zweite Wahrheit neben
+		BetLayout::WHEEL_R und liefe beim nächsten Maßwechsel stillschweigend
+		daneben. Genau diese Falle beschreibt der Kopfkommentar oben für die
+		Pfeilumrisse.
+	</f:comment>
+	<f:comment>Die äußere Gruppe schneidet auf die Tuchfläche zu und trägt
+		DESHALB selbst keine Verschiebung: ein clip-path wird im
+		Koordinatensystem angewandt, das die Verschiebung seines eigenen
+		Elements bereits aufgespannt hat — stünden beide an einer Gruppe, läge
+		die Schnittkante um den Muldenmittelpunkt versetzt. Geschnitten wird,
+		weil zwischen Mulde und Tuchkante senkrecht nur zwei Einheiten Platz
+		sind: ohne Schnitt liefe der weiche Schatten über die Naht auf die
+		hölzerne Zarge, und dort liegt in diesem Haus Licht und kein
+		Schatten.</f:comment>
+	<g class="ro-cloth__well-clip" clip-path="url(#ro-cloth-clip)">
+		<g class="ro-cloth__well-group"
+			transform="translate({felt.wheel.cx} {felt.wheel.cy})">
+			<circle class="ro-cloth__well-shade" cx="0" cy="0" r="{felt.wheel.r}"
+				transform="scale(1.03)" fill="none" stroke="var(--ck-shadow-pool)"
+				stroke-width="5" filter="url(#ro-well-shadow)" />
+			<circle class="ro-cloth__well" cx="0" cy="0" r="{felt.wheel.r}"
+				fill="var(--ck-felt-green-dark)" stroke="url(#ro-well-collar)"
+				stroke-width="3.4" />
+		</g>
+	</g>
+
+	<f:comment>
+		4  DIE ZWEI PFEILFELDER 0 UND 00.
+
+		Ihre Umrisse werden GERECHNET, nicht abgeschrieben: sie kommen aus
+		BetLayout::arrowPaths() über den FeltProcessor, in derselben Maßordnung
+		wie diese Zeichnung. Prüfung F-15 rechnet die Umrechnung ein zweites
+		Mal nach und vergleicht die Eckpunkte mit den Gitterkanten von n-0 und
+		n-00.
+
+		fill="none": der Pfeil ist ein Umriss, keine Fläche. Das grüne Tuch
+		darunter bleibt sichtbar, genau wie bei jedem anderen Feld des Tuchs.
+	</f:comment>
+	<g class="ro-cloth__arrows" fill="none"
+		stroke="var(--ck-felt-line)" stroke-width="1.5" stroke-linejoin="round">
+		<f:for each="{felt.arrowPaths}" as="arrow">
+			<path class="ro-cloth__arrow ro-cloth__arrow--{arrow.id}" d="{arrow.d}" />
+		</f:for>
+	</g>
+</svg>

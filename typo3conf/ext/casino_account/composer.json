@@ -1,0 +1,31 @@
+{
+	"name": "phomo17/casino-account",
+	"type": "typo3-cms-extension",
+	"description": "Casino Kunterbunt: Konten der Spielenden mit persönlichem QR-Code — eigener Backend-Reiter „Casino\", Verwaltung der Spielenden, unsichtbare Schattendatensätze in fe_users und der Abgleich der Backend-Benutzer.",
+	"license": "AGPL-3.0-or-later",
+	"authors": [
+		{
+			"name": "Phomo17",
+			"email": "phomo17@users.noreply.github.com",
+			"role": "Developer"
+		}
+	],
+	"require": {
+		"php": ">=8.2 <8.5",
+		"typo3/cms-core": "^13.4",
+		"typo3/cms-backend": "^13.4",
+		"typo3/cms-fluid": "^13.4",
+		"typo3/cms-frontend": "^13.4",
+		"phomo17/casino-startpage": ">=0.4.0 <1.0.0"
+	},
+	"autoload": {
+		"psr-4": {
+			"Phomo17\\CasinoAccount\\": "Classes/"
+		}
+	},
+	"extra": {
+		"typo3/cms": {
+			"extension-key": "casino_account"
+		}
+	}
+}

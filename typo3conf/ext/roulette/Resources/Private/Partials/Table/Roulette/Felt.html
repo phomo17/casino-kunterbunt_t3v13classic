@@ -1,207 +1,159 @@
 <f:comment>
-	Das Tuch des Roulette-Tisches (CONCEPT.md C.6.4, Anhang F).
+	Das Tuch des Roulette-Tisches (CONCEPT.md C.6.4, Anhang F, Bildvorlage vom
+	2026-09-08).
 
-	Die Anordnung folgt der Skizze im Dateikopf von bets-roulette.js: zwölf
-	Tuchspalten zu drei Zeilen, links davon die Nullspalte. Die Lage jedes
-	Feldes (grid-column/grid-row) kommt fertig aus dem FeltProcessor — sie ist
-	ein Datum des Feldes, kein Gestaltungsbeschluss (siehe dort).
+	OBERSTE VON DREI SCHICHTEN (siehe Kopfkommentar von Table.html): eine
+	durchsichtige Überlagerung auf der Zeichnung. Alles, was gezeichnet wird —
+	Rahmen, Tuch, Radmulde, die zwei Pfeilumrisse —, steht in Cloth.html.
 
 	159 echte <button type="button">: ein Knopf bringt Rolle, Fokusreihenfolge
 	und das Verhalten von Eingabe- und Leertaste von selbst mit. ARIA fügt
 	niemals Verhalten hinzu, nur eine Beschreibung — ein <div role="button">
 	müsste all das nachbauen.
 
-	DER SPRUNGLINK. 159 Knöpfe sind 159 Tabstationen. Damit ein
-	Tastaturbenutzer nicht durch das ganze Tuch muss, um an die Bedienleiste
-	zu kommen, steht als ERSTES fokussierbares Element im Tuch ein Sprunglink
-	(WCAG 2.2, Erfolgskriterium 2.4.1 „Bypass Blocks"). Er benutzt die im Site
-	Package schon vorhandene Klasse .ck-skiplink (base.css), die außerhalb des
-	sichtbaren Bereichs liegt und bei Tastaturfokus hereinfährt — nicht
-	display: none, sonst bekäme er nie den Fokus. Sein Ziel #ro-controls
-	umschließt die Bedienleiste in Table.html.
+	DIE LAGE kommt fertig aus dem FeltProcessor (grid-column/grid-row als
+	style-Attribut). Sie ist ein Datum des Feldes, kein Gestaltungsbeschluss —
+	das ist die einzige Stelle dieser Extension mit einem style-Attribut, und
+	es steht weder eine Farbe noch eine Größe darin (Prüfung F-6).
 
-	SEIN POSITIONSKONTEXT (Behebung Review C3, H1). .ck-skiplink verbirgt sich
-	über position: absolute; der nächste positionierte Vorfahre entscheidet
-	also, WOHIN er fährt. Der Link steht deshalb als ERSTES Kind von
-	.ck-felt (position: relative, table.css) — nicht als Geschwister davor.
-	Läge er außerhalb von .ck-felt, würde position: absolute gegen .ck-room
-	auflösen (der nächste positionierte Vorfahre davor) und der Link erschiene
-	an der oberen linken Ecke des Saals, weit weg von der Stelle, an der der
-	Fokus gerade war (WCAG 2.4.11 „Focus Not Obscured"). felt.css setzt seine
-	Feinlage (inset-block-start/-inline-start) deshalb ausdrücklich nur unter
-	:focus-visible — eine bedingungslose Fassung würde die Versteck-Position
-	von .ck-skiplink aus base.css aufheben und den Link dauerhaft sichtbar
-	stehen lassen (gemessene Kaskade: felt.css lädt im <head> NACH base.css,
-	gleiche Spezifität 0,1,0 — die spätere Regel gewinnt).
+	DIE AUFSCHRIFT IST ENGLISCH UND LÄUFT NICHT DURCH f:translate
+	--------------------------------------------------------------
+	Ansage des Auftraggebers vom 2026-09-08: aufgedruckt wird wörtlich, was auf
+	der Vorlage steht. Die Aufschrift ist damit kein übersetzbarer Text,
+	sondern die Beschriftung eines Spielgeräts. Sie steht als Klartext in
+	Classes/BetLayout.php und kommt über den FeltProcessor als Liste von
+	Teilen herein, jeder mit seiner Sprache und seiner Rolle:
 
-	DER ERREICHBARE NAME. Ein Feld bekommt aria-label (und, für table-felt.js,
-	dasselbe zusätzlich in data-ck-field-label) GENAU DANN, wenn es ein
-	labelKey trägt — nicht einfach dann, wenn ihm die sichtbare Aufschrift
-	fehlt. Das deckt zwei Fälle ab:
-	  - Linienfelder (Split, Ecke, Dreier-/Sechserreihe, Fünferwette) haben
-	    KEINE sichtbare Aufschrift (eine Linie zwischen zwei Zahlen ist 24
-	    Bildpunkte breit) UND ein labelKey — der einzige Weg, wie sie
-	    überhaupt einen Namen bekommen.
-	  - Die drei Kolonnenfelder haben SEHR WOHL eine sichtbare Aufschrift
-	    ("2 zu 1", identisch bei allen dreien) UND zusätzlich ein labelKey:
-	    drei Bedienteile mit demselben sichtbaren Text sind für ein
-	    Vorleseprogramm nicht auseinanderzuhalten, deshalb bekommt jede
-	    Kolonne ihren eigenen Namen ("Kolonne 1, die Zahlen …", WCAG 2.4.6).
-	    Bei einem Feld ohne eigene sichtbare Unterscheidung beginnt dieser
-	    Name zwangsläufig NICHT mit dem sichtbaren Text — WCAG 2.5.3 verlangt
-	    das ausdrücklich nur dort, wo der sichtbare Text selbst unterscheidet.
-	  Zahlen-, Dutzend- und Chancenfelder tragen dagegen KEIN labelKey: ihre
-	  sichtbare Aufschrift (Ziffer, "1. Dutzend", "Rot" …) ist bereits
-	  eindeutig und wird als Name übernommen (table-felt.js führt ihn nach).
+	  field.print    Liste von {text, lang, role}; leer bei jedem Linienfeld
+	                 und bei den zwei Rauten
+	  field.diamond  'red', 'black' oder leer — die zwei Farbfelder tragen
+	                 statt einer Aufschrift eine gezeichnete Raute
 
-	DIE AUFGEDRUCKTE AUFSCHRIFT UND f:translate. printed ist bei Zahlenfeldern
-	die Ziffer selbst (kein Übersetzungsschlüssel — '0', '00', '17' sind
-	Zeichen, keine XLIFF-Kennungen, und dürfen NICHT durch f:translate
-	laufen). Bei Kolonnen, Dutzenden und einfachen Chancen ist printed dagegen
-	ein bloßer XLIFF-Bezeichner ("felt.print.column" usw.) und MUSS übersetzt
-	werden, sonst stünde der rohe Schlüssel im ausgelieferten HTML. Die
-	Unterscheidung trifft field.kind == 'number'.
+	lang="en" steht an jedem Aufschriftteil mit lang != '' (WCAG 2.2 SC 3.1.2,
+	Language of Parts). Reine Zahlenangaben („17", „1–18") bekommen KEINS: eine
+	Ziffer hat keine Sprache, und ein lang="en" machte aus „12" ein gesprochenes
+	„twelve" statt „zwölf". Prüfung F-19 hält beide Richtungen fest.
 
-	WARUM "<f:if condition="{field.printed} != ''">" UND NICHT NUR
-	"{field.printed}" (Behebung Teilstück C3c, im Browser gefunden). PHP
-	behandelt die Zeichenkette "0" als FALSCH, wenn sie ungeprüft in eine
-	Bedingung gerät — genau der Wert, den das Feld n-0 als printed trägt.
-	Mit der kürzeren Schreibweise blieb das Nullfeld ohne jede sichtbare
-	Aufschrift, obwohl printed korrekt gesetzt war: ein Fund, den kein
-	Prüfskript (sie zählen style-Attribute und XLIFF-Kennungen, nicht den
-	tatsächlich gerenderten Text) fangen konnte, sondern erst der Blick auf
-	die abgerufene Seite. Der Vergleich gegen die leere Zeichenkette prüft
-	stattdessen genau das, was gemeint ist: "gibt es einen Aufdruck?", nicht
-	"ist der Aufdruck ein PHP-wahrer Wert?".
+	DER ERREICHBARE NAME BLEIBT DEUTSCH. Jedes der 159 Felder trägt ihn als
+	aria-label UND als data-ck-field-label — ein rückwärtsverträglicher
+	Vertrag im geteilten Baustein table-felt.js, der daraus den vollständigen,
+	mit dem gesetzten Betrag nachgeführten Namen baut. Weil jeder Knopf ein
+	aria-label trägt, wird sein sichtbarer Inhalt NICHT zusätzlich vorgelesen;
+	Ovale, Rauten und Aufschriften sind deshalb allesamt stumm, ohne dass jedes
+	einzelne aria-hidden tragen müsste.
+
+	Der Name beginnt bei jedem Feld mit sichtbarer Aufschrift mit genau dieser
+	Aufschrift (WCAG 2.2 SC 2.5.3, Prüfung F-20).
+
+	EINE KNOPF-VORLAGE, EIN AUFDRUCK-ABSCHNITT
+	-------------------------------------------
+	Bis zum Umbau stand derselbe Knopf VIERMAL im Quelltext, einmal je
+	Bildschirmleser-Gruppe. Vier Abschriften desselben Gedankens sind vier
+	Stellen, an denen eine Änderung vergessen werden kann. Jetzt läuft eine
+	Schleife über die vier Gruppennamen, und der Inhalt eines Feldes steht
+	genau EINMAL da, als <f:section name="Aufdruck">. Prüfung F-2 hält fest:
+	genau eine Knopf-Vorlage, genau vier Gruppendurchläufe, genau ein
+	Abschnitt.
 
 	DIE VIER GRUPPEN. Ein Bildschirmleser soll die 159 Felder in Abschnitten
 	ansteuern können, deshalb steht das Tuch in vier role="group"-Bereichen
 	(Zahlenfeld und Linienwetten / Kolonnen / Dutzende / Einfache Chancen).
-	Der FeltProcessor liefert dafür group mit. Jede Gruppe geht einmal über
-	die vollständige Feldliste und überspringt, was nicht zu ihr gehört —
-	das hält die Reihenfolge im Markup planbar (Zahlen zuerst, dann Kolonnen,
-	Dutzende, einfache Chancen, dieselbe Reihenfolge wie in
-	BetLayout::fields()) und ist einfacher als ein Gruppenwechsel mitten in
-	einer einzigen Schleife. .ro-felt bleibt EIN CSS-Grid; die
-	Gruppen-<div>s bekommen in felt.css (Teilstück C3c) display: contents,
-	damit sie das Gitter nicht zerschneiden — bis dahin ordnen sie sich als
-	gewöhnliche Blöcke.
+	Der FeltProcessor liefert dafür group mit. Jede Gruppe geht einmal über die
+	vollständige Feldliste und überspringt, was nicht zu ihr gehört — das hält
+	die Reihenfolge im Markup planbar. Die Gruppen-<div>s bekommen in felt.css
+	display: contents, damit sie das Gitter nicht zerschneiden.
 
-	style="grid-column: …; grid-row: …": die einzige Stelle des Projekts mit
-	style-Attributen, weil die Lage ein Datum des Feldes ist (siehe
-	FeltProcessor), keine Farbe und keine Größe steht darin.
+	DER SPRUNGLINK. 159 Knöpfe sind 159 Tabstationen. Damit ein
+	Tastaturbenutzer nicht durch das ganze Tuch muss, um an die Bedienleiste zu
+	kommen, steht als ERSTES fokussierbares Element im Tuch ein Sprunglink
+	(WCAG 2.2, SC 2.4.1 „Bypass Blocks"). Er benutzt die im Site Package
+	vorhandene Klasse .ck-skiplink (base.css), die sich seit dem 2026-09-09
+	über ihre GRÖSSE versteckt (1 × 1 Bildpunkt, clip-path: inset(50%)) und
+	nicht mehr über eine negative Lage — damit gibt es keinen Bezugsrahmen
+	mehr, der falsch sein könnte, und der Link ist unsichtbar, wo immer er
+	steht. Sein Ziel #ro-controls umschließt die Bedienleiste in Table.html.
+
+	Er steht trotzdem als erstes Kind von .ck-felt, nicht als Geschwister
+	davor: im FOKUSSIERTEN Zustand entscheidet weiterhin der nächste
+	positionierte Vorfahre, wohin er fährt — und das soll der Tisch sein, nicht
+	der Saal (WCAG 2.4.11 „Focus Not Obscured"). felt.css setzt seine Feinlage
+	deshalb ausdrücklich nur unter :focus-visible; eine bedingungslose Regel
+	ist verboten (Prüfung F-11).
 </f:comment>
-<section class="ro-felt-area" aria-labelledby="ro-felt-title">
-	<h2 class="ro-felt__title" id="ro-felt-title">
-		<f:translate key="LLL:EXT:roulette/Resources/Private/Language/locallang.xlf:felt.label" />
-	</h2>
+<div class="ck-felt ro-felt" data-ro-felt="">
+	<a class="ck-skiplink ro-felt__skip" href="#ro-controls">
+		<f:translate key="LLL:EXT:roulette/Resources/Private/Language/locallang.xlf:felt.skip" />
+	</a>
 
-	<div class="ro-felt__scroll">
-		<div class="ck-felt ro-felt" data-ro-felt="">
-			<a class="ck-skiplink ro-felt__skip" href="#ro-controls">
-				<f:translate key="LLL:EXT:roulette/Resources/Private/Language/locallang.xlf:felt.skip" />
-			</a>
-
-			<div class="ro-felt__group" role="group"
-				aria-label="{f:translate(key: 'LLL:EXT:roulette/Resources/Private/Language/locallang.xlf:felt.group.numbers')}">
-				<f:for each="{felt.fields}" as="field">
-					<f:if condition="{field.group} == 'numbers'">
-						<button type="button"
-							class="ck-felt__field ro-felt__field ro-felt__field--{field.kind}"
-							data-ck-field="{field.id}"
-							style="grid-column: {field.gridColumn}; grid-row: {field.gridRow};"
-							<f:if condition="{field.labelKey}">
-								data-ck-field-label="{f:translate(key: field.labelKey, arguments: field.labelArgs)}"
-								aria-label="{f:translate(key: field.labelKey, arguments: field.labelArgs)}"
-							</f:if>>
-							<f:if condition="{field.printed} != ''">
-								<span class="ro-felt__print">
-									<f:if condition="{field.kind} == 'number'">
-										<f:then>{field.printed}</f:then>
-										<f:else><f:translate key="LLL:EXT:roulette/Resources/Private/Language/locallang.xlf:{field.printed}" /></f:else>
-									</f:if>
-								</span>
-							</f:if>
-						</button>
-					</f:if>
-				</f:for>
-			</div>
-
-			<div class="ro-felt__group" role="group"
-				aria-label="{f:translate(key: 'LLL:EXT:roulette/Resources/Private/Language/locallang.xlf:felt.group.columns')}">
-				<f:for each="{felt.fields}" as="field">
-					<f:if condition="{field.group} == 'columns'">
-						<button type="button"
-							class="ck-felt__field ro-felt__field ro-felt__field--{field.kind}"
-							data-ck-field="{field.id}"
-							style="grid-column: {field.gridColumn}; grid-row: {field.gridRow};"
-							<f:if condition="{field.labelKey}">
-								data-ck-field-label="{f:translate(key: field.labelKey, arguments: field.labelArgs)}"
-								aria-label="{f:translate(key: field.labelKey, arguments: field.labelArgs)}"
-							</f:if>>
-							<f:if condition="{field.printed} != ''">
-								<span class="ro-felt__print">
-									<f:if condition="{field.kind} == 'number'">
-										<f:then>{field.printed}</f:then>
-										<f:else><f:translate key="LLL:EXT:roulette/Resources/Private/Language/locallang.xlf:{field.printed}" /></f:else>
-									</f:if>
-								</span>
-							</f:if>
-						</button>
-					</f:if>
-				</f:for>
-			</div>
-
-			<div class="ro-felt__group" role="group"
-				aria-label="{f:translate(key: 'LLL:EXT:roulette/Resources/Private/Language/locallang.xlf:felt.group.dozens')}">
-				<f:for each="{felt.fields}" as="field">
-					<f:if condition="{field.group} == 'dozens'">
-						<button type="button"
-							class="ck-felt__field ro-felt__field ro-felt__field--{field.kind}"
-							data-ck-field="{field.id}"
-							style="grid-column: {field.gridColumn}; grid-row: {field.gridRow};"
-							<f:if condition="{field.labelKey}">
-								data-ck-field-label="{f:translate(key: field.labelKey, arguments: field.labelArgs)}"
-								aria-label="{f:translate(key: field.labelKey, arguments: field.labelArgs)}"
-							</f:if>>
-							<f:if condition="{field.printed} != ''">
-								<span class="ro-felt__print">
-									<f:if condition="{field.kind} == 'number'">
-										<f:then>{field.printed}</f:then>
-										<f:else><f:translate key="LLL:EXT:roulette/Resources/Private/Language/locallang.xlf:{field.printed}" /></f:else>
-									</f:if>
-								</span>
-							</f:if>
-						</button>
-					</f:if>
-				</f:for>
-			</div>
-
-			<div class="ro-felt__group" role="group"
-				aria-label="{f:translate(key: 'LLL:EXT:roulette/Resources/Private/Language/locallang.xlf:felt.group.even')}">
-				<f:for each="{felt.fields}" as="field">
-					<f:if condition="{field.group} == 'even'">
-						<button type="button"
-							class="ck-felt__field ro-felt__field ro-felt__field--{field.kind}"
-							data-ck-field="{field.id}"
-							style="grid-column: {field.gridColumn}; grid-row: {field.gridRow};"
-							<f:if condition="{field.labelKey}">
-								data-ck-field-label="{f:translate(key: field.labelKey, arguments: field.labelArgs)}"
-								aria-label="{f:translate(key: field.labelKey, arguments: field.labelArgs)}"
-							</f:if>>
-							<f:if condition="{field.printed} != ''">
-								<span class="ro-felt__print">
-									<f:if condition="{field.kind} == 'number'">
-										<f:then>{field.printed}</f:then>
-										<f:else><f:translate key="LLL:EXT:roulette/Resources/Private/Language/locallang.xlf:{field.printed}" /></f:else>
-									</f:if>
-								</span>
-							</f:if>
-						</button>
-					</f:if>
-				</f:for>
-			</div>
-
+	<f:for each="{0: 'numbers', 1: 'columns', 2: 'dozens', 3: 'even'}" as="gruppe">
+		<div class="ro-felt__group" role="group"
+			aria-label="{f:translate(key: 'LLL:EXT:roulette/Resources/Private/Language/locallang.xlf:felt.group.{gruppe}')}">
+			<f:for each="{felt.fields}" as="field">
+				<f:if condition="{field.group} == {gruppe}">
+					<button type="button"
+						class="ck-felt__field ro-felt__field ro-felt__field--{field.kind}"
+						data-ck-field="{field.id}"
+						style="grid-column: {field.gridColumn}; grid-row: {field.gridRow};"
+						data-ck-field-label="{f:translate(key: field.labelKey, arguments: field.labelArgs)}"
+						aria-label="{f:translate(key: field.labelKey, arguments: field.labelArgs)}">
+						<f:render section="Aufdruck" arguments="{field: field}" />
+					</button>
+				</f:if>
+			</f:for>
 		</div>
-	</div>
-</section>
+	</f:for>
+</div>
+
+<f:section name="Aufdruck">
+	<f:comment>
+		Der sichtbare Inhalt EINES Feldes — einmal geschrieben.
+
+		Er ist stumm: der Knopf trägt ein aria-label, und ein aria-label ersetzt
+		den Inhalt für ein Vorleseprogramm vollständig.
+
+		Die Fallunterscheidung nach {teil.lang} ist nötig, weil Fluid ein
+		Attribut nicht bedingt weglassen kann — ein lang="" wäre nicht dasselbe
+		wie kein lang.
+
+		role ist der Modifikator der CSS-Klasse und sagt, WIE der Teil
+		aussieht: 'word' (englisches Wort auf einem Namensschild), 'range'
+		(Zahlenspanne, ebenfalls Namensschild), 'pocket-red'/'pocket-black'/
+		'pocket-green' (die Zahl eines Fachs als farbiges Oval). Die Farbe
+		kommt aus WheelGeometry und ist damit dieselbe wie am Rad.
+	</f:comment>
+	<f:for each="{field.print}" as="teil">
+		<f:if condition="{teil.lang} != ''">
+			<f:then><span class="ro-felt__print ro-felt__print--{teil.role}" lang="{teil.lang}">{teil.text}</span></f:then>
+			<f:else><span class="ro-felt__print ro-felt__print--{teil.role}">{teil.text}</span></f:else>
+		</f:if>
+	</f:for>
+
+	<f:comment>
+		DIE ZWEI RAUTEN FÜR ROT UND SCHWARZ.
+
+		Die Vorlage druckt auf diesen beiden Feldern kein Wort, sondern eine
+		Raute in der Farbe, die sie bezeichnen. Das ist übernommen — mit zwei
+		Zusätzen, ohne die das Feld nicht bedienbar wäre:
+
+		1  Ein erreichbarer Name („Rote Raute — Rot, die achtzehn roten
+		   Zahlen, zahlt 1 zu 1"). Ohne ihn wäre der Knopf für ein
+		   Vorleseprogramm ein Bedienteil ohne jede Ansage.
+		2  Ein zweiter, FARBUNABHÄNGIGER Unterschied zwischen den beiden
+		   (WCAG 2.2, SC 1.4.1): beide Rauten tragen dieselbe helle Kontur,
+		   die schwarze zusätzlich eine feine Schraffur. Die Regeln dafür
+		   stehen in felt.css; hier steht nur der leere Träger, weil eine
+		   Raute eine Zeichnung ist und kein Text.
+
+		Warum die Kontur nicht bloß Zierrat ist: nachgerechnet nach der
+		WCAG-2.2-Formel erreicht --ck-pocket-red auf dem Tuchgrün nur
+		1,01 : 1 und --ck-pocket-black 2,31 : 1 — beide unter den 3 : 1, die
+		SC 1.4.11 für ein bedeutungstragendes grafisches Objekt verlangt. Erst
+		die helle Kontur (--ck-felt-line, 6,32 : 1 gegen das Tuch) macht die
+		Raute überhaupt sichtbar. Prüfung F-10 rechnet beides nach.
+
+		aria-hidden, weil der Name des Knopfes die Aussage bereits trägt.
+	</f:comment>
+	<f:if condition="{field.diamond} != ''">
+		<span class="ro-felt__diamond ro-felt__diamond--{field.diamond}" aria-hidden="true"></span>
+	</f:if>
+</f:section>

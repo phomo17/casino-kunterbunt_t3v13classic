@@ -1,0 +1,92 @@
+<f:comment>
+	Die beiden Würfel — obere von drei Schichten.
+
+	SIE LIEGT ÜBER DEM WETTGITTER, weil ein Würfel über die Felder rollt und
+	nicht darunter. Als Ganzes ist sie pointer-events: none (felt.css), damit
+	ein Zeiger auf einem Wettfeld sie gar nicht erreicht; nur die beiden
+	Würfelgruppen nehmen Zeiger an. Damit löst ein Klick auf ein Wettfeld
+	keinen Wurf aus, und ein Finger, der irgendwo sonst auf dem Tisch
+	aufsetzt, rollt weiterhin den Tischkasten.
+
+	data-cr-tray steht an DIESER Schicht: craps.js reicht sie unverändert an
+	connectDice() und connectThrow() weiter. Beide finden darin
+	[data-cr-die="0"] und [data-cr-die="1"] wie bisher. Dass
+	root.querySelector('.cr-tray__drawing') hier NICHTS findet, ist richtig
+	und beabsichtigt: throw-input.js fällt dann auf den eigenen Kasten
+	zurück, und der ist wegen aspect-ratio: 240/140 deckungsgleich mit der
+	viewBox — die Umrechnung Zeiger → Wanneneinheiten stimmt auf den Punkt.
+
+	DER PLASTISCHE WÜRFEL (Ansage vom 2026-09-07)
+	----------------------------------------------
+	Ein Würfel besteht aus vier Geschwistern, NICHT aus ineinander
+	geschachtelten Gruppen:
+
+	  1  __shadow        der Schattenwurf, am tiefsten versetzt
+	  2  __side--far     die abgewandte Körperfläche, dunkel
+	  3  __side--near    die zugewandte Körperfläche, mittel
+	  4  __face          die Deckfläche mit den Augen
+
+	Jedes der vier trägt seine EIGENE, vollständige Transformationskette
+	(dice.css) und wird um ein Vielfaches von --cr-dx/--cr-dy versetzt.
+	Geschwister statt Schachtelung, weil transform-box: view-box mit
+	transform-origin: 0 0 in einer bereits verschobenen Elterngruppe nicht
+	mehr auf den Würfel, sondern auf den Ursprung der Zeichenfläche zeigte —
+	die Drehung liefe dann um die linke obere Ecke des Tisches.
+
+	DIE PHYSIK BLEIBT UNBERÜHRT. Der Versatz ist eine Zeichenregel, kein
+	Zustand: dice-physics.js weiß von ihm nichts, dice-view.js schreibt
+	unverändert dieselben acht Zahlen an die GRUPPE, und alle vier Schichten
+	erben sie. Der Nachweis über 500.000 Würfe bleibt gültig; Prüfung P-10
+	hält die Prüfsumme der beiden Physikdateien fest.
+
+	Die Deckfläche bleibt die ablesbare Fläche (CONCEPT.md C.8.3): das
+	Ergebnis liest man oben ab, die beiden Körperflächen tragen keine Augen.
+
+	aria-hidden: die Zeichnung sagt nichts, was nicht auch als Text dasteht.
+	Das Ergebnis spricht der Ansagebereich (Table/Craps/Status).
+
+	DIE RUHELAGE (Behebungslauf 2026-09-09, AUDITREPORT-2026-09-09-c8.md,
+	Befund M-01): bis hierher lagen beide Würfel im Ausgangszustand bei
+	(196, 52) und (196, 82) — auf der BESPIELBAREN rechten Tischhälfte,
+	deckten dort fünf Setzfelder zu 10–55 % ab (come-odds-4, place-4,
+	dont-come, field, come) und fingen dort Zeigereignisse ab (.cr-die
+	traegt pointer-events: auto, absichtlich, damit ein Klick auf den
+	Würfel einen Wurf auslöst).
+
+	Ein Rest ausserhalb der Spielfläche (etwa auf der Bande) verletzt
+	Prüfung D-3 aus verify-tray.mjs ("beide [Würfel] innerhalb der
+	Spielfläche", Umsetzungsstück C6b) — ein aelterer, absichtlich
+	gezogener Vertrag dieses Hauses, den ein Feinschliff nicht aufweicht.
+	Jetzt liegen sie bei (44, 52) und (44, 82) — exakt an der zur
+	Tischmitte (x 120) GESPIEGELTEN Stelle des alten Platzes, auf der
+	GEZEICHNETEN, NICHT bespielbaren linken Tischhälfte
+	(.cr-felt__field--mirror, Spuren 1…37, "gespiegelt und nur gezeichnet",
+	BetLayout.php). Die Spiegelseite traegt durchgehend pointer-events:
+	none (felt.css, ".cr-felt__field--mirror") — kein Feld dort ist je ein
+	Klickziel, ob mit oder ohne Würfel darüber. Damit bleiben die Würfel
+	INNERHALB der Spielfläche (D-3, x/y in [26,214]/[26,114]) UND decken
+	kein einziges der 48 echten [data-ck-field]-Elemente — nachgemessen mit
+	Playwright, 0 Überschneidungen bei 320/360/1440 px. Ausschliesslich die
+	Ruhelage (der ohne einen laufenden Wurf ausgelieferte/verharrende
+	Zustand) ist betroffen — die Wurfphysik (dice-physics.js, FELT_LEFT/
+	FELT_RIGHT/FELT_TOP/FELT_BOTTOM) bleibt unveraendert und laesst einen
+	Würfel während eines Wurfs weiterhin echt über die ganze Spielfläche
+	rollen, einschliesslich der rechten, bespielbaren Seite; das ist
+	beabsichtigtes Verhalten eines geworfenen Würfels und kein
+	Bedienfehler.
+</f:comment>
+<svg class="cr-cloth__dice" data-cr-tray="" viewBox="0 0 240 140"
+	preserveAspectRatio="xMidYMid meet" focusable="false" aria-hidden="true">
+	<g class="cr-die" data-cr-die="0" style="--cr-x: 44; --cr-y: 52; --cr-h: 0;">
+		<ellipse class="cr-die__shadow" cx="0" cy="0" rx="6.5" ry="6.5" />
+		<rect class="cr-die__side cr-die__side--far" x="-6" y="-6" width="12" height="12" rx="2" />
+		<rect class="cr-die__side cr-die__side--near" x="-6" y="-6" width="12" height="12" rx="2" />
+		<use class="cr-die__face" href="#cr-face-5" x="-6" y="-6" width="12" height="12" />
+	</g>
+	<g class="cr-die" data-cr-die="1" style="--cr-x: 44; --cr-y: 82; --cr-h: 0;">
+		<ellipse class="cr-die__shadow" cx="0" cy="0" rx="6.5" ry="6.5" />
+		<rect class="cr-die__side cr-die__side--far" x="-6" y="-6" width="12" height="12" rx="2" />
+		<rect class="cr-die__side cr-die__side--near" x="-6" y="-6" width="12" height="12" rx="2" />
+		<use class="cr-die__face" href="#cr-face-2" x="-6" y="-6" width="12" height="12" />
+	</g>
+</svg>

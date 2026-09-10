@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+	Symbol des Moduls „Spielende" und zugleich Datensatzsymbol (TCA
+	ctrl.iconfile).
+
+	Motiv: eine Person von vorn (Kreis für den Kopf, ein Bogen für die
+	Schultern) mit einem kleinen Chip daneben — damit sich das Symbol vom
+	Kern-Symbol „status-user-frontend" unterscheidet. Selbst konstruiert aus
+	Grundformen (zwei Kreise, ein Bogen), nicht nachgezeichnet. Keine Zahl,
+	keine Schrift, kein Kartensymbol.
+
+	viewBox 16 x 16, fill="currentColor": nimmt die Farbe des jeweiligen
+	Erscheinungsbilds (hell/dunkel) an.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" role="img">
+	<title>Spielender</title>
+	<g fill="currentColor">
+		<circle cx="6" cy="4.3" r="2.1" />
+		<path d="M2.1 14c0-2.6 1.75-4.4 3.9-4.4s3.9 1.8 3.9 4.4z" />
+		<path fill-rule="evenodd" d="M12.6 8.6a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zm0 1.3a1.2 1.2 0 1 1 0 2.4 1.2 1.2 0 0 1 0-2.4z" />
+	</g>
+</svg>
