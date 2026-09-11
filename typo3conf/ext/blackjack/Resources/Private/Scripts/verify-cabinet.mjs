@@ -72,6 +72,8 @@
  * ist — die eigentliche Absicht von A-11.
  */
 
+// @pruefstand modus=egal laufzeit=kurz
+
 import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import path from 'node:path';
@@ -493,6 +495,15 @@ console.log('\nA-9  Das Kürzel-Präfix "bj-" wird eingehalten');
 	 */
 	const GETEILT = new Set([
 		'ck-table', 'ck-room-fill',
+		// data-cl-seat: kein Vertrag des Saals, sondern der EINE, im Plan
+		// (D5, Abschnitt 4.11/4.20) ausdrücklich benannte Übergriff auf die
+		// Platzleiste von casino_lobby — blackjack.js liest folge.kartenAm()
+		// aus und schreibt die verdeckten Kartenzahlen der anderen direkt in
+		// deren [data-cl-seat="N"] [data-cl-seat-cards] (Umsetzungsstück
+		// D5-4), weil nur diese Datei die Kartenzahlen aus dem
+		// Zugprotokoll kennt — der Server selbst zählt keine Karten
+		// (LobbyService::stand()).
+		'data-cl-seat',
 		'data-ck-table', 'data-ck-table-key', 'data-ck-table-go',
 		'data-ck-table-status', 'data-ck-table-history', 'data-ck-table-history-empty',
 		'data-ck-field', 'data-ck-field-label',

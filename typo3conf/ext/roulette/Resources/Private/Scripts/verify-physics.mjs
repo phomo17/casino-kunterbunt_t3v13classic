@@ -62,6 +62,8 @@
  * im Rest der Datei kein einziges % mehr vorkommt.
  */
 
+// @pruefstand modus=egal laufzeit=kurz
+
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';

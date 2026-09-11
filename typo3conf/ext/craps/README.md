@@ -21,10 +21,10 @@ anderen Extension etwas geändert werden muss.
 | Composer-Name | `phomo17/craps` |
 | Namespace | `Phomo17\Craps\` |
 | TYPO3-Version | 13.4 (klassische, nicht Composer-basierte Installation) |
-| Abhängigkeit | `casino_startpage` >= 0.4.0 (Design-Tokens, Registry, Kasse) |
+| Abhängigkeit | `casino_startpage` >= 0.5.0 (Design-Tokens, Registry, Kasse) |
 | Lizenz | AGPL-3.0-or-later |
 | Autor | Phomo17 |
-| Zustand | 0.4.0 / alpha |
+| Zustand | 0.5.0 / alpha |
 
 ## Installation
 
@@ -838,8 +838,9 @@ benutzt ausschließlich der Nachweis. Welcher Geber läuft, entscheidet sich an
 der beiden Geber, sie bekommt ihn eingespeist — deshalb bleibt
 `dice-physics.js` importfrei und lädt unter Node ohne jede Vorbereitung
 (`CONCEPT.md` C.5.3). Prüfung V-6 in `verify-view.mjs` weist nach, dass
-`craps.js` im Spiel ausschließlich `drawUint32` einspeist; `createSeeded()`
-wird im Spiel nie benutzt.
+`craps.js` außerhalb einer Lobby-Runde ausschließlich `drawUint32` einspeist;
+`createSeeded()` wird im Einzelspiel nie benutzt (die eine Ausnahme — die
+Lobby-Runde — steht weiter unten, „Ein dritter Geberzustand").
 
 **Das Verwerfungsverfahren, nicht der Rest-Operator.** `zieheGanzzahl()`
 braucht ganzzahlige Werte aus Bereichen, die 2^32 nicht glatt teilen — ein
@@ -856,6 +857,63 @@ gleiche Zufallsfolge ergibt exakt denselben Verlauf" auch auf einer anderen
 Maschine. `verify-physics.mjs`, Prüfung P-1, weist das nach; P-2 belegt die
 Wiederholbarkeit selbst (gleiche Saat → bitgleicher Verlauf), P-3 die
 Gegenprobe (verschiedene Saat → verschiedene Folge).
+
+**Ein dritter Geberzustand seit Umsetzungsstück D5-3 (die Lobby).** Läuft
+dieser Tisch in einer QR-Lobby (CONCEPT.md D.10), tritt zur Rundenlaufzeit
+`createSeeded(saatZuZahl(saat))` mit der **Saat des Servers**
+(`tx_casinolobby_lobby.seed`) an die Stelle von `drawUint32()` — dieselbe
+Bauart wie bei `roulette.js` (siehe dessen README). Der Umschalter bleibt
+eine einzige Stelle: `let geber = drawUint32;` in `craps.js`, umgelegt vom
+Adapter `lobby-craps.js` über `geberSetzen()`, eingespeist unverändert an
+genau einer Stelle: `new DiceTable({ random: () => geber() })`. Prüfung V-6
+in `verify-view.mjs` ist dafür GESCHÄRFT statt aufgeweicht: `createSeeded(`
+wird in `craps.js` genau EINMAL **aufgerufen**, und zwar exakt im
+`saatGeber`-Rückruf an `connectLobby()` — nirgends sonst. `saatZuZahl()`
+(FNV-1a, in `rng.js`) macht aus der hexadezimalen Saat dieselbe 32-Bit-Zahl
+wie `casino_lobby/lobby-seed.js` und `roulette/rng.js` — nachgewiesen in
+`verify-lobby-craps.mjs` (C-4) und noch einmal geräteübergreifend in
+`casino_lobby/verify-lobby-live.mjs` (V-21).
+
+**In der Lobby wirft die Saat, nicht die Hand** — die eine offengelegte,
+funktionale Grenze dieses Tisches (nicht nur eine Prüfgrenze). Am
+Einzeltisch zielt und schleudert der Spieler selbst (`throw-input.js`); in
+der Lobby ginge das nicht, weil jeder Browser dieselben Würfel unabhängig
+ausrechnen muss (D.10.4) — ein von Hand gezielter Wurf wäre in genau EINEM
+Browser so und in jedem anderen anders. `lobby-craps.js` ruft deshalb beim
+Rundenstart `game.start(null)` — „alles ziehen" (dieselbe Bauart wie beim
+Zuschauen-Modus außerhalb der Lobby) —, und die Wurfschiene bleibt für JEDEN
+Platz still, nicht nur für Nicht-Shooter (`isArmed` prüft zusätzlich
+`!inLobby`). Der Shooter bleibt, was er am echten Tisch vor allem ist:
+derjenige, bei dem die Würfel gerade liegen und der sie nach einem
+Seven-out weitergibt — dafür sorgt die Warteliste in der Platzleiste von
+`casino_lobby` (Umsetzungsstück D5-2), nicht diese Datei.
+
+**Der Point kommt bei jeder Abfrage vom Server, nie aus dem eigenen
+Gedächtnis — der geldkritische Teil des Adapters.** Ein Browser, der eine
+Runde verpasst hat (Registerkarte im Hintergrund, Netz kurz weg, gerade erst
+beigetreten), hätte sonst einen ALTEN Point und rechnete seine EIGENEN
+Einsätze danach falsch ab — ein Geldfehler, den niemand sieht, weil die
+Zahlen plausibel aussehen. `lobby-craps.js` liest deshalb bei JEDER
+geänderten Abfrage `stand.erg`/`stand.ergR` und trägt den Point über
+`CrapsWagers.restore({ point })` nach (`pointAusStand()`), außer die
+Nutzlast ist mehr als eine Runde alt — dann bleibt der zuletzt bekannte
+Stand stehen, statt einen Point zu raten. Nachgewiesen rechnend in
+`verify-lobby-craps.mjs` (C-6: verlustfreie Wiederherstellung über 500
+zufällige Serien; C-7: eine genau eine Runde übersprungene Sitzung kennt ab
+der Folgerunde denselben Point wie eine durchgehende, über 200 Läufe).
+
+**Ein ungültiger Wurf bleibt gleichläufig.** Ist der Saat-Wurf zu kurz, wird
+automatisch wiederholt (`game.rethrow(null)`) — AUCH bei gewähltem
+Selbst-werfen-Modus, solange eine Lobby-Runde läuft (sonst bliebe ein Tisch
+mit `modus()==='shoot'` bei einem ungültigen Saat-Wurf für immer bei
+"laeuft" hängen, weil die Wurfschiene ohnehin gesperrt ist). Der Geber wird
+dabei NICHT zurückgestellt — der nächste Zug zieht aus derselben,
+fortlaufenden Folge, in jedem Browser gleich.
+
+**Offengelegte Grenze, rechnend nicht beweisbar:** ob zwei ECHTE Browser
+wirklich dieselben Würfel fallen sehen und ob die Warteliste nach einem
+Seven-out wirklich weitergegeben wird, beweist nur `probe-lobby-craps.mjs`
+(P-4).
 
 ## Gleichverteilungs- und Unabhängigkeitsnachweis
 
@@ -1162,6 +1220,7 @@ ddev exec node typo3conf/ext/craps/Resources/Private/Scripts/verify-wagers.mjs
 ddev exec node typo3conf/ext/craps/Resources/Private/Scripts/verify-felt.mjs
 ddev exec node typo3conf/ext/craps/Resources/Private/Scripts/verify-round.mjs
 ddev exec node typo3conf/ext/craps/Resources/Private/Scripts/verify-sound.mjs
+ddev exec node typo3conf/ext/craps/Resources/Private/Scripts/verify-lobby-craps.mjs
 ```
 
 Alle zehn nur lesend, ohne jede Abhängigkeit außer `stats.mjs` (von
@@ -1292,8 +1351,12 @@ Come-out/Point/Seven-out laufen regelrecht, Chips wandern statt zu
 verschwinden, Vertragswetten (Sockel) und die Odds-Staffel greifen beim
 Setzen, Odds zählen nicht in die 300 €, ein ungültiger Wurf sperrt nichts,
 `mayThrow()` und eine geschlossene Bank verhalten sich richtig, `craps.js`
-entscheidet nichts selbst (R-12), und ein langer Zufallslauf ohne
-Bildschirm besteht.
+entscheidet nichts selbst (R-12) — **seit Umsetzungsstück D5-3 mit einer
+benannten Ausnahme:** `bets.lock()`/`bets.unlock()` an genau einer,
+geprüften Stelle (dem `sperren()`-Rückruf an `connectLobby()`, siehe „Zufall
+und Wiederholbarkeit"), `.settle(`/`.sweep(`/`.payout(`/`.freeze(`/
+`.resolve(` bleiben ohne jede Ausnahme verboten — und ein langer
+Zufallslauf ohne Bildschirm besteht.
 
 `verify-sound.mjs` (Kennungen S-1 bis S-9): keine Audiodatei, kein
 Netzzugriff, kein eigener `AudioContext`, `sound.unlock()` nur aus einem
@@ -1303,6 +1366,24 @@ steht immer auf `'0'` —, `destroy()` räumt vollständig ab und ist mehrfach
 aufrufbar, die Geldantwort ist eine einzige `if`/`else if`-Kette mit genau
 einer klingenden Antwort, keine Melodie, und der Ton-Schalter erreicht den
 geforderten Kontrast.
+
+`verify-lobby-craps.mjs` (Kennungen C-2 bis C-7, Umsetzungsstück D5-3):
+`lobby-craps.js` kann kein Geld bewegen und keinen Server erreichen (C-2),
+`geber` wird in `craps.js` an genau zwei Stellen zugewiesen (C-3),
+`createSeeded(saatZuZahl(saat))` liefert gegenüber `casino_lobby/lobby-seed.js`
+für 50 Saaten je 500 Ziehungen dieselbe Folge (C-4), die Bilanz stimmt über
+200 mit einem aus der Saat gespeisten `DiceTable` gespielte Würfe samt
+mindestens drei vollständigen Point-Serien (C-5), der Point lässt sich aus
+`nutzlast()`/`pointAusStand()` verlustfrei wiederherstellen (C-6), und eine
+genau eine Runde übersprungene Sitzung kennt ab der Folgerunde denselben
+Point wie eine durchgehende (C-7). Die Geldrechnung läuft mit den ECHTEN
+Modulen von `casino_startpage`, `wagers-craps.js` und `round-craps.js` gegen
+einen Browserspeicher im Arbeitsspeicher — kein Netzwerk, keine laufende
+Website nötig. Die Live-Probe `probe-lobby-craps.mjs` (drei echte Browser)
+ergänzt, was dieses Skript nicht sehen kann: siehe „Zufall und
+Wiederholbarkeit". **`probe-lobby-craps.mjs` braucht eine laufende Website
+mit eingeschaltetem QR-Modus und drei echte Browsersitzungen — deshalb steht
+es nicht im Reihenlauf oben und wird gesondert gefahren.**
 
 `measure-dice.mjs` und `measure-payout.mjs` sind kein Teil dieser Liste —
 sie sind die beiden langen Messläufe (siehe unten) und laufen nicht bei
@@ -1368,11 +1449,41 @@ Hochgerechnet auf 500.000 Würfe (Faktor 10 gegenüber dem letzten,
 größten Selbsttest): rund **118 Sekunden**, also knapp zwei Minuten. Diese
 Hochrechnung beruht auf einer echten Messung, nicht auf einer Schätzung.
 
+## Grenzen, offen gelegt
+
+Dieser Tisch arbeitet seit Phase D3 gegen ein **serverseitiges Konto**, wenn
+der QR-Modus eingeschaltet ist. Daraus folgen vier Grenzen, die hier stehen,
+damit niemand mehr hineinliest, als da ist.
+
+- **Der Schutz richtet sich gegen Versehen und Neugier, nicht gegen
+  Angriffe** (`CONCEPT.md` D.9). Wer den QR-Code einer anderen Person
+  abfotografiert, kann sich als sie anmelden. Wer den Spielverlauf im
+  eigenen Browser fälscht, kann sich Geld erschwindeln. Das ist eine
+  Spaßseite in einem Wohnzimmer, kein Wettbüro. Die vollständige Fassung
+  steht in `casino_account/README.md`, Abschnitt „Grenzen, offen gelegt".
+- **Der Tisch selbst kennt den Schalter nicht.** Er ruft ausschließlich die
+  Kassen-Schnittstelle des Site Package auf (`credit.js`, `table-buyin.js`);
+  ob dahinter der Browserspeicher oder der Server steht, entscheidet
+  `account-backend.js`. Ein Fehler in dieser einen Datei träfe deshalb alle
+  sieben Geräte und Tische gleichzeitig — genau die Fehlerklasse, die am
+  2026-09-11 an den Risiko-Leitern der Automaten aufgetreten ist.
+- **Wer mitten im Spiel die Verbindung verliert**, bekommt die Sperranzeige;
+  solange sie steht, wird nichts gebucht und nichts weitergerechnet. Was in
+  der Sekunde des Abrisses noch nicht gebucht war, ist verloren.
+- **In der Lobby kann der Server das Ergebnis nicht nachrechnen**
+  (`CONCEPT.md` D.10.4). Der Server zieht die Saat, jeder Browser rechnet
+  daraus dieselbe Runde, und das Ergebnis wird von **einem** Browser gemeldet
+  und einmal festgeschrieben. Wer der Melder ist und seinen eigenen Browser
+  fälscht, kann ein falsches Ergebnis festschreiben. Die Alternative — die
+  gesamte Physik ein zweites Mal in PHP zu schreiben — wäre ein eigenes,
+  fehleranfälliges Projekt für sich. Die vollständige Fassung steht in
+  `casino_lobby/README.md`, Abschnitt „Grenzen, offen gelegt".
+
 ## Stand
 
-Version 0.4.0 (alpha). Beim Bauen wurde nicht hochgezählt (`CONCEPT.md` V.6);
+Version 0.5.0 (alpha). Beim Bauen wurde nicht hochgezählt (`CONCEPT.md` V.6);
 die Zahl kam beim Feierabend des 2026-09-09 auf den projektweiten Stand, den
-alle neun Extensions gemeinsam tragen. Phase C6 UND Phase C7 sind
+alle zehn Extensions gemeinsam tragen. Phase C6 UND Phase C7 sind
 **vollständig eingearbeitet**:
 
 - **C6a** — Gerüst, Anmeldung bei der Registry als Spieltisch, Kachel im
@@ -1441,3 +1552,49 @@ ohne eine der Prüfungen zu verletzen. Die Copyright-Prüfung nach
 offenen Punkt der Kategorie „ändern vor Veröffentlichung". Mit **Phase C8**
 ist Teil C insgesamt abgenommen: 36 PASS, 0 FAIL, 0 BLOCKED im Abnahmetest,
 plus fünf von Hand nachgemessene Bedienläufe.
+
+**Phase D3** (serverseitiges Konto) hat an diesem Tisch **keine einzige
+Zeile geändert.** `craps.js` bezog Kasse und Gerätekredit schon seit Phase
+C7 über die geteilten Bausteine des Site Package (`credit.js`,
+`table-buyin.js`); ob dahinter der Browserspeicher oder der Server steht,
+entscheidet ausschließlich `account-backend.js` im Site Package (siehe
+„Grenzen, offen gelegt").
+
+Mit **Umsetzungsstück D5-3** (CONCEPT.md D.10) hängt dieser Tisch in der
+QR-Lobby: derselbe Tisch, ein dritter Geberzustand, ein neuer Adapter
+(`lobby-craps.js`, importiert aus `casino_lobby` NICHTS — nur vier
+DOM-Ereignisse) und die offengelegte Grenze „in der Lobby wirft die Saat,
+nicht die Hand" (Abschnitt „Zufall und Wiederholbarkeit"). Neuer Nachweis
+`verify-lobby-craps.mjs` (21 Zusagen, grün) und eine Live-Probe
+`probe-lobby-craps.mjs`.
+
+**Behebungslauf D5-4 (Craps-Probe, gefunden am Gegenstand):** dieselbe
+Probe, die bei D5-3 zweimal grün lief, wurde während eines
+D5-4-Behebungslaufs an blackjack rot — kein Rückschritt aus diesem Tisch
+selbst, sondern zwei bis dahin ungeprüfte Annahmen der Probe:
+1. `probe-lobby-craps.mjs`s M-1 verglich `data-cr-total` gegen den
+   Server-Kontostand mit einer einzigen, zu frühen Lesung, statt (wie jetzt)
+   erst auf einen echten Serverwechsel und danach auf den nachziehenden
+   Client zu warten (derselbe Konvergenzvergleich wie bei Blackjack/Roulette).
+2. Selbst mit Konvergenzvergleich blieb eine Differenz in Höhe des Einsatzes
+   stehen: ein „pass"-Einsatz, der auf dem Come-out einen Punkt SETZT (statt
+   sofort zu gewinnen/verlieren), bleibt auf dem Tuch AKTIV liegen, während
+   die Lobby längst zur nächsten Setzrunde weiterschaltet — jeder Wurf ist
+   EIN Lobby-Umlauf, unabhängig vom Spielzustand des Punkts. Anders als bei
+   Roulette/Blackjack (dort löst sich jeder Einsatz garantiert innerhalb
+   einer Runde vollständig auf) kann ein Craps-Einsatz also länger aktiv
+   bleiben als eine Runde dauert — kein Fehler, sondern die Spielregel
+   selbst. Die Probe berücksichtigt seither einen noch aktiven Einsatz
+   (`aktiverEinsatzA`, aus der von der Lobby gemeldeten Platzanzeige) in
+   ihrem Vergleich.
+3. Ein dritter, unabhängiger Fund an derselben Stelle: der von der Lobby
+   gemeldete `stand.erg` trägt beim Craps nicht zuverlässig die eigene
+   Nutzlast, weil `lobby-live.js`s 3-Sekunden-Notbremse gegen die eigene,
+   etwas langsamere Ergebnismeldung dieses Tisches rennen und sie gelegentlich
+   schlagen kann (eine schon beim Bau von D5-3 im Quelltext dokumentierte,
+   bislang aber nie schlagend gewordene Grenze). Die Probe liest den
+   maßgeblichen Punkt seither direkt und synchron aus `data-cr-point` (dem
+   eigenen, lokalen Zustand dieses Tisches) statt aus der Lobby-Meldung.
+`probe-lobby-craps.mjs` läuft danach zweimal hintereinander vollständig grün
+(15/15). Am Tisch selbst (`craps.js`, `round-craps.js`, `wagers-craps.js`)
+wurde nichts verändert — die Behebung betraf ausschließlich die Probe.

@@ -153,9 +153,11 @@
  *   CASH OUT                  x  60–100   y 152,8–157,6  (auf der Auswurfschale)
  *
  * --- neu in Phase F5d --------------------------------------------------
- * Ton-Schalter am Sockel      x 124–150   y 152,8–158,0   (26 × 5,2; vor
- *                             Behebungslauf 2026-09-05/N-02: 26 × 4,8, bis
- *                             an die Sockelkante y 158)
+ * Ton-Schalter am Sockel      x 124–150   y 152,55–158,0  (26 × 5,45; vor
+ *                             Behebungslauf 2026-09-05/N-02: 26 × 4,8, danach
+ *                             26 × 5,2 ab y 152,8; seit Behebungslauf
+ *                             2026-09-10/H-01 um 0,25 nach OBEN gewachsen,
+ *                             Unterkante unverändert an der Sockelkante y 158)
  *   Lämpchen                  x 126–130   y 154,4–156,4   (4 × 2, mittig zur
  *                             vergrößerten Wippe)
  *   Aufschrift                Schrift 2,0 · Mitte der Wippe
@@ -1510,12 +1512,24 @@
  * Sockel oder die Auswurfschale (Machine/Shell.html, Zone „tray") selbst zu
  * verschieben nicht drin; TON erreicht 24 px damit bei einer kleineren, aber
  * weiterhin großen Fensterbreite (Zahlen: README, „Zielgröße 24 × 24").
+ *
+ * Behebungslauf 2026-09-10 (AUDITREPORT-2026-09-10-d2.md, Befund H-01):
+ * Bei 1440 blieb der Schalter mit 23,0 px genau EINEN Pixel unter der
+ * Zielgröße, und seit die drei RISK-START-Tasten im Lauf vom 2026-09-09
+ * gewachsen sind, sitzt die Leiste so eng, dass die Abstandsausnahme von
+ * SC 2.5.8 nicht mehr greift — axe meldet ihn seither auch bei dieser
+ * Breite. Der fehlende Pixel ist nach OBEN geholt: Oberkante 152,8 → 152,55,
+ * Höhe 5,2 → 5,45. Die UNTERKANTE bleibt damit exakt bei y 158, der
+ * Messingkante des Sockels; nach unten war und ist kein Platz. Bei 1440
+ * misst der Schalter jetzt 24,1 px. Bei 320/360 bleibt er darunter — das
+ * ist der bekannte, bewusst getragene Rückstand an allen vier Gehäusen und
+ * wird hier nicht vorgetäuscht.
  */
 .fr-sound {
 	inset-inline-start: calc(124 * var(--fr-u));
-	inset-block-start: calc(152.8 * var(--fr-u));
+	inset-block-start: calc(152.55 * var(--fr-u));
 	inline-size: calc(26 * var(--fr-u));
-	block-size: calc(5.2 * var(--fr-u));
+	block-size: calc(5.45 * var(--fr-u));
 	display: flex;
 	align-items: center;
 	gap: calc(1.2 * var(--fr-u));

@@ -42,8 +42,42 @@
  * serverseitiges Konto eingehängt wird (CONCEPT.md Abschnitt 8). Ein Server
  * antwortet erst nach einer Netzanfrage. Wären sie heute synchron, müsste
  * beim Umstieg jeder Aufrufer in jeder Automaten-Extension umgeschrieben
- * werden. So kostet der Umstieg genau eine Datei: diese hier.
+ * werden. So kostet der Umstieg genau eine Datei: diese hier — das stimmt
+ * so nicht mehr, siehe den Nachtrag unten.
+ *
+ * SEIT AUSBAUSTUFE 3 GIBT ES ZWEI RÜCKSEITEN (2026-09-10)
+ * --------------------------------------------------------
+ * Die Bruchstelle von oben wird jetzt benutzt: account-backend.js entscheidet
+ * beim Laden der Seite, ob diese Datei den Browserspeicher führt (wie bisher)
+ * oder ein serverseitiges Konto (CONCEPT.md D.1.1, D.7). Diese Datei fragt bei
+ * jeder Handlung `konto.istServer` und reicht im Servermodus an konto.aufladen
+ * / .abbuchen / .setzen / .stand weiter — dieselbe öffentliche Schnittstelle,
+ * derselbe Rückgabewert.
+ *
+ * Der Satz oben „So kostet der Umstieg genau eine Datei: diese hier" war zu
+ * knapp: es sind zwei Dateien (diese hier und machine-credit.js) plus eine
+ * neue (account-backend.js, die eine Umschaltstelle) — und weiterhin NULL
+ * Zeilen in jedem Gerät.
  */
+
+// ÜBER DAS PRÄFIX, nicht relativ (Korrektur vom 2026-09-10, zweiter
+// Nachbesserungslauf): ein relativer Import ('./account-backend.js') schien
+// zunächst der billigere Weg — er machte credit.js unter Node wieder ohne
+// Text-Patch ladbar. Er hat aber eine echte Folge, die vorher übersehen
+// wurde: ein Gerätemodul (store.js) in einer ANDEREN Extension liegt und MUSS
+// account-backend.js über das Präfix importieren (eine relative Referenz
+// über Extension-Grenzen hinweg wäre die verbotene Art von Kopplung). Ein
+// Modul unter einer relativen Adresse UND dasselbe Modul unter der
+// Import-Karten-Adresse (mit "?bust=…") sind für den Browser ZWEI
+// VERSCHIEDENE Adressen — und ein ES-Modul wird je Adresse ein eigenes
+// Mal ausgewertet. Ergebnis, an der laufenden Seite gemessen: zwei
+// getrennte konto-Objekte, zwei Kundenkennungen, zwei Buchungsnummern-
+// Zähler. Das ist kein Stilbruch, das ist ein Fehler in der Buchführung.
+// Der einzige Weg zu GARANTIERT einem Exemplar: ALLE Importeure (auch
+// dieser hier) verwenden dieselbe Adresse — das Präfix, weil store.js
+// nicht anders kann. Der Preis: credit.js braucht unter Node wieder einen
+// Text-Patch, wie machine-credit.js es ohnehin schon immer tat.
+import { konto } from '@phomo17/casino-startpage/account-backend.js';
 
 /** Der eine gemeinsame Schlüssel im Browserspeicher. */
 const STORAGE_KEY = 'casinoKunterbunt.credits';
@@ -149,6 +183,9 @@ function parseStored(raw) {
  * @returns {void}
  */
 function writeStore(value) {
+	if (konto.istServer) {
+		return;
+	}
 	if (store === null) {
 		return;
 	}
@@ -166,6 +203,9 @@ function writeStore(value) {
  * @returns {number}
  */
 function readStore() {
+	if (konto.istServer) {
+		return balance;
+	}
 	if (store === null) {
 		return balance;
 	}
@@ -236,10 +276,13 @@ function requireAmount(amount, method) {
 	return amount;
 }
 
-// Startwert holen. Beim allerersten Besuch legt readStore() dabei zugleich
-// das Startguthaben im Speicher an, damit es nach dem ersten Nullstand nicht
+// Startwert holen. Im Servermodus liegt er im Zustandsblock, den
+// account-backend.js gelesen hat — der Browserspeicher wird dort nicht
+// angefasst, auch nicht gelesen (kein Startguthaben aus dem Nichts). Beim
+// allerersten lokalen Besuch legt readStore() dabei zugleich das
+// Startguthaben im Speicher an, damit es nach dem ersten Nullstand nicht
 // erneut vergeben wird.
-balance = readStore();
+balance = konto.istServer ? konto.kasse : readStore();
 
 /**
  * Andere Registerkarten desselben Browsers.
@@ -255,7 +298,7 @@ balance = readStore();
  * ist hingenommen: es geht um kein echtes Geld, und gespielt wird in einer
  * Karte.
  */
-if (typeof globalThis.addEventListener === 'function') {
+if (!konto.istServer && typeof globalThis.addEventListener === 'function') {
 	globalThis.addEventListener('storage', (event) => {
 		// event.key ist null, wenn der ganze Speicher geleert wurde.
 		if (event.key !== null && event.key !== STORAGE_KEY) {
@@ -266,6 +309,26 @@ if (typeof globalThis.addEventListener === 'function') {
 		}
 		const previous = balance;
 		balance = readStore();
+		notify(previous, 'remote');
+	});
+}
+
+/**
+ * SEIT AUSBAUSTUFE 3: das serverseitige Gegenstück zum storage-Ereignis.
+ *
+ * Im Servermodus gibt es keinen Browserspeicher, den eine andere
+ * Registerkarte anfassen könnte — jede autoritative Änderung kommt
+ * stattdessen direkt vom Server, über jede Buchung UND über konto.stand().
+ * Diese Anmeldung ist der einzige Weg, wie ein serverseitig gebuchter Betrag
+ * seinen Weg in credit.balance findet; add()/subtract()/set()/reload() lösen
+ * selbst KEIN eigenes notify() mehr aus, wenn konto.istServer gilt (siehe
+ * dort) — genau diese Anmeldung erledigt es, einheitlich mit reason
+ * 'remote', „damit jede vorhandene Anzeige ohne Änderung mitgeht".
+ */
+if (konto.istServer) {
+	konto.abonnieren((zustand) => {
+		const previous = balance;
+		balance = zustand.kasse;
 		notify(previous, 'remote');
 	});
 }
@@ -334,6 +397,12 @@ export const credit = {
 	 * @returns {Promise<number>}
 	 */
 	async reload() {
+		if (konto.istServer) {
+			await konto.stand();
+			// balance wurde von konto.abonnieren() bereits gesetzt (reason
+			// 'remote') — hier gibt es nichts mehr zu tun.
+			return balance;
+		}
 		const previous = balance;
 		balance = readStore();
 		notify(previous, 'reload');
@@ -349,6 +418,14 @@ export const credit = {
 	 */
 	async add(amount) {
 		requireAmount(amount, 'add');
+		if (konto.istServer) {
+			const antwort = await konto.aufladen(amount);
+			// balance wurde von konto.abonnieren() bereits gesetzt und notify()
+			// ausgelöst — hier wird nur noch die vertraute Form gebildet.
+			return antwort.ok
+				? { ok: true, balance, credited: antwort.bewegt, capped: antwort.gekappt }
+				: { ok: true, balance, credited: 0, capped: false };
+		}
 		const previous = balance;
 		balance = clamp(previous + amount);
 		writeStore(balance);
@@ -368,6 +445,15 @@ export const credit = {
 	 */
 	async subtract(amount) {
 		requireAmount(amount, 'subtract');
+		if (konto.istServer) {
+			const antwort = await konto.abbuchen(amount);
+			// Der Grund 'kasse_zu_gering' des Servers wird auf 'insufficient'
+			// abgebildet, damit kein Aufrufer etwas Neues lernen muss.
+			if (antwort.ok !== true) {
+				return { ok: false, reason: 'insufficient', balance, missing: amount - balance };
+			}
+			return { ok: true, balance, debited: antwort.bewegt };
+		}
 		if (balance < amount) {
 			return { ok: false, reason: 'insufficient', balance, missing: amount - balance };
 		}
@@ -386,6 +472,11 @@ export const credit = {
 	 * @returns {Promise<{ok: true, balance: number}>}
 	 */
 	async set(amount) {
+		if (konto.istServer) {
+			await konto.setzen(clamp(Number(amount)));
+			// balance wurde von konto.abonnieren() bereits gesetzt (wie bei add()).
+			return { ok: true, balance };
+		}
 		const previous = balance;
 		balance = clamp(Number(amount));
 		writeStore(balance);

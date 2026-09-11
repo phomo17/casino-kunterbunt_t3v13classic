@@ -432,6 +432,15 @@ export class RiskPanel {
 				// Nur der Betrag. Alles andere kommt gleich darauf mit 'end'.
 				this.showWin(view.win);
 				break;
+			case 'sync':
+				// Eine Serverbuchung wurde bestätigt oder korrigiert
+				// (Behebungslauf 2026-09-11). OHNE eigenen case fiele dieser
+				// Zweig auf default/paintOff() durch — mitten in einer
+				// laufenden Leiter hätte das RISK-Blinken abgeschaltet, die
+				// Risiko-Tasten dunkel gemacht und die Stufe auf 0 gesetzt,
+				// obwohl die Leiter weiterläuft.
+				this.paintSync(view);
+				break;
 			default:
 				// 'init' und 'end' – beides ist der Grundzustand.
 				this.paintOff(view);
@@ -494,6 +503,30 @@ export class RiskPanel {
 		this.paintLit(view);
 		this.showStep(0);
 		this.syncAttributes(view);
+	}
+
+	/**
+	 * Eine Serverbuchung wurde bestätigt oder korrigiert (aus hit(), oder —
+	 * seltener — aus offer()). NUR der Gewinnbetrag wird nachgezogen: kein
+	 * Licht, keine Tastenfreigabe, keine Ansage, keine Stufenänderung
+	 * (Behebungslauf 2026-09-11).
+	 *
+	 * Die GEWINN-Röhren werden dabei NUR angefasst, solange die Leiter
+	 * TATSÄCHLICH läuft (phase === PHASE_LADDER): im Angebot gehören sie noch
+	 * machine.js (siehe paintOffer()), und ein sync kann durchaus noch
+	 * während des Angebots eintreffen — die Buchung aus offer() ist ebenfalls
+	 * asynchron. In dem Fall wird NUR der Messpunkt data-rs-risk-win
+	 * nachgezogen (der gehört immer dieser Datei, siehe syncAttributes()),
+	 * ohne die fremde Röhrengruppe anzufassen.
+	 *
+	 * @param {object} view
+	 * @returns {void}
+	 */
+	paintSync(view) {
+		if (view.phase === PHASE_LADDER) {
+			this.showWin(view.win);
+		}
+		this.root.dataset.rsRiskWin = String(view.win);
 	}
 
 	/**

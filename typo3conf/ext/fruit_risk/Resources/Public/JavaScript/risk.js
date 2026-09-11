@@ -137,7 +137,7 @@ import { findNixieGroup } from '@phomo17/fruit-risk/nixie.js';
 import { NixieCounter } from '@phomo17/fruit-risk/counter.js';
 import { wirePressButton } from '@phomo17/fruit-risk/press.js';
 import {
-	MultiRiskLadder, ORDER_PER_LEVEL, ORDER_PER_PASS, NO_SIDE,
+	MultiRiskLadder, ORDER_PER_LEVEL, ORDER_PER_PASS, NO_SIDE, PHASE_OFF,
 } from '@phomo17/casino-startpage/risk-ladder-multi.js';
 import { CURVE_FLAT, CURVE_STEEP } from '@phomo17/casino-startpage/risk-timing.js';
 
@@ -711,6 +711,9 @@ export class RiskPanel {
 	 *   'lit'              nur das Licht (paintLit schreibt auch
 	 *                      data-fr-risk-lit selbst)
 	 *   'settled'          nur der Betrag und die eine Ansage des Ausgangs
+	 *   'sync'             eine Serverbuchung wurde bestätigt oder
+	 *                      korrigiert — nur der Gewinnbetrag (siehe render(),
+	 *                      Zweig 'sync', Behebungslauf 2026-09-11)
 	 *   'offer'/'init'/'end'  alles aus (deactivate())
 	 *
 	 * @param {object} group
@@ -736,6 +739,25 @@ export class RiskPanel {
 			case 'settled':
 				this.winCounter?.ramp(view.win);
 				this.announceOutcome(view, view.win > 0);
+				break;
+			case 'sync':
+				// Die Serverbuchung aus hit() ist eingetroffen (der optimistische
+				// Wert galt bis dahin, siehe risk-ladder-multi.js hit()) — oder,
+				// seltener, die aus offer(); die läuft bei dieser Leiter aber
+				// praktisch immer schon vor dem nächsten synchronen Zeilenblock
+				// durch (onStart() ruft ladder.start() unmittelbar nach
+				// ladder.offer()), sodass phase hier so gut wie nie noch
+				// 'offer' ist. NUR der Gewinnbetrag wird nachgezogen — kein
+				// Licht, keine Tastenfreigabe, keine Ansage, keine
+				// Stufenänderung (Behebungslauf 2026-09-11). Trifft ein sync
+				// ein, nachdem diese Gruppe längst zurückgesetzt ist (phase
+				// 'off' — der Anspruch ist dann schon weg), wird nichts mehr
+				// angefasst: GEWINN gehört dann längst wieder machine.js.
+				if (view.phase === PHASE_OFF) {
+					break;
+				}
+				this.winCounter?.ramp(view.win);
+				this.root.dataset.frRiskWin = String(view.win);
 				break;
 			case 'offer':
 			case 'init':

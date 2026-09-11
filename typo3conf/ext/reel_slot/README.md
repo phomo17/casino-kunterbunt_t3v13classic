@@ -16,7 +16,7 @@ Regeln und Klänge. Sie lässt sich installieren und entfernen, ohne dass an
 | Composer-Name | `phomo17/reel-slot` |
 | Namespace | `Phomo17\ReelSlot\` |
 | TYPO3-Version | 13.4 (klassische, nicht Composer-basierte Installation) |
-| Abhängigkeit | `casino_startpage` >= 0.4.0 (Risiko-Leiter, Gerätekredit, Klangbaukasten und Leerlaufgeräusche liegen dort) |
+| Abhängigkeit | `casino_startpage` >= 0.5.0 (Risiko-Leiter, Gerätekredit, Klangbaukasten und Leerlaufgeräusche liegen dort) |
 | Lizenz | AGPL-3.0-or-later |
 | Quelltext | https://github.com/phomo17/casino-kunterbunt_t3v13classic |
 
@@ -450,6 +450,30 @@ Spieltitel in dieser Extension — gegen dieselbe Negativliste wie in
 2026-09-06: bis dahin deckte keine Negativlisten-Prüfung des Projekts diese
 Extension ab.
 
+### Nachweis von render('sync')
+
+```
+ddev exec node typo3conf/ext/reel_slot/Resources/Private/Scripts/verify-risk-sync.mjs
+```
+
+Seit dem Behebungslauf 2026-09-11: weist nach, dass `render('sync')` in
+`risk.js` tatsächlich beim Gehäuse ankommt, statt (vor diesem Lauf) auf den
+`default`-Zweig durchzufallen und mitten in einer laufenden Leiter RISK-
+Blinken, Risiko-Tasten und STUFE auf den Grundzustand zurückzusetzen. Rechnet
+mit den echten Dateien dieses Geräts (`risk.js`, `rng.js`, `nixie.js`) und den
+echten geteilten Dateien (`risk-ladder.js`, `risk-timing.js`,
+`account-backend.js`), nachgestellt wird nur der wahre äußere Rand — ein
+Gehäuse ohne echtes Markup und `globalThis.fetch` als steuerbare
+Warteschlange. Nachgewiesen: während die Leiter läuft, zieht ein `sync` nur
+die GEWINN-Röhrengruppe und den Messpunkt `data-rs-risk-win` nach und lässt
+STUFE/Tastenzustand unangetastet; vor dem Start der Leiter (die Buchung aus
+`offer()`) zieht ein `sync` nur den Messpunkt nach und lässt die noch
+`machine.js` gehörende Röhrengruppe unberührt. Der Geldnachweis selbst
+(10 → 20 → 40 statt 10 → 20 → 30 bei zwei schnellen Treffern) liegt bei
+`casino_startpage` (`verify-risk-money.mjs`) — dieses Skript hier weist nur
+die Anzeige-Anbindung dieses Geräts nach. Rückgabewert 0, wenn alles stimmt,
+sonst 1.
+
 ## Barrierefreiheit
 
 Behebungslauf 2026-09-05/06 (AUDITREPORT-2026-09-05.md). Behoben:
@@ -508,9 +532,31 @@ sonst verzieht, wurde deshalb nicht vorgenommen — anders als beim Vorbild
 FruitRisk (dort war für die Geldbedienteile ungezeichneter Freiraum bis zur
 nächsten festen Zone vorhanden, hier nicht).
 
+## Grenzen, offen gelegt
+
+Dieses Gerät arbeitet seit Phase D3 gegen ein **serverseitiges Konto**, wenn der
+QR-Modus eingeschaltet ist. Daraus folgen drei Grenzen, die hier stehen, damit
+niemand mehr hineinliest, als da ist.
+
+- **Der Schutz richtet sich gegen Versehen und Neugier, nicht gegen Angriffe**
+  (`CONCEPT.md` D.9). Wer den QR-Code einer anderen Person abfotografiert, kann
+  sich als sie anmelden. Wer den Spielverlauf im eigenen Browser fälscht, kann
+  sich Geld erschwindeln. Das ist eine Spaßseite in einem Wohnzimmer, kein
+  Wettbüro. Die vollständige Fassung steht in `casino_account/README.md`,
+  Abschnitt „Grenzen, offen gelegt".
+- **Das Gerät selbst kennt den Schalter nicht.** Es ruft ausschließlich die
+  Kassen-Schnittstelle des Site Package auf (`credit.js`, `machine-credit.js`);
+  ob dahinter der Browserspeicher oder der Server steht, entscheidet
+  `account-backend.js`. Ein Fehler in dieser einen Datei träfe deshalb alle
+  sieben Geräte gleichzeitig — genau das ist am 2026-09-11 an den
+  Risiko-Leitern passiert.
+- **Wer mitten im Spiel die Verbindung verliert**, bekommt die Sperranzeige;
+  solange sie steht, wird nichts gebucht und nichts weitergerechnet. Was in der
+  Sekunde des Abrisses noch nicht gebucht war, ist verloren.
+
 ## Stand
 
-Version 0.4.0 (alpha). Teil A ist vollständig abgeschlossen (Phasen 4 bis 11): Gerüst
+Version 0.5.0 (alpha). Teil A ist vollständig abgeschlossen (Phasen 4 bis 11): Gerüst
 und Registry-Anmeldung, das vollständige Gehäuse, der Spielkern samt
 nachgewiesener Quote, die Verrechnung, die Risiko-Leiter, der Auto-Modus und
 der Klang.
@@ -521,4 +567,22 @@ Risiko-Leiter), Phase 3 (Kasse und Einwurf nach B.5) und Phase 4 (Klangausbau
 nach B.7: Klangbaukasten, Leerlaufgeräusche, Zählklang, Münzkaskade, zwei
 Absagen, `rs:count` und `rs:cashout`, Nachweisskript).
 
-Als Nächstes: Phase 5 (Video Slot: Gerüst, Registrierung, Gehäuse).
+**Aus Teil D ist eingearbeitet, ohne dass diese Extension dafür geändert
+werden musste:**
+
+- **Phase D3 — das serverseitige Konto.** Ist der QR-Modus an, laufen Kasse
+  und Gerätekredit dieses Automaten über den Server statt über den
+  Browserspeicher. Verantwortlich ist die eine Umschaltstelle
+  `account-backend.js` im Site Package; `credit.js` und `machine-credit.js`
+  verzweigen darauf. Der Automat selbst kennt den Unterschied nicht.
+- **Der Geldfehler in der Risiko-Leiter, behoben am 2026-09-11.** Im
+  Servermodus setzte `risk-ladder.js` den erhöhten Gewinn beim **ersten**
+  Treffer nicht selbst, sondern wartete auf die Buchung — die Anzeige hinkte
+  eine Stufe hinterher, und wer schneller drückte, als die Buchung zurückkam,
+  verlor echtes Geld. Der Fehler lag in der **geteilten** Leiter, nicht in
+  diesem Automaten; dieser Automat hat den Malgrund `sync` dazubekommen und
+  zieht darauf ausschließlich den Gewinn nach — keine Stufenänderung, keine
+  Tastenfreigabe, kein Ausschalten. Nachweis: `verify-risk-sync.mjs`.
+
+**Die Lobby betrifft diesen Automaten nicht.** Sie gibt es nur an den drei
+Tischen (`CONCEPT.md` D.10.2); ein Automat wird allein gespielt.

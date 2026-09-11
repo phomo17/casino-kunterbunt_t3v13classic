@@ -55,6 +55,8 @@
  * nie, um daraus eine Erwartung zu lesen.
  */
 
+// @pruefstand modus=egal laufzeit=kurz
+
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';

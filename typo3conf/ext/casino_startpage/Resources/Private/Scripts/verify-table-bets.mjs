@@ -43,6 +43,8 @@
  * bucht (CONCEPT.md C.5.3).
  */
 
+// @pruefstand modus=egal laufzeit=kurz
+
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';

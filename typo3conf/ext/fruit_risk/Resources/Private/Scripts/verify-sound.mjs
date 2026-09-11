@@ -106,6 +106,8 @@
  * mit < geprüft.
  */
 
+// @pruefstand modus=egal laufzeit=kurz
+
 import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 

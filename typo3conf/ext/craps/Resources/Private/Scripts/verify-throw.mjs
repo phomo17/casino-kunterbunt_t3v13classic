@@ -42,6 +42,8 @@
  * Kennung, T-10. EIGENE AUSLEGUNG dieses Umsetzerlaufs, siehe DECISIONS.md.
  */
 
+// @pruefstand modus=egal laufzeit=kurz
+
 import { readFileSync } from 'node:fs';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import path from 'node:path';

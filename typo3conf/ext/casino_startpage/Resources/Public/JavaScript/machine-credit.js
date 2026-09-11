@@ -105,6 +105,16 @@
  */
 
 import { credit } from '@phomo17/casino-startpage/credit.js';
+// ÜBER DAS PRÄFIX — siehe die ausführliche Begründung im Kopf von credit.js:
+// ein Gerätemodul (store.js) in einer ANDEREN Extension importiert
+// account-backend.js zwangsläufig über das Präfix; ein hier abweichender relativer
+// Import erzeugte im Browser ein ZWEITES konto-Objekt unter einer zweiten
+// Adresse (gemessen, kein Verdacht). Für machine-credit.js selbst ändert das
+// an der Ladeweise unter Node nichts: die Datei hat schon wegen ihres
+// Imports von credit.js NIE über ihre eigene Datei-Adresse geladen werden
+// können, jedes Prüfskript im Haus liest sie als Text und patcht die
+// Modulnamen — genau dieselbe Behandlung bekommt auch dieser Name.
+import { konto } from '@phomo17/casino-startpage/account-backend.js';
 
 /** Feste Vorsilbe aller Spiegel-Schlüssel. Der Rest kommt vom Gerät. */
 export const MACHINE_STORAGE_PREFIX = 'casinoKunterbunt.machine.';
@@ -272,8 +282,24 @@ export class MachineCredit {
 		this.listeners = new Set();
 
 		this.onStorage = (event) => this.receiveStorage(event);
-		if (typeof globalThis.addEventListener === 'function') {
+		if (!konto.istServer && typeof globalThis.addEventListener === 'function') {
 			globalThis.addEventListener('storage', this.onStorage);
+		}
+
+		/**
+		 * SEIT AUSBAUSTUFE 3, D3b: im Servermodus gibt es keinen Spiegel und
+		 * keinen storage-Zuhörer (oben schon nicht registriert) — stattdessen
+		 * bekommt GENAU DIESE Instanz ihre eigenen, an den Server gebundenen
+		 * Methoden (installServerBackend() weiter unten in dieser Datei). Sie
+		 * überschreiben NUR diese Instanz, nie den Prototypen: die
+		 * Prototyp-Methoden insert()/cashOut()/withdraw()/stake()/award()/
+		 * close()/claim() bleiben dadurch Zeile für Zeile dieselben wie vor
+		 * D3 — verify-table-money.mjs führt über genau diese Methoden einen
+		 * SHA-256-Hash mit (Zusage: „seit Phase C1 buchstabengleich"), und der
+		 * lokale Weg läuft im lokalen Modus ausschließlich über sie.
+		 */
+		if (konto.istServer) {
+			installServerBackend(this);
 		}
 
 		/**
@@ -806,6 +832,147 @@ export class MachineCredit {
 			this.callOne(listener, previous, reason);
 		}
 	}
+}
+
+/**
+ * Schaltet die Methoden EINER Instanz auf den Server um (Servermodus,
+ * CONCEPT.md D.7, D.8, D.11 D3b).
+ *
+ * WARUM ALS EIGENE FUNKTION UND NICHT ALS GEÄNDERTE PROTOTYP-METHODE:
+ * verify-table-money.mjs führt einen SHA-256-Hash über den QUELLTEXT von
+ * insert(), cashOut(), stake(), award(), close() und claim() mit — die
+ * Zusage, dass diese Methoden „seit Phase C1 buchstabengleich geblieben"
+ * sind (Zusage 9 an die Automaten, insbesondere den eingefrorenen
+ * Münzschieber). Eine Änderung AM PROTOTYPEN würde diese Zusage brechen,
+ * obwohl der LOKALE Weg dadurch kein bisschen anders liefe: die
+ * Prototyp-Methoden werden im Servermodus schlicht nie aufgerufen, weil
+ * jede Instanz hier ihre eigenen Methoden bekommt, die den Prototyp
+ * verdecken (reines JavaScript — eine Instanzeigenschaft geht einer
+ * gleichnamigen Prototyp-Methode vor). Der Quelltext der geprüften Methoden
+ * bleibt damit Zeile für Zeile derselbe, und der Nachweis muss nicht
+ * angetastet werden.
+ *
+ * amount FOLGT konto.geraet — jede Serverantwort bringt den ganzen neuen
+ * Stand mit, ob die Buchung angenommen wurde oder nicht (der Server ist die
+ * alleinige Wahrheit, D.7.2). Es gibt hier keinen eigenen Zähler mehr, der
+ * mit dem Server auseinanderlaufen könnte.
+ *
+ * DER SPIEGEL UND DIE ABSTURZSICHERUNG ENTFALLEN ERSATZLOS: writeMirror(),
+ * removeMirror(), receiveStorage() und die beiden surrender*()-Methoden
+ * bleiben auf dem Prototypen stehen, werden im Servermodus aber nie
+ * aufgerufen — es gibt weder einen registrierten storage-Zuhörer (siehe
+ * Konstruktor) noch einen Aufrufer, der sie von hier aus riefe. Die
+ * Absturzsicherung IST der Server.
+ *
+ * @param {MachineCredit} instance
+ * @returns {void}
+ */
+function installServerBackend(instance) {
+	/**
+	 * @param {{geraet: number}} antwort
+	 * @param {string} reason
+	 * @returns {void}
+	 */
+	function angleichen(antwort, reason) {
+		const previous = instance.amount;
+		instance.amount = antwort.geraet;
+		if (instance.amount !== previous) {
+			instance.notify(previous, reason);
+		}
+	}
+
+	instance.claim = async () => {
+		// Platz übernehmen: Gerätekredit UND Gewinnspeicher zurück in die
+		// Kasse (CONCEPT.md D.7: „ein Gerätewechsel verliert kein Geld").
+		const antwort = await konto.uebernahme();
+		angleichen(antwort, 'claimed');
+		return { claimed: 0, rest: 0 };
+	};
+
+	instance.insert = async (amount) => {
+		requireAmount(amount, 'insert');
+		if (instance.closed) {
+			return { ok: false, reason: 'closed', amount: instance.amount, moved: 0 };
+		}
+		// EINE Buchung statt „erst Kasse abbuchen, dann Gerät gutschreiben" —
+		// dazwischen kann nichts mehr verlorengehen.
+		const antwort = await konto.einwurf(amount);
+		angleichen(antwort, 'insert');
+		return antwort.ok === true
+			? { ok: true, amount: instance.amount, moved: antwort.bewegt }
+			: { ok: false, reason: 'nocash', amount: instance.amount, moved: 0 };
+	};
+
+	instance.cashOut = async (reason = 'cashout') => {
+		if (instance.amount <= 0) {
+			return { ok: true, moved: 0, amount: instance.amount, capped: false };
+		}
+		const antwort = await konto.auszahlung(null);
+		const moved = antwort.ok === true ? antwort.bewegt : 0;
+		angleichen(antwort, reason);
+		return { ok: true, moved, amount: instance.amount, capped: antwort.gekappt === true };
+	};
+
+	instance.withdraw = async (amount, reason = 'withdraw') => {
+		requireAmount(amount, 'withdraw');
+		if (instance.closed) {
+			return { ok: false, reason: 'closed', amount: instance.amount, moved: 0 };
+		}
+		const antwort = await konto.auszahlung(amount);
+		angleichen(antwort, reason);
+		return antwort.ok === true
+			? { ok: true, moved: antwort.bewegt, amount: instance.amount, capped: antwort.gekappt === true }
+			: { ok: false, reason: 'insufficient', amount: instance.amount, moved: 0 };
+	};
+
+	instance.stake = async (amount) => {
+		requireAmount(amount, 'stake');
+		if (instance.closed) {
+			return { ok: false, reason: 'closed', amount: instance.amount, missing: amount };
+		}
+		const antwort = await konto.einsatz(amount);
+		angleichen(antwort, 'stake');
+		return antwort.ok === true
+			? { ok: true, amount: instance.amount, debited: antwort.bewegt }
+			: { ok: false, reason: 'insufficient', amount: instance.amount, missing: amount };
+	};
+
+	instance.award = async (amount) => {
+		requireAmount(amount, 'award');
+		if (instance.closed) {
+			return { ok: false, reason: 'closed', amount: instance.amount, credited: 0, capped: false };
+		}
+		const antwort = await konto.gewinn(amount);
+		angleichen(antwort, 'award');
+		// award() kennt lokal nur EINEN Ablehnungsgrund ('closed') — die
+		// Schnittstelle bleibt zeichengenau; ein Serverfehlschlag (praktisch
+		// nicht erreichbar, requireAmount() schließt einen ungültigen Betrag
+		// schon aus) bekäme sonst einen Grund, den kein Aufrufer kennt.
+		return antwort.ok === true
+			? { ok: true, amount: instance.amount, credited: antwort.bewegt, capped: antwort.gekappt === true }
+			: { ok: false, reason: 'closed', amount: instance.amount, credited: 0, capped: false };
+	};
+
+	instance.close = async () => {
+		if (instance.closed) {
+			return { ok: true, moved: 0, amount: instance.amount, capped: false };
+		}
+		instance.closed = true;
+		open.delete(instance.key);
+		// close() bucht wie bisher über cashOut() zurück (jetzt die
+		// serverseitige Fassung oben) — konto.auszahlung(null), mit
+		// keepalive, weil 'auszahlung' zu SCHLUSSVORGAENGE in
+		// account-backend.js gehört.
+		const result = await instance.cashOut('closed');
+		instance.listeners.clear();
+		return result;
+	};
+
+	Object.defineProperty(instance, 'mirror', {
+		get: () => '',
+		configurable: true,
+		enumerable: true,
+	});
 }
 
 /**

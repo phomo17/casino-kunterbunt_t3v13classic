@@ -63,6 +63,8 @@
  * Münze war vorher oben) – beide VOR der ersten gedruckten Quote je Lauf.
  */
 
+// @pruefstand abgeschrieben=Auftraggeber-Entscheidung 2026-09-11 (DECISIONS.md, 12:50): der Münzschieber ist abgeschrieben, die Extension deaktiviert (extension:deactivate), Dateien bleiben liegen. Der halbstündige Mengenbilanz-Lauf (dropCount gegen wonCount) ist damit gegenstandslos und wird nicht mehr gefahren.
+
 import { Field, CHUTE_WIDTH, CHUTE_REACH, FILL_TARGET, COIN_VALUES, COIN_CAP_MAX }
 	from '../../Public/JavaScript/field.js';
 import { createSeeded, below } from '../../Public/JavaScript/rng.js';

@@ -10,6 +10,7 @@ use Phomo17\CasinoAccount\Qr\QrCodeFactory;
 use Phomo17\CasinoAccount\Qr\QrSvgRenderer;
 use Phomo17\CasinoAccount\Service\AccountStorage;
 use Phomo17\CasinoAccount\Service\BackendUserMirror;
+use Phomo17\CasinoAccount\Service\PlayerSessionService;
 use Phomo17\CasinoAccount\Service\PlayerUrlBuilder;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -68,6 +69,7 @@ final readonly class PlayerModuleController
         private QrCodeFactory $qrCodes,
         private QrSvgRenderer $svg,
         private IconFactory $iconFactory,
+        private PlayerSessionService $sessions,
     ) {}
 
     /**
@@ -232,7 +234,11 @@ final readonly class PlayerModuleController
      */
     private function decorate(array $players): array
     {
-        $now = (int)($GLOBALS['EXEC_TIME'] ?? time());
+        // Angemeldet heißt: es gibt eine gültige Sitzung des Kerns. NICHT
+        // „last_seen liegt weniger als 30 Sekunden zurück" — das wäre
+        // „gerade aktiv" und würde jeden als abgemeldet zeigen, der eine
+        // halbe Minute nichts angeklickt hat (Begründung: PlayerSessionService).
+        $angemeldet = array_flip($this->sessions->loggedInPlayerUids());
         $returnUrl = (string)$this->uriBuilder->buildUriFromRoute('casino_players');
 
         $rows = [];
@@ -240,7 +246,7 @@ final readonly class PlayerModuleController
             $rows[] = [
                 'player' => $player,
                 'total' => $player->total(),
-                'online' => $player->isOnline($now),
+                'online' => isset($angemeldet[$player->uid]),
                 'editUrl' => (string)$this->uriBuilder->buildUriFromRoute('record_edit', [
                     'edit' => ['tx_casinoaccount_player' => [$player->uid => 'edit']],
                     'returnUrl' => $returnUrl,

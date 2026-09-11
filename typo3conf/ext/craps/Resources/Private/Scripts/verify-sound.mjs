@@ -66,6 +66,8 @@
  * Alle drei werden vor dem Laden bereitgestellt.
  */
 
+// @pruefstand modus=egal laufzeit=kurz
+
 import { readFile } from 'node:fs/promises';
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';

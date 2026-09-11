@@ -39,6 +39,8 @@
  *   B-3   es wird keine Datei von außen geladen (nur mit Adresse)
  */
 
+// @pruefstand abgeschrieben-block=Auftraggeber-Entscheidung 2026-09-11 (DECISIONS.md, 12:50): der Münzschieber ist abgeschrieben, die Extension deaktiviert (extension:deactivate). Block A (Quelltext, oben) bleibt gültig und läuft normal mit. Block B (das ausgelieferte HTML, unten) bekommt deshalb BEWUSST KEIN arg= — es gäbe ohne die aktive Extension ohnehin nie ein echtes .cp-machine-Markup, ein arg= erzeugte also einen garantierten, aber bedeutungslosen roten Fund. Block B bleibt beim eingebauten Selbstüberspringen (Zeile mit @pruefstand:luecke, siehe unten); dieser eine Schlüssel erklärt seine Lücke, ohne Block A abzuschalten.
+
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
@@ -555,7 +557,8 @@ console.log('\nA-11 Keine Konsolenausgabe');
 const adresse = process.argv[2];
 
 if (adresse === undefined) {
-	console.log('\nB    Ohne Adresse übersprungen. Für die Prüfung des ausgelieferten');
+	console.log('\n@pruefstand:luecke Block B (ausgeliefertes HTML) ungeprüft — kein Argument übergeben');
+	console.log('B    Ohne Adresse übersprungen. Für die Prüfung des ausgelieferten');
 	console.log('     HTML die Adresse der Automatenseite anhängen, zum Beispiel:');
 	console.log('     … verify-cabinet.mjs https://casino-kunterbunt.ddev.site/coin-pusher');
 } else {

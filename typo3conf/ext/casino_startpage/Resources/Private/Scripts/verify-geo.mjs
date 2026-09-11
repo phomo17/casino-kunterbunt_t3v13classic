@@ -61,6 +61,13 @@
  * llms.txt und jede einzelne Seite mitgezogen sind.
  */
 
+// @pruefstand modus=aus laufzeit=kurz
+// (bei eingeschaltetem Modus ersetzt die Torseite auch /sitemap.xml — das
+//  Skript meldet das selbst als „übersprungen" und bewiese dann nichts;
+//  deshalb in diesem Zustand gar nicht erst fahren.)
+
+import { execFileSync } from 'node:child_process';
+
 const BASE_URL = (process.env.CASINO_BASE_URL ?? 'https://casino-kunterbunt.ddev.site').replace(/\/$/, '');
 
 let fehler = 0;
@@ -191,6 +198,33 @@ async function holen(pfad) {
 
 async function main() {
 	console.log(`Lebende Prüfung gegen ${BASE_URL} ------------------------------\n`);
+
+	// DER QR-MODUS STEHT ÜBER DIESER PRÜFUNG (Teil D, Phase D2).
+	// Ist er AN, ersetzt die Torseite JEDE Frontend-Adresse — auch /sitemap.xml
+	// und /llms.txt. Das ist Absicht: ein geschlossenes Haus hat für einen
+	// KI-Crawler nichts auszuliefern. Ohne diese Abfrage ginge dieses Skript
+	// allein deshalb rot und sähe aus wie ein Rückschritt, obwohl nur ein
+	// Schalter anders steht. Dieselbe Bauform wie in verify-account-ui.mjs,
+	// verify-gate.mjs und verify-lobby-endpoint.mjs.
+	let registryZeile = '';
+	try {
+		const ausgabe = execFileSync('mysql', ['-e',
+			"SELECT entry_value FROM sys_registry WHERE entry_namespace='tx_casinoaccount' AND entry_key='qrMode';"],
+		{ encoding: 'utf8' });
+		registryZeile = (ausgabe.split('\n')[1] ?? '').trim();
+	} catch (fehlerObjekt) {
+		check(false, 'der Schalterstand des QR-Modus ist abfragbar', `Fehler: ${fehlerObjekt.message}`);
+		druckeErgebnisUndBeende();
+	}
+	console.log(`(gemessener Schalterstand des QR-Modus: ${registryZeile === 'b:1;' ? 'AN' : 'AUS'}${registryZeile === '' ? ' — noch nie geschaltet' : ''})\n`);
+	if (registryZeile === 'b:1;') {
+		console.log('Der QR-Modus ist AN — die Torseite ersetzt jede Frontend-Adresse.');
+		console.log('Die lebenden GEO-Prüfungen sind in diesem Zustand gegenstandslos und');
+		console.log('werden übersprungen. Für den Nachweis den Schalter auf AUS stellen');
+		console.log('(Auslieferungszustand) und dieses Skript erneut laufen lassen.');
+		console.log('\nERGEBNIS: übersprungen — in diesem Schalterstand wird NICHTS nachgewiesen.');
+		process.exit(0);
+	}
 
 	let sitemapIndex;
 	try {

@@ -110,4 +110,28 @@ export function createSeeded(seed) {
 	};
 }
 
+/**
+ * Aus der Saat des Servers (16 Hex-Zeichen) eine vorzeichenlose 32-Bit-Zahl.
+ *
+ * FNV-1a, wie in casino_lobby/lobby-seed.js — und ABSICHTLICH noch einmal
+ * hier, aus demselben Grund, aus dem createSeeded() schon viermal im Haus
+ * steht: die Referenz in casino_lobby und die drei Fassungen der Tische sind
+ * VERSCHIEDENE Dateien, deren Gleichheit nachgewiesen wird (V-21 in
+ * casino_lobby/verify-lobby-live.mjs, B-Wächter in verify-lobby-blackjack.mjs).
+ * Wären es dieselbe Datei, bewiese der Vergleich nichts — und der Tisch
+ * müsste aus casino_lobby importieren, was Plan D5, Abschnitt 4.0, ausschließt.
+ *
+ * @param {string} hex
+ * @returns {number}
+ */
+export function saatZuZahl(hex) {
+	let h = 0x811c9dc5;
+	const text = String(hex ?? '');
+	for (let i = 0; i < text.length; i++) {
+		h ^= text.charCodeAt(i);
+		h = Math.imul(h, 0x01000193) >>> 0;
+	}
+	return h >>> 0;
+}
+
 export default drawUint32;

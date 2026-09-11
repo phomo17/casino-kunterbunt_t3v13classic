@@ -1,0 +1,30 @@
+services:
+  _defaults:
+    autowire: true
+    autoconfigure: true
+    public: false
+
+  Phomo17\CasinoLobby\:
+    resource: '../Classes/*'
+    # Reine Datenobjekte und reine Namensschilder: sie werden nie aus dem
+    # Behälter geholt, sondern über fromRow() gebaut beziehungsweise nur
+    # statisch benutzt. Dieselbe Ausnahme und dieselbe Begründung wie in
+    # casino_account (Player.php) und casino_startpage (Gattung.php).
+    exclude:
+      - '../Classes/Domain/Lobby.php'
+      - '../Classes/Domain/Seat.php'
+      - '../Classes/Lobby/LobbyGames.php'
+      - '../Classes/Service/RoundClock.php'
+
+# Was hier NICHT steht und warum: kein 'public: true' für irgendetwas. Beide
+# Middlewares (Umsetzungsstück D4b) holt der Kern über den Behälter selbst
+# (MiddlewareStackResolver), nicht über GeneralUtility::makeInstance() — der
+# Fall, der in casino_account drei öffentliche Einträge nötig machte
+# (DataHandler-Hook, Anmeldedienst), tritt hier nicht auf.
+#
+# Dienste aus casino_account (QrMode, PlayerRepository) werden einfach im
+# Konstruktor verlangt. Das geht, weil TYPO3 EINEN EINZIGEN Behälter für
+# alle Extensions führt: eine Klasse aus casino_lobby darf einen Dienst aus
+# casino_account verlangen, solange dieser dort angemeldet ist — und das ist
+# er über den Phomo17\CasinoAccount\:-Block. Die Abhängigkeit ist in
+# ext_emconf.php und composer.json festgeschrieben.

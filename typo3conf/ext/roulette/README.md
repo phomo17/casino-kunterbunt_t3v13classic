@@ -19,7 +19,7 @@ anderen Extension etwas geändert werden muss.
 | Composer-Name | `phomo17/roulette` |
 | Namespace | `Phomo17\Roulette\` |
 | TYPO3-Version | 13.4 (klassische, nicht Composer-basierte Installation) |
-| Abhängigkeit | `casino_startpage` >= 0.4.0 (Design-Tokens, darunter die sechs neuen Rad-Farben) |
+| Abhängigkeit | `casino_startpage` >= 0.5.0 (Design-Tokens, darunter die sechs neuen Rad-Farben) |
 | Lizenz | AGPL-3.0-or-later |
 | Quelltext | https://github.com/phomo17/casino-kunterbunt_t3v13classic |
 
@@ -364,6 +364,34 @@ unter zwei Sekunden, 20.000 bis 200.000 Läufe je nach Prüfung):
 Dies ist ausdrücklich **nicht** der abschließende Gleichverteilungsnachweis
 — der verlangt mindestens 500.000 Läufe (CONCEPT.md C.5.4) und steht im
 nächsten Abschnitt.
+
+**Ein dritter Geberzustand seit Umsetzungsstück D5-3 (die Lobby).** Läuft
+dieser Tisch in einer QR-Lobby (CONCEPT.md D.10), tritt zur Rundenlaufzeit
+ein dritter, wiederholbarer Geber an die Stelle von `drawUint32()` — nicht
+`createSeeded(seed)` mit einem beliebigen Zahlenwert, sondern
+`createSeeded(saatZuZahl(saat))` mit der **Saat des Servers**
+(`tx_casinolobby_lobby.seed`, 16 Hex-Zeichen). Der Umschalter ist wieder
+genau eine Stelle — eine veränderliche Variable `geber`, die `roulette.js`
+selbst hält (`let geber = drawUint32`) — und `new Wheel({ random })` bleibt
+unverändert an genau dieser einen Stelle eingespeist
+(`new Wheel({ random: () => geber() })`). Der Adapter, der `geber` umlegt,
+ist `Resources/Public/JavaScript/lobby-roulette.js`: er importiert nichts
+aus `casino_lobby` (kein `casino_lobby`-Import in dieser Extension
+überhaupt), sondern hört vier DOM-Ereignisse ab und ruft beim Rundenstart
+`geberSetzen(saatGeber(saat))`, beim Rundenende `geberSetzen(null)` (zurück
+auf `drawUint32`). `saatZuZahl()` (FNV-1a, in `rng.js`) macht aus der
+hexadezimalen Saat dieselbe 32-Bit-Zahl wie `casino_lobby/lobby-seed.js` und
+`craps/rng.js` — nachgewiesen in `verify-lobby-roulette.mjs` (R-4) und noch
+einmal geräteübergreifend in `casino_lobby/verify-lobby-live.mjs` (V-21).
+
+**Offengelegte Grenze, rechnend nicht beweisbar:** die Folge ist nur dann in
+allen Browsern gleich, wenn zwischen `geberSetzen()` und dem eigentlichen
+Rundenstart **keine einzige zusätzliche Ziehung** stattfindet — eine einzige
+Ziehung mehr in einem Browser (etwa aus einer Klangroutine) verschiebt die
+ganze Folge um einen Schritt. `verify-lobby-roulette.mjs` prüft R-3
+statisch/grep-artig ("wer ruft `geber(` außerhalb der Physik?"), aber ob
+zwei **echte** Browser wirklich dieselbe Zahl fallen sehen, beweist nur
+`probe-lobby-roulette.mjs` (zwei echte `_acctest_`-Sitzungen).
 
 ## Gleichverteilungsnachweis
 
@@ -829,6 +857,7 @@ ddev exec node typo3conf/ext/roulette/Resources/Private/Scripts/verify-bets.mjs
 ddev exec node typo3conf/ext/roulette/Resources/Private/Scripts/verify-felt.mjs
 ddev exec node typo3conf/ext/roulette/Resources/Private/Scripts/verify-round.mjs
 ddev exec node typo3conf/ext/roulette/Resources/Private/Scripts/verify-sound.mjs
+ddev exec node typo3conf/ext/roulette/Resources/Private/Scripts/verify-lobby-roulette.mjs
 ```
 
 Alle acht nur lesend, ohne jede Abhängigkeit, Laufzeit je unter zwei
@@ -868,7 +897,28 @@ ist im Verlaufsstreifen nie die einzige Aussage, der Haken-Katalog stimmt in
 beide Richtungen (V-9), kein deutscher Anzeigetext steht im JavaScript, die
 Zeichenschleife hält von selbst an, der Rundenablauf wird vollständig
 durchlaufen, jeder `data-ro-*`-Messpunkt hat genau einen Schreiber (V-13),
-und `roulette.js` trifft keine Rundenentscheidung mehr (V-14).
+und `roulette.js` trifft keine Rundenentscheidung mehr (V-14) — **seit
+Umsetzungsstück D5-3 mit einer benannten Ausnahme:** `bets.lock()`/
+`bets.unlock()` an genau einer, geprüften Stelle (dem `sperren()`-Rückruf an
+`connectLobby()`, siehe „Zufall und Wiederholbarkeit"), `settle(`/`sweep(`/
+`payout(` bleiben ohne jede Ausnahme verboten.
+
+`verify-lobby-roulette.mjs` (Kennungen R-2 bis R-6, Umsetzungsstück D5-3):
+`lobby-roulette.js` kann kein Geld bewegen und keinen Server erreichen
+(R-2), `geber` wird in `roulette.js` an genau zwei Stellen zugewiesen (R-3),
+`createSeeded(saatZuZahl(saat))` liefert gegenüber `casino_lobby/lobby-seed.js`
+für 50 Saaten je 500 Ziehungen dieselbe Folge (R-4), und die Bilanz (Kasse +
+Buy-in + liegender Einsatz) stimmt über 200 mit einem aus der Saat
+gespeisten Rad gespielte Runden (R-5) — samt der aus `report.fields`
+gebildeten Ausgänge, die sich auf `payout − total` summieren (R-6). Die
+Geldrechnung läuft mit den ECHTEN Modulen von `casino_startpage` gegen
+einen Browserspeicher im Arbeitsspeicher — kein Netzwerk, keine laufende
+Website nötig, Laufzeit unter zwei Sekunden. Die Live-Probe
+`probe-lobby-roulette.mjs` (zwei echte Browser) ergänzt, was dieses Skript
+nicht sehen kann: siehe „Zufall und Wiederholbarkeit". **`probe-lobby-roulette.mjs`
+braucht eine laufende Website mit eingeschaltetem QR-Modus und zwei echte
+Browsersitzungen — deshalb steht es nicht im Reihenlauf oben und wird
+gesondert gefahren.**
 
 `verify-bets.mjs` (Kennungen B-1 bis B-12): genau 159 Felder, vollzählig je
 Wettart, jede Auszahlung und jeder Höchsteinsatz gegen eine im Prüfskript
@@ -972,9 +1022,39 @@ Gegenprobe mit einem absichtlich eingebauten Fehler in `DECISIONS.md`). Dies
 ist die **Gegenprobe zur Verdrahtung**, nicht der Quotennachweis selbst — der
 ist rechnerisch (`verify-bets.mjs`, Prüfung B-11) und steht bereits fest.
 
+## Grenzen, offen gelegt
+
+Dieser Tisch arbeitet seit Phase D3 gegen ein **serverseitiges Konto**, wenn
+der QR-Modus eingeschaltet ist. Daraus folgen vier Grenzen, die hier stehen,
+damit niemand mehr hineinliest, als da ist.
+
+- **Der Schutz richtet sich gegen Versehen und Neugier, nicht gegen
+  Angriffe** (`CONCEPT.md` D.9). Wer den QR-Code einer anderen Person
+  abfotografiert, kann sich als sie anmelden. Wer den Spielverlauf im
+  eigenen Browser fälscht, kann sich Geld erschwindeln. Das ist eine
+  Spaßseite in einem Wohnzimmer, kein Wettbüro. Die vollständige Fassung
+  steht in `casino_account/README.md`, Abschnitt „Grenzen, offen gelegt".
+- **Der Tisch selbst kennt den Schalter nicht.** Er ruft ausschließlich die
+  Kassen-Schnittstelle des Site Package auf (`credit.js`, `table-buyin.js`);
+  ob dahinter der Browserspeicher oder der Server steht, entscheidet
+  `account-backend.js`. Ein Fehler in dieser einen Datei träfe deshalb alle
+  sieben Geräte und Tische gleichzeitig — genau die Fehlerklasse, die am
+  2026-09-11 an den Risiko-Leitern der Automaten aufgetreten ist.
+- **Wer mitten im Spiel die Verbindung verliert**, bekommt die Sperranzeige;
+  solange sie steht, wird nichts gebucht und nichts weitergerechnet. Was in
+  der Sekunde des Abrisses noch nicht gebucht war, ist verloren.
+- **In der Lobby kann der Server das Ergebnis nicht nachrechnen**
+  (`CONCEPT.md` D.10.4). Der Server zieht die Saat, jeder Browser rechnet
+  daraus dieselbe Runde, und das Ergebnis wird von **einem** Browser gemeldet
+  und einmal festgeschrieben. Wer der Melder ist und seinen eigenen Browser
+  fälscht, kann ein falsches Ergebnis festschreiben. Die Alternative — die
+  gesamte Physik ein zweites Mal in PHP zu schreiben — wäre ein eigenes,
+  fehleranfälliges Projekt für sich. Die vollständige Fassung steht in
+  `casino_lobby/README.md`, Abschnitt „Grenzen, offen gelegt".
+
 ## Stand
 
-Version 0.4.0 (alpha). Phase C2 (Rad und Physik) und Phase C3 (Tuch, Wetten,
+Version 0.5.0 (alpha). Phase C2 (Rad und Physik) und Phase C3 (Tuch, Wetten,
 Auszahlung, Klang) sind vollständig eingearbeitet.
 
 **Phase C2** (fünf Teilstücke C2-A bis C2-E): die Extension ist
@@ -1039,3 +1119,30 @@ sich um Gattungsbezeichnungen für Werkstoffe und Röhrentechnik handelt, nicht
 um geschützte Marken. Mit **Phase C8** ist Teil C insgesamt abgenommen: 36
 PASS, 0 FAIL, 0 BLOCKED im Abnahmetest, plus fünf von Hand nachgemessene
 Bedienläufe.
+
+**Phase D3** (serverseitiges Konto) hat an diesem Tisch **keine einzige
+Zeile geändert.** `roulette.js` bezog Kasse und Gerätekredit schon seit
+Phase C3 über die geteilten Bausteine des Site Package (`credit.js`,
+`table-buyin.js`); ob dahinter der Browserspeicher oder der Server steht,
+entscheidet ausschließlich `account-backend.js` im Site Package (siehe
+„Grenzen, offen gelegt").
+
+Mit **Umsetzungsstück D5-3** (CONCEPT.md D.10) hängt dieser Tisch in der
+QR-Lobby: derselbe Tisch, ein dritter Geberzustand (Abschnitt „Zufall und
+Wiederholbarkeit") und ein neuer Adapter (`lobby-roulette.js`), der aus
+`casino_lobby` NICHTS importiert — nur vier DOM-Ereignisse. Neuer Nachweis
+`verify-lobby-roulette.mjs` (17 Zusagen, grün) und eine Live-Probe
+`probe-lobby-roulette.mjs`. Offengelegte Grenze: die Ziehungsgleichheit
+zwischen zwei echten Browsern ist rechnend nur eingekreist, nicht bewiesen
+— das leistet ausschließlich die Live-Probe.
+
+**Behebungslauf D5-4 (vorsorglich, kein beobachteter Fehler):** M-1s
+Vergleich zwischen `data-ro-total` und dem Server-Kontostand wartete bislang
+nur auf `data-ro-state==='setzen'` und las dann einmalig — dieselbe, an
+Blackjack als zu schwach erkannte Bauart, hier aber nachweislich nie
+tatsächlich fehlgeschlagen (Roulette löst jeden Einsatz garantiert innerhalb
+einer Runde vollständig auf, `bets.sweep()` läuft vor `onResult()`). Auf
+denselben echten Konvergenzvergleich (erst Server-Wechsel abwarten, danach
+den nachziehenden Client) umgestellt, um nicht von einem zufällig immer
+ausreichenden Zeitfenster abhängig zu bleiben. `probe-lobby-roulette.mjs`
+läuft danach unverändert zweimal hintereinander vollständig grün (15/15).

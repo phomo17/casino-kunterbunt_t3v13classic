@@ -23,6 +23,8 @@
  * Laufzeiten.
  */
 
+// @pruefstand laufzeit=kurz abgeschrieben=Auftraggeber-Entscheidung 2026-09-11 (DECISIONS.md, 12:50): der Münzschieber ist abgeschrieben, die Extension deaktiviert (extension:deactivate), Dateien bleiben liegen. Der Altbefund vom 2026-09-04 (Physikkern trägt eine Münze aus dem Feld) ist damit gegenstandslos und wird nicht mehr gefahren.
+
 import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';

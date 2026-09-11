@@ -61,6 +61,8 @@
  * nennt beide Augenzahlen und die Summe), ist unverändert.
  */
 
+// @pruefstand modus=egal laufzeit=kurz
+
 import { readFileSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
@@ -416,20 +418,41 @@ console.log('\nV-5  Zielgrößen und Fokus');
 
 /* ========================================= V-6 Nur echter Zufall im Spiel */
 
-console.log('\nV-6  Im Spiel wird nur echter Zufall eingespeist');
+console.log('\nV-6  Im Spiel wird nur echter Zufall eingespeist — außerhalb einer Lobby-Runde (nachgezogen, D5-3)');
 {
 	check(/import\s*\{[^}]*\bdrawUint32\b[^}]*\}\s*from\s*['"]@phomo17\/craps\/rng\.js['"]/.test(crapsQuelltext),
 		'craps.js importiert drawUint32 aus rng.js');
-	check(!/createSeeded/.test(crapsQuelltext), 'craps.js erwähnt createSeeded nicht');
 
-	// rng.js DEFINIERT createSeeded (C6c, 4.30) — für die Nachweisskripte, nie
-	// fürs Spiel; dice-physics.js nennt den Namen nur in seinem Kopfkommentar.
-	// Geprüft wird deshalb, dass keine der SPIELFÜHRENDEN Dateien den Namen
-	// benutzt — dieselbe Unterscheidung wie V-6 sie in Worten trifft
+	// ABWEICHUNG VOM PLANTEXT (D5, Abschnitt 7, Risikotabelle): SEIT D5-3
+	// erwähnt craps.js createSeeded() an GENAU ZWEI Stellen: dem Import (der
+	// Name selbst) und GENAU EINEM Aufruf — als Geber der gemeinsamen
+	// Lobby-Runde (D.10.4, saatGeber-Rückruf an connectLobby()). Eine Zusage
+	// abzuschwächen ist immer verdächtig, deshalb kommt im Gegenzug eine
+	// schärfere Prüfung dazu: nicht nur DASS createSeeded genau einmal
+	// AUFGERUFEN wird, sondern GENAU DORT — und zusätzlich C-3 in
+	// verify-lobby-craps.mjs, die nachweist, dass "geber" an genau zwei
+	// Stellen zugewiesen wird (Anfangswert drawUint32 und geberSetzen).
+	// Solange keine Lobby-Runde läuft, speist new DiceTable() unverändert
+	// ausschließlich drawUint32 ein.
+	const createSeededAufrufe = crapsOhneKommentare.match(/createSeeded\(/g) ?? [];
+	check(createSeededAufrufe.length === 1,
+		`createSeeded( wird in craps.js genau einmal AUFGERUFEN — als Geber der Lobby-Runde (gefunden: ${createSeededAufrufe.length}×)`);
+	check(/saatGeber:\s*\(saat\)\s*=>\s*createSeeded\(saatZuZahl\(saat\)\)/.test(crapsOhneKommentare),
+		'die eine Stelle ist der saatGeber-Rückruf an connectLobby()');
+
+	console.log('     Gegenprobe: ein zweiter, erfundener Aufruf wird erkannt');
+	const verfaelscht = `${crapsOhneKommentare}\nconst x = createSeeded(1);`;
+	check((verfaelscht.match(/createSeeded\(/g) ?? []).length === 2,
+		'ein eingefügter zweiter Aufruf wird von derselben Zählung erkannt');
+
+	// rng.js DEFINIERT createSeeded — für die Nachweisskripte und (seit D5-3)
+	// für die Lobby-Runde, nie fürs bloße Zuschauen/Selbst-werfen außerhalb
+	// einer Lobby. dice-view.js und throw-input.js bleiben davon
+	// unberührt — dieselbe Unterscheidung wie V-6 sie schon immer trifft
 	// ("im SPIEL wird nur echter Zufall eingespeist").
-	const SPIELFUEHRENDE_JS = [DICE_VIEW_PFAD, THROW_INPUT_PFAD, CRAPS_PFAD];
+	const SPIELFUEHRENDE_JS = [DICE_VIEW_PFAD, THROW_INPUT_PFAD];
 	const treffer = SPIELFUEHRENDE_JS.filter((pfad) => lies(pfad).includes('createSeeded'));
-	check(treffer.length === 0, 'createSeeded kommt in keiner der spielführenden Dateien vor (dice-view.js, throw-input.js, craps.js)', ...treffer.map(kurz));
+	check(treffer.length === 0, 'createSeeded kommt in dice-view.js und throw-input.js nicht vor', ...treffer.map(kurz));
 }
 
 /* ======================================== V-7 Kein deutscher Anzeigetext */

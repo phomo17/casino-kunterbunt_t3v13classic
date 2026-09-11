@@ -29,4 +29,8 @@ return [
         'provider' => SvgIconProvider::class,
         'source' => 'EXT:casino_account/Resources/Public/Icons/ModulePlayers.svg',
     ],
+    'module-casino-qrmode' => [
+        'provider' => SvgIconProvider::class,
+        'source' => 'EXT:casino_account/Resources/Public/Icons/ModuleQrMode.svg',
+    ],
 ];

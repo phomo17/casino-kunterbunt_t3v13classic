@@ -64,16 +64,35 @@
  * DER MISCHZEITPUNKT UND DIE GELDBEWEGUNG liegen vollständig in
  * round-table-blackjack.js — diese Datei reicht nur die Bausteine herein und
  * liest deren Rückgabewerte, um anzusagen und den Fokus zu führen.
+ *
+ * DER ANSCHLUSS AN DIE LOBBY (CONCEPT.md D.10, Umsetzungsstück D5-4)
+ * -------------------------------------------------------------------
+ * lobby-blackjack.js kennt keine Karte und kein Regelmodul — sie bekommt
+ * alles als Rückruf hereingereicht, genau wie bei Roulette/Craps (D5-3).
+ * Zwei Stücke stehen NUR hier, weil nur diese Datei bereits Shoe,
+ * BlackjackRound und LobbyTableSequence importiert hat:
+ *
+ *   - ersatzSchlitten() — die Brücke zwischen der gemeinsamen Tischfolge
+ *     (round-lobby-blackjack.js) und der vorhandenen Rundenlogik
+ *     (round-blackjack.js), die selbst nicht geändert wird.
+ *   - folgeBauen() — mischt den Schlitten frisch aus der Rundensaat, teilt
+ *     aus und hängt den Ersatzschlitten in game/table ein.
+ *
+ * Der Geber wird — dieselbe Bauart wie in roulette.js/craps.js (D5-3) — in
+ * new Shoe({ random: () => geber() }) EINGESPEIST, nicht importiert; geber
+ * ist außerhalb einer Lobby-Runde stets drawUint32.
  */
 
-import { drawUint32, isAvailable } from '@phomo17/blackjack/rng.js';
+import { drawUint32, isAvailable, createSeeded, saatZuZahl } from '@phomo17/blackjack/rng.js';
 import * as rules from '@phomo17/blackjack/rules-blackjack.js';
-import { buildFields, roundMax } from '@phomo17/blackjack/bets-blackjack.js';
+import { buildFields, roundMax, BOX_FIELD_ID } from '@phomo17/blackjack/bets-blackjack.js';
 import { Shoe } from '@phomo17/blackjack/shoe.js';
 import { BlackjackRound } from '@phomo17/blackjack/round-blackjack.js';
 import { BlackjackTable } from '@phomo17/blackjack/round-table-blackjack.js';
 import { connectView } from '@phomo17/blackjack/view-blackjack.js';
 import { connectSound } from '@phomo17/blackjack/sound-blackjack.js';
+import { connectLobby } from '@phomo17/blackjack/lobby-blackjack.js';
+import { LobbyTableSequence } from '@phomo17/blackjack/round-lobby-blackjack.js';
 import { openTableBank } from '@phomo17/casino-startpage/table-buyin.js';
 import { BetTable } from '@phomo17/casino-startpage/table-bets.js';
 import { CHIPS, CHIP_VALUES } from '@phomo17/casino-startpage/table-chips.js';
@@ -105,6 +124,70 @@ function fuelle(vorlage, werte) {
  */
 function reducedMotionActive() {
 	return globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches === true;
+}
+
+/** Handlung → Buchstabe des Zugprotokolls (LobbyEndpoint::ZUEGE). */
+const ZUG_BUCHSTABE = { hit: 'h', stand: 's', double: 'd', split: 'p' };
+
+/**
+ * Der Ersatzschlitten einer Lobby-Runde (Plan D5, Abschnitt 4.20, Punkt 1).
+ * Er hat genau die Oberfläche, die round-blackjack.js und
+ * round-table-blackjack.js am Schlitten abfragen (draw, remaining, dealt,
+ * cutReached, needsShuffle, shuffleReason) und holt jede Karte aus der
+ * gemeinsamen Tischfolge (round-lobby-blackjack.js) — die eigenen aus dem
+ * gemeinsamen Schlitten, die des Gebers aus dessen Reserve.
+ *
+ * ABWEICHUNG VOM PLANTEXT, BEGRÜNDET: der Plan sieht ein von außen
+ * umgelegtes setGeber(an) vor, gespeist über den onRound-Rückruf von
+ * round-table-blackjack.js. Das kommt zu spät: BlackjackRound#_playDealer()
+ * setzt state auf 'geber' als ERSTE Anweisung und zieht DANACH — innerhalb
+ * DESSELBEN synchronen Aufrufs — die Geberkarten; onRound() feuert aber
+ * immer erst NACHDEM dieser ganze Aufruf (round-table-blackjack.js#act():
+ * this.game.act(action) komplett durchgelaufen, dann this.onRound?.())
+ * zurückgekehrt ist. Ein von außen erst danach gesetztes Flag käme für
+ * genau die Ziehungen zu spät, die es steuern soll — der Geber zöge dann
+ * fälschlich aus folge.meineKarte(). Diese Funktion liest game.state
+ * stattdessen bei JEDEM draw()-Aufruf LIVE (über spielHolen, siehe unten):
+ * _playDealer() setzt state bereits VOR der eigenen Ziehschleife, jede
+ * Spielerhandlung (hit/double/split) zieht dagegen, während state noch
+ * 'spieler' ist. Damit ist die Quelle jeder einzelnen Karte eindeutig UND
+ * korrekt, ohne je die Frage zu stellen, WANN setGeber() hätte aufgerufen
+ * werden müssen. Das Geld ändert das nicht (die Geberreserve ist ohnehin
+ * unabhängig vom Zeitpunkt, siehe round-lobby-blackjack.js, Dateikopf) —
+ * nur die Zuordnung „diese Karte kam aus der Reserve, jene aus dem
+ * Schlitten" wäre mit einem verspäteten Flag falsch gewesen.
+ *
+ * @param {import('./round-lobby-blackjack.js').LobbyTableSequence} folge
+ * @param {{mein: Array<object>, geber: Array<object>}} austeilung
+ * @param {function(): ?{state: string}} spielHolen liefert die AKTUELLE
+ *   BlackjackRound-Instanz (game kann sich zwischen Runden nicht ändern,
+ *   aber die Funktion liest den WERT zum Zeitpunkt des Aufrufs, nicht eine
+ *   beim Bau eingefrorene Kopie)
+ * @returns {{draw: function(): object, remaining: number, dealt: number,
+ *   cutReached: boolean, needsShuffle: boolean, shuffleReason: ?string,
+ *   shuffle: function(): void}}
+ */
+function ersatzSchlitten(folge, austeilung, spielHolen) {
+	const anfang = [austeilung.mein[0], austeilung.geber[0], austeilung.mein[1], austeilung.geber[1]];
+	let zeiger = 0;
+	return {
+		draw() {
+			if (zeiger < anfang.length) {
+				return anfang[zeiger++];
+			}
+			return spielHolen()?.state === 'geber' ? folge.geberKarte() : folge.meineKarte();
+		},
+		get remaining() { return folge.shoe.remaining; },
+		get dealt() { return folge.shoe.dealt; },
+		get cutReached() { return folge.shoe.cutReached; },
+		// In der Lobby wird nur zu Rundenbeginn gemischt (folgeBauen unten,
+		// mit der Saat der jeweiligen Runde) — nie mitten in einer Runde
+		// (CONCEPT.md C.7.3, unverändert). shouldReshuffle() fragt deshalb nie
+		// nach einem vorzeitigen Mischen.
+		get needsShuffle() { return false; },
+		get shuffleReason() { return null; },
+		shuffle() { /* siehe Dateikopf: wird nie aufgerufen, needsShuffle ist stets false. */ },
+	};
 }
 
 /** Bereits verdrahtete Tisch-Wurzeln, damit ein zweiter boot()-Lauf nichts doppelt anmeldet. */
@@ -281,6 +364,23 @@ function bindTable(root) {
 	let game = null;
 	let round = null;
 	let table = null;
+	let lobby = null;
+
+	// Siehe rng.js/lobby-blackjack.js (D5-4): der Geber der laufenden Runde,
+	// dieselbe Bauart wie in roulette.js/craps.js (D5-3).
+	let geber = drawUint32;
+	/** Die gemeinsame Tischfolge der laufenden Lobby-Runde, oder null. */
+	let folge = null;
+	/** Die eigene Platznummer der laufenden Lobby-Runde, oder 0. */
+	let meinPlatzAktuell = 0;
+	/** Wird true, sobald der erste casino:lobby-stand eintraf — dann bleibt der Auslöser dauerhaft gesperrt (D.10.6). */
+	let lobbyAktiv = false;
+	/** Ist der EIGENE Platz gerade der gefragte (stand.t)? Außerhalb einer Lobby-Runde bedeutungslos, da lobbyAktiv dann false bleibt. */
+	let meinZugAktiv = true;
+	/** Der Geberdeckel (Plan 4.20, Punkt 2): steht noch ein Platz aus, bleibt das eigene Ergebnis verborgen. */
+	let geberDeckelAn = false;
+	/** Ein bereits berechnetes, aber wegen des Geberdeckels noch nicht angesagtes Rundenergebnis. */
+	let ausstehendesErgebnis = null;
 
 	// Für sound?.onDeal(zuwachs) in repaint() (siehe dort): wie viele Karten
 	// beim letzten Bild insgesamt auf dem Tisch lagen (Geber + alle Blätter).
@@ -338,19 +438,51 @@ function bindTable(root) {
 				}
 			}
 		}
+
+		// DIE LOBBY, ZWEI ÜBERLAGERUNGEN (Plan 4.20, Punkte 2/3 — D5-4):
+		//
+		// (a) nicht am Zug: die eigene BlackjackRound steht lokal längst auf
+		//     'versicherung'/'spieler' (begin() lief für ALLE Plätze gleichzeitig
+		//     beim Rundenstart), aber der SERVER hat einen anderen Platz gefragt
+		//     (D.10.6). Die Versicherungsfrage bleibt verborgen, die Bedienteile
+		//     bleiben gesperrt, keine Ansage.
+		// (b) der Geberdeckel: das eigene Blatt ist lokal längst 'fertig' (eine
+		//     Runde endet für EINEN Platz, sobald SEIN Blatt fertig ist —
+		//     round-blackjack.js#_maybeAdvanceToDealer()), aber es steht noch
+		//     ein anderer Platz aus. Das Ergebnis bleibt verborgen, bis der
+		//     Server sagt, dass niemand mehr an der Reihe ist (stand.t === 0).
+		//
+		// BEIDES SIND REINE ANZEIGEREGELN — sie ändern nichts an legal (das
+		// Geld/die Regeln kommen unverändert aus table.legalActions()) außer
+		// dem einen Punkt, den (a) tatsächlich braucht: die Bedienteile dürfen
+		// nicht bedienbar sein, wenn der Server einen anderen Platz gefragt hat.
+		const zustandRoh = game?.state ?? 'bereit';
+		const nichtMeinZug = lobbyAktiv && !meinZugAktiv;
+		const deckelAktiv = lobbyAktiv && geberDeckelAn && (zustandRoh === 'geber' || zustandRoh === 'fertig');
+		const anzeigeVersteckt = deckelAktiv || (nichtMeinZug && zustandRoh === 'versicherung');
+		const anzeigeZustand = anzeigeVersteckt ? 'spieler' : zustandRoh;
+		const anzeigeHands = deckelAktiv
+			? hands.map((h) => ({ ...h, outcome: null, returned: null }))
+			: hands;
+		const anzeigeActiveIndex = (anzeigeVersteckt || nichtMeinZug) ? -1 : activeIndex;
+		const legal = nichtMeinZug ? [] : (table?.legalActions() ?? []);
+
 		view?.paint({
-			state: game?.state ?? 'bereit',
+			state: anzeigeZustand,
 			roundState: round?.state ?? 'setzen',
-			hands,
+			hands: anzeigeHands,
 			dealer,
 			upcardTotal,
 			baseStake: table?.baseStake ?? 0,
-			insurance: { staked: table?.insuranceStaked ?? 0, returned: game?.report?.insurance?.returned ?? 0 },
-			legal: table?.legalActions() ?? [],
+			insurance: {
+				staked: table?.insuranceStaked ?? 0,
+				returned: deckelAktiv ? 0 : (game?.report?.insurance?.returned ?? 0),
+			},
+			legal,
 			insuranceCost: table?.insuranceCost ?? 0,
 			stakeLegal: table?.stakeIsLegal ?? false,
 			total: credit.balance + bank.amount + bets.total,
-			activeIndex,
+			activeIndex: anzeigeActiveIndex,
 		});
 	}
 
@@ -401,15 +533,13 @@ function bindTable(root) {
 	}
 
 	/**
-	 * Rückruf an BlackjackTable: eine Runde ist ausgewertet und ausgezahlt.
-	 * Trägt EINE Marke in den Verlaufsstreifen ein und sagt EINEN Satz an.
-	 * Der Rundenausgang braucht die ausgezahlte Summe und den Buy-in danach
-	 * — beides kennt view-blackjack.js nicht (siehe dessen Dateikopf), daher
-	 * liegt diese Ansage hier und nicht im Zustandswechsel von paint().
+	 * Die eigentliche Ansage samt Klang — ausgelagert aus onResult() (siehe
+	 * dort), damit sie unter dem Geberdeckel (D5-4, Plan 4.20 Punkt 2)
+	 * zurückgehalten und später NACHGEHOLT werden kann.
 	 * @param {{report: Object, credited: number, staked: number}} ergebnis
 	 * @returns {void}
 	 */
-	function onResult({ report, credited, staked }) {
+	function ansagen({ report, credited, staked }) {
 		const net = report.returned - report.staked;
 		const ton = net > 0 ? 'win' : (net < 0 ? 'loss' : 'neutral');
 		const ausgangswort = ton === 'win' ? texts.outcomeWin : (ton === 'loss' ? texts.outcomeLoss : texts.outcomePush);
@@ -430,6 +560,29 @@ function bindTable(root) {
 				sound?.onHand({ outcome: blatt.outcome });
 			}
 		}
+	}
+
+	/**
+	 * Rückruf an BlackjackTable: eine Runde ist ausgewertet und ausgezahlt.
+	 * DAS GELD IST HIER SCHON GEBUCHT (bank.payout() lief in
+	 * round-table-blackjack.js#_finish(), bevor dieser Rückruf feuert) — was
+	 * unter dem Geberdeckel zurückgehalten wird, ist ausschließlich die
+	 * ANSAGE (Text, Verlaufsmarke, Klang), nie die Auszahlung.
+	 *
+	 * Steht laut Server noch ein anderer Platz aus (geberDeckelAn), wird die
+	 * Ansage zurückgehalten und in geberDeckel() nachgeholt, sobald der
+	 * Server stand.t auf 0 setzt. Außerhalb einer Lobby-Runde (lobbyAktiv
+	 * bleibt false) wird immer sofort angesagt — unverändertes
+	 * Einzelspielverhalten.
+	 * @param {{report: Object, credited: number, staked: number}} ergebnis
+	 * @returns {void}
+	 */
+	function onResult(ergebnis) {
+		if (lobbyAktiv && geberDeckelAn) {
+			ausstehendesErgebnis = ergebnis;
+			return;
+		}
+		ansagen(ergebnis);
 	}
 
 	/**
@@ -468,9 +621,18 @@ function bindTable(root) {
 					announceRound(texts.blocked);
 					return;
 				}
-				const antwort = await table.act(button.getAttribute('data-bj-act'));
+				const aktion = button.getAttribute('data-bj-act');
+				const antwort = await table.act(aktion);
 				if (!antwort.ok && antwort.reason === 'nocash') {
 					announceRound(texts.nocash);
+				}
+				// Der Lobby melden, WAS entschieden wurde und OB der eigene Zug
+				// damit endet (D5-4, Plan 4.20 Punkt 3) — "angewendet wird
+				// sofort" (table.act() oben ist bereits gelaufen), "gemeldet
+				// unmittelbar danach". Außerhalb einer Lobby ruft lobby.zug()
+				// nur ein wirkungsloses Ereignis auf (niemand hört zu).
+				if (antwort.ok) {
+					lobby?.zug(ZUG_BUCHSTABE[aktion] ?? 'h', game.state !== 'spieler' && game.state !== 'versicherung');
 				}
 				repaint();
 				fokusAufErsteHandlung();
@@ -486,6 +648,9 @@ function bindTable(root) {
 				const antwort = art === 'take' ? await table.takeInsurance() : await table.declineInsurance();
 				if (!antwort.ok && antwort.reason === 'nocash') {
 					announceRound(texts.nocash);
+				}
+				if (antwort.ok) {
+					lobby?.zug(art === 'take' ? 'i' : 'n', game.state !== 'spieler' && game.state !== 'versicherung');
 				}
 				repaint();
 				fokusAufErsteHandlung();
@@ -553,7 +718,7 @@ function bindTable(root) {
 		view = connectView(root, { texts, cardTexts, announce: announceRound });
 
 		// 7  Der Schlitten. Er mischt sich beim Anlegen selbst.
-		shoe = new Shoe({ rules, random: drawUint32 });
+		shoe = new Shoe({ rules, random: () => geber() });
 
 		// 8  Die Rundenlogik des Spiels.
 		game = new BlackjackRound({ rules, shoe });
@@ -583,6 +748,113 @@ function bindTable(root) {
 		//    aber erst zur Laufzeit eines Klicks — bis dahin ist dieser
 		//    Schritt längst durchlaufen.
 		sound = connectSound(root, { bank });
+
+		// 12 Der Anschluss an die Lobby (D5-4, Plan 4.0/4.20). Läuft keine
+		//    Lobby, meldet lobby-live.js nie ein Ereignis, und die zwei
+		//    Zuhörer bleiben wirkungslos angemeldet — dieselbe Zusage wie bei
+		//    Roulette/Craps (D5-3).
+		lobby = connectLobby({
+			saatGeber: (saat) => createSeeded(saatZuZahl(saat)),
+			geberSetzen: (neu) => { geber = neu ?? drawUint32; },
+			folgeBauen: (saat, meinPlatzWert, plaetze) => {
+				meinPlatzAktuell = meinPlatzWert;
+				geberDeckelAn = false;
+				ausstehendesErgebnis = null;
+				// Jede Lobby-Runde beginnt mit einem frisch aus der
+				// Rundensaat gemischten Schlitten (Plan 4.21) — Kartenzählen
+				// bringt in der Lobby deshalb nichts (README).
+				shoe.shuffle();
+				folge = new LobbyTableSequence({ shoe, meinPlatz: meinPlatzWert, plaetze });
+				const austeilung = folge.austeilen();
+				const schlitten = ersatzSchlitten(folge, austeilung, () => game);
+				game.shoe = schlitten;
+				table.shoe = schlitten;
+			},
+			starten: () => table.deal(),
+			zugAnwenden: (moves) => {
+				if (folge === null) {
+					return;
+				}
+				const neue = folge.anwenden(moves);
+				for (const eintrag of neue) {
+					if (eintrag.platz !== meinPlatzAktuell) {
+						continue;
+					}
+					// Der Server hat diesen Platz ohne unser eigenes Zutun
+					// weitergeschaltet (die 20-Sekunden-Notbremse,
+					// LobbyService::aufraeumenEinzeln() — immer der
+					// Buchstabe 's'). Die eigene Rundenlogik weiß davon noch
+					// nichts; das wird hier nachgezogen, damit game.state
+					// wieder zum Protokoll passt. Keine Karte wird dabei
+					// gezogen (KARTEN_JE_ZUG.s === 0 in
+					// round-lobby-blackjack.js), also verschiebt das nichts.
+					if (game.state === 'versicherung') {
+						game.declineInsurance();
+					} else if (game.state === 'spieler') {
+						game.act('stand');
+					}
+				}
+				// Die verdeckten Karten der anderen (D.10.6) — Anzahl aus dem
+				// Zugprotokoll, gezeichnet in der PLATZLEISTE von casino_lobby
+				// (Strip.html, [data-cl-seat-cards]), nicht auf dem eigenen
+				// Tuch. Das ist die eine, im Plan (4.11) ausdrücklich
+				// benannte Ausnahme von "kein Dokument außer den vier
+				// Ereignissen" — sie betrifft NICHT lobby-blackjack.js
+				// (das bleibt frei davon), sondern diese Datei, die als
+				// einzige die Kartenzahlen kennt (über folge).
+				const stripRoot = document.querySelector('[data-cl-strip]');
+				const kartenVorlage = stripRoot?.dataset.clTextKarten ?? '';
+				for (const nr of folge.plaetze) {
+					const zielSpan = document.querySelector(`[data-cl-seat="${nr}"] [data-cl-seat-cards]`);
+					if (zielSpan === null) {
+						continue;
+					}
+					const anzahl = folge.kartenAm(nr);
+					zielSpan.setAttribute('data-cl-seat-cards', String(anzahl));
+					zielSpan.textContent = anzahl > 0 ? fuelle(kartenVorlage, [anzahl]) : '';
+				}
+				repaint();
+			},
+			meinZug: (dran) => {
+				meinZugAktiv = dran;
+				repaint();
+			},
+			geberDeckel: (an) => {
+				geberDeckelAn = an;
+				if (!an && ausstehendesErgebnis !== null) {
+					const ergebnis = ausstehendesErgebnis;
+					ausstehendesErgebnis = null;
+					ansagen(ergebnis);
+				}
+				repaint();
+			},
+			eigenesErgebnisFertig: () => game !== null && game.state === 'fertig',
+			eigenesErgebnis: () => {
+				const report = game?.report ?? null;
+				if (report === null) {
+					return null;
+				}
+				return {
+					dealer: { total: report.dealer.total, busted: report.dealer.busted, blackjack: report.dealer.blackjack },
+					net: report.returned - report.staked,
+				};
+			},
+			einsaetze: () => (bets.total > 0 ? [{ f: BOX_FIELD_ID, b: bets.total }] : []),
+			sperren: (zu) => {
+				// In der Lobby entscheidet die Uhr des Servers, wann das Tuch
+				// zugeht — nicht der Auslöser (D.10.6, dieselbe Zusage wie bei
+				// Roulette/Craps). Der Auslöser wird deshalb dauerhaft
+				// gesperrt: eine Runde beginnt in der Lobby nie auf
+				// Knopfdruck.
+				lobbyAktiv = true;
+				goButton?.setAttribute('aria-disabled', 'true');
+				if (zu) { bets.lock(); } else { bets.unlock(); }
+				felt?.refresh();
+				controls?.refresh();
+			},
+			fremdeEinsaetze: (plaetze) => felt?.foreign?.(plaetze),
+			uhr: () => {},
+		});
 
 		bindActions();
 		repaint();

@@ -58,6 +58,8 @@
  * nicht die Aussagen der Prüfungen.
  */
 
+// @pruefstand modus=egal laufzeit=kurz
+
 import { readFileSync } from 'node:fs';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import path from 'node:path';

@@ -42,6 +42,8 @@
  * die maskierte Fassung von texts.faceDown — nicht mehr und nicht weniger.
  */
 
+// @pruefstand modus=egal laufzeit=kurz
+
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import path from 'node:path';

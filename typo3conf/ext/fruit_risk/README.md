@@ -18,7 +18,7 @@ anderen Extension etwas geändert werden muss.
 | Composer-Name | `phomo17/fruit-risk` |
 | Namespace | `Phomo17\FruitRisk\` |
 | TYPO3-Version | 13.4 (klassische, nicht Composer-basierte Installation) |
-| Abhängigkeit | `casino_startpage` >= 0.4.0 |
+| Abhängigkeit | `casino_startpage` >= 0.5.0 |
 | Import-Map-Präfix | `@phomo17/fruit-risk/` |
 | CSS-Präfix | `fr-` |
 | Lizenz | AGPL-3.0-or-later |
@@ -1246,16 +1246,69 @@ ist, ob er zu diesem Gerät passt und ob er an ein bestimmtes fremdes Spiel
 erinnert (CONCEPT.md B.3 Nummer 11). Das kann nur ein Mensch — siehe
 `test.txt`.
 
+### render('sync'): `verify-risk-sync.mjs`
+
+Ein fünftes, unabhängiges Skript, seit dem Behebungslauf 2026-09-11 —
+Entwicklerwerkzeug, kein Bestandteil der Website, nur lesend:
+
+```
+ddev exec node typo3conf/ext/fruit_risk/Resources/Private/Scripts/verify-risk-sync.mjs
+```
+
+Weist nach, dass `render(group, view)` in `risk.js` einen Zweig `'sync'`
+kennt und dieser tatsächlich am Gerät ankommt — vor diesem Lauf landete eine
+spät eintreffende Serverbestätigung im `default: break`-Zweig und verschwand
+spurlos: die GEWINN-Röhren blieben auf dem alten (Anzeige-)Stand stehen,
+obwohl der Server einen anderen Betrag bestätigt hatte. Rechnet mit den
+echten Dateien dieses Geräts (`risk.js`, `rng.js`, `nixie.js`, `press.js`,
+`counter.js`) und den echten geteilten Dateien (`risk-ladder-multi.js`,
+`risk-timing.js`, `account-backend.js`), nachgestellt wird nur der wahre
+äußere Rand — ein Gehäuse ohne echtes Markup und `globalThis.fetch` als
+steuerbare Warteschlange. Nachgewiesen: `'sync'` zieht immer NUR das
+Gewinn-Zählwerk und den Messpunkt `data-fr-risk-win` nach — kein Licht, keine
+Tastenfreigabe, keine Ansage, keine Stufenänderung — sowohl während eine
+Leiter läuft als auch schon während des Angebots dieser Gruppe (bei diesem
+Gerät gehört GEWINN laut Dateikopf schon im Angebot dieser Datei, anders als
+bei video_slot/reel_slot, wo die GEWINN-Röhren im Angebot noch machine.js
+gehören). Der Geldnachweis selbst (10 → 40 → 160 bzw. 10 → 80 → 640 bei zwei
+schnellen Treffern, Faktor 4 bzw. 8) liegt bei `casino_startpage`
+(`verify-risk-money.mjs`) — dieses Skript hier weist nur die
+Anzeige-Anbindung dieses Geräts nach. Rückgabewert 0, wenn alles stimmt,
+sonst 1.
+
 ## Was noch nicht da ist
 
 Bis auf das serverseitige Guthaben ist nichts mehr offen – das Gerät ist mit
 Phase F5 vollständig.
 
 - Serverseitiges Guthaben – ausdrückliches Nicht-Ziel (CONCEPT.md C.14.15).
+- Eine Lobby. Es gibt sie nur an den drei Tischen.
+
+## Grenzen, offen gelegt
+
+Dieses Gerät arbeitet seit Phase D3 gegen ein **serverseitiges Konto**, wenn der
+QR-Modus eingeschaltet ist. Daraus folgen drei Grenzen, die hier stehen, damit
+niemand mehr hineinliest, als da ist.
+
+- **Der Schutz richtet sich gegen Versehen und Neugier, nicht gegen Angriffe**
+  (`CONCEPT.md` D.9). Wer den QR-Code einer anderen Person abfotografiert, kann
+  sich als sie anmelden. Wer den Spielverlauf im eigenen Browser fälscht, kann
+  sich Geld erschwindeln. Das ist eine Spaßseite in einem Wohnzimmer, kein
+  Wettbüro. Die vollständige Fassung steht in `casino_account/README.md`,
+  Abschnitt „Grenzen, offen gelegt".
+- **Das Gerät selbst kennt den Schalter nicht.** Es ruft ausschließlich die
+  Kassen-Schnittstelle des Site Package auf (`credit.js`, `machine-credit.js`);
+  ob dahinter der Browserspeicher oder der Server steht, entscheidet
+  `account-backend.js`. Ein Fehler in dieser einen Datei träfe deshalb alle
+  sieben Geräte gleichzeitig — genau das ist am 2026-09-11 an den
+  Risiko-Leitern passiert.
+- **Wer mitten im Spiel die Verbindung verliert**, bekommt die Sperranzeige;
+  solange sie steht, wird nichts gebucht und nichts weitergerechnet. Was in der
+  Sekunde des Abrisses noch nicht gebucht war, ist verloren.
 
 ## Stand
 
-Version 0.4.0 (alpha). **Phase F5 abgeschlossen: Das Gerät ist vollständig.**
+Version 0.5.0 (alpha). **Phase F5 abgeschlossen: Das Gerät ist vollständig.**
 Zusätzlich zu allem aus Phase F4 (sechs laufende Walzen zu je 40 Bandzellen,
 sicherer Zufall über `crypto.getRandomValues` ohne jeden Rückfall,
 `START`/`STOP` für Zeiger und Tastatur, Hervorhebung der Treffer, ein Satz
@@ -1280,4 +1333,29 @@ blieb unangetastet und wird weiterhin unverändert von `reel_slot` und
 `video_slot` benutzt (siehe `casino_startpage/README.md`, Abschnitt
 „Risiko-Leiter"). Keine weitere Geräte-Extension wurde für Phase F5 angefasst.
 Serverseitiges Guthaben bleibt ausdrückliches Nicht-Ziel (CONCEPT.md
-C.14.15).
+C.14.15) — als **eigener Baustein dieser Extension**. Faktisch spielt das
+Gerät seit Phase D3 trotzdem serverseitig, siehe „Aus Teil D ist
+eingearbeitet" unten.
+
+**Aus Teil D ist eingearbeitet, ohne dass diese Extension dafür geändert
+werden musste:**
+
+- **Phase D3 — das serverseitige Konto.** Ist der QR-Modus an, laufen Kasse
+  und Gerätekredit dieses Automaten über den Server statt über den
+  Browserspeicher. Verantwortlich ist die eine Umschaltstelle
+  `account-backend.js` im Site Package; `credit.js` und `machine-credit.js`
+  verzweigen darauf. Der Automat selbst kennt den Unterschied nicht.
+- **Der Geldfehler in der Risiko-Leiter, behoben am 2026-09-11.** Im
+  Servermodus setzte `risk-ladder-multi.js` den erhöhten Gewinn beim
+  **ersten** Treffer nicht selbst, sondern wartete auf die Buchung — die
+  Anzeige hinkte eine Stufe hinterher, und wer schneller drückte, als die
+  Buchung zurückkam, verlor echtes Geld. Betroffen waren alle drei Gruppen
+  (RISK ×2, ×4, ×8). Der Fehler lag in der **geteilten** Leiter, nicht in
+  diesem Automaten; dieser Automat hat den Malgrund `sync` dazubekommen und
+  zieht darauf ausschließlich den Gewinn nach — keine Stufenänderung, keine
+  Tastenfreigabe, kein Ausschalten. Am echten Automaten nachgemessen:
+  ×2 ergab 38 → 76 und 3 → 6, ×4 ergab 2 → 8 und 5 → 20, ×8 ergab 1 → 8 und
+  2 → 16. Nachweis: `verify-risk-sync.mjs`.
+
+**Die Lobby betrifft diesen Automaten nicht.** Sie gibt es nur an den drei
+Tischen (`CONCEPT.md` D.10.2); ein Automat wird allein gespielt.

@@ -74,7 +74,7 @@ leben. Regeln dafür:
   Farbe in einer Automaten-Datei.
 - **Ausnahme von der nächsten Zeile:** Solange CONCEPT.md V.6 gilt, wird die
   Versionsnummer **nicht** erhöht — auch nicht für einen neuen Token. Die
-  Spanne `0.4.0-0.99.99` deckt jeden Zwischenstand ab.
+  Spanne `0.5.0-0.99.99` deckt jeden Zwischenstand ab.
 - Die Minor-Version des Site Packages steigt, und die Automaten-Extension
   hebt ihre Untergrenze in `ext_emconf.php` und `composer.json` mit an.
 
@@ -171,7 +171,7 @@ AutomatRegistry::register(new Automat(
 
 | Datei | Was hinein muss | Warum |
 |---|---|---|
-| `ext_emconf.php` | `'casino_startpage' => '0.4.0-0.99.99'` unter `constraints.depends` | bestimmt in der klassischen Installation die Ladereihenfolge der `ext_localconf.php`; ohne sie kann die Registry-Anmeldung vor dem Site Package laufen |
+| `ext_emconf.php` | `'casino_startpage' => '0.5.0-0.99.99'` unter `constraints.depends` | bestimmt in der klassischen Installation die Ladereihenfolge der `ext_localconf.php`; ohne sie kann die Registry-Anmeldung vor dem Site Package laufen |
 | `Configuration/JavaScriptModules.php` | `'dependencies' => ['casino_startpage']` **und** das eigene Präfix unter `imports` | ohne den `dependencies`-Eintrag liefert der Kern das Präfix `@phomo17/casino-startpage/` nicht mit aus, und der Browser bricht mit „Failed to resolve module specifier" ab, sobald ein Modul `credit.js` oder `sound.js` importiert |
 | `Configuration/TCA/Overrides/tt_content.php` | eigener `CType` über `ExtensionManagementUtility::addRecordType()`, Gruppe `AutomatContentElement::CTYPE_GROUP` | damit der Automat auf seiner eigenen Seite platziert werden kann |
 | `ext_localconf.php` | zusätzlich zur Registry-Anmeldung ein `addTypoScriptSetup()` mit der Rendering-Definition des eigenen `CType` | ein eigenes Site Set würde die Site-Konfiguration ändern und damit den Grundsatz „ohne Änderung an anderen Stellen installierbar" brechen |
@@ -643,28 +643,120 @@ Spiegel gelöscht, zwei Registerkarten laufen nicht auseinander, ohne Deckung
 wird nichts abgebucht, die Kappung lässt nichts verschwinden, und im
 Ruhezustand liegt genau der Kassenschlüssel im Speicher.
 
-### Was beim Umstieg auf ein serverseitiges Konto passiert
+### Der Umstieg auf das serverseitige Konto (Ausbaustufe 3, CONCEPT.md D.1.1, D.7)
 
-Diese Schnittstelle ist die Bruchstelle aus CONCEPT.md Abschnitt 8. Deshalb
-sind die ändernden Methoden **schon heute asynchron**, obwohl der
-`localStorage` synchron arbeitet.
+Diese Schnittstelle war die Bruchstelle aus CONCEPT.md Abschnitt 8, deshalb
+waren die ändernden Methoden schon vor Ausbaustufe 3 asynchron, obwohl der
+`localStorage` synchron arbeitet. Seit Ausbaustufe 3 ist die Bruchstelle
+benutzt: `credit.js` und `machine-credit.js` haben **zwei Rückseiten**.
 
-**Bleibt unverändert:** `credit.balance`, `credit.canAfford()`,
-`credit.format()`, `credit.subscribe()`, die Konstanten, die Gestalt der
-Rückgabewerte, das gesamte Anzeige-Modul — und damit jede Zeile Code in jeder
-Automaten-Extension.
+**Woran die Rückseite erkannt wird.** Ein drittes, neues Modul,
+`@phomo17/casino-startpage/account-backend.js`, prüft beim Laden der Seite,
+ob im `<head>` ein `<script type="application/json" data-ca-state>` steht.
+Diesen Block speist eine andere, eigenständige Extension in die bereits
+fertige, aus dem Zwischenspeicher gelieferte Antwort ein — er kann deshalb
+nie einer falschen Person gehören. Steht der Block da, führt `credit.js`
+**nicht** mehr den Browserspeicher, sondern ein Konto auf dem Server; fehlt
+er (kein QR-Modus, oder die Konto-Erweiterung gar nicht installiert),
+verhält sich die Seite exakt wie vor Ausbaustufe 3. `account-backend.js` ist
+die **einzige** Stelle im ganzen Site Package, die diese Entscheidung
+trifft — ein ES-Modul wird pro Seite genau einmal ausgewertet, deshalb
+genügt eine einzige Verzweigung. Dieses Site Package kennt die andere
+Extension an keiner Stelle beim Namen — genau wie es keinen einzelnen
+Automaten kennt (Abschnitt 5, Grundsatz 2).
 
-**Ändert sich nur innerhalb von `credit.js`:** `writeStore()`/`readStore()`
-werden zu `fetch()`-Aufrufen, `reload()` bekommt eine echte Netzanfrage, der
-`storage`-Zuhörer weicht einer Abfrage in Abständen oder einem Server-Ereignis.
-Die Entscheidung „genug Guthaben?" wandert in `subtract()` vom Browser zum
-Server; weil `subtract()` bereits asynchron ist und bereits
-`{ ok: false, reason: 'insufficient' }` liefern kann, merkt kein Aufrufer
-davon etwas.
+**Bleibt in jeder Automaten-Extension unverändert:** `credit.balance`,
+`credit.canAfford()`, `credit.format()`, `credit.subscribe()`,
+`machineCredit.amount` und alle übrigen Konstanten, die Gestalt jedes
+Rückgabewerts, das gesamte Anzeige-Modul — und damit **jede Zeile Code in
+jeder Automaten-Extension**, einschließlich des einen eingefrorenen Geräts
+im Haus (das lediglich seinen eigenen Gerätespeicher, nicht die Kasse, über
+dieselbe Bruchstelle führt — siehe „Kein Automat greift selbst auf den
+Speicher zu" oben).
 
-**Wäre die Schnittstelle heute synchron**, müsste beim Umstieg jeder Aufruf in
-jeder Automaten-Extension angefasst werden. Genau das ist der Grund für die
-`async`-Methoden.
+**Bleibt unverändert, als Zusage:** Lesen ist **synchron**
+(`credit.balance`, `machineCredit.amount` — im Servermodus der zuletzt vom
+Server gemeldete Stand, nicht neu abgefragt), Ändern ist **asynchron**
+(`add()`, `subtract()`, `set()`, `insert()`, `stake()`, `award()`,
+`cashOut()` — im Servermodus ein `fetch()` an den Buchungsendpunkt der
+anderen Extension, `/casino-konto/buchung`).
+
+**Was im Servermodus nicht mehr passiert:** kein Schreiben in
+`localStorage['casinoKunterbunt.credits']` und kein Lesen daraus; keinen
+Absturzspiegel eines Gerätekredits mehr unter
+`localStorage['casinoKunterbunt.machine.<schlüssel>']` — es gibt im
+Servermodus **keinen** Spiegel und keinen `storage`-Zuhörer zwischen
+Registerkarten, weil zwei Registerkarten derselben Person stattdessen
+dieselbe Wahrheit auf dem Server teilen (`konto.abonnieren()` tritt an die
+Stelle des `storage`-Ereignisses).
+
+**Die elf Vorgänge, die `account-backend.js` im Servermodus kennt**
+(`BookingService::ARTEN` der anderen Extension, CONCEPT.md D.7) — jeder
+Vorgang bekommt höchstens einen Betrag, der Server, nie der Browser, rechnet
+die drei Beträge (Kasse, Gerätekredit, offener Gewinn) und die Kappung am
+Höchststand aus:
+
+| Vorgang | Ausgelöst von | Nur Admins |
+|---|---|---|
+| `uebernahme` | `machineCredit.claim()` beim Öffnen eines Geräts | nein |
+| `einwurf` | `machineCredit.insert()` | nein |
+| `auszahlung` | `machineCredit.cashOut()` / `.withdraw()` | nein |
+| `einsatz` | `machineCredit.stake()` | nein |
+| `gewinn` | `machineCredit.award()` | nein |
+| `angebot` | die Risiko-Leiter, ein Anspruch entsteht | nein |
+| `verdoppeln` | die Risiko-Leiter, ein Treffer | nein |
+| `verloren` | die Risiko-Leiter, ein Fehlgriff | nein |
+| `aufladen` | `credit.add()` — nur noch für Verwaltung (D.7.3) | **ja** |
+| `abbuchen` | `credit.subtract()` — nur noch für Verwaltung | **ja** |
+| `setzen` | `credit.set()` / `credit-set.js` — freies Setzen des Kassenstands | **ja** |
+
+Ein Nicht-Admin, der einen der drei letzten Vorgänge auslöst, bekommt vom
+Server `{ ok: false, grund: 'kein_admin' }` — die Beträge bleiben
+unverändert. Genau deshalb entfernt `credit-set.js` seinen ganzen Bedienteil
+zur Laufzeit für alle außer Admins (siehe „Ein fertiges Leuchtschild statt
+eigener Verdrahtung" oben); das ist eine reine Bedienbarkeitszusage, **keine**
+Sicherheitsgrenze — die Sicherheitsgrenze zieht ausschließlich der Server.
+
+**`konto.speicher`** ist ein weiterer, Storage-förmiger Baustein desselben
+Moduls (`getItem`/`setItem`/`removeItem`) für Gerätespeicherstände, die kein
+Kredit sind — bislang genutzt allein vom einen Gerät im Haus, das sein
+Spielfeld statt eines Kredits im Speicher hält (CONCEPT.md D.8, D.13: „was
+im Spielfeld liegt, ist Spielmaterial und wird nicht ausgezahlt"). Wie bei
+`machineCredit` gilt: dieses Site Package weiß nicht, welches Gerät es ist —
+`konto.speicher` bekommt nur einen Schlüssel und einen Text, genau wie
+`machine-credit.js` nur einen Schlüssel bekommt. Schreibvorgänge werden
+gesammelt und gebündelt an `/casino-konto/feld` geschickt, nie einzeln je
+Spieleinheit. Dieser Weg berührt keinen der drei Beträge und keine
+Buchungsnummer.
+
+**Verbindungsabbruch.** Antwortet der Server nicht mehr (Netzabbruch, 5xx),
+meldet `account-backend.js` das Ereignis `casino:konto-gesperrt`; die
+Kontenleiste der anderen Extension zeigt daraufhin eine Sperranzeige und
+lässt bis zur Wiederherstellung nichts mehr buchen. Eine **Ablehnung** des
+Servers (zu wenig Guthaben, kein Admin) ist dagegen **kein**
+Verbindungsfehler und sperrt nichts — sie kommt mit `ok: false` und einem
+`grund` zurück, genau wie jede lokale Absage auch.
+
+### Die eine Adresse, unter der `account-backend.js` geladen wird
+
+**Alle** Importeure benutzen das Präfix
+`@phomo17/casino-startpage/account-backend.js` — auch die, die relativ
+importieren könnten. Der Grund steht ausführlich im Kopf von `credit.js`
+und ist es wert, hier zu stehen: ein Modul unter einer relativen Adresse und
+dasselbe Modul unter der Import-Karten-Adresse sind für den Browser **zwei
+verschiedene Adressen**, und ein ES-Modul wird je Adresse ein eigenes Mal
+ausgewertet. Gemessen am 2026-09-10: zwei getrennte `konto`-Objekte, zwei
+Kundenkennungen, zwei Buchungsnummern-Zähler. Das ist kein Stilbruch,
+sondern ein Fehler in der Buchführung. Wer eine neue Datei schreibt, die
+`konto` braucht, benutzt das Präfix — ausnahmslos.
+
+**Warum das in die README gehört:** es war Audit-Befund N-01 (`test.txt`, Teil 2,
+Nachtrag 27, D-2), er ist behoben, und er kann jederzeit durch eine einzige
+unbedachte Importzeile zurückkommen. Nachgesehen am 2026-09-11: alle sieben
+Produktionsdateien, die `konto` einbinden (`credit.js`, `credit-set.js`,
+`credit-display.js`, `machine-credit.js`, `risk-ladder.js`,
+`risk-ladder-multi.js`, und der Speicher-Baustein eines Geräts), tun das ausschließlich über
+dieses Präfix; kein relativer Import kommt vor.
 
 ## Klang-Schnittstelle
 
@@ -893,7 +985,23 @@ passt dieselbe Leiter an einen Automaten mit Hebel und an einen ohne.
 | `level` | jede neue Stufe | Stufe, offener Gewinn, Lichtfeld |
 | `lit` | Lichtwechsel in der Stufe | nur das Lichtfeld |
 | `settled` | Fehlgriff oder Ausstieg | nur den Gewinnbetrag: 0 nach einem Fehlgriff, der gutgeschriebene Betrag nach einem Ausstieg |
+| `sync` | eine Serverbuchung wurde bestätigt oder korrigiert (Servermodus, siehe unten) | **nur** den Gewinnbetrag nachziehen — kein Licht, keine Tastenfreigabe, keine Ansage, keine Stufenänderung. Kann auch eintreffen, während noch keine Leiter läuft (die Buchung aus `offer()`) |
 | `end` | zurück im Grundzustand | alles aus; Gewinn-Anzeige nicht anfassen |
+
+### Servermodus: optimistisch, dann bestätigt
+
+Behebungslauf 2026-09-11: `hit()` setzt den vervielfachten Betrag **immer
+unbedingt und zuerst**, bevor Stufe, Malen und Meldung folgen — auch im
+Servermodus, **bevor** die Buchung beim Server überhaupt angekommen ist. Vorher
+stand im Servermodus bis zur Serverantwort noch der alte Betrag in
+`claim.amount`: die Anzeige der neuen Stufe hinkte eine Stufe hinterher, und
+ein zweiter, schneller Tastendruck vor Eintreffen der ersten Antwort las
+ebenfalls noch den alten Betrag und bucht auf dessen Basis zu wenig — aus
+10 → 20 → 40 wurde 10 → 20 → 30, ein echter Geldverlust, nicht nur ein
+Anzeigefehler. Die Serverbuchung läuft weiterhin nebenher und **bestätigt oder
+korrigiert** den optimistischen Wert, sobald die Antwort da ist — sichtbar am
+`reason: 'sync'` oben. Ein Gerät, das `'sync'` nicht kennt, bekam die
+Korrektur vor diesem Behebungslauf nie zu sehen.
 
 ### Die Meldungen
 
@@ -1077,6 +1185,27 @@ konstant. Verglichen wird ganzzahlig. Seit Phase F5 zusätzlich:
 | ML | eine echte `MultiRiskLadder` wird über 30 Sekunden virtueller Uhr gespielt: `lit` ist an jeder gemalten Ansicht ein Skalar (eine Zahl oder `NO_SIDE`), niemals ein Feld oder Set — die eigentliche Zusage „nie zwei Seiten gleichzeitig an" wird erst am DOM erfüllt und dort, in der jeweiligen Geräte-Extension, die diese Leiter benutzt, nachgewiesen; jede Seite kommt je Umlauf genau einmal an die Reihe, die Pause stimmt auf die Millisekunde, der Takt driftet nicht |
 | GL | eine `MultiRiskLadder` mit zwei Seiten läuft an derselben virtuellen Uhr mit derselben Zufallsfolge wie eine echte `RiskLadder` gegenläufig — beide malen über fünf Stufen dieselben Zustände und führen bei denselben Treffern und demselben Fehlgriff zu denselben Beträgen |
 
+Dazu, seit dem Behebungslauf 2026-09-11, der Geldnachweis für genau den
+Servermodus:
+
+```
+ddev exec node typo3conf/ext/casino_startpage/Resources/Private/Scripts/verify-risk-money.mjs
+```
+
+Rechnet mit den echten Dateien `risk-ladder.js`, `risk-ladder-multi.js`
+**und** `account-backend.js` — als Text geladen, `globalThis.fetch` als
+steuerbare Warteschlange, die eine Antwort erst dann ausliefert, wenn das
+Skript es ausdrücklich verlangt. Weist nach: zwei Treffer, bevor die erste
+Buchung zurück ist, ergeben sofort 10 → 20 → 40 (nicht 10 → 20 → 30) — für
+`risk-ladder.js` (Faktor 2) und für `risk-ladder-multi.js` (Faktor 4 und 8);
+die gesendeten Buchungsbeträge stimmen; `render('sync')` trägt am Ende den
+bestätigten Betrag; `collect()` liest immer den aktuellen, schon optimistisch
+erhöhten Stand; der lokale Modus rechnet unverändert ohne jede Netzanfrage.
+Der Nachweis, dass `reason: 'sync'` auch tatsächlich am jeweiligen Gerät
+ankommt, liegt bei den Geräte-Extensions selbst, die diese beiden Leitern
+benutzen — je eigenes `verify-risk-sync.mjs` — dieser Baustein kennt kein
+Gerät und kann das nicht selbst nachweisen.
+
 ## Inhaltselement „Casino-Automat"
 
 | | |
@@ -1130,9 +1259,31 @@ Ein Verweis mit dem vertrauten Text „Zurück in den Saal" (`pagehead.back` in
 `locallang.xlf`, hier wortgleich, aber nicht über die XLIFF-Datei bezogen)
 führt zurück zu `/`.
 
+## Grenzen, offen gelegt
+
+Ist der QR-Modus eingeschaltet, laufen Kasse und Risiko-Leiter dieses Site
+Package über das serverseitige Konto (`account-backend.js`). **Der Schutz
+dahinter richtet sich gegen Versehen und Neugier, nicht gegen Angriffe**
+(`CONCEPT.md` D.9) — die vollständige Fassung steht in
+der README der Konten-Extension, Abschnitt „Grenzen, offen gelegt".
+
 ## Stand
 
-Version 0.4.0 (alpha). Teil A ist vollständig abgeschlossen; aus Teil B sind Phase 2,
+Version 0.5.0 (alpha). **Neu seit Phase D3: die Kasse hat eine austauschbare
+Rückseite.** `account-backend.js` ist die eine Stelle, an der zwischen dem
+Browserspeicher und dem Server umgeschaltet wird; `credit.js` und
+`machine-credit.js` verzweigen darauf, und **kein Gerät musste dafür geändert
+werden**. Ist der QR-Modus aus, verhält sich alles wie zuvor.
+
+**Seit Phase D5 kann an den Tisch-Bausteinen des Site Package eine Lobby
+hängen, ohne dass dieses Site Package die Lobby kennt.** Die drei Tische
+reden ausschließlich über vier DOM-Ereignisse (`casino:lobby-stand`,
+`-runde`, `-fertig`, `-handlung`); `lobby-seed.js` und der ganze übrige
+Lobby-Mechanismus liegen in `casino_lobby`, nicht hier. Für diese Extension
+ändert sich dadurch nichts — sie kennt weiterhin keinen einzelnen Automaten
+und keinen einzelnen Tisch, erst recht keine Lobby.
+
+Teil A ist vollständig abgeschlossen; aus Teil B sind Phase 2,
 Phase 3, Phase 4 und der Tokenbedarf von Phase 5 eingearbeitet. Aus Teil C ist Phase C1
 „Der Tisch als Gattung" vollständig eingearbeitet — seither haben sich zwei weitere
 Tischspiele bei der Geräte-Registry angemeldet, ohne dass diese Extension dafür
@@ -1152,7 +1303,7 @@ inzwischen zehn Farbpaare. Zuletzt sind acht Werte dazugekommen —
 `--ck-fruit-pineapple`, jeweils mit ihrer Schattenstufe. Wie alle davor heißen
 sie nach ihrem Werkstoff, nicht nach dem Gerät, das sie zuerst gebraucht hat.
 Eine Automaten-Extension, die sie benutzt, verlangt in `ext_emconf.php`
-`'casino_startpage' => '0.4.0-0.99.99'`.
+`'casino_startpage' => '0.5.0-0.99.99'`.
 
 Seit dem GEO-Behebungslauf vom 2026-09-05 liefert das Site Package auf jeder
 Seite `Organization`, `WebSite` und `BreadcrumbList` als strukturierte Daten

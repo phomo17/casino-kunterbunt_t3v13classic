@@ -34,6 +34,8 @@
  * stillschweigend besteht.
  */
 
+// @pruefstand modus=egal laufzeit=kurz
+
 import { readFileSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';

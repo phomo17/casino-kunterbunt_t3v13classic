@@ -1,0 +1,95 @@
+<f:comment>
+	Die Platzleiste (CONCEPT.md D.10.1, D.10.6): wer sitzt mit am Tisch, in
+	welchem Zustand steckt die Runde, wie viel Zeit bleibt zum Setzen.
+
+	Eingespeist wird sie von LobbyTable, unmittelbar vor der Kontenleiste aus
+	casino_account (siehe Configuration/RequestMiddlewares.php).
+
+	[data-cl-seed]/[data-cl-probe] tragen die Saat beziehungsweise die daraus
+	gerechnete Probeziehung — der Messpunkt, mit dem verify-lobby-live.mjs und
+	spätere Prüfläufe nachweisen, dass zwei Browser aus derselben Saat dasselbe
+	rechnen (lobby-seed.js). [data-cl-probe] bleibt bis zum Rundenstart leer.
+</f:comment>
+<div class="cl-strip" data-cl-strip id="cl-strip"
+	data-cl-game="{lobby.spiel}"
+	data-cl-turn="{lobby.dran}"
+	data-cl-text-setzen="{labels.zustandSetzen}"
+	data-cl-text-gesperrt="{labels.zustandGesperrt}"
+	data-cl-text-laeuft="{labels.zustandLaeuft}"
+	data-cl-text-auswerten="{labels.zustandAuswerten}"
+	data-cl-text-rest="{labels.uhrRest}"
+	data-cl-text-keine="{labels.uhrKeine}"
+	data-cl-text-allein="{labels.stripAllein}"
+	data-cl-text-zusammen-vorlage="{labels.stripZusammenVorlage}"
+	data-cl-text-frei="{labels.frei}"
+	data-cl-text-platzfrei="{labels.meldungWeg}"
+	data-cl-text-getrennt="{labels.meldungGetrennt}"
+	data-cl-text-einsatz="{labels.einsatzVorlage}"
+	data-cl-text-einsatz-keiner="{labels.einsatzKeiner}"
+	data-cl-text-gewinn="{labels.gewinnVorlage}"
+	data-cl-text-verlust="{labels.verlustVorlage}"
+	data-cl-text-shooter="{labels.shooter}"
+	data-cl-text-shooter-warte="{labels.shooterWarteVorlage}"
+	data-cl-text-dran="{labels.dran}"
+	data-cl-text-dran-ich="{labels.dranIchVorlage}"
+	data-cl-text-karten="{labels.kartenVorlage}"
+	data-cl-text-wartet="{labels.wartet}"
+	data-cl-text-neu-laden="{labels.meldungNeu}">
+
+	<ol class="cl-strip__seats" data-cl-seats>
+		<f:for each="{plaetze}" as="platz">
+			<li class="cl-seat" data-cl-seat="{platz.nr}"<f:if condition="{platz.ich}"> data-cl-seat-mine=""</f:if>>
+				<span class="cl-seat__no">{platz.nr}</span>
+				<span class="cl-seat__name">
+					<f:if condition="{platz.name}"><f:then>{platz.name}</f:then><f:else>{labels.frei}</f:else></f:if>
+				</span>
+				<f:comment>
+					Der Einsatz dieses Platzes in dieser Runde (D.10.6: „Jeder
+					sieht in Echtzeit, was die anderen setzen und gewinnen,
+					mit Namen am Platz"). Beim Laden leer; lobby-live.js füllt
+					ihn bei jeder Abfrage aus daten.p[].e beziehungsweise .o.
+				</f:comment>
+				<span class="cl-seat__stake" data-cl-seat-stake></span>
+				<span class="cl-seat__outcome" data-cl-seat-outcome></span>
+				<f:comment>
+					Die verdeckt liegenden Karten der anderen (D.10.6). Es
+					werden RÜCKEN gezeichnet, nicht Karten: „man sieht, dass
+					sie da liegen und wie viele es sind. Aufgedeckt sieht
+					jeder nur seine eigenen, in seiner Bedienleiste." Die
+					Anzahl setzt lobby-blackjack.js über data-cl-seat-cards.
+				</f:comment>
+				<span class="cl-seat__cards" data-cl-seat-cards="0"></span>
+				<f:comment>Wer die Würfel hält / wer am Zug ist — ein Wort, kein Satz.</f:comment>
+				<span class="cl-seat__mark" data-cl-seat-mark></span>
+			</li>
+		</f:for>
+	</ol>
+
+	<p class="cl-strip__together" data-cl-together>{labels.zusammen}</p>
+	<p class="cl-strip__state" data-cl-state-text>{labels.zustandAktuell}</p>
+	<p class="cl-strip__timer" data-cl-timer data-cl-rest="{lobby.restMs}">{labels.uhrAktuell}</p>
+	<p class="cl-strip__round">{labels.runde} · <span data-cl-seed>{lobby.saatKurz}</span></p>
+	<p class="cl-strip__probe" hidden data-cl-probe></p>
+
+	<p class="cl-strip__notice" data-cl-notice hidden>
+		<span data-cl-notice-text></span>
+		<button type="button" class="cl-strip__reload" data-cl-notice-reload hidden>{labels.meldungNeu}</button>
+	</p>
+
+	<f:comment>
+		Die Würfel-Warteliste (D.10.6). Sie steht NUR am Craps-Tisch im
+		Markup — an den anderen beiden wäre sie ein Knopf ohne Bedeutung
+		(das Stylesheet entscheidet das über data-cl-game, nicht dieses
+		f:if — das f:if verhindert nur, dass der Knopf beim ersten Laden
+		unstyled kurz aufblitzt).
+	</f:comment>
+	<f:if condition="{lobby.spiel} == 'craps'">
+		<p class="cl-strip__shooter">
+			<button type="button" class="cl-strip__shooter-btn" data-cl-shooter
+				data-cl-text-ein="{labels.shooterEin}" data-cl-text-aus="{labels.shooterAus}">{labels.shooterEin}</button>
+		</p>
+	</f:if>
+
+	<button type="button" class="cl-strip__leave" data-cl-leave>{labels.verlassen}</button>
+</div>
+<script type="module" src="{jsUrl}"></script>

@@ -17,10 +17,41 @@ Verlustschächte.
 | CSS-Präfix | `cp-` |
 | Import-Präfix | `@phomo17/coin-pusher/` |
 | TYPO3-Version | 13.4 (klassische, nicht Composer-basierte Installation) |
-| Version | 0.4.0 (alpha) |
+| Version | 0.5.0 (alpha) |
 | Lizenz | AGPL-3.0-or-later |
 
+## Grenzen, offen gelegt
+
+Dieses Gerät arbeitet seit Phase D3 gegen ein **serverseitiges Konto**, wenn der
+QR-Modus eingeschaltet ist. Daraus folgen drei Grenzen, die hier stehen, damit
+niemand mehr hineinliest, als da ist.
+
+- **Der Schutz richtet sich gegen Versehen und Neugier, nicht gegen Angriffe**
+  (`CONCEPT.md` D.9). Wer den QR-Code einer anderen Person abfotografiert, kann
+  sich als sie anmelden. Wer den Spielverlauf im eigenen Browser fälscht, kann
+  sich Geld erschwindeln. Das ist eine Spaßseite in einem Wohnzimmer, kein
+  Wettbüro. Die vollständige Fassung steht in `casino_account/README.md`,
+  Abschnitt „Grenzen, offen gelegt".
+- **Das Gerät selbst kennt den Schalter nicht.** Es ruft ausschließlich die
+  Kassen-Schnittstelle des Site Package auf (`credit.js`, `machine-credit.js`);
+  ob dahinter der Browserspeicher oder der Server steht, entscheidet
+  `account-backend.js`. Ein Fehler in dieser einen Datei träfe deshalb alle
+  sieben Geräte gleichzeitig — genau das ist am 2026-09-11 an den
+  Risiko-Leitern passiert.
+- **Wer mitten im Spiel die Verbindung verliert**, bekommt die Sperranzeige;
+  solange sie steht, wird nichts gebucht und nichts weitergerechnet. Was in der
+  Sekunde des Abrisses noch nicht gebucht war, ist verloren.
+
 ## Stand
+
+Version 0.5.0 (alpha), Stand 2026-09-11. Das Gerät ist seit dem 2026-09-04
+**eingefroren**; seither sind an ihm nur zwei Dinge geschehen, beide von
+außen: die vier Sprachbausteine der Live-Bereiche (`%s` → `{0}`, Audit-Befund
+H-02 vom 2026-09-10) und der Anschluss an das serverseitige Konto, der ohne
+eine einzige Zeile in dieser Extension zustande kam — `store.js` ruft
+`safeStorage()`, und die eine Umschaltstelle liegt im Site Package
+(`account-backend.js`). Siehe „Grenzen, offen gelegt" und „Der offene Befund
+vom 2026-09-04".
 
 Phase 8 ist mit beiden Läufen vollständig eingearbeitet: die
 Extension-Metadaten (`composer.json`, `ext_emconf.php`, `LICENSE`), der
@@ -87,9 +118,17 @@ Die einzige Notlösung aus Lauf 1 — der Zweig „keine sichere Zufallsquelle"
 setzte Klasse und Text des Meldungsschilds von Hand — ist durch
 `MessageBoard.show('norng')` ersetzt.
 
-Beide neuen Nachweisskripte (`verify-credit.mjs`, `verify-sound.mjs`)
-bestehen vollständig, ebenso die drei Nachweise aus Lauf 1 und Phase 8
-(`verify-cabinet.mjs`, `verify-view.mjs`, `verify-physics.mjs`).
+`verify-credit.mjs`, `verify-sound.mjs` und `verify-cabinet.mjs` bestehen
+vollständig — `verify-cabinet.mjs` hier wie immer ohne Adresse aufgerufen;
+sein Block B gegen das ausgelieferte HTML läuft nur mit einer angehängten
+Adresse und ist in dieser Aussage **nicht** enthalten (siehe „Prüfskripte"
+unten).
+
+**`verify-view.mjs` und `verify-physics.mjs` bestehen NICHT** — und das war
+bis zum 2026-09-11 an dieser Stelle falsch angegeben. Beide sind seit dem
+**2026-09-04** rot, seit derselben Änderung an `field.js`, deren Prüfsumme
+nie nachgezogen wurde. Was sie melden, steht unten im eigenen Abschnitt
+„Der offene Befund vom 2026-09-04".
 
 **Der Geldfluss dieses Geräts — drei Töpfe statt zwei.** CONCEPT.md B.5.4
 macht aus einer eingeworfenen Münze **Spielmaterial**, keinen Kredit mehr:
@@ -609,6 +648,40 @@ zurück, zwei Gehäuse stören einander nicht, ein Dauerlauf über 660
 Ereignisse verwirft keine Stimme und gibt keine Konsolenausgabe, der
 ausgerechnete Ausschlag bleibt unter 1,0, und `aria-pressed` folgt dem
 Ton-Schalter auch aus der Ferne. Rückgabewert 0, wenn alles stimmt, sonst 1.
+
+## Der offene Befund vom 2026-09-04
+
+**Drei der sechs Prüfskripte dieses Geräts sind rot.** Sie sind es seit dem
+2026-09-04 und sie sind es absichtlich geblieben: der Münzschieber ist an
+diesem Tag auf ausdrückliche Ansage des Auftraggebers **eingefroren** worden,
+und der in `CONCEPT.md` Teil C2 vorgesehene Rückbau ist auf Ansage übersprungen
+worden. Eine Nachbesserung wäre Arbeit an einem Gerät gewesen, das gleich darauf
+umgebaut wird.
+
+Was die drei melden — vollständig, damit niemand später danach suchen muss,
+nachgemessen am 2026-09-11:
+
+| Skript | Befund |
+|---|---|
+| `verify-view.mjs` | V-9: die Prüfsumme von `field.js` stimmt nicht mehr (erwartet `3032817e…`, tatsächlich `7027eaec…`). Dazu: **104 Münzen** statt der gesetzten Spanne 110–130, und **19 sich überlappende Münzpaare**. |
+| `verify-physics.mjs` | **Die Münze verlässt das Spielfeld.** „im Fang der Leiste: die Münze hat das Feld verlassen (2400 Schritte)" und „sie ist seitlich verloren gegangen, nicht gewonnen". Der Physikkern trägt eine Münze aus dem Gerät heraus, statt sie zu gewinnen oder liegen zu lassen. |
+| `verify-payout.mjs` | **Die Mengenbilanz ist verletzt.** In vier Läufen stehen rund 50.000–53.500 eingeworfenen Münzen rund 101.600–101.800 gewonnene gegenüber. Die Zusage `dropCount ≥ wonCount` ist damit klar unwahr. Die Einzelquote je Münzwert liegt im Band — die **Menge** nicht. |
+
+**Was das praktisch bedeutet, und zwar seit Phase D3.** `wallet.js` schreibt
+gefallene Münzen dem Gerätekredit gut, und der Gerätekredit liegt seit D3 auf
+dem Server. Ein Gerät, das rund doppelt so viel ausschüttet wie es einnimmt,
+**erzeugt damit Guthaben aus dem Nichts**. Das ist kein Schönheitsfehler,
+sondern ein Geldfehler.
+
+**Ob und wie dieser Befund behoben wird, ist zum Stand dieser README noch
+nicht entschieden.** Die Entscheidung gehört dem Auftraggeber, nicht dieser
+Extension — sie betrifft ein Gerät, das er selbst eingefroren hat. Dieser
+Abschnitt benennt den Stand, nicht die Entscheidung.
+
+**Was davon unberührt ist.** Die drei anderen Skripte (`verify-cabinet.mjs`,
+`verify-credit.mjs`, `verify-sound.mjs`) sind grün, und die vier ausgegebenen
+Live-Bereiche des Geräts sagen seit dem 2026-09-10 wieder Zahlen statt `%s`
+(Audit-Befund H-02, behoben).
 
 ## Nicht enthalten
 

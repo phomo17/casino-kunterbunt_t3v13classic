@@ -90,7 +90,8 @@
  * Geschrieben wird sie ausschließlich hier, in onResult().
  */
 
-import { drawUint32, isAvailable } from '@phomo17/roulette/rng.js';
+import { drawUint32, isAvailable, createSeeded, saatZuZahl } from '@phomo17/roulette/rng.js';
+import { connectLobby } from '@phomo17/roulette/lobby-roulette.js';
 import { Wheel } from '@phomo17/roulette/wheel-physics.js';
 import { connectWheel } from '@phomo17/roulette/wheel-view.js';
 import { labelOf, colourOf } from '@phomo17/roulette/wheel-geometry.js';
@@ -235,6 +236,9 @@ function bindTable(root) {
 	let game = null;
 	let controls = null;
 	let sound = null;
+	let lobby = null;
+	/** Siehe rng.js/lobby-roulette.js (D5-3): der Geber der laufenden Runde. */
+	let geber = drawUint32;
 
 	/**
 	 * Rückruf an RouletteRound: schreibt data-ro-state und führt aria-disabled
@@ -290,6 +294,16 @@ function bindTable(root) {
 		}
 
 		sound?.onResult({ hadBet: report.total > 0, credited, staked });
+
+		// Der Lobby melden, WAS herauskam und WAS es für diesen Platz
+		// bedeutet hat. Außerhalb einer Lobby ist lobby null und hier
+		// passiert nichts (D5-3, Plan 4.15).
+		lobby?.melden({
+			zahl: label,
+			ausgaenge: Object.fromEntries(
+				report.fields.map((f) => [f.fieldId, f.returned - f.staked])
+			),
+		});
 	}
 
 	/**
@@ -397,7 +411,7 @@ function bindTable(root) {
 			},
 		});
 
-		wheel = new Wheel({ random: drawUint32 });
+		wheel = new Wheel({ random: () => geber() });
 		view = connectWheel(wheelRoot, wheel, {
 			onRest,
 			// sound ist zu diesem Zeitpunkt noch null (Schritt 10 kommt erst
@@ -436,6 +450,37 @@ function bindTable(root) {
 
 		controls = connectControls(root, { bank, bets, felt, history, onGo });
 		sound = connectSound(root, { bank });
+
+		// Der Anschluss an die Lobby (D5-3, Plan 4.15). Läuft keine Lobby,
+		// meldet lobby-live.js nie ein Ereignis, und die vier Zuhörer bleiben
+		// wirkungslos angemeldet.
+		lobby = connectLobby({
+			saatGeber: (saat) => createSeeded(saatZuZahl(saat)),
+			geberSetzen: (neu) => { geber = neu ?? drawUint32; },
+			starten: () => game.start(),
+			einsaetze: () => {
+				// Was auf dem Tuch liegt, je Feld zusammengefasst — dieselbe
+				// Form, die der Endpunkt erwartet.
+				const summen = new Map();
+				for (const p of bets.snapshot().placements) {
+					summen.set(p.fieldId, (summen.get(p.fieldId) ?? 0) + p.value);
+				}
+				return [...summen].map(([f, b]) => ({ f, b }));
+			},
+			sperren: (zu) => {
+				// In der Lobby entscheidet die Uhr des Servers, wann das Tuch
+				// zugeht — nicht der Auslöser. Der Auslöser wird deshalb
+				// dauerhaft gesperrt: eine Runde beginnt in der Lobby nie auf
+				// Knopfdruck (D.10.6).
+				goButton.setAttribute('aria-disabled', 'true');
+				if (zu) { bets.lock(); } else { bets.unlock(); }
+				felt?.refresh();
+				controls?.refresh();
+			},
+			fremdeEinsaetze: (plaetze) => felt?.foreign?.(plaetze),
+			uhr: () => {},
+		});
+
 		gebundeneSchluessel.add(key);
 	} catch (error) {
 		sound?.destroy();

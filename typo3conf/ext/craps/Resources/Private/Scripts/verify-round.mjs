@@ -59,6 +59,8 @@
  * laufenden Nachweises.
  */
 
+// @pruefstand modus=egal laufzeit=kurz
+
 import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 
@@ -144,12 +146,27 @@ const machineUrl = new URL('machine-credit.js', CASINO_JS_DIR);
 const creditUrl = new URL('credit.js', CASINO_JS_DIR);
 const chipsUrl = new URL('table-chips.js', CASINO_JS_DIR);
 const buyinUrl = new URL('table-buyin.js', CASINO_JS_DIR);
+// Seit Ausbaustufe 3, D3b importieren credit.js UND machine-credit.js
+// zusätzlich account-backend.js — ÜBER DAS PRÄFIX, nicht relativ (Korrektur
+// vom 2026-09-10, zweiter Nachbesserungslauf: coin_pusher/store.js
+// importiert account-backend.js zwangsläufig über dasselbe Präfix, ein
+// abweichender relativer Import in credit.js/machine-credit.js erzeugte im
+// Browser ein zweites, unabhängiges konto-Objekt unter einer zweiten
+// Adresse — an der laufenden Seite gemessen). credit.js braucht deshalb
+// jetzt ebenfalls einen Text-Patch, den es vor D3b nicht brauchte.
+const accountUrl = new URL('account-backend.js', CASINO_JS_DIR);
+
+const creditSource = await readFile(fileURLToPath(creditUrl), 'utf8');
+const patchedCredit = creditSource.replaceAll(
+	"'@phomo17/casino-startpage/account-backend.js'", JSON.stringify(accountUrl.href)
+);
+check(patchedCredit !== creditSource, 'der Modulname in credit.js wurde für Node aufgelöst');
+const creditDataUrl = `data:text/javascript;base64,${Buffer.from(patchedCredit, 'utf8').toString('base64')}`;
 
 const machineSource = await readFile(fileURLToPath(machineUrl), 'utf8');
-const patchedMachine = machineSource.replaceAll(
-	"'@phomo17/casino-startpage/credit.js'",
-	JSON.stringify(creditUrl.href)
-);
+const patchedMachine = machineSource
+	.replaceAll("'@phomo17/casino-startpage/credit.js'", JSON.stringify(creditDataUrl))
+	.replaceAll("'@phomo17/casino-startpage/account-backend.js'", JSON.stringify(accountUrl.href));
 check(patchedMachine !== machineSource, 'der Modulname in machine-credit.js wurde für Node aufgelöst');
 const machineDataUrl = `data:text/javascript;base64,${Buffer.from(patchedMachine, 'utf8').toString('base64')}`;
 
@@ -160,7 +177,7 @@ const patchedBuyin = buyinSource
 check(patchedBuyin !== buyinSource && !patchedBuyin.includes('@phomo17/casino-startpage/'),
 	'beide Modulnamen in table-buyin.js wurden für Node aufgelöst');
 
-const { credit } = await import(creditUrl.href);
+const { credit } = await import(creditDataUrl);
 const { openTableBank } = await import(
 	`data:text/javascript;base64,${Buffer.from(patchedBuyin, 'utf8').toString('base64')}`
 );
@@ -762,12 +779,33 @@ console.log('\nR-11 — eine während des Wurfs geschlossene Bank bucht nichts u
 
 console.log('\nR-12 — craps.js enthält keine der Entscheidungen, die round-craps.js/wagers-craps.js treffen');
 {
-	const VERBOTENE_AUFRUFE = ['.settle(', '.sweep(', '.payout(', '.lock()', '.unlock()', '.freeze(', '.resolve('];
-	const gefundene = VERBOTENE_AUFRUFE.filter((muster) => crapsQuelltext.includes(muster));
-	check(gefundene.length === 0, 'craps.js ruft keine dieser Methoden unmittelbar auf', ...gefundene);
+	// ABWEICHUNG VOM PLANTEXT (D5, Abschnitt 7, Risikotabelle): SEIT D5-3
+	// ruft craps.js bets.lock()/bets.unlock() an GENAU EINER Stelle selbst
+	// — im sperren()-Rückruf an connectLobby(). Das ist KEINE
+	// Rundenentscheidung: es sperrt das Tuch nach der UHR DES SERVERS,
+	// nicht nach round-craps.js' eigenem Rundenautomaten (D.10.6). .settle(,
+	// .sweep(, .payout(, .freeze( und .resolve( bleiben OHNE jede Ausnahme
+	// verboten — GENAU DAS ist die Rundenentscheidung, die weiterhin
+	// ausschließlich round-craps.js/wagers-craps.js trifft.
+	const sperrenBlock = /sperren:\s*\(zu\)\s*=>\s*\{[\s\S]*?\n\t\t\t\},/.exec(crapsQuelltext);
+	check(sperrenBlock !== null, 'der sperren()-Rückruf an connectLobby() wurde im Quelltext gefunden');
+	const ohneSperrenBlock = sperrenBlock !== null
+		? crapsQuelltext.replace(sperrenBlock[0], '')
+		: crapsQuelltext;
 
-	console.log('     Gegenprobe R-12-G: eine eingefügte Zeile bets.lock() wird erkannt');
-	const verfaelscht = `${crapsQuelltext}\nbets.lock();`;
+	if (sperrenBlock !== null) {
+		check(sperrenBlock[0].includes('.lock()') && sperrenBlock[0].includes('.unlock()'),
+			'die eine erlaubte Stelle ruft ausschließlich bets.lock()/bets.unlock() (das Tuch, nicht die Runde)');
+		check(!/\.settle\(|\.sweep\(|\.payout\(|\.freeze\(|\.resolve\(/.test(sperrenBlock[0]),
+			'auch die erlaubte Stelle enthält kein .settle(/.sweep(/.payout(/.freeze(/.resolve(');
+	}
+
+	const VERBOTENE_AUFRUFE = ['.settle(', '.sweep(', '.payout(', '.lock()', '.unlock()', '.freeze(', '.resolve('];
+	const gefundene = VERBOTENE_AUFRUFE.filter((muster) => ohneSperrenBlock.includes(muster));
+	check(gefundene.length === 0, 'craps.js ruft keine dieser Methoden unmittelbar auf, außerhalb des sperren()-Rückrufs', ...gefundene);
+
+	console.log('     Gegenprobe R-12-G: eine eingefügte Zeile bets.lock() außerhalb der erlaubten Stelle wird erkannt');
+	const verfaelscht = `${ohneSperrenBlock}\nbets.lock();`;
 	const gefundeneG = VERBOTENE_AUFRUFE.filter((muster) => verfaelscht.includes(muster));
 	check(gefundeneG.includes('.lock()'), 'R-12-G: die eingefügte Zeile "bets.lock();" wird von derselben Prüfung erkannt');
 }

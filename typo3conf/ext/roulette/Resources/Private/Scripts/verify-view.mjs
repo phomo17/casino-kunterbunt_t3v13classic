@@ -56,6 +56,8 @@
  * Bezeichnern vor (bereits „root") und wären kein tragfähiger Nachweis.
  */
 
+// @pruefstand modus=egal laufzeit=kurz
+
 import { readFileSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
@@ -484,10 +486,33 @@ console.log('\nV-13  Jeder data-ro-*-Messpunkt hat genau einen Schreiber');
 
 /* ============ V-14 roulette.js trifft keine Rundenentscheidung (neu, C3d) */
 
-console.log('\nV-14  roulette.js enthält keine Rundenlogik mehr');
+console.log('\nV-14  roulette.js enthält keine Rundenlogik mehr — mit einer benannten Ausnahme (nachgezogen, D5-3)');
 {
+	// ABWEICHUNG VOM PLANTEXT (D5, Abschnitt 7, Risikotabelle): SEIT D5-3
+	// ruft roulette.js bets.lock()/bets.unlock() an GENAU EINER Stelle
+	// selbst — im sperren()-Rückruf an connectLobby(). Das ist KEINE
+	// Rundenentscheidung: es sperrt das Tuch nach der UHR DES SERVERS, nicht
+	// nach round-roulette.js' eigenem Rundenautomaten (D.10.6, "In der
+	// Lobby entscheidet die Uhr des Servers, wann das Tuch zugeht — nicht
+	// der Auslöser"). settle(, sweep( und payout( bleiben OHNE jede
+	// Ausnahme verboten — GENAU DAS ist die Rundenentscheidung, die
+	// weiterhin ausschließlich round-roulette.js trifft.
+	const sperrenBlock = /sperren:\s*\(zu\)\s*=>\s*\{[\s\S]*?\n\t\t\t\},/.exec(rouletteOhneKommentare);
+	check(sperrenBlock !== null, 'der sperren()-Rückruf an connectLobby() wurde im Quelltext gefunden');
+	const ohneSperrenBlock = sperrenBlock !== null
+		? rouletteOhneKommentare.replace(sperrenBlock[0], '')
+		: rouletteOhneKommentare;
+
+	if (sperrenBlock !== null) {
+		check(/bets\.lock\(\)/.test(sperrenBlock[0]) && /bets\.unlock\(\)/.test(sperrenBlock[0]),
+			'die eine erlaubte Stelle ruft ausschließlich bets.lock()/bets.unlock() (das Tuch, nicht die Runde)');
+		check(!/settle\(|sweep\(|payout\(/.test(sperrenBlock[0]),
+			'auch die erlaubte Stelle enthält kein settle(/sweep(/payout(');
+	}
+
 	// Diese fünf Schritte liegen ausschließlich in round-roulette.js
-	// (Abschnitt 4.16 des Plans) — roulette.js darf keinen davon selbst rufen.
+	// (Abschnitt 4.16 des Plans) — roulette.js darf keinen davon selbst
+	// rufen, AUSSER an der einen, oben geprüften Stelle.
 	const VERBOTENE_MUSTER = [
 		['settle(', /settle\(/],
 		['sweep(', /sweep\(/],
@@ -496,7 +521,7 @@ console.log('\nV-14  roulette.js enthält keine Rundenlogik mehr');
 		['.unlock(', /\.unlock\(/],
 	];
 	for (const [name, muster] of VERBOTENE_MUSTER) {
-		check(!muster.test(rouletteOhneKommentare), `roulette.js enthält kein ${name}`);
+		check(!muster.test(ohneSperrenBlock), `roulette.js enthält kein ${name} außerhalb des sperren()-Rückrufs`);
 	}
 
 	console.log('     Gegenprobe (V-14-G): dasselbe Muster schlägt in round-roulette.js an — dort liegt die Rundenlogik');

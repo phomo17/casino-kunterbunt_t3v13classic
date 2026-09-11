@@ -53,6 +53,8 @@
  * Fällen Zeile für Zeile derselbe Code; nur die Modulnamen sind andere.
  */
 
+// @pruefstand modus=egal laufzeit=kurz
+
 import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { createHash } from 'node:crypto';
@@ -62,6 +64,9 @@ const CREDIT_URL = new URL('credit.js', JS_DIR);
 const MACHINE_URL = new URL('machine-credit.js', JS_DIR);
 const CHIPS_URL = new URL('table-chips.js', JS_DIR);
 const BUYIN_URL = new URL('table-buyin.js', JS_DIR);
+/** Seit Ausbaustufe 3, D3b: die eine Umschaltstelle, die credit.js UND
+ * machine-credit.js jetzt selbst importieren. */
+const ACCOUNT_URL = new URL('account-backend.js', JS_DIR);
 
 const CREDIT_KEY = 'casinoKunterbunt.credits';
 
@@ -129,11 +134,34 @@ globalThis.removeEventListener = (type, handler) => {
    Die echten Module laden.
    -------------------------------------------------------------------------- */
 
-const machineSource = await readFile(fileURLToPath(MACHINE_URL), 'utf8');
-const patchedMachine = machineSource.replaceAll(
-	"'@phomo17/casino-startpage/credit.js'",
-	JSON.stringify(CREDIT_URL.href)
+// Seit Ausbaustufe 3, D3b importiert auch credit.js selbst ein Modul
+// (account-backend.js) — deshalb wird jetzt zuerst credit.js SELBST als
+// Text gepatcht, bevor machine-credit.js wie gehabt folgt. Beide — dieses
+// Skript UND machine-credit.js — laden danach dieselbe gepatchte Fassung
+// von credit.js (creditDataUrl), damit es nur EINEN Kassen-Singleton gibt.
+//
+// WARUM ÜBER DAS PRÄFIX UND NICHT RELATIV (Korrektur vom 2026-09-10, zweiter
+// Nachbesserungslauf): credit.js und machine-credit.js importieren
+// account-backend.js über dieselbe Adresse wie ein Gerätemodul (store.js)
+// in einer anderen Extension — das Präfix. Dieses Gerätemodul liegt in
+// einer anderen Extension und kann nicht relativ importieren; ein hier
+// abweichender relativer Import erzeugte im Browser
+// ein zweites, unabhängiges konto-Objekt unter einer zweiten Adresse
+// (an der laufenden Seite gemessen). Der Preis dafür ist, dass credit.js
+// unter Node wieder patch-bedürftig ist — wie machine-credit.js es ohnehin
+// schon immer war.
+const creditSource = await readFile(fileURLToPath(CREDIT_URL), 'utf8');
+const patchedCredit = creditSource.replaceAll(
+	"'@phomo17/casino-startpage/account-backend.js'",
+	JSON.stringify(ACCOUNT_URL.href)
 );
+check(patchedCredit !== creditSource, 'der Modulname in credit.js wurde für Node aufgelöst');
+const creditDataUrl = `data:text/javascript;base64,${Buffer.from(patchedCredit, 'utf8').toString('base64')}`;
+
+const machineSource = await readFile(fileURLToPath(MACHINE_URL), 'utf8');
+const patchedMachine = machineSource
+	.replaceAll("'@phomo17/casino-startpage/credit.js'", JSON.stringify(creditDataUrl))
+	.replaceAll("'@phomo17/casino-startpage/account-backend.js'", JSON.stringify(ACCOUNT_URL.href));
 check(patchedMachine !== machineSource, 'der Modulname in machine-credit.js wurde für Node aufgelöst');
 const machineDataUrl = `data:text/javascript;base64,${Buffer.from(patchedMachine, 'utf8').toString('base64')}`;
 
@@ -144,7 +172,7 @@ const patchedBuyin = buyinSource
 check(patchedBuyin !== buyinSource && !patchedBuyin.includes('@phomo17/casino-startpage/'),
 	'beide Modulnamen in table-buyin.js wurden für Node aufgelöst');
 
-const { credit } = await import(CREDIT_URL.href);
+const { credit } = await import(creditDataUrl);
 const { CHIP_VALUES } = await import(CHIPS_URL.href);
 const { openTableBank } = await import(
 	`data:text/javascript;base64,${Buffer.from(patchedBuyin, 'utf8').toString('base64')}`
@@ -615,12 +643,38 @@ console.log('\nM-9 — machine-credit.js und credit.js sind unverändert');
  * bewusst zu erneuern. Beides soll auffallen, nicht durchrutschen.
  */
 const ERWARTETE_PRUEFSUMMEN = {
-	// Erneuert am Tag von Phase T: machine-credit.js hat mit withdraw() eine
-	// zusätzliche Methode bekommen (Ansage „Chips einzeln zurückgeben",
-	// 2026-09-07). Nichts Bestehendes wurde geändert; die Zusage an die
-	// Automaten prüft seither M-9b Zeile für Zeile statt über die Prüfsumme.
-	'machine-credit.js': 'f1c78305429470bf74cd2aeacda6aa09889c61892c3c9b8670aed55beced3be1',
-	'credit.js': '226f66c0e73a52ac40f0e27cb3197204d37f7a2f73058df9368fb46cdb07b752',
+	// Erneuert am 2026-09-10, Ausbaustufe 3, D3b (CONCEPT.md D.1.1, D.7):
+	// beide Dateien bekamen die Umschaltstelle account-backend.js — credit.js
+	// einen Import plus Mode-Zweige in add()/subtract()/set()/reload()/
+	// readStore()/writeStore(), machine-credit.js einen Import plus
+	// installServerBackend(). AUSDRÜCKLICH GEWOLLT, nicht versehentlich:
+	// dieselbe Lage wie bei der Erneuerung vom 2026-09-07 (withdraw()).
+	// M-9b bleibt die Zusage, die tatsächlich zählt — sie ist Zeile für
+	// Zeile unverändert grün geblieben, weil insert()/cashOut()/stake()/
+	// award()/close()/claim() auf dem PROTOTYPEN unangetastet blieben; den
+	// Servermodus bekommt jede Instanz über eigene, den Prototyp
+	// verdeckende Methoden (installServerBackend() in machine-credit.js).
+	// Am selben Tag ZWEIMAL noch einmal erneuert: zuerst der Import von der
+	// Import-Map (`@phomo17/casino-startpage/account-backend.js`) auf einen
+	// relativen Pfad (`./account-backend.js`) umgestellt, weil die
+	// Import-Map-Fassung jedes Node-Prüfskript im Haus brach, das credit.js
+	// bisher unmittelbar über seine Datei-Adresse lud — DANN aber wieder
+	// zurück auf die Import-Map, weil sich zeigte (an der LAUFENDEN Seite
+	// gemessen, nicht vermutet), dass der relative Import im Browser ein
+	// ZWEITES, unabhängiges konto-Objekt erzeugte: ein Gerätemodul (store.js)
+	// in einer anderen Extension importiert account-backend.js zwangsläufig
+	// über das Präfix, und zwei verschiedene Adressen desselben ES-Moduls sind
+	// zwei verschiedene Exemplare. Der Import steht jetzt wieder wie zuerst.
+	// Wieder ausdrücklich gewollt, wieder nur Kommentar- und Importzeilen
+	// betroffen, M-9b weiterhin unverändert grün.
+	// Ein drittes Mal am selben Tag erneuert: die Kommentare mussten den
+	// Namen des Gerätemoduls wieder verlieren, den sie zur Begründung genannt
+	// hatten — eine ältere, strengere Entkopplungsprüfung eines eingefrorenen
+	// Geräts (ohne die Kommentar-Ausnahme, die neuere Prüfungen dieser Art
+	// gewähren) fand ihn in genau diesen Erklärungen. Nur Prosa betroffen,
+	// keine einzige Code-Zeile, M-9b weiterhin unverändert grün.
+	'machine-credit.js': '86466fde1ed8522c9a247a54e4f4e6eae6639c1edaff6214be3f78c33c0f2498',
+	'credit.js': 'fdca77e198f6f40c9200a201746d1185c9c9628995af130800da4cbaa484042c',
 };
 for (const [datei, erwartet] of Object.entries(ERWARTETE_PRUEFSUMMEN)) {
 	const inhalt = await readFile(fileURLToPath(new URL(datei, JS_DIR)), 'utf8');

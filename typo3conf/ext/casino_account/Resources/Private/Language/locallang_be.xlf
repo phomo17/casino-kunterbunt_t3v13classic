@@ -61,7 +61,7 @@
 				<source>Guthaben</source>
 			</trans-unit>
 			<trans-unit id="player.balanceCash.description">
-				<source>Freiwillig. Wird nichts eingetragen, ist es 0. Nur ganze Zahlen, nicht negativ. Beim Speichern landet der eingetragene Betrag vollständig in der Kasse; Gerätekredit und Gewinnspeicher werden dabei auf 0 gesetzt. Achtung: wird ein Datensatz mitten im Spiel geöffnet, zeigt dieses Feld nur die Kasse, nicht das Gesamtvermögen — das steht daneben, nur lesbar.</source>
+				<source>Freiwillig. Wird nichts eingetragen, ist es 0. Nur ganze Zahlen, nicht negativ. Beim Speichern landet der eingetragene Betrag vollständig in der Kasse; Gerätekredit und Gewinnspeicher werden dabei auf 0 gesetzt. Achtung: wird ein Datensatz mitten im Spiel geöffnet, zeigt dieses Feld nur die Kasse, nicht das Gesamtvermögen — das steht auf dem Reiter „Konto“, nur lesbar.</source>
 			</trans-unit>
 			<trans-unit id="player.balanceMachine">
 				<source>Gerätekredit</source>
@@ -190,6 +190,115 @@
 			</trans-unit>
 			<trans-unit id="storage.group.title">
 				<source>Casino Kunterbunt — Spielende</source>
+			</trans-unit>
+
+			<!-- Das Modul „QR-Modus" (CONCEPT.md D.5, Umsetzungsstück D2a) -->
+			<trans-unit id="module.qrmode.title">
+				<source>QR-Modus</source>
+			</trans-unit>
+			<trans-unit id="module.qrmode.tablabel">
+				<source>Anmeldung mit QR-Code an- und ausschalten</source>
+			</trans-unit>
+			<trans-unit id="module.qrmode.tabdescr">
+				<source>Ist der QR-Modus an, kann im Frontend nur spielen, wer sich mit seiner Kennung angemeldet hat. Ist er aus, verhält sich die Seite wie ohne Konten.</source>
+			</trans-unit>
+			<trans-unit id="qrmode.heading">
+				<source>Anmeldung mit QR-Code</source>
+			</trans-unit>
+			<trans-unit id="qrmode.state.on">
+				<source>Der QR-Modus ist an. Ohne Anmeldung kommt niemand in den Saal.</source>
+			</trans-unit>
+			<trans-unit id="qrmode.state.off">
+				<source>Der QR-Modus ist aus. Der Saal steht allen offen, das Guthaben liegt im Browser.</source>
+			</trans-unit>
+			<trans-unit id="qrmode.turnOn">
+				<source>Einschalten …</source>
+			</trans-unit>
+			<trans-unit id="qrmode.turnOn.confirm">
+				<source>Ja, QR-Modus einschalten</source>
+			</trans-unit>
+			<trans-unit id="qrmode.turnOff">
+				<source>QR-Modus ausschalten</source>
+			</trans-unit>
+			<trans-unit id="qrmode.turnOff.hint">
+				<source>Beim Ausschalten wird Geld, das noch in einem Gerät steckt, in die Kasse zurückgebucht. Angemeldete Sitzungen bleiben bestehen.</source>
+			</trans-unit>
+			<trans-unit id="qrmode.warning">
+				<source>Ab sofort kann nur noch spielen, wer sich mit seinem QR-Code oder seiner Kennung anmeldet. Jede andere Adresse führt zur Anmeldung.</source>
+			</trans-unit>
+			<trans-unit id="qrmode.warning.backdoor">
+				<source>Das Backend bleibt erreichbar: Sie können den Modus hier jederzeit wieder ausschalten.</source>
+			</trans-unit>
+			<trans-unit id="qrmode.online.heading">
+				<source>Wer ist angemeldet</source>
+			</trans-unit>
+			<trans-unit id="qrmode.online.count">
+				<source>%d Spielende sind gerade angemeldet.</source>
+			</trans-unit>
+			<trans-unit id="qrmode.online.none">
+				<source>Gerade ist niemand angemeldet.</source>
+			</trans-unit>
+			<trans-unit id="qrmode.online.seen">
+				<source>zuletzt gesehen vor %d Sekunden</source>
+			</trans-unit>
+			<trans-unit id="qrmode.logoutAll">
+				<source>Alle abmelden</source>
+			</trans-unit>
+			<trans-unit id="qrmode.toPlayers">
+				<source>Zum Modul „Spielende"</source>
+			</trans-unit>
+			<trans-unit id="message.qrmode.on">
+				<source>Der QR-Modus ist jetzt an.</source>
+			</trans-unit>
+			<trans-unit id="message.qrmode.on.title">
+				<source>QR-Modus eingeschaltet</source>
+			</trans-unit>
+			<trans-unit id="message.qrmode.off">
+				<source>Der QR-Modus ist jetzt aus.</source>
+			</trans-unit>
+			<trans-unit id="message.qrmode.off.title">
+				<source>QR-Modus ausgeschaltet</source>
+			</trans-unit>
+			<trans-unit id="message.qrmode.unchanged">
+				<source>Es hat sich nichts geändert — der Schalter stand bereits so.</source>
+			</trans-unit>
+			<trans-unit id="message.qrmode.unchanged.title">
+				<source>Unverändert</source>
+			</trans-unit>
+			<trans-unit id="message.logoutAll">
+				<source>%d Sitzungen wurden beendet.</source>
+			</trans-unit>
+			<trans-unit id="message.logoutAll.title">
+				<source>Alle abgemeldet</source>
+			</trans-unit>
+			<trans-unit id="message.logoutAll.none">
+				<source>Es war niemand angemeldet.</source>
+			</trans-unit>
+			<trans-unit id="message.logoutAll.none.title">
+				<source>Nichts zu tun</source>
+			</trans-unit>
+			<trans-unit id="message.reconciled">
+				<source>Bei %d Konten wurde liegengebliebenes Gerätegeld in die Kasse zurückgebucht.</source>
+			</trans-unit>
+			<trans-unit id="message.reconciled.title">
+				<source>Aufgeräumt</source>
+			</trans-unit>
+
+			<!-- Der Gerätespeicher einer Person (CONCEPT.md D.8, D.13,
+			     Umsetzungsstück D3a). Die Tabelle ist hideTable => true und
+			     wird nie bearbeitet — diese drei Beschriftungen dienen nur
+			     dem TCA-Titel und den drei passthrough-Spalten. -->
+			<trans-unit id="coinfield">
+				<source>Gerätespeicher</source>
+			</trans-unit>
+			<trans-unit id="coinfield.player">
+				<source>Spielender</source>
+			</trans-unit>
+			<trans-unit id="coinfield.storeKey">
+				<source>Speicherschlüssel</source>
+			</trans-unit>
+			<trans-unit id="coinfield.payload">
+				<source>Inhalt</source>
 			</trans-unit>
 
 		</body>

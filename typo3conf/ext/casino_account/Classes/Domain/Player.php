@@ -27,6 +27,7 @@ final readonly class Player
         public int $beUser,
         public bool $isAdmin,
         public int $bookingSequence,
+        public string $bookingClient,
         public int $lastSeen,
         public bool $hidden,
     ) {}
@@ -77,6 +78,7 @@ final readonly class Player
             beUser: (int)$row['be_user'],
             isAdmin: (bool)$row['is_admin'],
             bookingSequence: (int)$row['booking_seq'],
+            bookingClient: (string)$row['booking_client'],
             lastSeen: (int)$row['last_seen'],
             hidden: (bool)$row['hidden'],
         );

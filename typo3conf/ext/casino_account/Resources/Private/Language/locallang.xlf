@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" version="1.2">
+	<file source-language="de" datatype="plaintext" original="EXT:casino_account/Resources/Private/Language/locallang.xlf" date="2026-09-10T00:00:00Z" product-name="casino_account">
+		<header/>
+		<body>
+			<!-- Die Torseite (CONCEPT.md D.6.1). gate.error.* sind bewusst so
+			     formuliert, dass sie NIE verraten, ob es die Kennung gibt:
+			     „kennt das Haus nicht" gilt für einen Tippfehler ebenso wie
+			     für einen stillgelegten Spielenden. -->
+			<trans-unit id="gate.title">
+				<source>Anmeldung · Casino Kunterbunt</source>
+			</trans-unit>
+			<trans-unit id="gate.heading">
+				<source>Casino Kunterbunt</source>
+			</trans-unit>
+			<trans-unit id="gate.intro">
+				<source>Das Haus ist heute geschlossen für alle, die keinen Code haben. Tippen Sie Ihre Kennung ein — sie steht unter Ihrem QR-Code.</source>
+			</trans-unit>
+			<trans-unit id="gate.token.label">
+				<source>Ihre Kennung</source>
+			</trans-unit>
+			<trans-unit id="gate.token.hint">
+				<source>43 Zeichen, Groß- und Kleinschreibung zählt. Sie steht im Klartext unter dem QR-Code.</source>
+			</trans-unit>
+			<trans-unit id="gate.submit">
+				<source>Eintreten</source>
+			</trans-unit>
+			<trans-unit id="gate.error.unknown">
+				<source>Diese Kennung kennt das Haus nicht. Bitte prüfen Sie die Groß- und Kleinschreibung.</source>
+			</trans-unit>
+			<trans-unit id="gate.error.expired">
+				<source>Die Seite lag zu lange offen. Bitte versuchen Sie es gleich noch einmal.</source>
+			</trans-unit>
+			<trans-unit id="gate.error.rate">
+				<source>Zu viele Versuche. Bitte warten Sie eine Minute.</source>
+			</trans-unit>
+			<trans-unit id="gate.hand.only">
+				<source>Auf diesem Gerät geben Sie die Kennung von Hand ein.</source>
+			</trans-unit>
+			<trans-unit id="gate.scan.heading">
+				<source>Oder den Code zeigen</source>
+			</trans-unit>
+			<trans-unit id="gate.camera.start">
+				<source>Kamera einschalten</source>
+			</trans-unit>
+			<trans-unit id="gate.camera.stop">
+				<source>Kamera ausschalten</source>
+			</trans-unit>
+			<trans-unit id="gate.file.label">
+				<source>Ein Bild des Codes auswählen</source>
+			</trans-unit>
+			<trans-unit id="gate.status.cameraOn">
+				<source>Die Kamera läuft. Halten Sie den Code ins Bild.</source>
+			</trans-unit>
+			<trans-unit id="gate.status.cameraOff">
+				<source>Die Kamera ist aus.</source>
+			</trans-unit>
+			<trans-unit id="gate.status.found">
+				<source>Code erkannt. Sie werden angemeldet.</source>
+			</trans-unit>
+			<trans-unit id="gate.status.nothing">
+				<source>Auf dem Bild war kein Code zu finden.</source>
+			</trans-unit>
+			<trans-unit id="gate.status.denied">
+				<source>Der Browser gibt die Kamera nicht frei. Tippen Sie die Kennung ein.</source>
+			</trans-unit>
+
+			<!-- Die Kontenleiste (D2d) — die Schlüssel werden hier bereits
+			     reserviert, weil diese Datei laut Plan (Abschnitt 4.24) in
+			     D2c vollständig entsteht; benutzt werden sie erst in D2d. -->
+			<trans-unit id="bar.label">
+				<source>Ihr Konto</source>
+			</trans-unit>
+			<trans-unit id="bar.total">
+				<source>Gesamtvermögen</source>
+			</trans-unit>
+			<trans-unit id="bar.unit">
+				<source>Kredite</source>
+			</trans-unit>
+			<trans-unit id="bar.logout">
+				<source>Abmelden</source>
+			</trans-unit>
+			<!-- BEHOBENER BEFUND (Audit nach D3, K-02): eigener Sprunglink zur
+			     Kontenleiste, dieselbe Technik wie hall.skiplink in
+			     casino_startpage — die Leiste steht am Ende des Dokuments
+			     (Cache-Grund, siehe AccountBar.php), auf ≥ 640 Bildpunkten
+			     Breite aber optisch zuerst; ohne den Sprunglink liegen auf
+			     /craps und /roulette über 80 Tabulatorstationen davor. -->
+			<trans-unit id="bar.skiplink">
+				<source>Zur Kontoleiste springen</source>
+			</trans-unit>
+
+			<!-- Die Sperranzeige (D3, D.7.2) — die Schlüssel werden hier
+			     bereits reserviert, weil diese Datei laut Plan (Abschnitt
+			     4.14) in Umsetzungsstück D3a vollständig entsteht; die
+			     Anzeige selbst (das <dialog>) kommt erst in D3c. Die Sätze
+			     sagen ausdrücklich, was gerade nicht geht und was zu tun
+			     ist — ein Bildschirmleser liest damit denselben Zustand vor,
+			     den ein Sehender sieht. -->
+			<trans-unit id="lock.title">
+				<source>Verbindung zum Konto unterbrochen</source>
+			</trans-unit>
+			<trans-unit id="lock.retry">
+				<source>Erneut versuchen</source>
+			</trans-unit>
+			<trans-unit id="lock.reload">
+				<source>Seite neu laden</source>
+			</trans-unit>
+			<trans-unit id="lock.text.offline">
+				<source>Die Verbindung zum Konto ist unterbrochen. Es wird nichts gebucht, solange diese Meldung steht.</source>
+			</trans-unit>
+			<trans-unit id="lock.text.error">
+				<source>Der Server hat mit einem Fehler geantwortet. Es wird nichts gebucht, solange diese Meldung steht.</source>
+			</trans-unit>
+			<trans-unit id="lock.text.retrying">
+				<source>Die liegengebliebene Buchung wird noch einmal versucht …</source>
+			</trans-unit>
+		</body>
+	</file>
+</xliff>

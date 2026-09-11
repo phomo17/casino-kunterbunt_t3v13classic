@@ -1,0 +1,109 @@
+<html
+	xmlns:f="http://typo3.org/ns/TYPO3/CMS/Fluid/ViewHelpers"
+	data-namespace-typo3-fluid="true"
+>
+<f:layout name="Module" />
+
+<f:comment>
+	Das Modul „QR-Modus" (CONCEPT.md D.5).
+
+	Diese Vorlage rechnet nichts. „on"/„off", „confirmOn" und die Liste
+	„online" kommen fertig aus QrModeModuleController — dieselbe Regel wie in
+	PlayerModule/Index.html (Prüfung M-11 dort, Q-12 hier).
+
+	„Module" als Layout kommt aus EXT:backend. Es liefert die Kopfleiste, die
+	Meldungen und die Überschrift erster Ordnung. Unsere eigene Gliederung
+	beginnt deshalb bei h2 — eine zweite h1 wäre ein Bruch in der
+	Überschriftenordnung.
+</f:comment>
+
+<f:section name="Content">
+
+	<h2><f:translate key="LLL:EXT:casino_account/Resources/Private/Language/locallang_be.xlf:qrmode.heading" /></h2>
+
+	<f:comment>
+		Der Zustand. Erst der Satz, dann der Knopf: ein Bildschirmleser soll
+		zuerst hören, wie es steht, und dann, was er tun kann.
+	</f:comment>
+	<p class="ca-qrmode__state ca-qrmode__state--{f:if(condition: on, then: 'on', else: 'off')}">
+		<f:if condition="{on}">
+			<f:then><f:translate key="LLL:EXT:casino_account/Resources/Private/Language/locallang_be.xlf:qrmode.state.on" /></f:then>
+			<f:else><f:translate key="LLL:EXT:casino_account/Resources/Private/Language/locallang_be.xlf:qrmode.state.off" /></f:else>
+		</f:if>
+	</p>
+
+	<f:if condition="{on}">
+		<f:then>
+			<f:comment>AN: ein Knopf, ohne Zwischenschritt. Ausschalten macht nichts kaputt.</f:comment>
+			<form method="post" action="{toggleUrl}">
+				<input type="hidden" name="state" value="off" />
+				<button type="submit" class="btn btn-default">
+					<f:translate key="LLL:EXT:casino_account/Resources/Private/Language/locallang_be.xlf:qrmode.turnOff" />
+				</button>
+			</form>
+			<p class="ca-qrmode__hint">
+				<f:translate key="LLL:EXT:casino_account/Resources/Private/Language/locallang_be.xlf:qrmode.turnOff.hint" />
+			</p>
+		</f:then>
+		<f:else>
+			<f:if condition="{confirmOn}">
+				<f:then>
+					<f:comment>
+						Zweiter Schritt: die Warnung aus D.5. role="alert" ist hier nicht
+						nötig — der Text steht beim Laden schon da und wird von selbst
+						gelesen; ein alert wäre eine Unterbrechung ohne Ereignis.
+					</f:comment>
+					<div class="callout callout-warning">
+						<p><f:translate key="LLL:EXT:casino_account/Resources/Private/Language/locallang_be.xlf:qrmode.warning" /></p>
+						<p><f:translate key="LLL:EXT:casino_account/Resources/Private/Language/locallang_be.xlf:qrmode.warning.backdoor" /></p>
+					</div>
+					<form method="post" action="{toggleUrl}">
+						<input type="hidden" name="state" value="on" />
+						<button type="submit" class="btn btn-warning">
+							<f:translate key="LLL:EXT:casino_account/Resources/Private/Language/locallang_be.xlf:qrmode.turnOn.confirm" />
+						</button>
+					</form>
+				</f:then>
+				<f:else>
+					<p>
+						<a class="btn btn-primary" href="{confirmUrl}">
+							<f:translate key="LLL:EXT:casino_account/Resources/Private/Language/locallang_be.xlf:qrmode.turnOn" />
+						</a>
+					</p>
+				</f:else>
+			</f:if>
+		</f:else>
+	</f:if>
+
+	<h3><f:translate key="LLL:EXT:casino_account/Resources/Private/Language/locallang_be.xlf:qrmode.online.heading" /></h3>
+	<f:if condition="{onlineCount}">
+		<f:then>
+			<p><f:translate key="LLL:EXT:casino_account/Resources/Private/Language/locallang_be.xlf:qrmode.online.count" arguments="{0: onlineCount}" /></p>
+			<ul class="ca-qrmode__online">
+				<f:for each="{online}" as="eintrag">
+					<li>{eintrag.name}<span class="ca-qrmode__seen"><f:translate key="LLL:EXT:casino_account/Resources/Private/Language/locallang_be.xlf:qrmode.online.seen" arguments="{0: eintrag.secondsAgo}" /></span></li>
+				</f:for>
+			</ul>
+			<form method="post" action="{logoutAllUrl}">
+				<button type="submit" class="btn btn-default">
+					<f:translate key="LLL:EXT:casino_account/Resources/Private/Language/locallang_be.xlf:qrmode.logoutAll" />
+				</button>
+			</form>
+		</f:then>
+		<f:else>
+			<f:comment>
+				KEIN ausgegrauter Knopf. Ein disabled im ausgelieferten HTML ist im
+				Hausnachweis ausdrücklich verboten: ein deaktivierter Knopf ist mit
+				der Tastatur nicht erreichbar und sagt nicht, warum. Stattdessen
+				steht hier der Satz, der die Lage erklärt.
+			</f:comment>
+			<p><f:translate key="LLL:EXT:casino_account/Resources/Private/Language/locallang_be.xlf:qrmode.online.none" /></p>
+		</f:else>
+	</f:if>
+
+	<p>
+		<a href="{playersUrl}"><f:translate key="LLL:EXT:casino_account/Resources/Private/Language/locallang_be.xlf:qrmode.toPlayers" /></a>
+	</p>
+
+</f:section>
+</html>

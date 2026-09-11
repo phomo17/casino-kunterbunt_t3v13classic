@@ -25,19 +25,19 @@
 				<source>GUTHABEN</source>
 			</trans-unit>
 			<trans-unit id="machine.display.guthaben.announce">
-				<source>Guthaben: %s</source>
+				<source>Guthaben: {0}</source>
 			</trans-unit>
 			<trans-unit id="machine.display.muenzwert">
 				<source>MÜNZWERT</source>
 			</trans-unit>
 			<trans-unit id="machine.display.muenzwert.announce">
-				<source>Münzwert: %s</source>
+				<source>Münzwert: {0}</source>
 			</trans-unit>
 			<trans-unit id="machine.display.feld">
 				<source>IM FELD</source>
 			</trans-unit>
 			<trans-unit id="machine.display.feld.announce">
-				<source>Münzen im Feld: %s</source>
+				<source>Münzen im Feld: {0}</source>
 			</trans-unit>
 
 			<!-- Das Meldungsschild über dem Feld -->
@@ -97,7 +97,7 @@
 				<source>KASSE</source>
 			</trans-unit>
 			<trans-unit id="machine.bank.announce">
-				<source>Kasse: %s</source>
+				<source>Kasse: {0}</source>
 			</trans-unit>
 			<trans-unit id="machine.cashout.label">
 				<source>CASH OUT</source>

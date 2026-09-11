@@ -102,6 +102,9 @@
  * dieser Prüfung will aber gezielt Byte-Modus, keinen Alphanumerik-Modus).
  */
 
+// @pruefstand modus=egal laufzeit=kurz
+// (rechnet nur mit Dateien, unabhängig vom QR-Schalter.)
+
 import { readFileSync, existsSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';

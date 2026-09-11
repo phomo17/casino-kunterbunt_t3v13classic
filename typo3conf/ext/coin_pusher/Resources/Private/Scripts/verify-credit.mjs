@@ -66,6 +66,8 @@
  * zweier Kommazahlen auf Gleichheit.
  */
 
+// @pruefstand modus=egal laufzeit=kurz
+
 import { readFile } from 'node:fs/promises';
 import { readFileSync as readSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -340,7 +342,28 @@ async function toModule(url, replacements, label) {
 
 console.log('Die elf Module');
 
-const CREDIT_URL = new URL('credit.js', CASINO_JS).href;
+// Seit Ausbaustufe 3, D3b importiert credit.js selbst ein Modul
+// (account-backend.js, die Umschaltstelle zwischen Browserspeicher und
+// Konto) — ÜBER DAS PRÄFIX (@phomo17/casino-startpage/…), nicht relativ:
+// coin_pusher/store.js importiert account-backend.js zwangsläufig über
+// dasselbe Präfix (andere Extension), und ein hier abweichender relativer
+// Import erzeugte im Browser ein ZWEITES, unabhängiges konto-Objekt unter
+// einer zweiten Adresse (an der laufenden Seite gemessen, Korrektur vom
+// 2026-09-10, zweiter Nachbesserungslauf). Ein bare specifier löst Node
+// ohne die Import-Map von TYPO3 nicht auf. credit.js wird deshalb, wie
+// machine-credit.js es hier schon immer vormacht, ALS TEXT gelesen, der
+// eine Modulname aufgelöst und über eine data:-Adresse geladen. CREDIT_URL
+// zeigt ab hier auf diese gepatchte Fassung — jede der drei bestehenden
+// Stellen, die CREDIT_URL benutzen (der direkte Import unten, sowie die
+// Ersetzungsziele für machine-credit.js und bank.js), bekommt dadurch
+// automatisch denselben Kassen-Singleton.
+const ACCOUNT_URL_FOR_CREDIT = new URL('account-backend.js', CASINO_JS).href;
+const creditSourceForNode = await readFile(fileURLToPath(new URL('credit.js', CASINO_JS)), 'utf8');
+const patchedCreditForNode = creditSourceForNode.replaceAll(
+	"'@phomo17/casino-startpage/account-backend.js'", JSON.stringify(ACCOUNT_URL_FOR_CREDIT)
+);
+check(patchedCreditForNode !== creditSourceForNode, 'der Modulname account-backend.js in credit.js wurde für Node aufgelöst');
+const CREDIT_URL = `data:text/javascript;base64,${Buffer.from(patchedCreditForNode, 'utf8').toString('base64')}`;
 const FIELD_URL = new URL('field.js', COIN_JS).href;
 const NIXIE_URL = new URL('nixie.js', COIN_JS).href;
 const MESSAGE_URL = new URL('message.js', COIN_JS).href;
@@ -348,6 +371,7 @@ const PRESS_URL = new URL('press.js', COIN_JS).href;
 const MONEYSLOT_URL = new URL('moneyslot.js', COIN_JS).href;
 
 const CREDIT_NAME = '@phomo17/casino-startpage/credit.js';
+const ACCOUNT_NAME = '@phomo17/casino-startpage/account-backend.js';
 const FIELD_NAME = '@phomo17/coin-pusher/field.js';
 const NIXIE_NAME = '@phomo17/coin-pusher/nixie.js';
 const PRESS_NAME = '@phomo17/coin-pusher/press.js';
@@ -383,7 +407,7 @@ const { MoneySlot } = await import(MONEYSLOT_URL);
 check(typeof MoneySlot === 'function', 'coin_pusher/moneyslot.js über seine Datei-URL geladen');
 
 const machineCreditUrl = await toModule(new URL('machine-credit.js', CASINO_JS),
-	[[CREDIT_NAME, CREDIT_URL]], 'machine-credit.js');
+	[[CREDIT_NAME, CREDIT_URL], [ACCOUNT_NAME, ACCOUNT_URL_FOR_CREDIT]], 'machine-credit.js');
 const { openMachineCredit } = await import(machineCreditUrl);
 check(typeof openMachineCredit === 'function', 'machine-credit.js geladen (openMachineCredit)');
 

@@ -81,6 +81,8 @@
  * laufenden Nachweises.
  */
 
+// @pruefstand modus=egal laufzeit=kurz
+
 import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 
@@ -160,12 +162,27 @@ const machineUrl = new URL('machine-credit.js', CASINO_JS_DIR);
 const creditUrl = new URL('credit.js', CASINO_JS_DIR);
 const chipsUrl = new URL('table-chips.js', CASINO_JS_DIR);
 const buyinUrl = new URL('table-buyin.js', CASINO_JS_DIR);
+// Seit Ausbaustufe 3, D3b importieren credit.js UND machine-credit.js
+// zusätzlich account-backend.js — ÜBER DAS PRÄFIX, nicht relativ (Korrektur
+// vom 2026-09-10, zweiter Nachbesserungslauf: coin_pusher/store.js
+// importiert account-backend.js zwangsläufig über dasselbe Präfix, ein
+// abweichender relativer Import in credit.js/machine-credit.js erzeugte im
+// Browser ein zweites, unabhängiges konto-Objekt unter einer zweiten
+// Adresse — an der laufenden Seite gemessen). credit.js braucht deshalb
+// jetzt ebenfalls einen Text-Patch, den es vor D3b nicht brauchte.
+const accountUrl = new URL('account-backend.js', CASINO_JS_DIR);
+
+const creditSource = await readFile(fileURLToPath(creditUrl), 'utf8');
+const patchedCredit = creditSource.replaceAll(
+	"'@phomo17/casino-startpage/account-backend.js'", JSON.stringify(accountUrl.href)
+);
+check(patchedCredit !== creditSource, 'der Modulname in credit.js wurde für Node aufgelöst');
+const creditDataUrl = `data:text/javascript;base64,${Buffer.from(patchedCredit, 'utf8').toString('base64')}`;
 
 const machineSource = await readFile(fileURLToPath(machineUrl), 'utf8');
-const patchedMachine = machineSource.replaceAll(
-	"'@phomo17/casino-startpage/credit.js'",
-	JSON.stringify(creditUrl.href)
-);
+const patchedMachine = machineSource
+	.replaceAll("'@phomo17/casino-startpage/credit.js'", JSON.stringify(creditDataUrl))
+	.replaceAll("'@phomo17/casino-startpage/account-backend.js'", JSON.stringify(accountUrl.href));
 check(patchedMachine !== machineSource, 'der Modulname in machine-credit.js wurde für Node aufgelöst');
 const machineDataUrl = `data:text/javascript;base64,${Buffer.from(patchedMachine, 'utf8').toString('base64')}`;
 
@@ -176,7 +193,7 @@ const patchedBuyin = buyinSource
 check(patchedBuyin !== buyinSource && !patchedBuyin.includes('@phomo17/casino-startpage/'),
 	'beide Modulnamen in table-buyin.js wurden für Node aufgelöst');
 
-const { credit } = await import(creditUrl.href);
+const { credit } = await import(creditDataUrl);
 const { openTableBank } = await import(
 	`data:text/javascript;base64,${Buffer.from(patchedBuyin, 'utf8').toString('base64')}`
 );

@@ -40,6 +40,8 @@
  * `video_slot`.
  */
 
+// @pruefstand modus=egal laufzeit=kurz
+
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';

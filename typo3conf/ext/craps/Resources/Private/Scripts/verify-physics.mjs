@@ -59,6 +59,8 @@
  * Rest der Datei kein einziges % mehr vorkommt.
  */
 
+// @pruefstand modus=egal laufzeit=kurz
+
 import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';

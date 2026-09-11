@@ -76,6 +76,8 @@
  * eigens gerechneten Alternative — niemals auf der echten Wettliste selbst.
  */
 
+// @pruefstand modus=egal laufzeit=kurz
+
 import { readFileSync, existsSync } from 'node:fs';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import path from 'node:path';

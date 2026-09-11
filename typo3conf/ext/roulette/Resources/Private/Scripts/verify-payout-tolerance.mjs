@@ -40,6 +40,8 @@
  * B-4/B-9 in verify-bets.mjs).
  */
 
+// @pruefstand modus=egal laufzeit=kurz
+
 import { schwellenwertPunkte } from './measure-payout.mjs';
 
 let fehler = 0;

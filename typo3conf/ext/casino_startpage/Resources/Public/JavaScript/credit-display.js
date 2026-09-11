@@ -23,6 +23,7 @@
  */
 
 import { credit } from '@phomo17/casino-startpage/credit.js';
+import { konto } from '@phomo17/casino-startpage/account-backend.js';
 
 const SELECTOR_SIGN = '[data-ck-credit]';
 const SELECTOR_DISPLAY = '[data-ck-credit-display]';
@@ -198,6 +199,24 @@ function wireSign(sign) {
 		return;
 	}
 	wired.add(sign);
+
+	// CONCEPT.md D.7.3, Plan Befund 2: bei eingeschaltetem QR-Modus
+	// verschwindet der GESAMTE Aufladeteil des Leuchtschilds für Nicht-Admins
+	// — nicht nur das freie Setzen aus credit-set.js, sondern auch die
+	// Schnellwerte und der freie Einwurf hier. Beide erschaffen sonst wie das
+	// freie Setzen Kassenguthaben aus dem Nichts; serverseitig sind
+	// aufladen/abbuchen/setzen ohnehin auf Admins beschränkt (D.9,
+	// BookingService::NUR_ADMIN) — das Ausblenden ist die zweite
+	// Verteidigungslinie, nicht die einzige.
+	//
+	// Entfernt wird gezielt NUR [data-ck-credit-form]: die Anzeige und der
+	// Ansagebereich für Hilfsmittel bleiben in jedem Fall stehen (D.7.2 „Lesen
+	// synchron" gilt unverändert). Das Ausblenden per CSS in casino_account
+	// (frontend.css) passiert zusätzlich und FRÜHER, gegen das Aufblitzen vor
+	// dem Lauf dieses Moduls.
+	if (konto.istServer && !konto.darfVerwalten) {
+		sign.querySelector(SELECTOR_FORM)?.remove();
+	}
 
 	for (const button of sign.querySelectorAll(SELECTOR_ADD)) {
 		button.addEventListener('click', () => {

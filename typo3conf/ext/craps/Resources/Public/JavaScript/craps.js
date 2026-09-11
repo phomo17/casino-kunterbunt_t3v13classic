@@ -93,7 +93,8 @@
  * beim Selbst-werfen bleibt der Auslöser frei und der Spieler wirft erneut.
  */
 
-import { isAvailable, drawUint32 } from '@phomo17/craps/rng.js';
+import { isAvailable, drawUint32, createSeeded, saatZuZahl } from '@phomo17/craps/rng.js';
+import { connectLobby } from '@phomo17/craps/lobby-craps.js';
 import { DiceTable } from '@phomo17/craps/dice-physics.js';
 import { connectDice } from '@phomo17/craps/dice-view.js';
 import { connectThrow, SPEED_MIN, SPEED_MAX } from '@phomo17/craps/throw-input.js';
@@ -253,6 +254,16 @@ function bindTable(root) {
 	let sound = null;
 	let wiederholung = 0;
 	let pagehideHandler = null;
+	let lobby = null;
+	/** Siehe rng.js/lobby-craps.js (D5-3): der Geber der laufenden Runde. */
+	let geber = drawUint32;
+	/**
+	 * Wird true, sobald der erste casino:lobby-stand eintrifft (siehe
+	 * sperren() weiter unten) — dann wirft ausschließlich die Saat, nie die
+	 * Hand (Plan 4.16 Punkt 1), und die Wurfschiene bleibt für JEDEN Platz
+	 * still (Plan 4.17).
+	 */
+	let inLobby = false;
 
 	/**
 	 * Was gerade auf welchem Feld liegt — wahlweise ohne einen bestimmten,
@@ -376,7 +387,16 @@ function bindTable(root) {
 	function onInvalid() {
 		sag(texts.short);
 		zeichneAusloeser();
-		if (modus() === 'watch') {
+		// AUCH in der Lobby wird automatisch erneut geworfen (D5-3, Plan 4.16
+		// Punkt 2), unabhängig vom gewählten Modus: der Wurf kommt dort für
+		// JEDEN Platz aus der Saat, nie aus der Hand (Punkt 1) — ohne diesen
+		// Zusatz bliebe ein Tisch mit modus()==='shoot' bei einem ungültigen
+		// Saat-Wurf in der Lobby für immer bei "laeuft" hängen, weil die
+		// Wurfschiene ohnehin gesperrt ist (isArmed weiter unten) und niemand
+		// von Hand nachwerfen könnte. Der Geber wird dabei NICHT
+		// zurückgestellt (kein geberSetzen(null) hier) — der nächste Zug
+		// zieht aus DERSELBEN, fortlaufenden Folge, in jedem Browser gleich.
+		if (modus() === 'watch' || inLobby) {
 			wiederholung = globalThis.setTimeout(() => {
 				wiederholung = 0;
 				game.rethrow(null);
@@ -406,6 +426,10 @@ function bindTable(root) {
 		}
 		sag(`${ereignisSatz(report)} ${geldSatz(report, credited)}`.trim());
 		sound?.onResult({ event: report.event, hadBet: report.total > 0, credited, staked: report.total });
+
+		// Der Lobby melden, WAS herauskam. Außerhalb einer Lobby ist lobby
+		// null und hier passiert nichts (D5-3, Plan 4.17).
+		lobby?.melden({ report, point: report.point });
 	}
 
 	/** @returns {void} */
@@ -526,7 +550,7 @@ function bindTable(root) {
 			},
 		});
 
-		table = new DiceTable({ random: drawUint32 });
+		table = new DiceTable({ random: () => geber() });
 		view = connectDice(trayEl, table, { onRest });
 		if (view.ok === false) {
 			throw new Error('dice-view.js: keine Übereinstimmung zwischen Physik und Markup ([data-cr-die] fehlt).');
@@ -534,6 +558,12 @@ function bindTable(root) {
 
 		input = connectThrow(trayEl, {
 			isArmed: () => table.phase !== 'rollt' && modus() === 'shoot'
+				// In der Lobby wirft die Saat (siehe lobby-craps.js): die
+				// Schiene bleibt kalt, egal wer die Würfel hält. Ohne diese
+				// Bedingung könnte ein Shooter mitten in einer Lobby-Runde
+				// von Hand werfen und damit eine zweite, abweichende
+				// Würfelfolge auslösen.
+				&& !inLobby
 				&& (game.mayThrow() || round.state === 'laeuft'),
 			onPick: () => sag(texts.picked),
 			onShake: () => sag(texts.picked),
@@ -573,6 +603,36 @@ function bindTable(root) {
 			view?.destroy();
 		};
 		globalThis.addEventListener('pagehide', pagehideHandler);
+
+		// Der Anschluss an die Lobby (D5-3, Plan 4.16/4.17). Läuft keine
+		// Lobby, meldet lobby-live.js nie ein Ereignis, und die zwei
+		// Zuhörer bleiben wirkungslos angemeldet.
+		lobby = connectLobby({
+			saatGeber: (saat) => createSeeded(saatZuZahl(saat)),
+			geberSetzen: (neu) => { geber = neu ?? drawUint32; },
+			starten: (setup) => game.start(setup),
+			einsaetze: () => {
+				const summen = new Map();
+				for (const p of bets.snapshot().placements) {
+					summen.set(p.fieldId, (summen.get(p.fieldId) ?? 0) + p.value);
+				}
+				return [...summen].map(([f, b]) => ({ f, b }));
+			},
+			sperren: (zu) => {
+				// Derselbe Zeitpunkt, an dem inLobby erstmals wahr wird
+				// (Plan 4.17: "eine einzige let-Variable, die der Adapter
+				// beim ersten casino:lobby-stand auf true setzt").
+				inLobby = true;
+				goButton.setAttribute('aria-disabled', 'true');
+				if (zu) { bets.lock(); } else { bets.unlock(); }
+				felt?.refresh();
+				controls?.refresh();
+				zeichneAusloeser();
+			},
+			fremdeEinsaetze: (plaetze) => felt?.foreign?.(plaetze),
+			pointSetzen: (point) => wagers.restore({ point }),
+			uhr: () => {},
+		});
 
 		gebundeneSchluessel.add(key);
 		zeichneAusloeser();

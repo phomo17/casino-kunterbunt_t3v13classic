@@ -72,6 +72,11 @@
  * entstehen erst in der Ausgabe, mit deutschem Komma.
  */
 
+// @pruefstand laufzeit=lang
+// (langer Stichprobenlauf, rund eine halbe Stunde ohne --schnell. Läuft nur mit
+//  --lang, und dann OHNE --schnell — ein verkürzter Lauf ist kein Nachweis,
+//  siehe Kopf oben.)
+
 import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';

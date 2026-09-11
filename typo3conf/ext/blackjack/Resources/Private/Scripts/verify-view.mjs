@@ -23,7 +23,8 @@
  *   V-5   der Fokus bleibt sichtbar
  *   V-6   der Haken-Katalog stimmt, in beide Richtungen
  *   V-7   kein deutscher Anzeigetext im JavaScript
- *   V-8   blackjack.js trifft keine Rundenentscheidung
+ *   V-8   blackjack.js trifft keine Rundenentscheidung — mit einer benannten
+ *         Ausnahme (nachgezogen, D5-4)
  *   V-9   settle( kommt in der ganzen Extension nicht vor
  *   V-10  blackjack.js schreibt nicht ins Dokument, was das Spiel betrifft
  *   V-11  die Rechnung der nachgelegten Stapel stimmt (dieselbe Formel an
@@ -36,8 +37,11 @@
  *   V-16  jeder Abbruchpfad in bindTable() sperrt den Auslöser UND sagt
  *         einen eigenen Satz an
  *   V-17  alle benutzten XLIFF-Kennungen existieren, und keine ist unbenutzt
+ *   V-18  im Spiel wird nur echter Zufall eingespeist — außerhalb einer
+ *         Lobby-Runde (neu, D5-4, dieselbe Zusage wie V-6 in
+ *         craps/verify-view.mjs)
  *
- * Gegenproben: V-4-G, V-12-G, V-16-G.
+ * Gegenproben: V-4-G, V-12-G, V-16-G, V-18-G.
  *
  * Was dieses Skript AUSDRÜCKLICH NICHT beweist: ob die Karten bei realer
  * Bildschirmgröße und mit echten Vorleseprogrammen tatsächlich benutzbar
@@ -65,6 +69,8 @@
  * Extension schreibt roundStatusEl.textContent), nicht die im Plan konkret
  * genannte Datei.
  */
+
+// @pruefstand modus=egal laufzeit=kurz
 
 import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -450,14 +456,38 @@ console.log('\nV-7  Kein deutscher Anzeigetext im JavaScript');
 
 /* ============ V-8 blackjack.js trifft keine Rundenentscheidung */
 
-console.log('\nV-8  blackjack.js trifft keine Rundenentscheidung');
+console.log('\nV-8  blackjack.js trifft keine Rundenentscheidung — mit einer benannten Ausnahme (nachgezogen, D5-4)');
 {
+	// ABWEICHUNG VOM PLANTEXT (D5, Abschnitt 7, Risikotabelle) — dieselbe
+	// Abweichung, aus demselben Grund, wie in roulette.js/craps.js (D5-3,
+	// dort verify-view.mjs V-14/V-6): SEIT D5-4 ruft blackjack.js
+	// bets.lock()/bets.unlock() an GENAU EINER Stelle selbst — im
+	// sperren()-Rückruf an connectLobby(). Das ist KEINE Rundenentscheidung:
+	// es sperrt das Tuch nach der UHR DES SERVERS, nicht nach
+	// round-blackjack.js' eigenem Zustand (D.10.6, "In der Lobby entscheidet
+	// die Uhr des Servers, wann das Tuch zugeht — nicht der Auslöser").
+	// settle(, sweep( und payout( bleiben OHNE jede Ausnahme verboten —
+	// GENAU DAS ist die Rundenentscheidung, die weiterhin ausschließlich
+	// round-table-blackjack.js trifft.
+	const sperrenBlock = /sperren:\s*\(zu\)\s*=>\s*\{[\s\S]*?\n\t\t\t\},/.exec(blackjackJsOhneKommentare);
+	check(sperrenBlock !== null, 'der sperren()-Rückruf an connectLobby() wurde im Quelltext gefunden');
+	const ohneSperrenBlock = sperrenBlock !== null
+		? blackjackJsOhneKommentare.replace(sperrenBlock[0], '')
+		: blackjackJsOhneKommentare;
+
+	if (sperrenBlock !== null) {
+		check(/bets\.lock\(\)/.test(sperrenBlock[0]) && /bets\.unlock\(\)/.test(sperrenBlock[0]),
+			'die eine erlaubte Stelle ruft ausschließlich bets.lock()/bets.unlock() (das Tuch, nicht die Runde)');
+		check(!/settle\(|sweep\(|payout\(/.test(sperrenBlock[0]),
+			'auch die erlaubte Stelle enthält kein settle(/sweep(/payout(');
+	}
+
 	const VERBOTENE_MUSTER = [
 		['settle(', /settle\(/], ['sweep(', /sweep\(/], ['payout(', /payout\(/],
 		['.lock(', /\.lock\(/], ['.unlock(', /\.unlock\(/],
 	];
 	for (const [name, muster] of VERBOTENE_MUSTER) {
-		check(!muster.test(blackjackJsOhneKommentare), `blackjack.js enthält kein ${name}`);
+		check(!muster.test(ohneSperrenBlock), `blackjack.js enthält kein ${name} außerhalb des sperren()-Rückrufs`);
 	}
 	// settle( bleibt AUSSERHALB der Gegenprobe: BetTable.settle() wird an
 	// diesem Tisch an KEINER Stelle benutzt (bets-blackjack.js, Kopfkommentar)
@@ -636,6 +666,57 @@ console.log('\nV-17  Alle benutzten XLIFF-Kennungen existieren, keine ist unbenu
 	const AUSGENOMMEN = new Set(['automat.title', 'automat.description']);
 	const unbenutzt = [...einheiten.keys()].filter((id) => !AUSGENOMMEN.has(id) && !alleBenutztenKennungen.has(id));
 	check(unbenutzt.length === 0, 'keine Kennung (außer der dauerhaft dokumentierten Ausnahme) ist ohne f:translate-Fundstelle', ...unbenutzt);
+}
+
+/* ============ V-18 Nur echter Zufall im Spiel (neu, D5-4) ============ */
+
+console.log('\nV-18  Im Spiel wird nur echter Zufall eingespeist — außerhalb einer Lobby-Runde (neu, D5-4)');
+{
+	check(/import\s*\{[^}]*\bdrawUint32\b[^}]*\}\s*from\s*['"]@phomo17\/blackjack\/rng\.js['"]/.test(blackjackJsQuelle),
+		'blackjack.js importiert drawUint32 aus rng.js');
+
+	// Dieselbe Bauart wie craps/verify-view.mjs V-6 (D5-3): blackjack.js
+	// erwähnt createSeeded() an GENAU ZWEI Stellen: dem Import (der Name
+	// selbst) und GENAU EINEM Aufruf — als Geber der gemeinsamen Lobby-Runde
+	// (D.10.4, saatGeber-Rückruf an connectLobby()). Eine Zusage
+	// abzuschwächen ist immer verdächtig, deshalb kommt im Gegenzug eine
+	// schärfere Prüfung dazu: nicht nur DASS createSeeded genau einmal
+	// AUFGERUFEN wird, sondern GENAU DORT.
+	const createSeededAufrufe = blackjackJsOhneKommentare.match(/createSeeded\(/g) ?? [];
+	check(createSeededAufrufe.length === 1,
+		`createSeeded( wird in blackjack.js genau einmal AUFGERUFEN — als Geber der Lobby-Runde (gefunden: ${createSeededAufrufe.length}×)`);
+	check(/saatGeber:\s*\(saat\)\s*=>\s*createSeeded\(saatZuZahl\(saat\)\)/.test(blackjackJsOhneKommentare),
+		'die eine Stelle ist der saatGeber-Rückruf an connectLobby()');
+
+	console.log('     Gegenprobe (V-18-G): ein zweiter, erfundener Aufruf wird erkannt');
+	const verfaelscht = `${blackjackJsOhneKommentare}\nconst x = createSeeded(1);`;
+	check((verfaelscht.match(/createSeeded\(/g) ?? []).length === 2,
+		'ein eingefügter zweiter Aufruf wird von derselben Zählung erkannt');
+
+	// rng.js DEFINIERT createSeeded — für die Nachweisskripte und (seit
+	// D5-4) für die Lobby-Runde, nie fürs bloße Spielen außerhalb einer
+	// Lobby. Die rechnenden/zeichnenden Dateien bleiben davon unberührt.
+	// Geprüft wird OHNE Kommentare: shoe.js NENNT createSeeded lediglich in
+	// der JSDoc seines Konstruktors ("drawUint32 im Spiel, createSeeded(saat)()
+	// im Nachweis") — eine zutreffende Beschreibung des rng.js-Vertrags,
+	// kein Aufruf.
+	const SPIELFUEHRENDE_QUELLEN = [
+		['shoe.js', ohneKommentare(shoeQuelle)], ['round-blackjack.js', ohneKommentare(roundQuelle)],
+		['round-table-blackjack.js', roundTableOhneKommentare], ['view-blackjack.js', viewOhneKommentare],
+		['cards-blackjack.js', ohneKommentare(cardsQuelle)], ['sound-blackjack.js', soundOhneKommentare],
+		['rules-blackjack.js', ohneKommentare(rulesQuelle)],
+	];
+	const treffer = SPIELFUEHRENDE_QUELLEN.filter(([, quelle]) => quelle.includes('createSeeded'));
+	check(treffer.length === 0, 'createSeeded kommt in den rechnenden/zeichnenden Dateien (außerhalb von Kommentaren) nicht vor',
+		...treffer.map(([name]) => name));
+
+	// Dieselbe schärfere Gegenprobe wie C-3 in craps/verify-lobby-craps.mjs:
+	// "geber" wird in blackjack.js ausschließlich an zwei Stellen zugewiesen
+	// — der Anfangswert (let geber = drawUint32;) und geberSetzen().
+	const geberZuweisungen = blackjackJsOhneKommentare.match(/\bgeber\s*=/g) ?? [];
+	check(geberZuweisungen.length === 2,
+		`"geber" wird in blackjack.js an genau zwei Stellen zugewiesen (gefunden: ${geberZuweisungen.length}×)`,
+		...geberZuweisungen);
 }
 
 /* ------------------------------------------------------------- Ergebnis */

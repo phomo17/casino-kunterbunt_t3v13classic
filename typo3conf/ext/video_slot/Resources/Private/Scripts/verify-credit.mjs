@@ -100,6 +100,8 @@
  * zweier Kommazahlen auf Gleichheit.
  */
 
+// @pruefstand modus=egal laufzeit=kurz
+
 import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 
@@ -480,7 +482,23 @@ async function toModule(url, replacements, label) {
 
 console.log('Die elf Module');
 
-const CREDIT_URL = new URL('credit.js', CASINO_JS).href;
+// Seit Ausbaustufe 3, D3b importieren credit.js UND machine-credit.js
+// zusätzlich account-backend.js — ÜBER DAS PRÄFIX, nicht relativ (Korrektur
+// vom 2026-09-10, zweiter Nachbesserungslauf: coin_pusher/store.js
+// importiert account-backend.js zwangsläufig über dasselbe Präfix, ein
+// abweichender relativer Import in credit.js/machine-credit.js erzeugte im
+// Browser ein zweites, unabhängiges konto-Objekt unter einer zweiten
+// Adresse — an der laufenden Seite gemessen). credit.js braucht deshalb
+// jetzt ebenfalls einen Text-Patch, den es vor D3b nicht brauchte — CREDIT_URL
+// zeigt ab hier auf die gepatchte Fassung (auch bank.js weiter unten
+// bekommt dadurch automatisch denselben Kassen-Singleton).
+const ACCOUNT_URL = new URL('account-backend.js', CASINO_JS).href;
+const creditSourceForNode = await readFile(fileURLToPath(new URL('credit.js', CASINO_JS)), 'utf8');
+const patchedCreditForNode = creditSourceForNode.replaceAll(
+	"'@phomo17/casino-startpage/account-backend.js'", JSON.stringify(ACCOUNT_URL)
+);
+check(patchedCreditForNode !== creditSourceForNode, 'der Modulname account-backend.js in credit.js wurde für Node aufgelöst');
+const CREDIT_URL = `data:text/javascript;base64,${Buffer.from(patchedCreditForNode, 'utf8').toString('base64')}`;
 const TIMING_URL = new URL('risk-timing.js', CASINO_JS).href;
 const NIXIE_URL = new URL('nixie.js', VIDEO_JS).href;
 const MESSAGE_URL = new URL('message.js', VIDEO_JS).href;
@@ -491,6 +509,7 @@ const PAYOUT_URL = new URL('payout.js', VIDEO_JS).href;
 const COINSLOT_URL = new URL('coinslot.js', VIDEO_JS).href;
 
 const CREDIT_NAME = '@phomo17/casino-startpage/credit.js';
+const ACCOUNT_NAME = '@phomo17/casino-startpage/account-backend.js';
 const TIMING_NAME = '@phomo17/casino-startpage/risk-timing.js';
 const NIXIE_NAME = '@phomo17/video-slot/nixie.js';
 const MESSAGE_NAME = '@phomo17/video-slot/message.js';
@@ -501,6 +520,11 @@ const PAYOUT_NAME = '@phomo17/video-slot/payout.js';
 const COINSLOT_NAME = '@phomo17/video-slot/coinslot.js';
 const MACHINE_CREDIT_NAME = '@phomo17/casino-startpage/machine-credit.js';
 const RISK_LADDER_NAME = '@phomo17/casino-startpage/risk-ladder.js';
+// NACHGETRAGEN (Umsetzungsstück D3c, PLAN-d3-guthaben.md): risk-ladder.js
+// importiert seit D3c zusätzlich account-backend.js — PRÄFIX, nicht relativ
+// (Begründung im Kopf von risk-ladder.js selbst: dieses Skript lädt als
+// data:-Modul, ein relativer Import scheitert von dort aus).
+const RISK_LADDER_ACCOUNT_NAME = '@phomo17/casino-startpage/account-backend.js';
 
 const { credit } = await import(CREDIT_URL);
 check(typeof credit?.canAfford === 'function', 'casino_startpage/credit.js über seine Datei-URL geladen');
@@ -531,12 +555,12 @@ const { CoinSlot } = await import(COINSLOT_URL);
 check(typeof CoinSlot === 'function', 'video_slot/coinslot.js über seine Datei-URL geladen');
 
 const machineCreditUrl = await toModule(new URL('machine-credit.js', CASINO_JS),
-	[[CREDIT_NAME, CREDIT_URL]], 'machine-credit.js');
+	[[CREDIT_NAME, CREDIT_URL], [ACCOUNT_NAME, ACCOUNT_URL]], 'machine-credit.js');
 const { openMachineCredit } = await import(machineCreditUrl);
 check(typeof openMachineCredit === 'function', 'machine-credit.js geladen (openMachineCredit)');
 
 const riskLadderUrl = await toModule(new URL('risk-ladder.js', CASINO_JS),
-	[[TIMING_NAME, TIMING_URL]], 'risk-ladder.js');
+	[[TIMING_NAME, TIMING_URL], [RISK_LADDER_ACCOUNT_NAME, ACCOUNT_URL]], 'risk-ladder.js');
 const { RiskLadder, PHASE_OFFER, PHASE_LADDER } = await import(riskLadderUrl);
 check(typeof RiskLadder === 'function', 'risk-ladder.js geladen (RiskLadder, PHASE_OFFER, PHASE_LADDER)');
 

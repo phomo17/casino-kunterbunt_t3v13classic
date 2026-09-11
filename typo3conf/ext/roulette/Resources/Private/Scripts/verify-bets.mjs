@@ -66,6 +66,8 @@
  * Prüfung die Verfälschung tatsächlich findet.
  */
 
+// @pruefstand modus=egal laufzeit=kurz
+
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';

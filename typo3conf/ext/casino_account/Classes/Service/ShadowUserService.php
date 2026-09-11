@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phomo17\CasinoAccount\Service;
 
+use Doctrine\DBAL\ArrayParameterType;
 use TYPO3\CMS\Core\Database\Connection;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\DataHandling\DataHandler;
@@ -161,6 +162,103 @@ final readonly class ShadowUserService
         }
         // Je ein Zeichen aus den vier Klassen an fester Stelle beimischen.
         return 'Aa1!' . $password;
+    }
+
+    /**
+     * Die Spielenden-Nummern zu einer Liste von Schattendatensätzen.
+     *
+     * @param list<int> $feUserUids
+     * @return array<int, int> feUserUid => playerUid (nur gültige Paare)
+     */
+    public function playersForUsers(array $feUserUids): array
+    {
+        if ($feUserUids === []) {
+            return [];
+        }
+        $queryBuilder = $this->connectionPool->getQueryBuilderForTable(self::TABLE);
+        $queryBuilder->getRestrictions()->removeAll();
+        $rows = $queryBuilder
+            ->select('uid', 'tx_casinoaccount_player')
+            ->from(self::TABLE)
+            ->where(
+                $queryBuilder->expr()->in(
+                    'uid',
+                    $queryBuilder->createNamedParameter($feUserUids, ArrayParameterType::INTEGER)
+                )
+            )
+            ->executeQuery()
+            ->fetchAllAssociative();
+
+        $result = [];
+        foreach ($rows as $row) {
+            $playerUid = (int)($row['tx_casinoaccount_player'] ?? 0);
+            if ($playerUid > 0) {
+                $result[(int)$row['uid']] = $playerUid;
+            }
+        }
+        return $result;
+    }
+
+    /**
+     * Der Schattendatensatz, so wie ihn der Anmeldedienst braucht: als volle
+     * Zeile, mit allen Sperren des Kerns geprüft.
+     *
+     * WARUM NICHT AbstractAuthenticationService::fetchUserRecord(): jene
+     * Methode sucht über den BENUTZERNAMEN und wendet dabei die
+     * „check_pid_clause" des Kerns an — eine Einschränkung auf eine
+     * Seitennummer, die aus dem Anmeldeformular kommt. Unsere
+     * Schattendatensätze liegen im Kontenordner, dessen Nummer NIEMAND von
+     * außen mitschicken soll. Deshalb wird hier gezielt über die uid gesucht
+     * und die Sperren werden ausdrücklich selbst geprüft:
+     * deleted = 0, disable = 0, starttime <= jetzt, (endtime = 0 OR endtime > jetzt).
+     * Das ist dieselbe Liste, die der Kern in userConstraints() aufstellt —
+     * nur an einer Stelle, die man beim Lesen sieht.
+     *
+     * @return array<string, mixed>|null
+     */
+    public function findEnabledRow(int $feUserUid): ?array
+    {
+        if ($feUserUid <= 0) {
+            return null;
+        }
+        $now = (int)($GLOBALS['EXEC_TIME'] ?? time());
+        $queryBuilder = $this->connectionPool->getQueryBuilderForTable(self::TABLE);
+        $queryBuilder->getRestrictions()->removeAll();
+        $row = $queryBuilder
+            ->select('*')
+            ->from(self::TABLE)
+            ->where(
+                $queryBuilder->expr()->eq(
+                    'uid',
+                    $queryBuilder->createNamedParameter($feUserUid, Connection::PARAM_INT)
+                ),
+                $queryBuilder->expr()->eq(
+                    'deleted',
+                    $queryBuilder->createNamedParameter(0, Connection::PARAM_INT)
+                ),
+                $queryBuilder->expr()->eq(
+                    'disable',
+                    $queryBuilder->createNamedParameter(0, Connection::PARAM_INT)
+                ),
+                $queryBuilder->expr()->lte(
+                    'starttime',
+                    $queryBuilder->createNamedParameter($now, Connection::PARAM_INT)
+                ),
+                $queryBuilder->expr()->or(
+                    $queryBuilder->expr()->eq(
+                        'endtime',
+                        $queryBuilder->createNamedParameter(0, Connection::PARAM_INT)
+                    ),
+                    $queryBuilder->expr()->gt(
+                        'endtime',
+                        $queryBuilder->createNamedParameter($now, Connection::PARAM_INT)
+                    )
+                )
+            )
+            ->executeQuery()
+            ->fetchAssociative();
+
+        return $row === false ? null : $row;
     }
 
     /** Der Schattendatensatz zu einem Spielenden, oder 0. */

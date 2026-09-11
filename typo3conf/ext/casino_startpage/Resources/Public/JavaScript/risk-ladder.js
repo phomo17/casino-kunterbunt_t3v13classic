@@ -179,6 +179,12 @@
  */
 
 import { stepTiming } from '@phomo17/casino-startpage/risk-timing.js';
+// PRÄFIX, NICHT RELATIV (Plan D3c, Dateikopf-Nachtrag): verify-risk-timing.mjs
+// lädt diese Datei als data:-Modul (toModule()) — ein relativer Import
+// scheitert von dort aus (nur file://-Adressen lösen ihn auf, siehe der
+// Kopf von credit.js für den Gegenfall). Der Modulname wird dort wie
+// risk-timing.js selbst auf die echte Datei umgeschrieben.
+import { konto } from '@phomo17/casino-startpage/account-backend.js';
 
 /** Grundzustand. Alle Tasten der Leiter sind wirkungslos. */
 export const PHASE_OFF = 'off';
@@ -384,6 +390,12 @@ export class RiskLadder {
 		}
 
 		this.claim = claim;
+		// Der offene Gewinn ist ab jetzt Vermögen der Person (D.7: „ein Gewinn,
+		// der weder ausgezahlt noch verspielt ist"). Er wird SOFORT gebucht —
+		// D.7.1 verlangt genau diesen Schritt („gewinnt jemand 1, steht das
+		// Gesamtvermögen um 1 höher"). Ohne diese Buchung wäre die Summe oben
+		// auf der Seite so lange falsch, wie die Leiter läuft.
+		this.syncWin(konto.istServer ? konto.angebot(claim.amount) : null);
 		this.phase = PHASE_OFFER;
 		this.level = 0;
 		this.sideMs = 0;
@@ -447,15 +459,66 @@ export class RiskLadder {
 	 *
 	 * Die Seite wird zuerst gezogen: siehe drawSide().
 	 *
+	 * OPTIMISTISCH VERDOPPELT, UNBEDINGT, IN BEIDEN ZWEIGEN (Behebungslauf
+	 * 2026-09-11, Ursache des gemeldeten Geldfehlers): vorher wurde
+	 * this.claim.amount im Servermodus GAR NICHT hier gesetzt, sondern erst
+	 * Millisekunden später im .then() von syncWin(). Bis dahin lasen sowohl
+	 * beginLevel()/render('level') als auch report() noch den ALTEN Betrag —
+	 * die Anzeige hinkte dauerhaft eine Stufe hinterher. Schlimmer: drückte
+	 * der Spieler ein zweites Mal, bevor die erste Buchung zurück war, las
+	 * DIESER hit() ebenfalls noch current aus dem alten this.win und bucht
+	 * nur current × (factor − 1) auf Basis des alten Betrags — aus
+	 * 10 → 20 → 40 wurde 10 → 20 → 30, ein echter Geldverlust, nicht nur ein
+	 * Anzeigefehler. Die Zeile unten läuft deshalb jetzt IMMER, bevor
+	 * gebucht, die Stufe erhöht oder gemalt wird: ein zweiter, schneller
+	 * hit() liest current bereits als den bereits verdoppelten Betrag.
+	 *
 	 * @returns {void}
 	 */
 	hit() {
 		const side = this.drawSide();
 		const current = this.win;
 		this.claim.amount = current >= MAX_WIN / 2 ? MAX_WIN : current * 2;
+		// Im Servermodus BESTÄTIGT bzw. KORRIGIERT der Server anschließend
+		// diesen optimistischen Wert (D.7.2: „Der Server rechnet, ist die
+		// alleinige Wahrheit"). Angezeigt wird zuletzt immer, was er
+		// zurückgibt — deshalb sättigt der offene Gewinn dort bei
+		// 999.999.999 statt bei 2^53-1 (Plan 9.5). syncWin() überschreibt
+		// this.claim.amount und malt erneut (reason 'sync'), sobald die
+		// Antwort da ist; bis dahin gilt der optimistische Wert oben. Im
+		// lokalen Modus (kein Server) bleibt es bei genau diesem einen Wert.
+		if (konto.istServer) {
+			this.syncWin(konto.verdoppeln());
+		}
 		this.level += 1;
 		this.beginLevel(side);
 		this.report({ type: 'hit', level: this.level, win: this.win });
+	}
+
+	/**
+	 * Übernimmt den vom Server bestätigten offenen Gewinn.
+	 *
+	 * Warum nicht einfach await: offer() und hit() sind synchron und müssen es
+	 * bleiben — hit() setzt im selben Atemzug die neue Stufe und startet das
+	 * Blinkwerk, und ein await mitten darin verschöbe die Zeitmessung der
+	 * Leiter. Die Sicherheitsgrenze von 200 ms je Seite (B.6.1) hängt daran.
+	 * Deshalb läuft die Buchung nebenher, und wenn die Antwort da ist, wird der
+	 * angezeigte Betrag angeglichen und neu gemalt.
+	 *
+	 * @param {?Promise<object>} versprechen
+	 * @returns {void}
+	 */
+	syncWin(versprechen) {
+		if (versprechen === null) {
+			return;
+		}
+		void versprechen.then((antwort) => {
+			if (this.claim === null || antwort?.ok !== true) {
+				return;
+			}
+			this.claim.amount = antwort.gewinn;
+			this.render('sync');
+		});
 	}
 
 	/**
@@ -475,6 +538,11 @@ export class RiskLadder {
 		// Erst aus der Hand geben, dann verwerfen: ab hier ist der offene Gewinn
 		// 0, und genau das soll das Gerät malen.
 		this.claim = null;
+		// Der Gewinnspeicher ist leer. Vierter Schreibvorgang im Beispiel aus
+		// D.7.1 („verliert er, fällt es um 4 und wird erneut geschrieben").
+		if (konto.istServer) {
+			void konto.verloren();
+		}
 		claim.discard();
 
 		this.render('settled', 0);

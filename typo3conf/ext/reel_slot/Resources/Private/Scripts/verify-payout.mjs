@@ -42,6 +42,8 @@
  * Kommazahlen entstehen erst in der Ausgabe.
  */
 
+// @pruefstand modus=egal laufzeit=kurz
+
 import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';

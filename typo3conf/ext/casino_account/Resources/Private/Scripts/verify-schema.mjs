@@ -23,7 +23,7 @@
  * -------------------------------------------------------------------------
  *   S-1   Wächterblock: Pflichtdateien vorhanden, kein NUL-Byte, gezählte
  *         Zusagen (kein eigener Haken — Riegel, keine Zusage)
- *   S-2   ext_tables.sql nennt genau die elf Fachspalten aus Anhang I
+ *   S-2   ext_tables.sql nennt genau die zwölf Fachspalten aus Anhang I
  *   S-3   Keine der von DefaultTcaSchema ergänzten Spalten steht in
  *         ext_tables.sql (uid, pid, tstamp, crdate, deleted, hidden)
  *   S-4   token ist varchar(64) und trägt einen UNIQUE KEY
@@ -100,6 +100,9 @@
  * tatsächliche Abwesenheit der Spalte in der laufenden Datenbank. Siehe
  * DECISIONS.md, Eintrag vom selben Datum.
  */
+
+// @pruefstand modus=egal laufzeit=kurz
+// (reine Schema-/Datenbankprüfung, unabhängig vom QR-Schalter.)
 
 import { readFileSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -279,7 +282,7 @@ const xliff = lies(LOCALLANG_PFAD);
 
 /* ==================================================== S-2 Elf Fachspalten */
 
-console.log('S-2  ext_tables.sql nennt genau die elf Fachspalten aus Anhang I');
+console.log('S-2  ext_tables.sql nennt genau die zwölf Fachspalten aus Anhang I');
 {
 	/**
 	 * VON HAND AUS ANHANG I ABGESCHRIEBEN — nicht aus der SQL-Datei gelesen.
@@ -288,6 +291,13 @@ console.log('S-2  ext_tables.sql nennt genau die elf Fachspalten aus Anhang I');
 	const ERWARTETE_SPALTEN = [
 		'name', 'token', 'balance_cash', 'balance_machine', 'balance_win',
 		'role', 'fe_user', 'be_user', 'is_admin', 'booking_seq', 'last_seen',
+		// NACHTRAG 2026-09-10 (Umsetzungsstück D3a): booking_client kommt zu
+		// Anhang I hinzu. Grund im Plan PLAN-d3-guthaben.md: doppelt ist eine
+		// Buchung nur dann, wenn DERSELBE Browser dieselbe oder eine ältere
+		// Nummer erneut schickt. Mit nur booking_seq verwürfe der Server die
+		// Buchung einer zweiten Registerkarte still als „schon verarbeitet" —
+		// Geld verschwände.
+		'booking_client',
 	];
 
 	const playerBlock = /CREATE TABLE tx_casinoaccount_player\s*\(([\s\S]*?)\n\);/.exec(sql);
@@ -309,7 +319,7 @@ console.log('S-2  ext_tables.sql nennt genau die elf Fachspalten aus Anhang I');
 	const fehlend = ERWARTETE_SPALTEN.filter((s) => !gefundeneSpalten.includes(s));
 	const ueberzaehlig = gefundeneSpalten.filter((s) => !ERWARTETE_SPALTEN.includes(s));
 	check(fehlend.length === 0 && ueberzaehlig.length === 0,
-		`genau die elf Fachspalten stehen dort (gefunden: ${gefundeneSpalten.join(', ')})`,
+		`genau die zwölf Fachspalten stehen dort (gefunden: ${gefundeneSpalten.join(', ')})`,
 		...fehlend.map((s) => `fehlt: ${s}`),
 		...ueberzaehlig.map((s) => `überzählig: ${s}`));
 
@@ -385,6 +395,13 @@ console.log('\nS-6  Jede Spalte aus ext_tables.sql hat eine TCA-Spalte und umgek
 	const ERWARTETE_SQL_SPALTEN = [
 		'name', 'token', 'balance_cash', 'balance_machine', 'balance_win',
 		'role', 'fe_user', 'be_user', 'is_admin', 'booking_seq', 'last_seen',
+		// NACHTRAG 2026-09-10 (Umsetzungsstück D3a): booking_client kommt zu
+		// Anhang I hinzu. Grund im Plan PLAN-d3-guthaben.md: doppelt ist eine
+		// Buchung nur dann, wenn DERSELBE Browser dieselbe oder eine ältere
+		// Nummer erneut schickt. Mit nur booking_seq verwürfe der Server die
+		// Buchung einer zweiten Registerkarte still als „schon verarbeitet" —
+		// Geld verschwände.
+		'booking_client',
 	];
 	/**
 	 * Erlaubte Abweichungen, ausdrücklich benannt:
@@ -531,8 +548,8 @@ console.log('\nS-9  balance hat type => "none" (keinen spaltenerzeugenden Typ) U
 	check(!spaltenNamen.includes('balance'),
 		"'balance' ist in der laufenden Datenbank tatsächlich KEINE Spalte",
 		`Spalten (${spaltenNamen.length}): ${spaltenNamen.join(', ')}`);
-	check(spaltenNamen.length === 17,
-		`genau 17 Spalten in der laufenden Datenbank (gefunden: ${spaltenNamen.length})`,
+	check(spaltenNamen.length === 18,
+		`genau 18 Spalten in der laufenden Datenbank (gefunden: ${spaltenNamen.length})`,
 		...spaltenNamen);
 
 	console.log('     Gegenprobe S-9-G2: eine hinzugedachte Spalte "balance" in der DESCRIBE-Ausgabe muss auffallen');

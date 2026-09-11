@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="{lang}">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<f:comment>
+		noindex: eine Seite, die unter der Adresse eines Tisches erscheint,
+		aber kein Tisch ist, hat in keinem Suchindex etwas verloren. Zusätzlich
+		zum Kopfzeilen-Eintrag X-Robots-Tag (LobbyOverviewPage::render()).
+	</f:comment>
+	<meta name="robots" content="noindex,nofollow" />
+	<title>{labels.spielName} – {labels.titel}</title>
+	<f:comment>
+		Der Zustandsblock als erstes Kind von head, GENAU wie bei AccountBar
+		und GatePage: ein Gerät muss synchron erkennen können, unter welcher
+		Lobby-Nummer und mit welchem Takt es fragen soll. {zustandJson} kommt
+		aus LobbyOverviewPage::render() bereits mit den JSON_HEX_*-Schaltern
+		maskiert — eine zweite Maskierung durch Fluid würde den Block
+		zerstören, deshalb f:format.raw().
+	</f:comment>
+	<script type="application/json" data-cl-state>{zustandJson -> f:format.raw()}</script>
+	<f:comment>
+		Zwei Stylesheets, dieselbe Reihenfolge wie überall im Haus: erst die
+		Design-Tokens aus casino_startpage, dann die eigene Datei.
+	</f:comment>
+	<link rel="stylesheet" href="{tokensCssUrl}" />
+	<link rel="stylesheet" href="{cssUrl}" />
+</head>
+<body class="cl-page">
+	<main class="cl-overview">
+		<f:comment>Genau eine Überschrift erster Ordnung (D.12).</f:comment>
+		<h1 class="cl-overview__title">{labels.titel}</h1>
+		<p class="cl-overview__intro">{labels.einleitung}</p>
+
+		<f:comment>
+			Eine echte, geordnete Liste — damit ein Bildschirmleser ansagt,
+			wie viele Tische es gibt, und man von Eintrag zu Eintrag springen
+			kann.
+		</f:comment>
+		<ul class="cl-overview__list" data-cl-list data-cl-text-belegung-vorlage="{labels.belegung}">
+			<f:for each="{lobbys}" as="lobby">
+				<li class="cl-overview__item" data-cl-lobby="{lobby.uid}">
+					<span class="cl-overview__name">{lobby.name}</span>
+					<f:comment>
+						Die Belegung steht als Satz da ("3 von 8 Plätzen
+						belegt"), nicht als Bruchzahl — "3/8" liest ein
+						Bildschirmleser als "drei Schrägstrich acht".
+					</f:comment>
+					<span class="cl-overview__seats" data-cl-belegung>{lobby.belegung}</span>
+					<f:comment>
+						aria-disabled statt disabled an einem vollen Tisch: ein
+						disabled-Knopf verschwindet aus der Tabulatorreihenfolge
+						— wer ihn erreicht hatte, verliert seinen Platz im
+						Fokusfluss, sobald sich der Tisch füllt, und erfährt
+						nie, warum. Der Klick wird im Skript abgefangen.
+					</f:comment>
+					<f:if condition="{lobby.voll}">
+						<f:then>
+							<button type="button" class="cl-overview__join" aria-disabled="true" data-cl-join="{lobby.uid}">{labels.beitreten}</button>
+							<span class="cl-overview__full">{labels.voll}</span>
+						</f:then>
+						<f:else>
+							<button type="button" class="cl-overview__join" data-cl-join="{lobby.uid}">{labels.beitreten}</button>
+						</f:else>
+					</f:if>
+				</li>
+			</f:for>
+		</ul>
+
+		<p class="cl-overview__new">
+			<f:if condition="{neu}">
+				<f:then><button type="button" class="cl-overview__open" data-cl-open>{labels.neu}</button></f:then>
+				<f:else><span class="cl-overview__note">{labels.neuAus}</span></f:else>
+			</f:if>
+		</p>
+
+		<f:comment>
+			Der Live-Bereich für spätere Ansagen (D4c): ein EIGENES, optisch
+			verborgenes Element, nicht die sichtbare Liste — sonst sagt jede
+			Änderung ALLES neu an. Er steht LEER im ausgelieferten HTML
+			(erlaubte Variante, siehe locallang.xlf-Klassenkommentar: „leer
+			beziehungsweise mit seinem Anfangssatz"); ein von einem Skript
+			erst ERZEUGTER und im selben Zug GEFÜLLTER Bereich wird von
+			Hilfsmitteln nicht angesagt — deshalb steht er, wenn auch leer,
+			schon hier.
+		</f:comment>
+		<p class="ca-visually-hidden" role="status" aria-atomic="true" data-cl-announce></p>
+	</main>
+	<script type="module" src="{jsUrl}"></script>
+</body>
+</html>

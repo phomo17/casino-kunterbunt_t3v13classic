@@ -17,8 +17,12 @@
  * von ihr importiert — deshalb bleibt dice-physics.js importfrei und unter
  * Node unmittelbar ladbar (CONCEPT.md C.5.3).
  *
- * createSeeded() wird im Spiel NIE benutzt. Prüfung V-6 in verify-view.mjs
- * weist nach, dass craps.js ausschließlich drawUint32 einspeist.
+ * createSeeded() wird im EINZELSPIEL nie benutzt. SEIT D5-3 speist craps.js
+ * createSeeded(saatZuZahl(saat)) an genau einer Stelle ein — als Geber der
+ * gemeinsamen Lobby-Runde (D.10.4), wenn eine Lobby läuft. Prüfung V-6 in
+ * verify-view.mjs weist die dafür geschärfte Fassung nach: createSeeded
+ * kommt in craps.js genau einmal vor, und zwar dort. Außerhalb einer
+ * Lobby-Runde bleibt es bei drawUint32.
  *
  * WARUM KOPIERT UND NICHT GETEILT
  * --------------------------------
@@ -103,8 +107,9 @@ export function drawUint32() {
  * die Voraussetzung dafür, dass ein durchgefallener Lauf überhaupt
  * nachvollzogen werden kann.
  *
- * ER WIRD NIE IM SPIEL BENUTZT. verify-view.mjs prüft nach, dass craps.js
- * ausschließlich drawUint32 einspeist.
+ * IM EINZELSPIEL WIRD ER NIE BENUTZT. Seit D5-3 speist ihn craps.js einmal
+ * ein — als Geber der Lobby-Runde. verify-view.mjs (V-6) prüft das genau
+ * dort nach, nirgends sonst.
  *
  * @param {number} seed ganze Zahl; wird auf 32 Bit gestutzt
  * @returns {function(): number}
@@ -118,6 +123,30 @@ export function createSeeded(seed) {
 		z = Math.imul(z ^ (z >>> 15), 0x735a2d97);
 		return (z ^ (z >>> 15)) >>> 0;
 	};
+}
+
+/**
+ * Aus der Saat des Servers (16 Hex-Zeichen) eine vorzeichenlose 32-Bit-Zahl.
+ *
+ * FNV-1a, wie in casino_lobby/lobby-seed.js — und ABSICHTLICH noch einmal
+ * hier, aus demselben Grund, aus dem createSeeded() schon viermal im Haus
+ * steht: die Referenz in casino_lobby und die drei Fassungen der Tische sind
+ * VERSCHIEDENE Dateien, deren Gleichheit nachgewiesen wird (V-21 in
+ * verify-lobby-live.mjs, verify-lobby-craps.mjs C-4). Wären es dieselbe
+ * Datei, bewiese der Vergleich nichts — und der Tisch müsste aus
+ * casino_lobby importieren, was Plan D5, Abschnitt 4.0, ausschließt.
+ *
+ * @param {string} hex
+ * @returns {number}
+ */
+export function saatZuZahl(hex) {
+	let h = 0x811c9dc5;
+	const text = String(hex ?? '');
+	for (let i = 0; i < text.length; i++) {
+		h ^= text.charCodeAt(i);
+		h = Math.imul(h, 0x01000193) >>> 0;
+	}
+	return h >>> 0;
 }
 
 export default drawUint32;

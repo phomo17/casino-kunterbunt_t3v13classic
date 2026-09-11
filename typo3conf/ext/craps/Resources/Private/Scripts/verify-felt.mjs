@@ -107,6 +107,8 @@
  * gewöhnliches PHP-Programm auf (kein -r, kein eval).
  */
 
+// @pruefstand modus=egal laufzeit=kurz
+
 import { readFileSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';

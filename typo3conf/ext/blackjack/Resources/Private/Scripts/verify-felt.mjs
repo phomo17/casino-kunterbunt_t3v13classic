@@ -44,6 +44,8 @@
  * und die scharfe Erfassung von table.pending.
  */
 
+// @pruefstand modus=egal laufzeit=kurz
+
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import path from 'node:path';

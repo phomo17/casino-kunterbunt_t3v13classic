@@ -1,3 +1,5 @@
+// @pruefstand modus=egal laufzeit=kurz
+
 /**
  * FruitRisk – Nachweis von Kasse, Gerätekredit und Angebot
  * ===========================================================
@@ -700,7 +702,22 @@ async function toModule(url, replacements, label) {
 
 console.log('Die zwölf Module');
 
-const CREDIT_URL = new URL('credit.js', CASINO_JS).href;
+// Seit Ausbaustufe 3, D3b importieren credit.js UND machine-credit.js
+// zusätzlich account-backend.js — ÜBER DAS PRÄFIX, nicht relativ (Korrektur
+// vom 2026-09-10, zweiter Nachbesserungslauf: coin_pusher/store.js
+// importiert account-backend.js zwangsläufig über dasselbe Präfix, ein
+// abweichender relativer Import in credit.js/machine-credit.js erzeugte im
+// Browser ein zweites, unabhängiges konto-Objekt unter einer zweiten
+// Adresse — an der laufenden Seite gemessen). credit.js braucht deshalb
+// jetzt ebenfalls einen Text-Patch, den es vor D3b nicht brauchte — CREDIT_URL
+// zeigt ab hier auf die gepatchte Fassung.
+const ACCOUNT_URL = new URL('account-backend.js', CASINO_JS).href;
+const creditSourceForNode = await readFile(fileURLToPath(new URL('credit.js', CASINO_JS)), 'utf8');
+const patchedCreditForNode = creditSourceForNode.replaceAll(
+	"'@phomo17/casino-startpage/account-backend.js'", JSON.stringify(ACCOUNT_URL)
+);
+check(patchedCreditForNode !== creditSourceForNode, 'der Modulname account-backend.js in credit.js wurde für Node aufgelöst');
+const CREDIT_URL = `data:text/javascript;base64,${Buffer.from(patchedCreditForNode, 'utf8').toString('base64')}`;
 const PAYTABLE_URL = new URL('paytable.js', FRUIT_JS).href;
 const NIXIE_URL = new URL('nixie.js', FRUIT_JS).href;
 const COUNTER_URL = new URL('counter.js', FRUIT_JS).href;
@@ -711,6 +728,7 @@ const PRESS_URL = new URL('press.js', FRUIT_JS).href;
 const ANNOUNCE_URL = new URL('announce.js', FRUIT_JS).href;
 
 const CREDIT_NAME = '@phomo17/casino-startpage/credit.js';
+const ACCOUNT_NAME = '@phomo17/casino-startpage/account-backend.js';
 const MACHINE_CREDIT_NAME = '@phomo17/casino-startpage/machine-credit.js';
 const PAYTABLE_NAME = '@phomo17/fruit-risk/paytable.js';
 const NIXIE_NAME = '@phomo17/fruit-risk/nixie.js';
@@ -748,7 +766,7 @@ const { findRegion } = await import(ANNOUNCE_URL);
 check(typeof findRegion === 'function', 'fruit_risk/announce.js über seine Datei-URL geladen');
 
 const machineCreditUrl = await toModule(new URL('machine-credit.js', CASINO_JS),
-	[[CREDIT_NAME, CREDIT_URL]], 'machine-credit.js');
+	[[CREDIT_NAME, CREDIT_URL], [ACCOUNT_NAME, ACCOUNT_URL]], 'machine-credit.js');
 const { openMachineCredit } = await import(machineCreditUrl);
 check(typeof openMachineCredit === 'function', 'casino_startpage/machine-credit.js geladen (openMachineCredit)');
 
@@ -833,10 +851,17 @@ check(typeof Machine === 'function',
  * ersetzt und als data:-Modul geladen. risk.js importiert BEIDE
  * Site-Package-Module sowie drei geräteeigene (rng.js, nixie.js, press.js,
  * bereits oben geladen) und wird nach demselben Verfahren behandelt.
+ *
+ * NACHGETRAGEN (Umsetzungsstück D3c, PLAN-d3-guthaben.md): risk-ladder-multi.js
+ * importiert seit D3c zusätzlich account-backend.js — PRÄFIX, nicht relativ
+ * (Begründung im Kopf von risk-ladder.js: dieses Skript lädt als data:-Modul,
+ * ein relativer Import scheitert von dort aus). Derselbe ACCOUNT_URL, der
+ * oben schon für machine-credit.js aufgelöst wird.
  */
 const RISK_TIMING_URL = new URL('risk-timing.js', CASINO_JS).href;
 const RISK_TIMING_NAME = '@phomo17/casino-startpage/risk-timing.js';
 const RISK_LADDER_MULTI_NAME = '@phomo17/casino-startpage/risk-ladder-multi.js';
+const RISK_LADDER_MULTI_ACCOUNT_NAME = '@phomo17/casino-startpage/account-backend.js';
 const RISK_NAME = '@phomo17/fruit-risk/risk.js';
 
 const { stepTiming, cycleMs, CURVE_FLAT: RISK_CURVE_FLAT, CURVE_STEEP: RISK_CURVE_STEEP } = await import(RISK_TIMING_URL);
@@ -844,7 +869,7 @@ check(typeof stepTiming === 'function' && typeof cycleMs === 'function',
 	'casino_startpage/risk-timing.js über seine Datei-URL geladen (stepTiming, cycleMs)');
 
 const riskLadderMultiUrl = await toModule(new URL('risk-ladder-multi.js', CASINO_JS),
-	[[RISK_TIMING_NAME, RISK_TIMING_URL]], 'risk-ladder-multi.js');
+	[[RISK_TIMING_NAME, RISK_TIMING_URL], [RISK_LADDER_MULTI_ACCOUNT_NAME, ACCOUNT_URL]], 'risk-ladder-multi.js');
 const { MultiRiskLadder } = await import(riskLadderMultiUrl);
 check(typeof MultiRiskLadder === 'function',
 	'casino_startpage/risk-ladder-multi.js geladen (risk-timing.js aufgelöst) — DIE ECHTE MEHRTASTEN-LEITER');

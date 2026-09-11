@@ -1,6 +1,6 @@
 # Casino Kunterbunt
 
-**Version 0.4.0 — alpha.** Frühe Entwicklungsfassung, nichts ist stabil.
+**Version 0.5.0 — alpha.** Frühe Entwicklungsfassung, nichts ist stabil.
 
 Quelltext: <https://github.com/phomo17/casino-kunterbunt_t3v13classic>
 
@@ -32,7 +32,7 @@ Gebaut ist die Welt, in der das Spiel stattfinden wird:
 |---|---|
 | **Reel Slot** — klassischer Drei-Walzen-Automat mit Risiko-Leiter, Auto-Modus und Klang | fertig |
 | **Video Slot** — Fünf-Walzen-Automat mit fünf Gewinnlinien, Scatter, Risiko-Leiter, Auto-Modus und Klang | fertig |
-| **Coin Pusher** — Münzschieber mit eigener 2D-Physik | **eingefroren.** Auf ausdrücklichen Wunsch angehalten, bevor die Maßordnung fertig eingestellt war; wird später zurückgebaut. Drei Prüfungen in `verify-view.mjs` sind bekannt rot und bleiben es bis dahin — siehe die README dieser Extension |
+| **Coin Pusher** — Münzschieber mit eigener 2D-Physik | **eingefroren.** Auf ausdrücklichen Wunsch angehalten, bevor die Maßordnung fertig eingestellt war; der vorgesehene Rückbau ist auf Ansage übersprungen. **Drei der sechs Prüfskripte sind seit dem 2026-09-04 rot** (`verify-view.mjs`, `verify-physics.mjs`, `verify-payout.mjs`): der Physikkern trägt eine Münze aus dem Feld, und das Gerät schüttet rund doppelt so viel aus wie es einnimmt. Vollständig beschrieben in der README dieser Extension, Abschnitt „Der offene Befund vom 2026-09-04" |
 | **FruitRisk** — breiter Fruchtautomat mit sechs Walzen, 30 Gewinnlinien, festem Einsatz, Gewinn in jeder Runde und drei Risikospielen | fertig |
 
 **Vier Tische:**
@@ -46,8 +46,11 @@ Gebaut ist die Welt, in der das Spiel stattfinden wird:
 
 | | Stand |
 |---|---|
-| **Konten** — Backend-Reiter „Casino", Verwaltung der Spielenden, persönliche QR-Codes | Phase D1 fertig; QR-Modus, Frontend-Anmeldung und serverseitiges Guthaben stehen noch aus |
-| Lobbys und weitere Geräte | geplant |
+| **Konten** — Backend-Reiter „Casino" mit den Modulen „Spielende" und „QR-Modus", automatische Kennung, persönlicher QR-Code | fertig |
+| **Anmeldung im Frontend** — ist der QR-Modus an, führt jede Adresse zur Anmeldung: Kennung abtippen, Bild hochladen oder mit der Kamera scannen | fertig |
+| **Serverseitiges Guthaben** — die drei Beträge (Kasse, Gerätekredit, Gewinnspeicher) liegen auf dem Server, nicht mehr im Browser; jede Änderung wird sofort gebucht | fertig |
+| **Lobby** — mehrere Personen an einem Tisch, gemeinsame Runde und gemeinsame Setzuhr, an allen drei Tischen (Roulette, Craps, Blackjack) mit Shooter-Warteliste bzw. Plätzen und Zugreihenfolge, je nach Spiel | fertig |
+| Weitere Geräte | geplant |
 | Rollen, Regeln, Rundenablauf des Gesellschaftsspiels | geplant |
 
 ## Wie es gebaut ist
@@ -121,7 +124,7 @@ Assistenten die Datenbankdaten von DDEV eintragen — Benutzer `db`, Passwort
 einem eigenen Container). Beim Schritt „Was möchten Sie tun?" **„Leere
 Startseite"** wählen.
 
-### 4. Die neun Extensions aktivieren
+### 4. Die zehn Extensions aktivieren
 
 ```bash
 ddev exec php typo3/sysext/core/bin/typo3 extension:activate casino_startpage
@@ -133,6 +136,7 @@ ddev exec php typo3/sysext/core/bin/typo3 extension:activate fruit_risk
 ddev exec php typo3/sysext/core/bin/typo3 extension:activate roulette
 ddev exec php typo3/sysext/core/bin/typo3 extension:activate blackjack
 ddev exec php typo3/sysext/core/bin/typo3 extension:activate craps
+ddev exec php typo3/sysext/core/bin/typo3 extension:activate casino_lobby
 ddev exec php typo3/sysext/core/bin/typo3 dumpautoload
 ddev exec php typo3/sysext/core/bin/typo3 cache:flush
 ```
@@ -172,8 +176,22 @@ anpassen — hinterlegt ist `https://casino-kunterbunt.ddev.site/`.
 
 ### 6. Prüfen
 
-Jede Geräte- und Tisch-Extension bringt eigene Prüfskripte mit, die ohne
-Abhängigkeiten auskommen, zum Beispiel:
+Alle Prüfskripte aller zehn Extensions auf einmal:
+
+```bash
+ddev exec node typo3conf/ext/casino_startpage/Resources/Private/Scripts/pruefstand.mjs
+```
+
+Er findet die Skripte selbst, lässt aus, was im gerade eingestellten
+QR-Modus nichts beweisen kann, und zählt **drei** Dinge statt eines:
+erfüllte Zusagen, Fehler **und Lücken** — jede Zeile, in der ein Skript
+„übersprungen" meldet. Ein Skript ohne Fehler, das seinen wichtigsten Block
+übersprungen hat, heißt hier „grün mit Lücke" und steht einzeln im
+Schlussstand. Das ist der Unterschied zwischen „der Prüfstand ist grün" und
+„es wurde alles geprüft".
+
+Jede Geräte- und Tisch-Extension bringt außerdem ihre eigenen Prüfskripte
+einzeln mit, die ohne Abhängigkeiten auskommen, zum Beispiel:
 
 ```bash
 ddev exec node typo3conf/ext/reel_slot/Resources/Private/Scripts/verify-payout.mjs
@@ -192,7 +210,7 @@ nachweisen, steht im Abschnitt „Prüfskripte" ihrer eigenen `README.md`.
 | Extension | Aufgabe |
 |---|---|
 | `typo3conf/ext/casino_startpage` | Site Package: der Saal, die Design-Tokens, die geteilten Bausteine (Kasse, Gerätekredit, Klang, Risiko-Leiter, Chips, Setzfläche, Rundenablauf, Buy-in) und die Registry, bei der sich jedes Gerät und jeder Tisch anmeldet. Enthält außerdem den Mustertisch als Vorlage der Gattung Tisch |
-| `typo3conf/ext/casino_account` | Konten der Spielenden: eigener Backend-Reiter „Casino" mit dem Modul „Spielende", automatische Kennung, persönlicher QR-Code (Ansehen, Herunterladen, Drucken). Die erste rein backend-seitige Extension des Projekts — kein eigenes Inhaltselement, keine eigene Frontend-Seite |
+| `typo3conf/ext/casino_account` | Konten der Spielenden: Backend-Reiter „Casino" mit den Modulen „Spielende" und „QR-Modus", automatische Kennung, persönlicher QR-Code (Ansehen, Herunterladen, Drucken). Dazu die Anmeldung im Frontend, der Zugriffsschutz und der Buchungsendpunkt, über den das Guthaben serverseitig geführt wird. Liefert kein Inhaltselement, aber bei eingeschaltetem QR-Modus eigene Antworten (Anmeldeseite, Kontenleiste) |
 | `typo3conf/ext/reel_slot` | der Drei-Walzen-Automat |
 | `typo3conf/ext/video_slot` | der Fünf-Walzen-Automat |
 | `typo3conf/ext/coin_pusher` | der Münzschieber — eingefroren, wird später zurückgebaut |
@@ -200,6 +218,7 @@ nachweisen, steht im Abschnitt „Prüfskripte" ihrer eigenen `README.md`.
 | `typo3conf/ext/roulette` | der Roulette-Tisch |
 | `typo3conf/ext/blackjack` | der Blackjack-Tisch |
 | `typo3conf/ext/craps` | der Craps-Tisch — Würfelphysik, Tuch, Wetten und Auszahlung |
+| `typo3conf/ext/casino_lobby` | das Lobby-System: mehrere Personen an einem Tisch, gemeinsame Runde, gemeinsame Setzuhr und dieselbe Saat für alle. Ohne eingeschalteten QR-Modus vollständig unsichtbar |
 
 Ein Gerät oder ein Tisch ist ein eigenständiges Inhaltselement. Das Site
 Package kennt keinen einzelnen davon und muss nicht geändert werden, wenn
@@ -236,7 +255,7 @@ Es gibt zwei Ebenen, die getrennt gezählt werden:
   des Spiels als Ganzes.
 - **Die einzelnen Extensions** — je eine Version in ihrer `ext_emconf.php`.
 
-Zurzeit stehen alle neun Extensions wie das Projekt auf **0.4.0** im
+Zurzeit stehen alle zehn Extensions wie das Projekt auf **0.5.0** im
 Zustand **alpha**. Solange die Spielregeln des Gesellschaftsspiels noch nicht
 existieren, sagt eine höhere Zahl ohnehin wenig über Reife aus — sie zählt
 bislang nur mit, wie viele Geräte und Tische dazugekommen sind.

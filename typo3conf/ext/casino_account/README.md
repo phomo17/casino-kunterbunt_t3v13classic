@@ -21,11 +21,11 @@ additiv.
 | Extension-Key | `casino_account` |
 | Composer-Name | `phomo17/casino-account` |
 | Namespace | `Phomo17\CasinoAccount\` |
-| Tabelle | `tx_casinoaccount_player` |
+| Tabellen | `tx_casinoaccount_player`, `tx_casinoaccount_coinfield` (seit Ausbaustufe 3) |
 | TYPO3-Version | 13.4 (klassische, nicht Composer-basierte Installation) |
-| Abhängigkeit | `casino_startpage` >= 0.4.0 |
+| Abhängigkeit | `casino_startpage` >= 0.5.0 |
 | Lizenz | AGPL-3.0-or-later |
-| Zustand | 0.4.0 / alpha |
+| Zustand | 0.5.0 / alpha |
 
 ## Installation
 
@@ -52,9 +52,8 @@ Tools" anlegt. Sie bekommt bewusst **keinen** Seitenbaum an die linke Seite
 Frontends, ein Seitenbaum ohne etwas Anklickbares wäre für den Bearbeiter
 eine Falle.
 
-In der Gruppe liegt zurzeit ein Modul: **„Spielende"**. Eine zweite Zeile
-(„QR-Modus") kommt in Phase D2 hinzu — rein anhängend, kein Umbau dieser
-Datei.
+In der Gruppe liegen zwei Module: **„Spielende"** und **„QR-Modus"** (seit
+Phase D2) — rein anhängend, kein Umbau der Modulgruppe selbst.
 
 ## Das Modul „Spielende"
 
@@ -184,6 +183,184 @@ sich der Code nicht scannen lässt.
 irgendein anderes personenbezogenes Datum. Die Kennung allein ist bedeutungs­
 los, solange sie niemand kennt.
 
+## Der QR-Modus
+
+Seit Phase D2 gibt es einen eigenen Schalter: **Casino › QR-Modus**, direkt
+unter dem Modul „Spielende".
+
+**AUS** (Auslieferungszustand) bedeutet: der Saal steht allen offen, es gibt
+keine Anmeldung und keinen Zugriffsschutz — die Website verhält sich exakt so
+wie nach Teil C. Das Guthaben liegt dabei im Browserspeicher des jeweiligen
+Geräts, nicht serverseitig.
+
+**AN** bedeutet: ab sofort landet jede Adresse des Hauses ohne eine gültige
+Sitzung auf der Anmeldung (der „Torseite") — es gibt keinen Weg daran vorbei.
+Beim Einschalten warnt das Modul deshalb ausdrücklich und verlangt einen
+zweiten, ausdrücklichen Klick; Ausschalten braucht keine Warnung, weil es
+nichts kaputt macht, sondern nur wieder freigibt.
+
+Im Modul steht außerdem, **wie viele Spielende gerade angemeldet sind** (samt
+„zuletzt gesehen"), und ein Knopf **„Alle abmelden"** — für das Ende eines
+Spieleabends. Wird der Modus ausgeschaltet oder wird „Alle abmelden" benutzt,
+bucht die Extension automatisch jedes noch in einem Gerät oder auf der
+Risiko-Leiter liegende Guthaben in die Kasse zurück, damit nichts liegenbleibt
+(siehe „Anmelden und Abmelden" unten).
+
+**Das Backend bleibt immer erreichbar**, unabhängig vom Schalterstand — der
+QR-Modus schützt ausschließlich das Frontend. Wer sich im Backend aussperrt,
+kann es nicht: der Schalter lässt sich dort jederzeit wieder umlegen.
+
+## Anmelden und Abmelden
+
+Ist der QR-Modus **an**, gibt es drei Wege, sich anzumelden — der erste ist
+Pflicht und immer sichtbar, die beiden anderen sind Zugabe:
+
+1. **Von Hand.** Die 43-stellige Kennung in ein Feld eintippen. Dieser Weg
+   funktioniert auf jedem Gerät und jedem Browser, auch ohne Kamera und ohne
+   JavaScript.
+2. **Kamera.** Der QR-Code wird vor die Gerätekamera gehalten. Nur verfügbar,
+   wenn der Browser die eingebaute Erkennung (`BarcodeDetector`) mitbringt —
+   diese Extension schreibt **keinen eigenen** QR-Leser. Fehlt die Erkennung,
+   erscheint einfach keine Kamera-Schaltfläche; das sieht nicht wie ein Fehler
+   aus, sondern wie ein Gerät, auf dem man von Hand eintippt.
+3. **Bild.** Ein bereits aufgenommenes Bild des Codes auswählen — dieselbe
+   eingebaute Erkennung wie bei der Kamera, nur auf einem Einzelbild.
+
+Nach einer erfolgreichen Anmeldung leitet das Haus sofort auf eine saubere
+Adresse um, damit die Kennung nicht im Verlauf, in der Adresszeile oder in
+einem Lesezeichen hängenbleibt. Oben auf **jeder** Seite steht danach eine
+schmale Leiste mit dem Namen und dem Gesamtvermögen der angemeldeten Person
+sowie einem Knopf **„Abmelden"**.
+
+**Beim Abmelden** — ob über diesen Knopf, über „Alle abmelden" im Modul oder
+weil eine Sitzung von selbst abläuft — wird Geld, das noch in einem Gerät
+steckt oder auf der Risiko-Leiter liegt, **vollständig in die Kasse
+zurückgebucht**. Es kann so kein Geld in einem Gerät liegenbleiben.
+
+**BEHOBENER GELDFEHLER (Behebungslauf D6/4B, 2026-09-11, gefunden über
+`probe-abend.mjs`, I-8):** genau dieses Zurückbuchen griff beim Abmelden über
+den echten Knopf ".ca-bar__logout" bisher **nie** — unabhängig vom
+Gerätekredit. `BookOnLogout` (`Classes/EventListener/BookOnLogout.php`) las
+die fe_user-Kennung über `$event->getUser()->user['uid']`; dieses Feld ist zu
+dem Zeitpunkt, zu dem der Kern `BeforeUserLogoutEvent` auslöst, aber immer
+leer — `AbstractUserAuthentication::start()` setzt `$this->user = null;`, und
+der Formular-Logout-Zweig in `checkAuthentication()` läuft, BEVOR der Kern
+`$this->user` aus der Sitzung befüllt. Am lebenden Objekt nachgestellt: ein
+Testkonto mit 300 € Gerätekredit über den echten Knopf abgemeldet, danach
+stand der Gerätekredit unverändert bei 300. Behoben durch Lesen der Kennung
+über `$event->getUserSession()?->getUserId()` — die zu diesem Zeitpunkt noch
+nicht entfernte Sitzung selbst, unabhängig davon, ob `$this->user` in diesem
+Durchlauf schon befüllt wurde. Die Zusage steht seither zusätzlich als
+eigener, dauerhafter Block A-12 in `verify-auth.mjs`.
+
+## Der Buchungsendpunkt (Ausbaustufe 3, CONCEPT.md D.7)
+
+Seit Ausbaustufe 3 liegt der Server nicht mehr nur auf dem Vorschein — das
+Guthaben liegt bei eingeschaltetem QR-Modus **auf dem Server**, nicht mehr im
+Browserspeicher des Geräts. Eine vierte Schicht,
+`Phomo17\CasinoAccount\Middleware\BookingEndpoint`, beantwortet drei
+Adressen selbst und reicht alles andere unverändert weiter:
+
+| Adresse | Methode | Zweck |
+|---|---|---|
+| `/casino-konto/buchung` | `POST` | einen Vorgang ausführen |
+| `/casino-konto/stand` | `GET` | die drei Beträge abgleichen, ohne zu buchen |
+| `/casino-konto/feld` | `POST` | den Gerätespeicherstand des Coin Pushers schreiben — **kein Geld**, keine Buchungsnummer (D.8, D.13) |
+
+Er liegt in der Schichtenkette **nach** der Anmeldung und **vor** dem Tor:
+ein Aufruf ohne gültige Sitzung bekommt dadurch eine saubere JSON-Absage
+(`401`) statt der Torseite als HTML, die ein JSON-Aufrufer als Serverausfall
+deuten und das Gerät fälschlich sperren würde. Bei ausgeschaltetem QR-Modus
+gibt es diese drei Adressen nicht — sie laufen unverändert in die
+gewöhnliche Seitenauflösung des Kerns.
+
+**Der Spielende kommt ausschließlich aus der laufenden Sitzung.** Der
+Endpunkt liest an keiner einzigen Stelle eine Spieler-Kennung aus dem
+Aufruf — eine mitgeschickte Kennung würde stillschweigend ignoriert (D.9,
+siehe „Grenzen, offen gelegt" unten).
+
+### Die Antwortform
+
+Jeder Buchungsvorgang antwortet in derselben Form:
+
+```
+{ ok, grund?, kasse, geraet, gewinn, gesamt, bewegt, gekappt, doppelt }
+```
+
+`gesamt` ist immer `kasse + geraet + gewinn` und wird selbst nie
+gespeichert. Eine **Ablehnung** (zu wenig Guthaben, kein Admin) kommt mit
+Rückgabewert **200** und `ok: false` — sie ist kein Fehler des Endpunkts,
+sondern ein normaler Spielausgang. Nur was der Browser **nicht** als
+Antwort erkennt (Netzabbruch, ein 5xx, unlesbares JSON) löst die
+Sperranzeige der Kontenleiste aus.
+
+### Doppelte Buchungen
+
+Jeder Browser zählt seine Buchungen fortlaufend durch (`nummer`) und trägt
+eine eigene Kennung (`kunde`). Schickt derselbe Browser dieselbe oder eine
+ältere Nummer noch einmal — etwa nach einem abgebrochenen Netzwerkaufruf,
+dessen Antwort nie ankam —, bucht der Server **nicht** ein zweites Mal und
+antwortet mit `doppelt: true` bei unveränderten Beträgen. Zwei
+Registerkarten derselben Person zählen ihre Nummern unabhängig
+(`booking_client` neben `booking_seq`, siehe „Datenmodell" unten) — die
+Buchung der zweiten Karte wird deshalb nie fälschlich als „schon verarbeitet"
+verworfen.
+
+### Vorgänge nur für Admins
+
+Drei der elf Vorgänge — `aufladen`, `abbuchen`, `setzen` — bucht der Server
+ausschließlich für Spielende mit gesetztem `is_admin`. Ein Nicht-Admin
+bekommt `{ ok: false, grund: 'kein_admin' }`, die Beträge bleiben
+unverändert. Das ist die **serverseitige** Grenze aus D.7.3 — dass
+`credit-set.js` und `credit-display.js` in `casino_startpage` den
+zugehörigen Bedienteil für Nicht-Admins zusätzlich aus dem Dokument
+entfernen, ist eine Bedienbarkeitszusage obendrauf, nicht der eigentliche
+Schutz (siehe „Grenzen, offen gelegt" unten).
+
+### Der Zustandsblock
+
+Auf jeder ausgelieferten Seite steht — unmittelbar hinter dem öffnenden
+`<head>`, damit er garantiert vor jedem `async` eingebundenen Modul geparst
+ist — ein `<script type="application/json" data-ca-state>` mit den drei
+Beträgen, ihrer Summe, den drei vollständigen Endpunkt-Adressen, ob die
+angemeldete Person Admin ist, dem Höchststand je Betrag und den
+Gerätespeicherständen des Coin Pushers. **Kein Name, keine Kennung, keine
+Rolle** — was sichtbar in der Kontenleiste steht, steht nicht zusätzlich
+hier (D.9). `account-backend.js` in `casino_startpage` liest diesen Block
+synchron beim Laden und entscheidet daran, ob `credit.js`/`machine-credit.js`
+den Browserspeicher oder den Server führen (siehe dessen README, Abschnitt
+„Guthaben-Schnittstelle").
+
+### Die Sperranzeige
+
+Antwortet der Server nicht mehr, zeigt die Kontenleiste ein natives
+`<dialog>` (`.ca-lock`): der Rest der Seite wird für Maus, Tastatur und
+Hilfsmittel unerreichbar, der Fokus wandert hinein, Escape schließt **nicht**
+— eine Sperre, die sich wegdrücken lässt, wäre keine. Der Zustand steht als
+Satz da, nicht als Farbe. Nach Wiederherstellung der Verbindung geht die
+liegengebliebene Buchung über „Erneut versuchen" erneut hinaus (oder wird
+als doppelt erkannt — siehe oben) und die Anzeige verschwindet.
+
+### Das Datenmodell
+
+Seit Ausbaustufe 3 zusätzlich zu den bereits bestehenden Spalten von
+`tx_casinoaccount_player`:
+
+| Spalte | Zweck |
+|---|---|
+| `booking_client` | Kennung des Browsers, der zuletzt gebucht hat (siehe „Doppelte Buchungen" oben) |
+
+Dazu eine neue, eigene Tabelle `tx_casinoaccount_coinfield` — der
+Gerätespeicher einer Person (D.13): `player`, `store_key`, `payload`
+(bis zu 9 kB je Feldstand). Sie ist **kein Geld**: sie geht in kein
+Gesamtvermögen ein, hat keine Buchungsnummer und wird ausschließlich über
+`/casino-konto/feld` beschrieben — bislang der einzige Nutzer ist der Coin
+Pusher, aber die Spalten selbst nennen kein Gerät (der Adapter, der die
+Tabelle im Browser vertritt, liegt in `casino_startpage`, das keinen
+Automaten kennen darf). Bearbeitbar ist sie im Backend nicht (`hideTable`,
+`adminOnly`) — sie enthält einen maschinellen Speicherstand, kein
+redaktionelles Gut.
+
 ## Schattendatensätze in `fe_users`
 
 TYPO3 verlangt für eine Frontend-Sitzung einen Datensatz in der Tabelle der
@@ -225,14 +402,21 @@ TYPO3 wirft beim Abschalten einer Extension **nichts** von selbst weg. Wer
 `casino_account` deaktiviert, hat danach folgenden Bestand:
 
 * **Die Tabelle `tx_casinoaccount_player` bleibt stehen**, mit allen Konten
-  und allen Kennungen darin. Sie ist ohne die Extension nicht mehr
-  erreichbar, aber sie ist da. Wer sie wirklich loswerden will, tut das im
-  Install-Tool unter „Analyze Database" — dort wird sie als überflüssig
-  angeboten. **Das ist unwiderruflich.**
+  und allen Kennungen darin — seit Ausbaustufe 3 zusätzlich mit der Spalte
+  `booking_client` (siehe „Der Buchungsendpunkt" oben) und den drei
+  Geldspalten `balance_cash`, `balance_machine`, `balance_win`. Sie ist ohne
+  die Extension nicht mehr erreichbar, aber sie ist da. Wer sie wirklich
+  loswerden will, tut das im Install-Tool unter „Analyze Database" — dort
+  wird sie als überflüssig angeboten. **Das ist unwiderruflich.**
 * **Die Spalte `fe_users.tx_casinoaccount_player` bleibt stehen.** Sie stört
   nichts: sie steht in keinem Formular, wird von nichts gelesen und kostet
   vier Byte je Frontend-Benutzer. Auch sie wird im Install-Tool als
   überflüssig angeboten.
+* **Die Tabelle `tx_casinoaccount_coinfield` bleibt stehen** (seit
+  Ausbaustufe 3, D.13) — mit jedem je gespeicherten Gerätespeicherstand.
+  Auch sie ist kein Geld und enthält keine Kennung im Klartext, aber sie
+  bleibt bestehen wie jede andere Tabelle dieser Extension. Ebenfalls im
+  Install-Tool unter „Analyze Database" als überflüssig angebbar.
 * **Alle Schattendatensätze in `fe_users` bleiben stehen** — als gewöhnliche
   Frontend-Benutzer im Ordner „Casino Kunterbunt — Konten". Sie sind daran
   erkennbar, dass ihr Benutzername mit `casino-` beginnt. Anmelden kann sich
@@ -244,12 +428,19 @@ TYPO3 wirft beim Abschalten einer Extension **nichts** von selbst weg. Wer
   eine gewöhnliche Seite im Seitenbaum und wird nicht automatisch entfernt.
 * **Die Benutzergruppe „Casino Kunterbunt — Spielende" (`fe_groups`) bleibt
   stehen.**
-* **Die beiden `sys_registry`-Einträge bleiben stehen** — im Namensraum
-  `tx_casinoaccount`, die Schlüssel `storagePid` (Nummer des Kontenordners)
-  und `feGroupUid` (Nummer der Benutzergruppe). Sie lassen sich nur über das
-  Install-Tool oder von Hand in der Datenbank entfernen.
+* **Die `sys_registry`-Einträge bleiben stehen** — im Namensraum
+  `tx_casinoaccount`, die Schlüssel `storagePid` (Nummer des Kontenordners),
+  `feGroupUid` (Nummer der Benutzergruppe) und seit Phase D2 zusätzlich
+  `qrMode` (Stellung des Schalters). Sie lassen sich nur über das Install-Tool
+  oder von Hand in der Datenbank entfernen.
+* **Die Begrenzung der Anmeldeversuche verschwindet dagegen von selbst.** Die
+  beiden Einstellwerte `loginRateLimit` und `loginRateLimitInterval` (Phase
+  D2) stehen in `ext_localconf.php`, nicht in der Datenbank — sie sind mit der
+  Extension weg, sobald sie entfernt wird, und hinterlassen nichts.
 
-Alle diese Reste bleiben bestehen, **bis sie von Hand entfernt werden**.
+Alle diese Reste bleiben bestehen, **bis sie von Hand entfernt werden** — mit
+der einen genannten Ausnahme der Anmeldebegrenzung, die keine eigene Spur
+hinterlässt.
 
 ## Abgleich der Backend-Benutzer
 
@@ -276,16 +467,22 @@ inzwischen erspieltes Vermögen, kein technischer Spiegel mehr.
 
 ## Der Prüfstand
 
-Fünf Prüfskripte, alle unter `Resources/Private/Scripts/`, reines Node ab
-Fassung 18, ohne jede Abhängigkeit, rein lesend:
+Neun Prüfskripte, alle unter `Resources/Private/Scripts/`, reines Node ab
+Fassung 18, ohne jede npm-Abhängigkeit, rein lesend (vier davon fragen
+zusätzlich — ausschließlich lesend — die laufende Datenbank und/oder die
+laufende Website ab, siehe die Spalte „Prüft"):
 
 | Skript | Prüft |
 |---|---|
-| `verify-cabinet.mjs` | Die Hausprüfung: keine eigene Farbe (außer dem QR-Code), keine fremde Datei, Trennung von `casino_startpage`, keine fremde Marke (Negativliste), widerspruchsfreie Lizenzangaben, Ableitbarkeit von Schlüssel/Composer-Name/Namensraum/Tabellenpräfix, PSR-4, das Kürzel-Präfix `ca-`, der Icon-Vertrag, keine Datei außerhalb der Extension, kein echtes `disabled`, jede Beschriftung aus der XLIFF-Datei. |
+| `verify-cabinet.mjs` | Die Hausprüfung: keine eigene Farbe (außer dem QR-Code und der einen benannten Ausnahme im Eingabefeld der Torseite), keine fremde Datei, Trennung von `casino_startpage`, keine fremde Marke (Negativliste), widerspruchsfreie Lizenzangaben, Ableitbarkeit von Schlüssel/Composer-Name/Namensraum/Tabellenpräfix, PSR-4, das Kürzel-Präfix `ca-`, der Icon-Vertrag, keine Datei außerhalb der Extension, kein echtes `disabled`, kein ungesichertes `opacity`, jede Beschriftung aus der XLIFF-Datei. |
 | `verify-schema.mjs` | Das Datenmodell (`ext_tables.sql`, TCA) gegen `CONCEPT.md` Anhang I. |
-| `verify-module.mjs` | Die Modulgruppe, das Modul und die Ansicht der Liste. |
+| `verify-module.mjs` | Die Modulgruppe, das Modul „Spielende" und die Ansicht der Liste. |
 | `verify-account.mjs` | Kennung, Schattendatensätze und der Abgleich der Backend-Benutzer. |
 | `verify-qr.mjs` | Den QR-Code — einschließlich des selbst geschriebenen Rückwegs, der das Muster wieder in die eingespeiste Adresse zurückübersetzt. |
+| `verify-qrmode.mjs` | Den Schalter, das Modul „QR-Modus", die Sitzungsauskunft und den Buchhalter (live: Registry-Eintrag, keine verwaisten Sitzungen). |
+| `verify-auth.mjs` | Den Anmeldedienst, die Begrenzung der Anmeldeversuche und die drei Ereignis-Zuhörer (live: die Kette Kennung/Spielender/Schattendatensatz). |
+| `verify-gate.mjs` | Die vier Middlewares, die Torseite und `gate-scan.js` — statisch und live gegen die laufende Website, für beide Schalterstellungen. |
+| `verify-booking.mjs` | Der Buchungsendpunkt (seit Ausbaustufe 3): die vierte Schicht, die Ablehnung fremder Spieler-Kennungen im Aufruf, jeder Vorgang aus `BookingService::ARTEN`, die Admin-Grenze, das D.7.1-Beispiel Schritt für Schritt gegen die echte Datenbank, doppelte Buchungen, Kappung, der Zustandsblock und der Feld-Endpunkt — statisch und live, räumt am Ende jede verwendete echte Buchung wieder zurück. |
 
 Aufruf, jeweils von `/home/momo/Projects/casino-kunterbunt` aus:
 
@@ -295,15 +492,97 @@ ddev exec node typo3conf/ext/casino_account/Resources/Private/Scripts/verify-sch
 ddev exec node typo3conf/ext/casino_account/Resources/Private/Scripts/verify-module.mjs
 ddev exec node typo3conf/ext/casino_account/Resources/Private/Scripts/verify-account.mjs
 ddev exec node typo3conf/ext/casino_account/Resources/Private/Scripts/verify-qr.mjs
+ddev exec node typo3conf/ext/casino_account/Resources/Private/Scripts/verify-qrmode.mjs
+ddev exec node typo3conf/ext/casino_account/Resources/Private/Scripts/verify-auth.mjs
+ddev exec node typo3conf/ext/casino_account/Resources/Private/Scripts/verify-gate.mjs
+ddev exec node typo3conf/ext/casino_account/Resources/Private/Scripts/verify-booking.mjs
 ```
 
-Jedes der fünf Skripte trägt einen **Wächterblock**: fehlt eine Pflichtdatei
+Jedes der neun Skripte trägt einen **Wächterblock**: fehlt eine Pflichtdatei
 oder enthält sie ein NUL-Byte, bricht das Skript laut ab statt einen Block
 still zu überspringen; und jedes Skript zählt seine eigenen Zusagen und hält
 sie gegen eine fest eingetragene Zahl (`ERWARTETE_ZUSAGEN`) — sinkt die Zahl
 der tatsächlich ausgegebenen Zusagen, weil ein Prüfblock übersprungen wurde,
 schlägt der Wächter selbst dann Alarm, wenn keine einzige Prüfung als
 fehlgeschlagen gemeldet würde.
+
+**`verify-gate.mjs` prüft immer nur den gerade eingestellten Schalterstand**
+(rein lesend — es schaltet den QR-Modus nicht selbst um, das würde einen
+laufenden Abend stören können). Bei eingeschaltetem QR-Modus liefert die
+Startseite und jede andere Adresse des Hauses die Torseite statt der
+gewohnten Seite — das ist kein Fehler, sondern der Beweis, dass der
+Zugriffsschutz wirkt. Alle übrigen Prüfskripte dieses Projekts, die sich
+Seiten über HTTP holen, schlagen dann folgerichtig fehl. Der
+**Auslieferungszustand ist deshalb AUS**, und wer den Modus zum Prüfen
+einschaltet, schaltet ihn danach wieder aus.
+
+## Die Abendbilanz (`probe-abend.mjs`)
+
+Die neun Skripte des Prüfstands oben rechnen alle mit Dateien oder mit
+einzelnen, isolierten Anfragen. Keines von ihnen spielt einen ganzen Abend
+durch — und genau das war die Lücke, die fünf der bisher gefundenen echten
+Fehler dieses Projekts unentdeckt ließ: allesamt Geldfehler, keiner von
+einem Prüfskript gesehen (gefunden hat sie stattdessen der Auftraggeber
+beim Spielen, ein Live-Audit, und zweimal eine Probe mit zwei echten
+Browsern).
+
+`Resources/Private/Scripts/probe-abend.mjs` schließt diese Lücke: eine
+**Live-Probe**, kein Prüfskript des Reihenlaufs — sie heißt deshalb
+`probe-`, nicht `verify-`, und läuft nicht mit den neun Skripten oben mit.
+Sie führt über Playwright vier echte Browser durch einen ganzen simulierten
+Abend (Automaten, Tischwechsel, drei Lobby-Runden, Abmelden) und schreibt
+dabei **selbst** jede Anfrage an `/casino-konto/buchung` mit — der Server
+führt kein eigenes Buchungsjournal, `booking_seq`/`booking_client` halten
+nur die zuletzt verarbeitete Nummer. Am Ende steht eine einzige Zahl: die
+Differenz zwischen der tatsächlichen Vermögensänderung aller Spielenden und
+der Summe aller mitgeschriebenen Buchungen. Nachgerechnet wird dabei nicht
+mit einer Abschrift der Verrechnung, sondern mit
+`BookingService::rechnen()` selbst, über ein winziges PHP-Erntewerkzeug zur
+Laufzeit (Reflexion auf die unveränderte Datei, gelöscht nach dem Lauf) —
+dieselbe Bauart wie `casino_lobby/verify-lobby-round.mjs`.
+
+```
+ddev exec node typo3conf/ext/casino_account/Resources/Private/Scripts/probe-abend.mjs [--kurz] [--ohne=<phase>] [--behalten]
+```
+
+Braucht QR-Modus AN und zwei Umgebungsvariablen für den Backend-Zugang
+(`CASINO_BE_USER`, `CASINO_BE_PASS` — ein Admin-Konto; bewusst nicht im
+Quelltext). Legt vier Prüfkonten (`ACCTEST Abend A`–`D`) über das
+Backend-Modul „Spielende" an und räumt sie danach wieder ab (außer bei
+`--behalten`); `_d2check_` legt sie an, sein Kassenstand wird notiert und am
+Ende wiederhergestellt. Der Coin Pusher ist seit dem 2026-09-11
+abgeschrieben und deaktiviert (siehe `DECISIONS.md`) und spielt deshalb
+nicht mit — die dafür ursprünglich vorgesehene vierte Person spielt
+stattdessen eine kurze, eigene Runde am Reel Slot.
+
+Die Nachrechnung der Lobby-Runde gegen die echte Spielregel (nicht nur
+gegen die Verrechnung) läuft in vollem Umfang nur für **Roulette**
+(Wheel-Physik + Auszahlungstabelle, beides aus den echten Dateien). Für
+Craps und Blackjack prüft die Probe Seitenparität der Saat plus dieselbe
+scharfe Buchungsprüfung wie überall sonst — nicht aber, ob der gebuchte
+Betrag selbst dem Tischregelwerk entspricht; das ist eine bewusste,
+dokumentierte Lücke (Begründung im Dateikopf).
+
+### Offener Fund, NICHT in dieser Extension behoben (Behebungslauf D6/4B, 2026-09-11)
+
+Zwei von zehn Zusagen bleiben in JEDEM Lauf rot, reproduzierbar (bestätigt
+über fünf Live-Läufe hintereinander): „C konnte nicht setzen" und „alle drei
+erhalten dieselbe Saat für die Runde" in P6 (Lobby Roulette, A+B+C treten
+sehr kurz hintereinander bei). Ursache, am lebenden Objekt nachgestellt:
+`[data-cl-state]` (geliefert von `Phomo17\CasinoLobby\Service\LobbyState`,
+Extension `casino_lobby`) meldet nach dem Eröffnen einer Lobby manchmal eine
+Lobby-Nummer, die **eine niedriger** ist als die tatsächlich in
+`tx_casinolobby_lobby`/`tx_casinolobby_seat` angelegte Zeile — beobachtet
+z. B. gemeldet 236, tatsächlich angelegt 237. Wer als zweite oder dritte
+Person danach `[data-cl-join="<gemeldete Nummer>"]` sucht, findet nichts,
+bleibt auf der Tischübersicht stehen und kann nicht setzen. Reproduzierbar
+sowohl mit zwei zusätzlichen Beitretenden kurz hintereinander (P6, 5/5) als
+auch — seltener — mit nur einem (P8, live beobachtet). Die Ursache liegt in
+`casino_lobby` (`LobbyTable.php`/`LobbyService.php`/`LobbyState.php`), nicht
+in `casino_account`, und wurde deshalb hier **nicht** behoben — außerhalb des
+Rahmens dieses Behebungslaufs. `probe-abend.mjs` dokumentiert den Fund direkt
+an der betroffenen Stelle (P6-Abschnitt) und meldet ihn ehrlich als rot,
+statt ihn zu verschlucken.
 
 ## Grenzen, offen gelegt
 
@@ -321,20 +600,79 @@ fehlgeschlagen gemeldet würde.
 * **Beim Speichern von „Guthaben" mitten im Spiel** wird das Feld nur beim
   erneuten Öffnen mit der Kasse statt dem tatsächlichen Gesamtvermögen
   vorbelegt — siehe „Was beim Speichern von „Guthaben" passiert" oben.
-* **Was diese Phase (D1) ausdrücklich nicht ist:** kein QR-Modus-Schalter,
-  keine Frontend-Anmeldung, kein Zugriffsschutz, kein serverseitiges
-  Guthaben, keine Lobby. Das folgt in den Phasen D2 und D3.
+* **Der Server führt kein Buchungsjournal.** `booking_seq` und
+  `booking_client` halten nur die zuletzt verarbeitete Nummer je Browser;
+  welche Beträge heute Abend geflossen sind, lässt sich hinterher **nicht**
+  aus der Datenbank rekonstruieren. Das ist eine bewusste Entscheidung
+  (`CONCEPT.md` D.12: „Ein Verlauf oder eine Bestenliste" ist Nicht-Ziel,
+  gespeichert werden die drei Beträge und sonst nichts). Die Folge gehört
+  dazu: geht Geld verloren, sagt die Datenbank **nicht**, wo. Nachweisbar
+  wäre das nur, indem man mitschreibt, während es passiert — ein solches
+  Live-Messwerkzeug existiert für diese Extension noch nicht.
+
+**Die offengelegten Grenzen des Zugriffsschutzes (D.9)** — hier gehört die
+Wahrheit hin, damit niemand mehr hineinliest, als da ist:
+
+1. **Wer den QR-Code einer anderen Person abfotografiert, kann sich als sie
+   anmelden.** Der Code trägt die Kennung im Klartext; sie ist die einzige
+   Voraussetzung für die Anmeldung.
+2. **Eine Adresse mit fremder Kennung, die jemand anklickt, meldet ihn als
+   diese fremde Person an.** Das ist die unvermeidliche Kehrseite davon, dass
+   jede Kamera-App den Code öffnen kann (D.4.2) — der QR-Modus erlaubt die
+   Anmeldung ausdrücklich auch über eine einfache Adresse
+   (`…/?casinoToken=…`), weil das der ganze Sinn eines scanbaren Codes ist.
+3. **Wer die Protokollstufe des Kerns auf `debug` stellt, findet Kennungen im
+   Protokoll des Kerns.** TYPO3 selbst schreibt bei jeder Anmeldung einen
+   Debug-Eintrag mit den rohen Anmeldedaten (`uname`) — das lässt sich ohne
+   einen Eingriff in den Kern nicht abstellen. Unsere eigenen Protokoll­
+   einträge (`LogFailedLogin`) enthalten dagegen **nie** eine Kennung, nur
+   Absenderadresse, Länge und Wohlgeformtheit des Versuchs.
+4. **Der Schutz richtet sich gegen Versehen und Neugier, nicht gegen
+   Angriffe.** Das ist eine bewusste Vorgabe des Konzepts für ein Spaß-Casino
+   ohne echtes Geld, keine Nachlässigkeit dieser Extension — dieselbe Vorgabe,
+   die schon für den QR-Code selbst gilt (Punkt 1 oben).
+5. **Ein manipulierter Browser kann einen Vorgang behaupten, den es am
+   Gerät so nicht gab** — der Buchungsendpunkt (seit Ausbaustufe 3) vertraut
+   dem `art`-Feld einer Anfrage, weil er nicht wissen kann, ob wirklich ein
+   Hebel gezogen wurde. Was er **nicht** zulässt, ist eine falsche
+   *Rechnung*: welche der drei Beträge sich um wie viel ändern, rechnet
+   ausschließlich der Server selbst, nie der Browser (D.7.2) — ein
+   manipulierter Aufruf kann also einen Vorgang vortäuschen, aber keine
+   Zahl erfinden, die der Server nicht selbst errechnet hat. Ein Schutz
+   gegen absichtliches Betrügen ist **ausdrücklich kein Ziel** dieser
+   Extension (D.9, letzter Absatz; D.12) — dieselbe Vorgabe wie bei den
+   ersten vier Punkten: ein Spaß-Casino ohne echtes Geld.
 
 ## Stand
 
-**Phase D1 ist vollständig umgesetzt.** Die Extension bringt die
-Modulgruppe „Casino" mit dem Modul „Spielende" (Liste, Anlegen, Bearbeiten
-über die Formularmaschine des Kerns), die automatische Kennung, den
-Schattendatensatz in `fe_users`, den Abgleich der Backend-Benutzer mit
-1.000.000 Startguthaben sowie den persönlichen QR-Code mit Ansicht,
-Herunterladen (SVG und PNG) und Drucken. Alle fünf Prüfskripte dieser
-Extension sind grün.
+**Die Phasen D1 bis D3 sind vollständig umgesetzt.** Die Extension bringt
+die Modulgruppe „Casino" mit den Modulen „Spielende" und „QR-Modus" (Liste,
+Anlegen, Bearbeiten über die Formularmaschine des Kerns), die automatische
+Kennung, den Schattendatensatz in `fe_users`, den Abgleich der
+Backend-Benutzer mit 1.000.000 Startguthaben sowie den persönlichen QR-Code
+mit Ansicht, Herunterladen (SVG und PNG) und Drucken (Phase D1) — dazu den
+QR-Modus-Schalter, die Anmeldung mit der Kennung (ohne Passwort, über den
+Authentifizierungsdienst des Kerns), den Zugriffsschutz mit Torseite, die
+Kontenleiste mit Name und Gesamtvermögen auf jeder Seite und das automatische
+Zurückbuchen von Gerätegeld beim Abmelden (Phase D2) — und seit Ausbaustufe 3
+(Phase D3) den Buchungsendpunkt mit seinen drei Adressen, den serverseitigen
+Zustandsblock, die Sperranzeige bei Verbindungsabbruch, das freie Setzen und
+Aufladen des Kassenstands als reines Admin-Werkzeug sowie den
+Gerätespeicher-Endpunkt für den Coin Pusher (siehe „Der Buchungsendpunkt"
+oben). Alle neun Prüfskripte dieser Extension sind grün. Der
+Auslieferungszustand des QR-Modus ist **AUS**.
 
-Was diese Phase bewusst **nicht** enthält: einen QR-Modus-Schalter, eine
-Frontend-Anmeldung, einen Zugriffsschutz, ein serverseitiges Guthaben für
-die Geräte-Extensions und eine Lobby. Das ist Aufgabe der Phasen D2 und D3.
+**Phase D4 und D5 (die Lobby) setzen diese Extension voraus, ändern aber
+nichts an ihr.** Die Lobby (`casino_lobby` und die drei Tische) setzt den
+QR-Modus und eine gültige Kennung voraus, **bucht aber nicht selbst** —
+jeder Geldbetrag geht durch `BookingService`, denselben Weg wie jede andere
+Buchung. Am 2026-09-11 live nachgemessen, an zwei Tischen, je zweimal:
+„Keine einzige der 18 Anfragen an den Lobby-Endpunkt bucht einen
+Geldbetrag."
+
+Was diese Phasen bewusst **nicht** enthalten: eine Rolle, die irgendwo
+angezeigt wird, Rechte im Sinne einer Zugriffsstufe jenseits von
+„Admin"/„kein Admin", eine Lobby, eine Dauerabfrage oder einen
+Ereignisstrom für einen von selbst aktualisierenden zweiten Tab, und einen
+Schutz gegen absichtliches Betrügen (siehe „Grenzen, offen gelegt" oben,
+Punkt 5). Das ist Aufgabe von Teil E und späteren Phasen von Teil D.

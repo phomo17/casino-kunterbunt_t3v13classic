@@ -1,3 +1,5 @@
+// @pruefstand modus=egal laufzeit=kurz
+
 /**
  * Roulette – Nachweis des Tuchs (PHP-Spiegel, Markup, Sprache)
  * ================================================================

@@ -57,12 +57,17 @@
  * zweier Kommazahlen auf Gleichheit.
  */
 
+// @pruefstand modus=egal laufzeit=kurz
+
 import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 
 const JS_DIR = new URL('../../Public/JavaScript/', import.meta.url);
 const CREDIT_URL = new URL('credit.js', JS_DIR);
 const MACHINE_URL = new URL('machine-credit.js', JS_DIR);
+/** Seit Ausbaustufe 3, D3b: die eine Umschaltstelle, die credit.js UND
+ * machine-credit.js jetzt selbst importieren. */
+const ACCOUNT_URL = new URL('account-backend.js', JS_DIR);
 
 const CREDIT_KEY = 'casinoKunterbunt.credits';
 const MACHINE_KEY = 'pruefgeraet';
@@ -162,14 +167,36 @@ async function foreignWrite(key, newValue) {
    Die echten Module laden.
    -------------------------------------------------------------------------- */
 
-const machineSource = await readFile(fileURLToPath(MACHINE_URL), 'utf8');
-const patched = machineSource.replaceAll(
-	"'@phomo17/casino-startpage/credit.js'",
-	JSON.stringify(CREDIT_URL.href)
+// Seit Ausbaustufe 3, D3b importiert auch credit.js selbst ein Modul
+// (account-backend.js) — deshalb wird jetzt zuerst credit.js SELBST als
+// Text gepatcht, bevor machine-credit.js wie gehabt folgt. Beide — dieses
+// Skript UND machine-credit.js — laden danach dieselbe gepatchte Fassung
+// von credit.js (creditDataUrl), damit es nur EINEN Kassen-Singleton gibt.
+//
+// WARUM ÜBER DAS PRÄFIX UND NICHT RELATIV (Korrektur vom 2026-09-10, zweiter
+// Nachbesserungslauf): credit.js und machine-credit.js importieren
+// account-backend.js über dieselbe Adresse wie ein Gerätemodul (store.js)
+// in einer anderen Extension — das Präfix. Dieses Gerätemodul kann nicht
+// relativ importieren; ein hier abweichender relativer Import erzeugte im Browser
+// ein zweites, unabhängiges konto-Objekt unter einer zweiten Adresse
+// (an der laufenden Seite gemessen). Der Preis dafür ist, dass credit.js
+// unter Node wieder patch-bedürftig ist — wie machine-credit.js es ohnehin
+// schon immer war.
+const creditSource = await readFile(fileURLToPath(CREDIT_URL), 'utf8');
+const patchedCredit = creditSource.replaceAll(
+	"'@phomo17/casino-startpage/account-backend.js'",
+	JSON.stringify(ACCOUNT_URL.href)
 );
+check(patchedCredit !== creditSource, 'der Modulname in credit.js wurde für Node aufgelöst');
+const creditDataUrl = `data:text/javascript;base64,${Buffer.from(patchedCredit, 'utf8').toString('base64')}`;
+
+const machineSource = await readFile(fileURLToPath(MACHINE_URL), 'utf8');
+const patched = machineSource
+	.replaceAll("'@phomo17/casino-startpage/credit.js'", JSON.stringify(creditDataUrl))
+	.replaceAll("'@phomo17/casino-startpage/account-backend.js'", JSON.stringify(ACCOUNT_URL.href));
 check(patched !== machineSource, 'der Modulname in machine-credit.js wurde für Node aufgelöst');
 
-const { credit } = await import(CREDIT_URL.href);
+const { credit } = await import(creditDataUrl);
 const machineModule = await import(
 	`data:text/javascript;base64,${Buffer.from(patched, 'utf8').toString('base64')}`
 );

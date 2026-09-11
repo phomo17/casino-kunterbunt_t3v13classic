@@ -68,6 +68,8 @@
  * einer eigens gerechneten Alternative — niemals auf dem echten Zustandswerk.
  */
 
+// @pruefstand modus=egal laufzeit=kurz
+
 import { readFileSync, existsSync } from 'node:fs';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import path from 'node:path';

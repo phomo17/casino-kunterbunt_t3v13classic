@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+	Symbol der Extension in der Erweiterungsverwaltung.
+
+	Motiv: drei Punkte im Halbkreis um ein Oval — Personen an einem Tisch
+	(CONCEPT.md D.10). Selbst konstruiert aus Grundformen (Ellipse, drei
+	Kreise), nicht nachgezeichnet. Keine Zahl, keine Schrift, kein fremdes
+	Kartensymbol, kein Herstellername — dieselbe harte Regel wie beim
+	Symbol von casino_account.
+
+	viewBox 0 0 64 64, fill="currentColor": nimmt die Farbe des jeweiligen
+	Erscheinungsbilds (hell/dunkel) an.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img">
+	<title>Casino Kunterbunt – Lobby</title>
+	<g fill="currentColor">
+		<ellipse cx="32" cy="38" rx="22" ry="12" fill="none" stroke="currentColor" stroke-width="3" />
+		<circle cx="32" cy="14" r="5" />
+		<circle cx="14" cy="24" r="5" />
+		<circle cx="50" cy="24" r="5" />
+	</g>
+</svg>

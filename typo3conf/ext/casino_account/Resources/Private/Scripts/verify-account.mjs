@@ -36,8 +36,9 @@
  *         Schlüsselnamen, die der Kern liest — belegt gegen DataHandler.php
  *   K-9   PlayerDataHandlerHook ist in Services.yaml mit public: true
  *         angemeldet
- *   K-10  ext_localconf.php ist knapp: genau drei Zuweisungen, kein Aufruf,
- *         keine Schleife, keine Abfrage
+ *   K-10  ext_localconf.php bleibt schmal: genau fünf Feld-Zuweisungen plus
+ *         genau EIN begründeter Aufruf (addService, seit D2b — siehe
+ *         „ANGESAGTE ANPASSUNG 4" unten), keine Schleife, keine Abfrage
  *   K-11  Der Vorgabebetrag 1.000.000 steht an genau einer Stelle
  *         (BackendUserMirror::START_BALANCE)
  *   K-12  Der Abgleich ist wiederholbar: vorherige Nachfrage vor jedem Anlegen
@@ -81,7 +82,27 @@
  * fe_users und tx_casinoaccount_player anlegt, ist Sache des in Abschnitt 7.1
  * des Plans beschriebenen Messlaufs (Ausführungsanleitung im Bericht des
  * Umsetzers) — nicht dieses Prüfstands.
+ *
+ * ANGESAGTE ANPASSUNG 4 — K-10: FÜNF Zuweisungen plus EIN Aufruf, nicht mehr
+ * drei Zuweisungen ohne Aufruf
+ * -------------------------------------------------------------------------
+ * Umsetzungsstück D2b hat ext_localconf.php um zwei Dinge erweitert
+ * (CONCEPT.md D.6.2/D.9): den Anmeldedienst — ein Aufruf von
+ * ExtensionManagementUtility::addService(), keine Feld-Zuweisung — und zwei
+ * weitere $GLOBALS[…]-Zuweisungen für die Begrenzung der Anmeldeversuche
+ * (loginRateLimit, loginRateLimitInterval). Damit stehen jetzt FÜNF
+ * $GLOBALS[…]-Zuweisungen (drei aus D1/Dc, zwei aus D2b) und GENAU EIN
+ * Aufruf in der Datei. Die alte Zusage „genau drei Zuweisungen, kein Aufruf"
+ * wäre seit D2b schlicht falsch — sie wird hier NICHT stillschweigend
+ * entschärft, sondern durch eine schärfere Zusage ersetzt: die Zahl der
+ * Zuweisungen wird nachgezogen, UND der eine erlaubte Aufruf wird jetzt
+ * selbst gezählt und auf GENAU EINEN begrenzt (addService ist die
+ * dokumentierte Kern-API für einen Authentifizierungsdienst, kein Ersatz für
+ * eine Zuweisung, die man sich hätte sparen können). Ein zweiter, dritter …
+ * Aufruf fiele damit weiterhin auf, genau wie eine sechste Zuweisung.
  */
+
+// @pruefstand modus=egal laufzeit=kurz
 
 import { readFileSync, existsSync, readdirSync, statSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -235,12 +256,14 @@ for (const [name, pfad] of PFLICHTDATEIEN) {
 }
 
 /**
- * GEMESSEN, nicht geschätzt — in Umsetzungsstück De gefahren, abgelesen (52,
- * jetzt mit K-17 vollständig, seit die README den geforderten Text trägt) und
- * hier eingetragen (Rückbauprobe: ein check()-Aufruf testweise entfernt,
- * Wächter schlägt an, zurückgebaut, wieder grün).
+ * GEMESSEN, nicht geschätzt. Zuletzt in Umsetzungsstück De auf 52 gemessen;
+ * in Umsetzungsstück D2d erneut gefahren, abgelesen und hier nachgezogen
+ * (Rückbauprobe: ein check()-Aufruf testweise entfernt, Wächter schlägt an,
+ * zurückgebaut, wieder grün) — K-10 zählt seit D2b fünf Zuweisungen und
+ * einen Aufruf statt drei Zuweisungen ohne Aufruf und trägt dafür zwei
+ * check()-Aufrufe mehr als zuvor (siehe „ANGESAGTE ANPASSUNG 4").
  */
-const ERWARTETE_ZUSAGEN = 52;
+const ERWARTETE_ZUSAGEN = 55;
 
 const tokenGeneratorRoh = lies(TOKEN_GENERATOR_PFAD);
 const tokenGenerator = ohnePhpKommentare(tokenGeneratorRoh);
@@ -267,18 +290,55 @@ console.log('K-2  Nirgends im Classes/-Baum wird an TYPO3 vorbei geschrieben');
 	// (Variablenname deutet darauf hin) — sonst schlüge auch ein Aufruf wie
 	// $this->shadowUsers->delete($feUserUid) an, obwohl das eine eigene, über
 	// den DataHandler gehende Methode ist und keine rohe Datenbankschreibung.
-	const VERBOTENE_METHODEN = /\$(?:connection|conn|queryBuilder|db)\w*->(?:insert|update|delete|executeStatement)\s*\(/i;
+	// NACHTRAG 2026-09-10 (Umsetzungsstück D3a), ZWEI ÄNDERUNGEN, beide
+	// verschärfend:
+	//
+	// 1. Der Ausdruck erlaubt jetzt Zeilenumbrüche zwischen dem Pfeil und dem
+	//    Methodennamen (`[\s\n]*`). Vorher entkam `AccountBookkeeper.php` der
+	//    Prüfung ZUFÄLLIG, nur weil es seinen Aufruf mehrzeilig schreibt —
+	//    die Prüfung war also die ganze Zeit blind für genau den Stil, der im
+	//    Haus üblich ist. Das war ein Loch, kein Freibrief.
+	// 2. Es gibt jetzt eine NAMENTLICHE Ausnahmeliste statt gar keiner. Drei
+	//    Dateien dürfen direkt schreiben, und jede hat denselben Grund: im
+	//    Frontend gibt es keinen Backend-Benutzer, also gibt es auch keinen
+	//    DataHandler, über den man gehen könnte (CONCEPT.md D.7.2 verlangt
+	//    trotzdem, dass bei JEDER Änderung sofort geschrieben wird).
+	//    Alles andere unter Classes/ bleibt verboten — und die Liste ist
+	//    selbst eine Zusage: steht eine vierte Datei drin, fällt es auf.
+	const VERBOTENE_METHODEN = /\$(?:connection|conn|queryBuilder|db)\w*\s*->\s*(?:insert|update|delete|executeStatement)\s*\(/i;
 	const VERBOTENES_SQL = /\b(INSERT INTO|UPDATE\s+\S+\s+SET|DELETE FROM|TRUNCATE TABLE|ALTER TABLE|DROP TABLE)\b/i;
+
+	const DUERFEN_DIREKT_SCHREIBEN = [
+		'Classes/Service/AccountBookkeeper.php',   // D.8: Rückbuchung beim Abmelden
+		'Classes/Service/BookingService.php',      // D.7.2: der Buchungsendpunkt selbst
+		'Classes/Domain/CoinFieldRepository.php',  // D.13: das Coin-Pusher-Feld je Person
+	];
 
 	const treffer = [];
 	for (const { pfad, inhalt } of classesBereinigt) {
+		const kurzPfad = kurz(pfad);
+		if (DUERFEN_DIREKT_SCHREIBEN.some((erlaubt) => kurzPfad.endsWith(erlaubt))) {
+			continue;
+		}
 		if (VERBOTENE_METHODEN.test(inhalt) || VERBOTENES_SQL.test(inhalt)) {
-			treffer.push(kurz(pfad));
+			treffer.push(kurzPfad);
 		}
 	}
 	check(treffer.length === 0,
-		'kein ->insert(/->update(/->delete(/->executeStatement( und keine SQL-Anweisung im Classes/-Baum',
+		`kein ->insert(/->update(/->delete(/->executeStatement( und keine SQL-Anweisung im Classes/-Baum, außer in den ${DUERFEN_DIREKT_SCHREIBEN.length} namentlich erlaubten Dateien`,
 		...treffer.map((t) => `gefunden in: ${t}`));
+
+	// Die Ausnahmeliste ist selbst eine Zusage: jede genannte Datei muss es
+	// geben UND tatsächlich direkt schreiben. Sonst bliebe eine Ausnahme
+	// stehen, die niemand mehr braucht — und das nächste Mal schlüpft etwas
+	// durch, das sich nur so nennt.
+	const unnoetig = DUERFEN_DIREKT_SCHREIBEN.filter((erlaubt) => {
+		const datei = classesBereinigt.find(({ pfad }) => kurz(pfad).endsWith(erlaubt));
+		return !datei || !(VERBOTENE_METHODEN.test(datei.inhalt) || VERBOTENES_SQL.test(datei.inhalt));
+	});
+	check(unnoetig.length === 0,
+		'jede Datei der Ausnahmeliste existiert und schreibt tatsächlich direkt',
+		...unnoetig.map((t) => `Ausnahme ohne Grund: ${t}`));
 
 	console.log('     Gegenprobe K-2-G: ein hinzugedachtes $connection->update(…) muss auffallen');
 	const mitDirektemUpdate = mirror + "\n// \$connection->update('fe_users', ['name' => 'x'], ['uid' => 1]);";
@@ -431,18 +491,38 @@ console.log('\nK-9  PlayerDataHandlerHook ist in Services.yaml mit public: true 
 
 /* ==================================================== K-10 ext_localconf.php knapp */
 
-console.log('\nK-10 ext_localconf.php ist knapp: genau drei Zuweisungen, kein Aufruf, keine Schleife, keine Abfrage');
+console.log('\nK-10 ext_localconf.php bleibt schmal: genau fünf Zuweisungen plus genau ein begründeter Aufruf (addService), keine Schleife, keine Abfrage');
 {
 	const zuweisungen = (extLocalconf.match(/^\$GLOBALS\[/gm) || []).length;
-	check(zuweisungen === 3, `genau drei Zuweisungen (gefunden: ${zuweisungen})`);
+	check(zuweisungen === 5,
+		`genau fünf Zuweisungen (gefunden: ${zuweisungen}) — drei aus D1/Dc`
+		+ ' (DataHandler-Hooks, FormDataProvider) plus zwei aus D2b'
+		+ ' (loginRateLimit, loginRateLimitInterval)');
+
+	// addService() ist seit Umsetzungsstück D2b GENAU EINMAL erlaubt: es ist
+	// die dokumentierte Kern-API, um einen Authentifizierungsdienst
+	// anzumelden (CONCEPT.md D.6.2, ExtensionManagementUtility.php:650) —
+	// kein Ersatz für eine Feld-Zuweisung, sondern der einzige vom Kern
+	// vorgesehene Weg dafür. Die Prüfung zählt ihn deshalb ausdrücklich und
+	// begrenzt ihn auf GENAU EINEN, statt ihn stillschweigend durchzulassen.
+	const addServiceAufrufe = (extLocalconf.match(/ExtensionManagementUtility::addService\(/g) || []).length;
+	check(addServiceAufrufe === 1,
+		`genau ein ExtensionManagementUtility::addService()-Aufruf (gefunden:`
+		+ ` ${addServiceAufrufe}) — die dokumentierte Kern-API für den`
+		+ ' Anmeldedienst aus D.6.2, kein Ersatz für eine Zuweisung');
 
 	const VERBOTEN = /\b(foreach|while|for\s*\(|->executeQuery\(|GeneralUtility::makeInstance\()/;
-	check(!VERBOTEN.test(extLocalconf), 'kein Aufruf, keine Schleife, keine Abfrage');
+	check(!VERBOTEN.test(extLocalconf), 'keine Schleife, keine Abfrage, kein GeneralUtility::makeInstance(');
 
-	console.log('     Gegenprobe K-10-G: eine vierte Anweisung muss auffallen');
-	const mitVierter = extLocalconf + "\n\$GLOBALS['TYPO3_CONF_VARS']['SYS']['fake'] = 1;";
-	const zuweisungenMitVierter = (mitVierter.match(/^\$GLOBALS\[/gm) || []).length;
-	check(zuweisungenMitVierter === 4, 'K-10-G: die vierte Zuweisung wird gezählt');
+	console.log('     Gegenprobe K-10-G1: eine sechste Zuweisung muss auffallen');
+	const mitSechster = extLocalconf + "\n\$GLOBALS['TYPO3_CONF_VARS']['SYS']['fake'] = 1;";
+	const zuweisungenMitSechster = (mitSechster.match(/^\$GLOBALS\[/gm) || []).length;
+	check(zuweisungenMitSechster === 6, 'K-10-G1: die sechste Zuweisung wird gezählt');
+
+	console.log('     Gegenprobe K-10-G2: ein zweiter addService()-Aufruf muss auffallen');
+	const mitZweitemAddService = extLocalconf + "\nExtensionManagementUtility::addService('x', 'y', 'z', []);";
+	const addServiceMitZweitem = (mitZweitemAddService.match(/ExtensionManagementUtility::addService\(/g) || []).length;
+	check(addServiceMitZweitem === 2, 'K-10-G2: der zweite Aufruf wird gezählt');
 }
 
 /* ==================================================== K-11 Vorgabebetrag an genau einer Stelle */

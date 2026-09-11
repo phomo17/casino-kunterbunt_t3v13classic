@@ -19,13 +19,17 @@
  *         QrSvgRenderer.php (dort mit eigener, engerer Prüfung A-1b)
  *   A-1b  QrSvgRenderer.php trägt GENAU zwei Farbwerte: #000000 und #ffffff
  *   A-2   Jeder benutzte --ck-Token existiert in casino_startpage/tokens.css.
- *         Diese Extension benutzt KEINEN einzigen — das ist das erwartete
- *         Ergebnis und wird als solches ausgegeben, nicht übersprungen
- *   A-3   Keine Datei von außen. Enge, benannte Ausnahme: der dokumentierte
- *         Platzhalter „https://<host>" im Kopfkommentar von
+ *         Bis einschließlich D2b benutzte diese Extension KEINEN einzigen —
+ *         seit D2c/D2d (Torseite, Kontenleiste) benutzt sie echte Tokens,
+ *         und die Prüfung bestätigt das jetzt aktiv statt „keiner benutzt"
+ *   A-3   Keine Datei von außen. Zwei enge, benannte Ausnahmen: der
+ *         dokumentierte Platzhalter „https://<host>" im Kopfkommentar von
  *         PlayerUrlBuilder.php ist ein Datenwert (die Adresse auf dem
  *         QR-Code entsteht dort zur Laufzeit aus der Site-Verwaltung), keine
- *         Einbindung
+ *         Einbindung; und src="{…}" mit einem einzelnen Fluid-Ausdruck als
+ *         Wert (z. B. src="{jsUrl}" in Gate/Index.html) ist ebenfalls kein
+ *         eingebundenes Fremddokument, sondern ein zur Laufzeit über
+ *         PathUtility berechneter Wert (seit D2d korrigiert)
  *   A-4   Trennung: casino_startpage kennt "casino_account" nicht — im CODE,
  *         nicht in Kommentaren. Ausnahme: die geteilte negativliste.mjs
  *   A-5   Kein Treffer der geteilten Negativliste und keins der Zeichen
@@ -37,13 +41,20 @@
  *         declare(strict_types=1) und einem zu ihrem Pfad passenden
  *         namespace (PSR-4)
  *   A-9   Das Kürzel-Präfix "ca-" wird eingehalten (Klassen, data-Attribute),
- *         außer den ausdrücklich geteilten Backend-Klassen
+ *         außer den ausdrücklich geteilten Backend-Klassen (seit D2d auch
+ *         btn-warning/callout/callout-warning). Ein eingebetteter
+ *         Fluid-Ausdruck in einem class-Attribut wird vor dem Aufspalten
+ *         neutralisiert, statt ihn fälschlich in Wortfetzen zu zerlegen
+ *         (Korrektur seit D2d)
  *   A-10  Jede Datei unter Resources/Public/Icons/ hat viewBox="0 0 16 16",
  *         fill="currentColor", kein <text>, kein <image>
  *   A-11  Kein ext_tables.php; jede Datei dieser Extension liegt innerhalb
  *         von typo3conf/ext/casino_account/
  *   A-12  Kein echtes disabled im ausgelieferten HTML/JS; kein opacity ohne
- *         :not(:focus-visible) in backend.css
+ *         :not(:focus-visible) in backend.css ODER frontend.css (seit D2d
+ *         auf beide Dateien erweitert), außer den drei benannten,
+ *         fokuslosen Textzusätzen .ca-qrmode__seen/.ca-qrmode__hint/
+ *         .ca-gate__hint
  *   A-13  Jede Beschriftung im HTML kommt aus der XLIFF-Datei oder ist eine
  *         Fluid-Variable — kein Fließtext zwischen > und < in den beiden
  *         Vorlagen
@@ -71,6 +82,8 @@
  * (CONCEPT.md B.3 Nr. 4, V.7 Nr. 5) und wird nicht angetastet.
  */
 
+// @pruefstand modus=egal laufzeit=kurz
+
 import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
@@ -90,6 +103,20 @@ const EIGENER_SCHLUESSEL = path.basename(EXT);
  * wörtlich enthalten, um überhaupt gegen sie prüfen zu können). Jede andere
  * Datei bleibt unangetastet. Dieselbe enge Selbstausnahme wie in den acht
  * vorhandenen verify-cabinet.mjs.
+ *
+ * NACHGETRAGEN (Behebungslauf nach dem Laufzeit-Audit vom 2026-09-10, Phase
+ * D3): Abschnitt F hält die Behebung von K-01, K-02, K-03 und S-01 fest —
+ * dieselben Fund-Kennungen wie im Audit-Bericht, damit ein Rückbau sich
+ * direkt einer der dort beschriebenen Ursachen zuordnen lässt. Gerechnet
+ * wird bei K-03 mit der echten WCAG-2.2-Kontrastformel aus den tatsächlichen
+ * Hex-Werten in tokens.css, nicht mit abgeschriebenen Zahlen.
+ *
+ * NACHGETRAGEN (Behebungslauf nach dem Laufzeit-Audit vom 2026-09-10, Teil
+ * 2, angemeldeter Zustand): dieselbe Bauart, F-N01/F-N03/F-N04/F-N05 halten
+ * die Behebung von N-01, N-03/N-04 und N-05 fest. F-K01 wurde dabei an die
+ * neue Struktur angepasst, nicht verdoppelt: .ca-bar__total selbst trägt
+ * seither kein role="status" mehr, der Live-Bereich sitzt auf einem eigenen
+ * Element (F-N01).
  */
 const DIESE_DATEI = fileURLToPath(import.meta.url);
 
@@ -143,6 +170,45 @@ function ohneBlockKommentare(inhalt) {
 	return ohneFluidKommentare(inhalt).replace(/\/\*[\s\S]*?\*\//g, '');
 }
 
+/** Entfernt zusätzlich JS-Zeilenkommentare (// …) — für F-K01, dessen
+ * eigener Kommentar in account-live.js selbst das Wort "firstChild" nennt. */
+function ohneJsKommentare(inhalt) {
+	return ohneBlockKommentare(inhalt).replace(/\/\/.*$/gm, '');
+}
+
+/**
+ * Liefert den Inhalt des ERSTEN geschweiften Blocks nach `startIndex`,
+ * korrekt geklammert (zählt { und }, nicht die erste "}" — dieselbe Bauart
+ * wie methodenRumpf() in verify-gate.mjs/verify-auth.mjs). Für CSS-Blöcke
+ * mit verschachtelten Regeln (@media { .klasse { … } }) reicht ein naiver
+ * nicht-gieriger Regelausdruck nicht.
+ *
+ * @param {string} text
+ * @param {number} startIndex
+ * @returns {string} leer, wenn kein Block gefunden wurde
+ */
+function geklammerterBlock(text, startIndex) {
+	if (startIndex === -1) {
+		return '';
+	}
+	const auf = text.indexOf('{', startIndex);
+	if (auf === -1) {
+		return '';
+	}
+	let tiefe = 0;
+	for (let i = auf; i < text.length; i++) {
+		if (text[i] === '{') {
+			tiefe += 1;
+		} else if (text[i] === '}') {
+			tiefe -= 1;
+			if (tiefe === 0) {
+				return text.slice(auf, i + 1);
+			}
+		}
+	}
+	return '';
+}
+
 /**
  * Ersetzt einen Fund durch ebenso viele Zeilenumbrüche, damit Zeilennummern
  * stimmen bleiben (dieselbe Bauart wie in den acht vorhandenen
@@ -181,6 +247,7 @@ const ICONS = [
 ];
 const QR_SVG_RENDERER = 'Classes/Qr/QrSvgRenderer.php';
 const PLAYER_URL_BUILDER = 'Classes/Service/PlayerUrlBuilder.php';
+const FRONTEND_CSS = 'Resources/Public/Css/frontend.css';
 const OHNE_ICONS_UND_QR = AUSGELIEFERT.filter((datei) => {
 	const rel = path.relative(EXT, datei);
 	return !ICONS.includes(rel) && rel !== QR_SVG_RENDERER;
@@ -218,6 +285,11 @@ const PFLICHTDATEIEN = [
 	['Resources/Private/Templates/PlayerModule/Qr.html', path.join(EXT, 'Resources/Private/Templates/PlayerModule/Qr.html')],
 	['casino_startpage/…/negativliste.mjs', path.join(SITE, 'Resources/Private/Scripts/negativliste.mjs')],
 	['casino_startpage/…/tokens.css', path.join(SITE, 'Resources/Public/Css/tokens.css')],
+	// NACHGETRAGEN (Behebungslauf nach D3-Audit, Abschnitt F): die drei
+	// Dateien, in denen K-01/K-02/K-03/S-01 behoben wurden.
+	['Resources/Private/Templates/AccountBar/Index.html', path.join(EXT, 'Resources/Private/Templates/AccountBar/Index.html')],
+	['Resources/Public/JavaScript/account-live.js', path.join(EXT, 'Resources/Public/JavaScript/account-live.js')],
+	['Classes/Middleware/AccountBar.php', path.join(EXT, 'Classes/Middleware/AccountBar.php')],
 ];
 
 for (const [name, pfad] of PFLICHTDATEIEN) {
@@ -236,20 +308,45 @@ for (const [name, pfad] of PFLICHTDATEIEN) {
 
 /**
  * Die Anzahl der Zusagen, die ein vollständiger Lauf ausgibt. Sie wird
- * GEMESSEN, nicht geschätzt — in diesem Umsetzungsstück (De) wird sie in
- * diesem Lauf selbst gemessen und hier eingetragen.
+ * GEMESSEN, nicht geschätzt — zuletzt in Umsetzungsstück De auf 49 gemessen;
+ * in Umsetzungsstück D2d erneut gefahren, abgelesen (57) und hier
+ * nachgezogen (Rückbauprobe: ein check()-Aufruf testweise entfernt, Wächter
+ * schlägt an, zurückgebaut, wieder grün) — die acht zusätzlichen check()-
+ * Aufrufe stammen aus den fünf D2d-Erweiterungen von A-1/A-2/A-3/A-9/A-12
+ * (neue Gegenproben, siehe die jeweiligen Blöcke).
+ *
+ * NACHGETRAGEN (Behebungslauf nach D3-Audit): Abschnitt F (F-K01 bis F-S01)
+ * bringt 23 weitere check()-Aufrufe — gefahren und abgelesen (80), dieselbe
+ * Rückbauprobe wie oben.
+ *
+ * NACHGETRAGEN (Behebungslauf nach dem Laufzeit-Audit vom 2026-09-10, Teil
+ * 2): F-N01/F-N03/F-N04/F-N05 bringen 11 weitere check()-Aufrufe (F-K01
+ * selbst bleibt bei derselben Anzahl — nur eine seiner Zusagen wurde an die
+ * neue Struktur angepasst, keine hinzugefügt oder entfernt) — gefahren und
+ * abgelesen (91), dieselbe Rückbauprobe wie oben.
  */
-const ERWARTETE_ZUSAGEN = 49;
+const ERWARTETE_ZUSAGEN = 91;
 
 /* ============================================================= A-1 Farben */
 
-console.log('A-1  Kein ausgeschriebener Farbwert (außer den drei Icons und QrSvgRenderer.php)');
+console.log('A-1  Kein ausgeschriebener Farbwert (außer den drei Icons, QrSvgRenderer.php und der einen benannten Ausnahme in frontend.css)');
 {
 	const HEX = /(?<![&\w])#(?:[0-9a-fA-F]{8}|[0-9a-fA-F]{6}|[0-9a-fA-F]{3,4})\b/g;
 	const FUNKTION = /\b(?:rgba?|hsla?|oklch|oklab|lab|lch)\(/g;
 	const treffer = [];
 	for (const datei of OHNE_ICONS_UND_QR) {
-		const inhalt = ohneBlockKommentare(lies(datei));
+		const rel = path.relative(EXT, datei);
+		let inhalt = ohneBlockKommentare(lies(datei));
+		if (rel === FRONTEND_CSS) {
+			// ENGE, NAMENTLICHE AUSNAHME (seit Umsetzungsstück D2d): das
+			// Eingabefeld der Torseite braucht ein echtes Weiß — tokens.css
+			// definiert kein reines Weiß, und ein Eingabefeld in Papierfarbe
+			// wäre von seiner Umgebung nicht mehr zu unterscheiden (siehe
+			// Fußnote in frontend.css). Neutralisiert wird NUR der Wert
+			// "#fff" in GENAU dieser Datei — jeder andere Hex-Wert in
+			// frontend.css bleibt ein Fund (siehe Gegenprobe A-1-G2).
+			inhalt = inhalt.replace(/#fff\b/gi, '');
+		}
 		for (const m of inhalt.matchAll(HEX)) {
 			treffer.push(`${kurz(datei)}: ${m[0]}`);
 		}
@@ -261,13 +358,23 @@ console.log('A-1  Kein ausgeschriebener Farbwert (außer den drei Icons und QrSv
 		`kein ausgeschriebener Farbwert in ${OHNE_ICONS_UND_QR.length} Dateien`
 		+ ' (die drei SVG-Icons und QrSvgRenderer.php sind ausgenommen — sie'
 		+ ' stehen außerhalb des Backend-Dokuments bzw. tragen die begründete'
-		+ ' Kontrastausnahme des QR-Codes, siehe A-1b)',
+		+ ' Kontrastausnahme des QR-Codes, siehe A-1b; dazu die eine benannte'
+		+ ' Ausnahme "#fff" im Eingabefeld der Torseite, frontend.css)',
 		...treffer);
 
 	console.log('     Gegenprobe A-1-G: ein erfundener Wert in backend.css muss auffallen');
 	const backendCss = ohneBlockKommentare(lies(path.join(EXT, 'Resources/Public/Css/backend.css')));
 	const mitErfundenerFarbe = backendCss + '\n.ca-erfunden { color: #123456; }';
 	check([...mitErfundenerFarbe.matchAll(HEX)].length === 1, 'A-1-G: #123456 wird als Fund erkannt');
+
+	console.log('     Gegenprobe A-1-G2: der neutralisierte #fff in frontend.css darf keinen Fund mehr auslösen, ein zweiter, erfundener Wert in derselben Datei muss trotzdem auffallen');
+	const frontendCssInhalt = ohneBlockKommentare(lies(path.join(EXT, FRONTEND_CSS)));
+	const frontendCssNeutralisiert = frontendCssInhalt.replace(/#fff\b/gi, '');
+	check([...frontendCssNeutralisiert.matchAll(HEX)].length === 0,
+		'A-1-G2: #fff selbst löst nach der Neutralisierung keinen Fund mehr aus');
+	const mitZweitemWert = frontendCssNeutralisiert + '\n.ca-erfunden2 { color: #654321; }';
+	check([...mitZweitemWert.matchAll(HEX)].length === 1,
+		'A-1-G2: ein zweiter, erfundener Farbwert in derselben Datei wird trotzdem gefunden');
 }
 
 /* =========================================================== A-1b QR-SVG-Farben */
@@ -289,7 +396,7 @@ console.log('\nA-1b QrSvgRenderer.php trägt genau zwei Farbwerte: #000000 und #
 
 /* ============================================================= A-2 Tokens */
 
-console.log('\nA-2  Alle benutzten Design-Tokens existieren (erwartet: keiner)');
+console.log('\nA-2  Alle benutzten Design-Tokens existieren in casino_startpage/…/tokens.css');
 {
 	const tokensCss = lies(path.join(SITE, 'Resources/Public/Css/tokens.css'));
 	const definiert = new Set([...tokensCss.matchAll(/^\s*(--ck-[a-z0-9-]+)\s*:/gm)].map((m) => m[1]));
@@ -304,14 +411,18 @@ console.log('\nA-2  Alle benutzten Design-Tokens existieren (erwartet: keiner)')
 	const unbekannt = [...benutzt].filter(([name]) => !definiert.has(name));
 	check(unbekannt.length === 0,
 		`${benutzt.size} benutzte Tokens, alle in casino_startpage/…/tokens.css definiert`
-		+ ` (dort stehen ${definiert.size}). casino_account benutzt erwartungsgemäß`
-		+ ' KEINEN einzigen Token — das Backend bringt sein Aussehen selbst mit'
-		+ ' (backend.css, Kopfkommentar)',
+		+ ` (dort stehen ${definiert.size}). Bis einschließlich Umsetzungsstück D2b`
+		+ ' benutzte diese Extension KEINEN einzigen Token — sie hatte kein eigenes'
+		+ ' Frontend. Seit D2c/D2d bringt sie mit der Torseite und der Kontenleiste'
+		+ ' ein eigenes Frontend mit und benutzt deshalb erstmals echte Tokens des'
+		+ ' Hauses (das reine Backend-Modul bleibt weiterhin tokenlos, siehe'
+		+ ' backend.css, Kopfkommentar).',
 		...unbekannt.map(([name, datei]) => `${name} – benutzt in ${datei}`));
-	check(benutzt.size === 0,
-		`tatsächlich null Tokens benutzt (gefunden: ${benutzt.size}) — das ist das`
-		+ ' erwartete Ergebnis dieser Extension und wird hier ausdrücklich geprüft,'
-		+ ' nicht stillschweigend als "nichts zu tun" übersprungen');
+	check(benutzt.size > 0,
+		`tatsächlich ${benutzt.size} Tokens benutzt — die Prüfung greift wirklich`
+		+ ' und bestätigt aktiv, DASS Tokens benutzt werden, statt stillschweigend'
+		+ ' "nichts zu tun" zu überspringen (bis D2b galt das Gegenteil: dort war'
+		+ ' "null Tokens" die geprüfte, richtige Zusage)');
 
 	console.log('     Gegenprobe A-2-G: ein erfundener Token muss auffallen');
 	const erfunden = new Set([...benutzt.keys(), '--ck-gibt-es-nicht']);
@@ -339,7 +450,19 @@ console.log('\nA-3  Keine Datei von außen');
 				// xmlns:f="http://typo3.org/ns/…") — dieselbe Art Ausnahme wie
 				// die bisherige Icon-Ausnahme, nur allgemein statt nur für
 				// die drei Icons.
-				.replace(/xmlns[:\w-]*="[^"]*"/g, '');
+				.replace(/xmlns[:\w-]*="[^"]*"/g, '')
+				// KORREKTUR EINER FALSCHEN ERKENNUNG (seit Umsetzungsstück
+				// D2d): src="{jsUrl}" in Gate/Index.html ist KEINE fremde
+				// Datei, sondern ein einzelner Fluid-Ausdruck. Sein
+				// tatsächlicher Wert entsteht zur Laufzeit über
+				// PathUtility::getPublicResourceWebPath('EXT:…') in
+				// GatePage.php — also innerhalb der Extension, nicht als
+				// literal eingebundene fremde Adresse im Quelltext. Neutra-
+				// lisiert wird deshalb JEDES src="{…}" mit GENAU EINEM
+				// Fluid-Ausdruck als Wert, in JEDER Datei — ein echtes
+				// src="https://…" oder src="/irgendwas.js" bleibt davon
+				// unberührt, weil sein Wert kein einzelner {…}-Ausdruck ist.
+				.replace(/\bsrc="\{[^"{}]*\}"/g, '');
 			if (istIcon) {
 				gesaeubert = gesaeubert.replace('http://www.w3.org/2000/svg', '');
 			}
@@ -360,8 +483,12 @@ console.log('\nA-3  Keine Datei von außen');
 	}
 	check(treffer.length === 0,
 		'kein @import, kein url(…) auf eine Datei, kein src=, keine http-Adresse,'
-		+ ' kein <img>, kein @font-face (Ausnahme: der dokumentierte Platzhalter'
-		+ ' "https://<host>" in PlayerUrlBuilder.php, siehe Kopfkommentar)',
+		+ ' kein <img>, kein @font-face (Ausnahmen: der dokumentierte Platzhalter'
+		+ ' "https://<host>" in PlayerUrlBuilder.php, siehe Kopfkommentar; und'
+		+ ' src="{…}" mit einem einzelnen Fluid-Ausdruck als Wert, z. B.'
+		+ ' src="{jsUrl}" in Gate/Index.html — sein Wert entsteht über'
+		+ ' PathUtility::getPublicResourceWebPath(\'EXT:…\'), keine literal'
+		+ ' eingebundene fremde Adresse)',
 		...treffer);
 
 	console.log('     Gegenprobe A-3-G: eine hinzugedachte externe Adresse muss auffallen, der Platzhalter nicht');
@@ -369,6 +496,12 @@ console.log('\nA-3  Keine Datei von außen');
 	check(/https?:\/\//.test(mitFremderAdresse), 'A-3-G: eine echte Adresse wird gefunden');
 	const platzhalterAllein = 'https://<host>/?casinoToken=<Kennung>'.replace(/https:\/\/<host>[^\s]*/g, '');
 	check(!/https?:\/\//.test(platzhalterAllein), 'A-3-G: der neutralisierte Platzhalter löst KEINEN Fund mehr aus');
+
+	console.log('     Gegenprobe A-3-G2: src="{jsUrl}" darf keinen Fund mehr auslösen, ein echtes src="/pfad.js" weiterhin');
+	const mitFluidSrc = '<script type="module" src="{jsUrl}"></script>'.replace(/\bsrc="\{[^"{}]*\}"/g, '');
+	check(!/\bsrc=/.test(mitFluidSrc), 'A-3-G2: src="{jsUrl}" wird neutralisiert und löst keinen Fund mehr aus');
+	const mitEchtemSrc = '<script src="/fremd.js"></script>'.replace(/\bsrc="\{[^"{}]*\}"/g, '');
+	check(/\bsrc=/.test(mitEchtemSrc), 'A-3-G2: ein echtes src="/fremd.js" bleibt ein Fund');
 }
 
 /* ============================================================ A-4 Trennung */
@@ -385,13 +518,49 @@ console.log(`\nA-4  casino_startpage kennt "${EIGENER_SCHLUESSEL}" nicht (im Cod
 		new RegExp(roh.charAt(0).toUpperCase() + roh.slice(1)),
 	];
 	const PRAEFIX = new RegExp(`(^|[^-a-z])${kuerzel}-[a-z]`);
-	// Enge Ausnahme für genau eine Datei: die geteilte Negativliste
-	// casino_startpage/…/negativliste.mjs muss als ausführbares JS-Array
-	// wörtlich gerätespezifische Handelsnamen enthalten (siehe deren
-	// Kopfkommentar) — das koppelt casino_startpage nicht an dieses Gerät,
-	// derselbe Schutzzweck wie A-5 selbst. Dieselbe Art Ausnahme wie in den
-	// acht vorhandenen verify-cabinet.mjs.
-	const A4_AUSGENOMMEN = [path.join(SITE, 'Resources/Private/Scripts/negativliste.mjs')];
+	// Enge Ausnahme für genau zwei Dateien:
+	// - die geteilte Negativliste casino_startpage/…/negativliste.mjs muss
+	//   als ausführbares JS-Array wörtlich gerätespezifische Handelsnamen
+	//   enthalten (siehe deren Kopfkommentar) — das koppelt casino_startpage
+	//   nicht an dieses Gerät, derselbe Schutzzweck wie A-5 selbst.
+	// - casino_startpage/…/verify-account-backend.mjs (D3b, PLAN-d3-guthaben.md
+	//   4.21) ist das Prüfwerkzeug DIESER Extension für die Umschaltstelle zum
+	//   Konto — es muss testen können, dass account-backend.js selbst
+	//   "casino_account" nicht kennt (A-8), und liest für A-9 lesend aus
+	//   tx_casinoaccount_player/sys_registry. Ein Entwicklerwerkzeug, kein
+	//   Bestandteil der ausgelieferten Website; das koppelt die SEITE nicht an
+	//   casino_account, genau wie die Negativliste kein Gerät koppelt.
+	// - casino_startpage/…/verify-account-ui.mjs (D3c, PLAN-d3-guthaben.md
+	//   4.25) ist aus demselben Grund ausgenommen: U-6/U-7 lesen frontend.css,
+	//   account-live.js und AccountBar/Index.html aus casino_account, um die
+	//   dortige :has()-Regel und die Sperranzeige gegen das Markup und den
+	//   Quelltext von casino_startpage abzugleichen; U-8 liest lesend aus
+	//   tx_casinoaccount_player/sys_registry. Ebenfalls ein Entwicklerwerkzeug,
+	//   kein Bestandteil der ausgelieferten Website.
+	// - casino_startpage/…/verify-geo.mjs (2026-09-11) aus demselben Grund:
+	//   seine lebenden GEO-Prüfungen fragen jede Frontend-Adresse ab, und bei
+	//   eingeschaltetem QR-Modus antwortet dort die Torseite statt der Seite.
+	//   Ohne die lesende Abfrage von sys_registry ginge das Skript allein wegen
+	//   eines Schalterstands rot und sähe aus wie ein Rückschritt. Auch dies ein
+	//   Entwicklerwerkzeug, kein Bestandteil der ausgelieferten Website — die
+	//   SEITE bleibt entkoppelt, nur ihr Prüfwerkzeug weiß vom Schalter.
+	// - casino_startpage/…/pruefstand.mjs (Phase D6) aus demselben Grund: der
+	//   Reihenlauf des ganzen Hauses muss den Schalterstand selbst messen, um
+	//   zu entscheiden, welche der gefundenen Prüfskripte in diesem Zustand
+	//   überhaupt etwas beweisen — dieselbe lesende sys_registry-Abfrage wie
+	//   bei den drei Werkzeugen davor. pruefstand.mjs findet seine Prüfskripte
+	//   über ein Namensmuster (typo3conf/ext/*/Resources/Private/Scripts/
+	//   verify-*.mjs) und führt KEINE Liste von Gerätenamen — auch dieses
+	//   Werkzeug koppelt die SEITE nicht an ein Gerät oder an casino_account,
+	//   nur sich selbst als Entwicklerwerkzeug.
+	// Dieselbe Art Ausnahme wie in den acht vorhandenen verify-cabinet.mjs.
+	const A4_AUSGENOMMEN = [
+		path.join(SITE, 'Resources/Private/Scripts/negativliste.mjs'),
+		path.join(SITE, 'Resources/Private/Scripts/verify-account-backend.mjs'),
+		path.join(SITE, 'Resources/Private/Scripts/verify-account-ui.mjs'),
+		path.join(SITE, 'Resources/Private/Scripts/verify-geo.mjs'),
+		path.join(SITE, 'Resources/Private/Scripts/pruefstand.mjs'),
+	];
 	const treffer = [];
 	for (const datei of alleDateien(SITE).filter((d) => !A4_AUSGENOMMEN.includes(d))) {
 		const zeilen = ohneAlleKommentare(lies(datei)).split('\n');
@@ -576,15 +745,42 @@ console.log('\nA-9  Das Kürzel-Präfix "ca-" wird eingehalten');
 	 * Geteilte Haken des Kern-Backends, die absichtlich KEIN ca-Präfix
 	 * tragen — die Bootstrap-artigen Klassen, die jedes TYPO3-Backend-Modul
 	 * benutzt (Bootstrap-Grundlage des Backends), plus die feste
-	 * Fluid-Namensraum-Kennzeichnung auf <html>.
+	 * Fluid-Namensraum-Kennzeichnung auf <html>. Seit Umsetzungsstück D2d
+	 * ergänzt um 'btn-warning', 'callout' und 'callout-warning' — dieselbe
+	 * Sorte Bootstrap-Klasse wie die bereits vorhandenen 'btn-*'/'badge-*',
+	 * benutzt vom Modul "QR-Modus" (QrModeModule/Index.html) für die
+	 * Warnung vor dem Einschalten.
 	 */
 	const GETEILT = new Set([
-		'btn', 'btn-default', 'btn-primary', 'btn-sm',
+		'btn', 'btn-default', 'btn-primary', 'btn-sm', 'btn-warning',
 		'badge', 'badge-warning',
 		'table', 'table-fit', 'table-striped', 'table-hover',
 		'visually-hidden',
+		'callout', 'callout-warning',
 	]);
 	const GETEILTE_ATTRIBUTE = new Set(['data-namespace-typo3-fluid']);
+	/**
+	 * ZWEITE, EBENSO ENG BENANNTE AUSNAHME (seit Umsetzungsstück D2d): nicht
+	 * jedes eigene data-Attribut ist ein "ca-Haken" (ein Selektor, über den
+	 * JavaScript ein Element FINDET — dafür gilt weiterhin ausnahmslos
+	 * data-ca-*, z. B. data-ca-bar, data-ca-gate-scan). Zwei Muster tragen
+	 * stattdessen NUTZLAST, keinen Selektor, und sind seit D2c/D2d bewusst
+	 * OHNE ca- benannt:
+	 *   data-message-*  auf dem Scan-Bereich der Torseite (Gate/Index.html):
+	 *                    trägt den über XLIFF übersetzten Satz, den
+	 *                    gate-scan.js anzeigt — dieselbe, bereits geprüfte
+	 *                    Zusage wie verify-gate.mjs G-6 ("jeder angezeigte
+	 *                    Satz kommt aus einem data-message-*"), das diese
+	 *                    Schreibweise selbst voraussetzt und schon grün ist.
+	 *   data-value       auf der Kontenleiste (AccountBar/Index.html): der
+	 *                    rohe Zahlwert neben der formatierten Anzeige, für
+	 *                    den Buchungsendpunkt aus D3 (siehe Kopfkommentar der
+	 *                    Vorlage) — ein allgemeiner Nutzlast-Träger, kein
+	 *                    Element-Selektor, deshalb dieselbe Kategorie wie
+	 *                    data-message-*.
+	 * Jedes andere, unpräfigierte data-Attribut bleibt ein Fund.
+	 */
+	const DATA_NUTZLAST = /^data-message-[a-z-]+$/;
 	const treffer = [];
 	for (const datei of AUSGELIEFERT) {
 		const rel = path.relative(EXT, datei);
@@ -593,7 +789,22 @@ console.log('\nA-9  Das Kürzel-Präfix "ca-" wird eingehalten');
 		}
 		const inhalt = ohneBlockKommentare(lies(datei));
 		for (const m of inhalt.matchAll(/\bclass="([^"]*)"/g)) {
-			for (const klasse of m[1].split(/\s+/).filter(Boolean)) {
+			// KORREKTUR EINER FALSCHEN ERKENNUNG (seit Umsetzungsstück D2d):
+			// ein eingebetteter Fluid-Inline-Ausdruck wie
+			// {f:if(condition: on, then: 'on', else: 'off')} enthält selbst
+			// Leerzeichen und Kommas. Ohne Neutralisierung zerlegte das
+			// naive Aufspalten nach Leerzeichen so einen Ausdruck in
+			// Wortfetzen ("condition:", "on,", "then:", …), die alle als
+			// Fund ohne ca-Präfix gemeldet würden — ein Fehler der
+			// Erkennung, keine echte Regelverletzung. Ein {…}-Ausdruck
+			// liefert zur Laufzeit GENAU EIN Klassenwort (bzw. hängt an ein
+			// vorangehendes Wort an, wie in "ca-qrmode__state--{f:if(…)}");
+			// er wird deshalb vor dem Aufspalten durch einen
+			// leerzeichenfreien Platzhalter ersetzt, der selbst kein
+			// erlaubtes Präfix hätte, sodass das umgebende, statische Wort
+			// weiterhin geprüft wird.
+			const klassenwert = m[1].replace(/\{[^{}]*\}/g, 'X');
+			for (const klasse of klassenwert.split(/\s+/).filter(Boolean)) {
 				const erlaubt = klasse.startsWith('ca-') || GETEILT.has(klasse);
 				if (!erlaubt) {
 					treffer.push(`${kurz(datei)}: class="${klasse}"`);
@@ -615,7 +826,11 @@ console.log('\nA-9  Das Kürzel-Präfix "ca-" wird eingehalten');
 					}
 					continue;
 				}
-				if (!attr.startsWith('data-ca-') && !GETEILTE_ATTRIBUTE.has(attr)) {
+				if (!attr.startsWith('data-ca-')
+					&& !GETEILTE_ATTRIBUTE.has(attr)
+					&& !DATA_NUTZLAST.test(attr)
+					&& attr !== 'data-value'
+				) {
 					treffer.push(`${kurz(datei)}: ${attr}="${m[2]}"`);
 				}
 			}
@@ -634,14 +849,28 @@ console.log('\nA-9  Das Kürzel-Präfix "ca-" wird eingehalten');
 	}
 
 	check(treffer.length === 0,
-		'jede eigene CSS-Klasse, jedes eigene data-Attribut und jede eigene id'
-		+ ' beginnt mit ca- oder ist einer der ausdrücklich geteilten'
-		+ ' Backend-Haken (einschließlich $titleId in QrSvgRenderer.php)',
+		'jede eigene CSS-Klasse und jede eigene id beginnt mit ca-; jedes eigene'
+		+ ' data-Attribut ist entweder ein ca-Haken (data-ca-*) oder einer der'
+		+ ' beiden benannten Nutzlast-Träger (data-message-*, data-value) —'
+		+ ' oder einer der ausdrücklich geteilten Backend-Haken (einschließlich'
+		+ ' $titleId in QrSvgRenderer.php)',
 		...treffer);
 
 	console.log('     Gegenprobe A-9-G: eine Klasse "qr-image" ohne Präfix muss auffallen');
 	const erlaubt = 'qr-image'.startsWith('ca-') || GETEILT.has('qr-image');
 	check(!erlaubt, 'A-9-G: qr-image ohne ca-Präfix wird als Fund erkannt');
+
+	console.log('     Gegenprobe A-9-G2: ein eingebetteter Fluid-Ausdruck darf keine Wortfetzen mehr erzeugen, eine echte Klasse ohne Präfix daneben bleibt sichtbar');
+	const testWert = "qr-bad ca-y--{f:if(condition: on, then: 'on', else: 'off')}";
+	const testKlassen = testWert.replace(/\{[^{}]*\}/g, 'X').split(/\s+/).filter(Boolean);
+	check(testKlassen.length === 2 && testKlassen[0] === 'qr-bad' && testKlassen[1] === 'ca-y--X',
+		'A-9-G2: der eingebettete Ausdruck wird zu einem einzigen Wort ohne Leerzeichen, "qr-bad" bleibt als echter Fund erkennbar',
+		...testKlassen);
+
+	console.log('     Gegenprobe A-9-G3: data-message-* und data-value dürfen nicht auffallen, ein erfundenes data-xy ohne Präfix weiterhin');
+	check(DATA_NUTZLAST.test('data-message-camera-on'), 'A-9-G3: data-message-camera-on ist der benannte Nutzlast-Träger und wird NICHT gemeldet');
+	check(!DATA_NUTZLAST.test('data-xy') && 'data-xy' !== 'data-value' && !'data-xy'.startsWith('data-ca-'),
+		'A-9-G3: ein erfundenes data-xy ohne Präfix bleibt ein Fund');
 }
 
 /* ==================================================== A-10 Icon-Verträge */
@@ -697,7 +926,7 @@ console.log('\nA-11 Kein ext_tables.php; jede Datei dieser Extension liegt inner
 
 /* ==================================================== A-12 Kein "disabled", kein opacity ohne Ausnahme */
 
-console.log('\nA-12 Kein echtes "disabled" im HTML/JS; kein opacity ohne :not(:focus-visible) in backend.css');
+console.log('\nA-12 Kein echtes "disabled" im HTML/JS; kein opacity ohne :not(:focus-visible) in einer der beiden Stylesheet-Dateien (drei benannte Ausnahmen)');
 {
 	const MUSTER = /(?<!aria-)\bdisabled\b/;
 	const treffer = [];
@@ -721,23 +950,52 @@ console.log('\nA-12 Kein echtes "disabled" im HTML/JS; kein opacity ohne :not(:f
 	check(!MUSTER.test('<button aria-disabled="true">Test</button>'),
 		'A-12-G1: aria-disabled selbst löst KEINEN Fehlalarm aus');
 
-	const backendCss = ohneBlockKommentare(lies(path.join(EXT, 'Resources/Public/Css/backend.css')));
+	/**
+	 * Seit Umsetzungsstück D2d: die Regel "kein opacity ohne
+	 * :not(:focus-visible)" gilt für BEDIENBARE Elemente — nicht für reine
+	 * Textzusätze ohne eigenen Fokus (keine Schaltfläche, kein Verweis).
+	 * Bis D2c gab es nur backend.css; seit D2c/D2d liefert diese Extension
+	 * mit frontend.css ein zweites Stylesheet, für das dieselbe Regel gilt.
+	 * Die Prüfung scannt DESHALB ab hier BEIDE ausgelieferten CSS-Dateien
+	 * (nicht mehr nur backend.css fest eingetragen), und nimmt GENAU DIE
+	 * DREI namentlich benannten Klassen aus — nicht die Dateien:
+	 *   .ca-qrmode__seen, .ca-qrmode__hint  (backend.css, Modul "QR-Modus")
+	 *   .ca-gate__hint                       (frontend.css, Torseite)
+	 */
+	const OPACITY_AUSGENOMMEN = new Set(['.ca-qrmode__seen', '.ca-qrmode__hint', '.ca-gate__hint']);
 	const opacityOhneAusnahme = [];
-	for (const m of backendCss.matchAll(/[^{}]*\{[^{}]*\}/g)) {
-		const regel = m[0];
-		if (/opacity\s*:/.test(regel) && !regel.includes(':not(:focus-visible)')) {
-			opacityOhneAusnahme.push(regel.trim().slice(0, 80));
+	for (const datei of AUSGELIEFERT) {
+		const rel = path.relative(EXT, datei);
+		if (!rel.endsWith('.css')) {
+			continue;
+		}
+		const inhalt = ohneBlockKommentare(lies(datei));
+		for (const m of inhalt.matchAll(/([^{}]*)\{([^{}]*)\}/g)) {
+			const selektor = m[1].trim();
+			const regel = m[2];
+			if (!/opacity\s*:/.test(regel) || regel.includes(':not(:focus-visible)')) {
+				continue;
+			}
+			const selektorKlassen = selektor.split(',').map((s) => s.trim());
+			if (selektorKlassen.length > 0 && selektorKlassen.every((s) => OPACITY_AUSGENOMMEN.has(s))) {
+				continue;
+			}
+			opacityOhneAusnahme.push(`${kurz(datei)}: ${selektor} { ${regel.trim().slice(0, 60)} }`);
 		}
 	}
 	check(opacityOhneAusnahme.length === 0,
-		'kein opacity in backend.css ohne :not(:focus-visible) (aktuell benutzt'
-		+ ' backend.css überhaupt kein opacity)',
+		'kein opacity ohne :not(:focus-visible) in backend.css oder frontend.css,'
+		+ ' außer den drei benannten, fokuslosen Textzusätzen'
+		+ ` (${[...OPACITY_AUSGENOMMEN].join(', ')})`,
 		...opacityOhneAusnahme);
 
-	console.log('     Gegenprobe A-12-G2: ein opacity ohne :not(:focus-visible) muss auffallen');
+	console.log('     Gegenprobe A-12-G2: ein opacity ohne :not(:focus-visible) auf einer NICHT ausgenommenen Klasse muss auffallen, dieselbe Regel auf einer ausgenommenen Klasse nicht');
 	const erfundeneRegel = '.ca-erfunden { opacity: .5; }';
 	const treffferGegenprobe = /opacity\s*:/.test(erfundeneRegel) && !erfundeneRegel.includes(':not(:focus-visible)');
-	check(treffferGegenprobe, 'A-12-G2: die erfundene Regel wird als Fund erkannt');
+	check(treffferGegenprobe && !OPACITY_AUSGENOMMEN.has('.ca-erfunden'),
+		'A-12-G2: die erfundene Regel auf .ca-erfunden wird als Fund erkannt (keine benannte Ausnahme)');
+	check(OPACITY_AUSGENOMMEN.has('.ca-gate__hint'),
+		'A-12-G2: .ca-gate__hint ist eine der drei benannten Ausnahmen und würde NICHT gemeldet');
 }
 
 /* ==================================================== A-13 Nur XLIFF-Text oder Variable */
@@ -776,6 +1034,195 @@ console.log('\nA-13 Jede Beschriftung im HTML kommt aus der XLIFF-Datei oder ist
 		.map((m) => m[1].trim())
 		.filter((t) => t !== '' && !/^\{[^{}]*\}$/.test(t));
 	check(treffferGegenprobe.includes('Drucken'), 'A-13-G: das hart eingetragene "Drucken" wird gefunden');
+}
+
+/* ================================ F: Behobene Befunde, Audit nach D3 ================================ */
+
+console.log('\nF    Behebungslauf nach dem Audit vom 2026-09-10 (Phase D3) — festgehaltene Zusagen für K-01, K-02, K-03, S-01');
+
+const ACCOUNT_BAR_TEMPLATE = 'Resources/Private/Templates/AccountBar/Index.html';
+const ACCOUNT_LIVE_JS = 'Resources/Public/JavaScript/account-live.js';
+const ACCOUNT_BAR_PHP = 'Classes/Middleware/AccountBar.php';
+const accountBarTemplateRoh = lies(path.join(EXT, ACCOUNT_BAR_TEMPLATE));
+const accountLiveJsRoh = lies(path.join(EXT, ACCOUNT_LIVE_JS));
+const accountBarPhpRoh = lies(path.join(EXT, ACCOUNT_BAR_PHP));
+const frontendCssRoh = lies(path.join(EXT, FRONTEND_CSS));
+const tokensCssFuerF = lies(path.join(SITE, 'Resources/Public/Css/tokens.css'));
+
+/**
+ * WCAG-2.2-Kontrastformel (relative Leuchtdichte, sRGB-Rücktransformation) —
+ * dieselbe Rechnung, mit der der Audit-Bericht und tokens.css selbst ihre
+ * Kontrastwerte belegen. Gerechnet wird aus ECHTEN, aus tokens.css gelesenen
+ * Hex-Werten, nicht aus abgeschriebenen Zahlen.
+ *
+ * @param {string} hex
+ * @returns {number}
+ */
+function relativeLuminanz(hex) {
+	const werte = hex.replace('#', '').match(/.{2}/g).map((teil) => parseInt(teil, 16) / 255);
+	const [r, g, b] = werte.map((kanal) => (kanal <= 0.03928 ? kanal / 12.92 : ((kanal + 0.055) / 1.055) ** 2.4));
+	return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+}
+
+/**
+ * @param {string} hexA
+ * @param {string} hexB
+ * @returns {number}
+ */
+function kontrastVerhaeltnis(hexA, hexB) {
+	const lA = relativeLuminanz(hexA);
+	const lB = relativeLuminanz(hexB);
+	const [hell, dunkel] = lA >= lB ? [lA, lB] : [lB, lA];
+	return (hell + 0.05) / (dunkel + 0.05);
+}
+
+/**
+ * @param {string} name
+ * @returns {string} der Hex-Wert des Tokens, z. B. "#f0e6d2"
+ */
+function tokenHex(name) {
+	const treffer = new RegExp(`${name}\\s*:\\s*(#[0-9a-fA-F]{3,8})\\b`).exec(tokensCssFuerF);
+	if (treffer === null) {
+		throw new Error(`Token ${name} nicht in tokens.css gefunden`);
+	}
+	return treffer[1];
+}
+
+console.log('\nF-K01 das Gesamtvermögen der Kontenleiste hat einen Namen (bar.total) und einen Live-Bereich — Audit-Befund K-01');
+{
+	// GEÄNDERT (Behebungslauf nach dem Laufzeit-Audit vom 2026-09-10, Teil 2,
+	// Befund N-01): role="status" stand ursprünglich AUF .ca-bar__total
+	// selbst — das sagte bei JEDER Buchung den vollständigen Satz neu an
+	// (bis zu 1,5-mal pro Sekunde, endlos, auf /coin-pusher gemessen). Der
+	// Live-Bereich sitzt jetzt auf einem EIGENEN, optisch verborgenen
+	// Element ([data-ca-bar-announce]) — geprüft unten unter F-N01. F-K01
+	// bleibt für den unveränderten Teil des Befunds zuständig: Name vor der
+	// Zahl, eigener Zahlen-Anker, kein Rückbau auf firstChild.
+	check(!/<span class="ca-bar__total"[^>]*role="status"/.test(accountBarTemplateRoh),
+		'F-K01: .ca-bar__total trägt SEIT N-01 kein role="status" mehr (das hätte den Live-Bereich zurück auf die sichtbare Zahl gelegt)');
+	check(/class="ca-bar__total-label ca-visually-hidden">\{labels\.total\}/.test(accountBarTemplateRoh),
+		'F-K01: eine optisch verborgene Beschriftung {labels.total} steht vor der Zahl');
+	check(/data-ca-bar-total-value=""/.test(accountBarTemplateRoh),
+		'F-K01: die Zahl selbst steht in einem eigenen [data-ca-bar-total-value]-Anker');
+	check(accountBarPhpRoh.includes("'total' => \$sL('bar.total')"),
+		"F-K01: AccountBar::beschriftungen() liest bar.total und übergibt es als 'total'");
+	const accountLiveJsOhneKommentare = ohneJsKommentare(accountLiveJsRoh);
+	check(/data-ca-bar-total-value/.test(accountLiveJsOhneKommentare) && !/total\.firstChild/.test(accountLiveJsOhneKommentare),
+		'F-K01: account-live.js schreibt IM CODE in [data-ca-bar-total-value], nicht mehr in total.firstChild '
+		+ '(ein zusätzlicher Textknoten für die Beschriftung hätte firstChild verschoben; geprüft ohne'
+		+ ' Kommentare, denn der erklärende Kommentar an dieser Stelle nennt "firstChild" selbst)');
+
+	console.log('     Gegenprobe F-K01-G: ein Rückbau auf total.firstChild würde auffallen');
+	const zurueckgebaut = accountLiveJsOhneKommentare.replace(
+		"total.querySelector('[data-ca-bar-total-value]')", 'total.firstChild'
+	);
+	check(/total\.firstChild/.test(zurueckgebaut), 'F-K01-G: das nachgestellte firstChild wird erkannt');
+}
+
+console.log('\nF-K02 die Kontenleiste ist über einen eigenen, frühen Sprunglink erreichbar, nicht erst nach über 80 Tabulatorstationen — Audit-Befund K-02');
+{
+	check(/preg_replace_callback\(\s*'\/<body\\b\[\^>\]\*>\/i'/.test(accountBarPhpRoh),
+		'F-K02: AccountBar::process() speist etwas unmittelbar nach dem öffnenden <body> ein');
+	check(accountBarPhpRoh.includes('class="ca-bar__skiplink"'),
+		'F-K02: eingespeist wird ein Verweis mit der Klasse ca-bar__skiplink');
+	check(accountBarPhpRoh.includes('href="#ca-bar"'), 'F-K02: der Sprunglink zeigt auf #ca-bar');
+	check(/id="ca-bar"/.test(accountBarTemplateRoh), 'F-K02: die Leiste selbst trägt id="ca-bar" — das Sprungziel existiert wirklich');
+	check(frontendCssRoh.includes('.ca-bar__skiplink {') && frontendCssRoh.includes('.ca-bar__skiplink:focus-visible {'),
+		'F-K02: frontend.css versteckt den Sprunglink optisch und zeigt ihn erst bei :focus-visible '
+		+ '(dieselbe Bauart wie .ck-skiplink in casino_startpage)');
+	check(accountBarPhpRoh.includes("\$sL('bar.skiplink')"), 'F-K02: die Beschriftung kommt aus bar.skiplink');
+
+	console.log('     Gegenprobe F-K02-G: ein Sprungziel ohne passendes id="ca-bar" würde auffallen');
+	const ohneId = accountBarTemplateRoh.replace('id="ca-bar"', '');
+	check(!/id="ca-bar"/.test(ohneId), 'F-K02-G: das entfernte id="ca-bar" wird als fehlend erkannt');
+}
+
+console.log('\nF-K03 die Aufschrift der Kontenleiste bleibt bei 320/360 lesbar (≥ 4,5 : 1), der Messingverlauf weicht dort einem flachen Ton — Audit-Befund K-03');
+{
+	// geklammerterBlock() statt eines nicht-gierigen Regelausdrucks: zwischen
+	// "@media (max-width: 40rem) {" und ".ca-bar {" steht ein erklärender
+	// CSS-Kommentar (siehe frontend.css) — ein einfacher Regelausdruck ohne
+	// Klammerzählung fände die verschachtelte Regel deshalb nicht zuverlässig.
+	const mediaStart = frontendCssRoh.indexOf('@media (max-width: 40rem) {');
+	check(mediaStart !== -1, 'F-K03: die @media(max-width: 40rem)-Regel für .ca-bar existiert');
+	const mediaBlock = geklammerterBlock(frontendCssRoh, mediaStart);
+	const mediaBlockOhneKommentare = ohneBlockKommentare(mediaBlock);
+	check(/background:\s*var\(--ck-brass-200\)/.test(mediaBlockOhneKommentare),
+		'F-K03: in dieser Ansicht steht ein flacher Ton (--ck-brass-200), nicht mehr der Verlauf --ck-brass-polish');
+	check(!/--ck-brass-polish/.test(mediaBlockOhneKommentare),
+		'F-K03: --ck-brass-polish kommt im CODE dieses Blocks nicht mehr vor (der erklärende Kommentar'
+		+ ' darüber nennt den alten Verlauf namentlich — deshalb wird ohne Kommentare geprüft)');
+
+	const textFarbe = tokenHex('--ck-wood-500');
+	const hintergrundNeu = tokenHex('--ck-brass-200');
+	const hintergrundAlt = tokenHex('--ck-brass-400'); // die dunkelste, vom Audit gemessene Stelle des alten Verlaufs
+	const kontrastNeu = kontrastVerhaeltnis(textFarbe, hintergrundNeu);
+	const kontrastAlt = kontrastVerhaeltnis(textFarbe, hintergrundAlt);
+	check(kontrastNeu >= 4.5,
+		`F-K03: --ck-wood-500 (${textFarbe}) auf --ck-brass-200 (${hintergrundNeu}) erreicht `
+		+ `${kontrastNeu.toFixed(2)} : 1 — über den 4,5 : 1 für Text (gerechnet aus tokens.css, nicht geschätzt)`);
+
+	console.log('     Gegenprobe F-K03-G: dieselbe Rechnung auf der alten, dunkelsten Verlaufsstelle muss unter 4,5 : 1 bleiben — der Audit maß dort 3,76 : 1');
+	check(kontrastAlt < 4.5,
+		`F-K03-G: --ck-wood-500 auf --ck-brass-400 (${hintergrundAlt}) liegt bei ${kontrastAlt.toFixed(2)} : 1 `
+		+ '— die Rechnung erkennt den früheren Mangel tatsächlich als Mangel');
+}
+
+console.log('\nF-S01 die Sperranzeige verknüpft ihren Erklärungssatz über aria-describedby mit dem <dialog> — Audit-Befund S-01');
+{
+	const dialogTreffer = /<dialog\b[^>]*class="ca-lock"[^>]*>[\s\S]*?<\/dialog>/.exec(accountBarTemplateRoh);
+	check(dialogTreffer !== null, 'F-S01: ein <dialog class="ca-lock"> steht in der Vorlage');
+	const dialogBlock = dialogTreffer ? dialogTreffer[0] : '';
+	check(/aria-describedby="ca-lock-text"/.test(dialogBlock), 'F-S01: das <dialog> trägt aria-describedby="ca-lock-text"');
+	check(/id="ca-lock-text"/.test(dialogBlock), 'F-S01: eine id="ca-lock-text" existiert wirklich im selben Block');
+	check(/<p class="ca-lock__text" id="ca-lock-text" data-ca-lock-text role="status">/.test(dialogBlock),
+		'F-S01: id="ca-lock-text" sitzt auf genau dem Absatz, der den Erklärungssatz trägt (data-ca-lock-text)');
+
+	console.log('     Gegenprobe F-S01-G: ein <dialog> ohne aria-describedby würde auffallen');
+	const ohneDescribedby = dialogBlock.replace(' aria-describedby="ca-lock-text"', '');
+	check(!/aria-describedby="ca-lock-text"/.test(ohneDescribedby), 'F-S01-G: das entfernte aria-describedby wird als fehlend erkannt');
+}
+
+console.log('\nF-N01 das Gesamtvermögen sagt sich nicht mehr bei jeder Buchung komplett neu an, sondern gedrosselt — Audit 2026-09-10, Teil 2, Befund N-01');
+{
+	check(/<span class="ca-visually-hidden" role="status" aria-atomic="true" data-ca-bar-announce="">/.test(accountBarTemplateRoh),
+		'F-N01: ein EIGENER, optisch verborgener Live-Bereich [data-ca-bar-announce] trägt role="status" — getrennt von der sichtbaren Zahl');
+	const accountLiveJsOhneKommentareN01 = ohneJsKommentare(accountLiveJsRoh);
+	check(/function ansagePlanen\(/.test(accountLiveJsOhneKommentareN01) && /function ansageSchreiben\(/.test(accountLiveJsOhneKommentareN01),
+		'F-N01: account-live.js trägt eine eigene Drosselung (ansagePlanen()/ansageSchreiben()), nicht nur einen ungedrosselten Direktaufruf');
+	check(/ANSAGE_TAKT_MS/.test(accountLiveJsOhneKommentareN01),
+		'F-N01: die Drosselung hat einen benannten Takt (ANSAGE_TAKT_MS), keine Zauberzahl ohne Namen');
+	check(/stelle\.textContent = zahl\.format\(gesamt\);\s*\}\s*ansagePlanen\(gesamt\);/.test(accountLiveJsOhneKommentareN01),
+		'F-N01: die SICHTBARE Zahl wird weiterhin ungedrosselt geschrieben, DANACH erst ansagePlanen() aufgerufen — beide Wege bleiben erhalten, nur die Ansage bündelt');
+
+	console.log('     Gegenprobe F-N01-G: ein Rückbau auf einen direkten Ansage-Aufruf ohne Drosselung würde auffallen');
+	const ohneDrosselung = accountLiveJsOhneKommentareN01.replace(/function ansagePlanen\([\s\S]*?\n\}/, '');
+	check(!/function ansagePlanen\(/.test(ohneDrosselung), 'F-N01-G: die entfernte Drosselfunktion wird als fehlend erkannt');
+}
+
+console.log('\nF-N03 F-N04 unter 40rem ist Platz für die feste Kontenleiste reserviert (Fokus UND Fußzeile) — Audit 2026-09-10, Teil 2, Befund N-03/N-04');
+{
+	const frontendCssOhneKommentareN03 = ohneBlockKommentare(frontendCssRoh);
+	check(/html:has\(\[data-ca-bar]\) \{\s*scroll-padding-block-end:\s*4rem;/.test(frontendCssOhneKommentareN03),
+		'F-N03: html:has([data-ca-bar]) setzt scroll-padding-block-end: 4rem — wirkt auf JEDES automatische Hinrollen, Tab-Fokus wie Sprungziel');
+	check(/body:has\(\[data-ca-bar]\) \{\s*padding-block-end:\s*4rem;/.test(frontendCssOhneKommentareN03),
+		'F-N04: body:has([data-ca-bar]) reserviert denselben Wert (4rem) als Innenabstand, damit das Rollende die Fußzeile über die Leiste hebt');
+	check(!/:has\([^)]*:has\(/.test(frontendCssOhneKommentareN03),
+		'F-N03/F-N04: kein verschachteltes :has(…:has(…)) — die erste Fassung dieser Behebung schrieb genau das, ein UNGÜLTIGER Selektor, den der Browser wortlos verwirft (siehe Fußnote in frontend.css)');
+
+	console.log('     Gegenprobe F-N03-G: die verworfene erste Fassung (verschachteltes :has()) wird als ungültig erkannt');
+	const ungueltigeFassung = 'html:has(body:has([data-ca-bar])) { scroll-padding-block-end: 4rem; }';
+	check(/:has\([^)]*:has\(/.test(ungueltigeFassung), 'F-N03-G: die nachgestellte, ungültige erste Fassung wird erkannt');
+}
+
+console.log('\nF-N05 der Sprunglink zur Kontenleiste bewegt den Fokus wirklich, nicht nur das URL-Fragment — Audit 2026-09-10, Teil 2, Befund N-05');
+{
+	check(accountBarTemplateRoh.includes('id="ca-bar" tabindex="-1"'),
+		'F-N05: #ca-bar trägt tabindex="-1" — das Sprungziel wird beim Anspringen tatsächlich in den Fokus genommen');
+
+	console.log('     Gegenprobe F-N05-G: dieselbe Suche ohne tabindex="-1" findet nichts');
+	const ohneTabindexN05 = accountBarTemplateRoh.replace(' tabindex="-1"', '');
+	check(!ohneTabindexN05.includes('id="ca-bar" tabindex="-1"'), 'F-N05-G: das entfernte tabindex="-1" wird als fehlend erkannt');
 }
 
 /* ------------------------------------------ Wächter: sind alle Blöcke gelaufen? */

@@ -64,6 +64,13 @@
  * Literale.
  */
 
+// @pruefstand modus=aus laufzeit=kurz arg={basis}/video-slot
+// (Block B prüft das ausgelieferte HTML und braucht die Seitenadresse als
+//  Argument, um nicht „Ohne Adresse übersprungen" zu melden. Bei
+//  eingeschaltetem QR-Modus läge unter dieser Adresse die Torseite statt
+//  des Geräts — Block B liefe dann fälschlich rot, nicht übersprungen.
+//  Deshalb nur bei ausgeschaltetem Modus fahren.)
+
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
@@ -617,7 +624,8 @@ console.log('\nA-13 Kein fremder Hersteller-, Modell- oder Spieltitel');
 const adresse = process.argv[2];
 
 if (adresse === undefined) {
-	console.log('\nB    Ohne Adresse übersprungen. Für die Prüfung des ausgelieferten');
+	console.log('\n@pruefstand:luecke Block B (ausgeliefertes HTML) ungeprüft — kein Argument übergeben');
+	console.log('B    Ohne Adresse übersprungen. Für die Prüfung des ausgelieferten');
 	console.log('     HTML die Adresse der Automatenseite anhängen, zum Beispiel:');
 	console.log('     … verify-cabinet.mjs https://casino-kunterbunt.ddev.site/video-slot');
 } else {

@@ -1,0 +1,238 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" version="1.2">
+	<file source-language="de" datatype="plaintext" original="EXT:casino_lobby/Resources/Private/Language/locallang.xlf" date="2026-09-10T00:00:00Z" product-name="casino_lobby">
+		<header/>
+		<body>
+
+			<!-- Backend-Namen der drei Tabellen und ihrer Spalten (CONCEPT.md
+			     D.13, Anhang I) — nur für die TCA, nirgends im Frontend
+			     sichtbar. Keine dieser Tabellen hat ein Bearbeitungsformular
+			     (alle Spalten 'passthrough', 'hideTable' => true); die
+			     Beschriftung dient allein der internen Benennung. -->
+			<trans-unit id="tabelle.lobby">
+				<source>Lobby</source>
+			</trans-unit>
+			<trans-unit id="tabelle.lobby.game">
+				<source>Spiel</source>
+			</trans-unit>
+			<trans-unit id="tabelle.lobby.seatsMax">
+				<source>Plätze insgesamt</source>
+			</trans-unit>
+			<trans-unit id="tabelle.lobby.state">
+				<source>Zustand</source>
+			</trans-unit>
+			<trans-unit id="tabelle.lobby.stateUntil">
+				<source>Zustand bis</source>
+			</trans-unit>
+			<trans-unit id="tabelle.lobby.revision">
+				<source>Stand-Nummer</source>
+			</trans-unit>
+			<trans-unit id="tabelle.lobby.roundNo">
+				<source>Rundennummer</source>
+			</trans-unit>
+			<trans-unit id="tabelle.lobby.seed">
+				<source>Saat</source>
+			</trans-unit>
+			<trans-unit id="tabelle.lobby.result">
+				<source>Ergebnis</source>
+			</trans-unit>
+			<trans-unit id="tabelle.lobby.owner">
+				<source>Eröffnende Person</source>
+			</trans-unit>
+			<trans-unit id="tabelle.lobby.turnSeat">
+				<source>Gefragter Platz</source>
+			</trans-unit>
+			<trans-unit id="tabelle.lobby.moves">
+				<source>Zugprotokoll der laufenden Runde</source>
+			</trans-unit>
+
+			<trans-unit id="tabelle.seat">
+				<source>Platz</source>
+			</trans-unit>
+			<trans-unit id="tabelle.seat.lobby">
+				<source>Lobby</source>
+			</trans-unit>
+			<trans-unit id="tabelle.seat.player">
+				<source>Spielender</source>
+			</trans-unit>
+			<trans-unit id="tabelle.seat.seatNo">
+				<source>Platznummer</source>
+			</trans-unit>
+			<trans-unit id="tabelle.seat.lastSeen">
+				<source>Zuletzt gesehen</source>
+			</trans-unit>
+			<trans-unit id="tabelle.seat.joinedRound">
+				<source>Beigetreten in Runde</source>
+			</trans-unit>
+			<trans-unit id="tabelle.seat.shooterNo">
+				<source>Wartelistenplatz (Shooter)</source>
+			</trans-unit>
+
+			<trans-unit id="tabelle.bet">
+				<source>Einsatz</source>
+			</trans-unit>
+			<trans-unit id="tabelle.bet.lobby">
+				<source>Lobby</source>
+			</trans-unit>
+			<trans-unit id="tabelle.bet.player">
+				<source>Spielender</source>
+			</trans-unit>
+			<trans-unit id="tabelle.bet.roundNo">
+				<source>Rundennummer</source>
+			</trans-unit>
+			<trans-unit id="tabelle.bet.field">
+				<source>Feld</source>
+			</trans-unit>
+			<trans-unit id="tabelle.bet.amount">
+				<source>Betrag</source>
+			</trans-unit>
+			<trans-unit id="tabelle.bet.outcome">
+				<source>Ergebnis</source>
+			</trans-unit>
+
+			<!-- Die Übersichtsseite (D4b, D.10.3) — die Schlüssel werden hier
+			     bereits reserviert, weil diese Datei laut Plan (Abschnitt
+			     4.10) in D4a vollständig entsteht; benutzt werden sie erst
+			     ab D4b. Verbindliche Platzhalter-Schreibweise ausschließlich
+			     {0}, {1}, {2} — niemals %s (Lehre aus Audit-Befund H-02:
+			     diese Extension benutzt kein <f:translate>, Entscheidung
+			     4.0.7 des Plans, also ist {0} die einzig richtige Form). -->
+			<trans-unit id="uebersicht.titel">
+				<source>An welchem Tisch möchtest du spielen?</source>
+			</trans-unit>
+			<trans-unit id="uebersicht.spiel.roulette">
+				<source>Roulette</source>
+			</trans-unit>
+			<trans-unit id="uebersicht.spiel.blackjack">
+				<source>Blackjack</source>
+			</trans-unit>
+			<trans-unit id="uebersicht.spiel.craps">
+				<source>Craps</source>
+			</trans-unit>
+			<trans-unit id="uebersicht.einleitung">
+				<source>An diesem Tisch wird schon gespielt. Setz dich dazu oder mach einen neuen Tisch auf.</source>
+			</trans-unit>
+			<trans-unit id="uebersicht.lobby">
+				<source>Tisch {0}</source>
+			</trans-unit>
+			<trans-unit id="uebersicht.belegung">
+				<source>{0} von {1} Plätzen belegt</source>
+			</trans-unit>
+			<trans-unit id="uebersicht.beitreten">
+				<source>Hier setzen</source>
+			</trans-unit>
+			<trans-unit id="uebersicht.voll">
+				<source>Dieser Tisch ist voll.</source>
+			</trans-unit>
+			<trans-unit id="uebersicht.neu">
+				<source>Neuen Tisch aufmachen</source>
+			</trans-unit>
+			<trans-unit id="uebersicht.neu.aus">
+				<source>Mehr als {0} Tische gibt es bei diesem Spiel nicht.</source>
+			</trans-unit>
+			<trans-unit id="uebersicht.alles.voll">
+				<source>Alle Plätze sind belegt. Sobald einer frei wird, kannst du dich setzen.</source>
+			</trans-unit>
+
+			<!-- Die Platzleiste (D4c, D.10.1) — Schlüssel ebenfalls schon
+			     hier reserviert, benutzt erst ab D4c. -->
+			<trans-unit id="strip.label">
+				<source>Tisch und Mitspieler</source>
+			</trans-unit>
+			<trans-unit id="strip.platz">
+				<source>Dein Platz: {0} von {1}</source>
+			</trans-unit>
+			<trans-unit id="strip.allein">
+				<source>Du sitzt allein am Tisch.</source>
+			</trans-unit>
+			<trans-unit id="strip.zusammen">
+				<source>{0} am Tisch.</source>
+			</trans-unit>
+			<trans-unit id="strip.verlassen">
+				<source>Tisch verlassen</source>
+			</trans-unit>
+			<trans-unit id="strip.frei">
+				<source>frei</source>
+			</trans-unit>
+			<trans-unit id="strip.runde">
+				<source>Runde {0}</source>
+			</trans-unit>
+			<trans-unit id="strip.saat">
+				<source>Saat {0}</source>
+			</trans-unit>
+			<trans-unit id="strip.einsatz">
+				<source>{0} €</source>
+			</trans-unit>
+			<trans-unit id="strip.einsatz.keiner">
+				<source>nichts gesetzt</source>
+			</trans-unit>
+			<trans-unit id="strip.gewinn">
+				<source>+{0} €</source>
+			</trans-unit>
+			<trans-unit id="strip.verlust">
+				<source>−{0} €</source>
+			</trans-unit>
+			<trans-unit id="strip.shooter">
+				<source>hat die Würfel</source>
+			</trans-unit>
+			<trans-unit id="strip.shooter.warte">
+				<source>wartet auf die Würfel (Platz {0})</source>
+			</trans-unit>
+			<trans-unit id="strip.shooter.ein">
+				<source>Würfel übernehmen</source>
+			</trans-unit>
+			<trans-unit id="strip.shooter.aus">
+				<source>Warteliste verlassen</source>
+			</trans-unit>
+			<trans-unit id="strip.dran">
+				<source>ist am Zug</source>
+			</trans-unit>
+			<trans-unit id="strip.dran.ich">
+				<source>Du bist am Zug — {0} Sekunden</source>
+			</trans-unit>
+			<trans-unit id="strip.karten">
+				<source>{0} Karten</source>
+			</trans-unit>
+			<trans-unit id="strip.wartet">
+				<source>Wartet auf die nächste Runde</source>
+			</trans-unit>
+
+			<!-- Der Rundentakt (D4c, D.10.6) -->
+			<trans-unit id="zustand.setzen">
+				<source>Es wird gesetzt.</source>
+			</trans-unit>
+			<trans-unit id="zustand.gesperrt">
+				<source>Nichts geht mehr.</source>
+			</trans-unit>
+			<trans-unit id="zustand.laeuft">
+				<source>Die Runde läuft.</source>
+			</trans-unit>
+			<trans-unit id="zustand.auswerten">
+				<source>Ergebnis: {0}</source>
+			</trans-unit>
+			<trans-unit id="uhr.rest">
+				<source>Noch {0} Sekunden.</source>
+			</trans-unit>
+			<trans-unit id="uhr.keine">
+				<source>Keine Uhr — du bestimmst, wann es losgeht.</source>
+			</trans-unit>
+
+			<!-- Ansagen und Meldungen (D4c, D.12) -->
+			<trans-unit id="ansage.dazu">
+				<source>{0} ist dazugekommen.</source>
+			</trans-unit>
+			<trans-unit id="ansage.weg">
+				<source>{0} ist aufgestanden.</source>
+			</trans-unit>
+			<trans-unit id="meldung.weg">
+				<source>Dein Platz wurde frei. Lade die Seite neu, um dich wieder zu setzen.</source>
+			</trans-unit>
+			<trans-unit id="meldung.getrennt">
+				<source>Keine Verbindung zum Tisch. Es wird weiter versucht.</source>
+			</trans-unit>
+			<trans-unit id="meldung.neu">
+				<source>Seite neu laden</source>
+			</trans-unit>
+		</body>
+	</file>
+</xliff>

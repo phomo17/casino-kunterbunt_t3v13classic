@@ -54,7 +54,16 @@ declare(strict_types=1);
  * Bearbeiter einen Datensatz mitten im Spiel, zeigt „Guthaben" nur die Kasse,
  * nicht das Gesamtvermögen — das bleibt hinnehmbar, weil `balance`
  * (umbenannt auf „Gesamtvermögen") sowie `balance_machine`/`balance_win`
- * unverändert lesbar daneben stehen: nichts ist verborgen.
+ * unverändert lesbar auf dem Reiter „Konto" stehen: nichts ist verborgen.
+ *
+ * NACHTRAG 2026-09-10: Die Reiterlage ist getauscht. Bis dahin stand das
+ * EINGEBBARE „Guthaben" (balance_cash) auf dem zweiten Reiter „Konto" und auf
+ * dem ersten Reiter nur das ausgegraute „Gesamtvermögen" — wer einen
+ * Spielenden anlegte, fand das Eingabefeld nicht. D.3.2 verlangt Name,
+ * Guthaben und Rolle beieinander; genau das steht jetzt auf dem ersten
+ * Reiter, und die nur lesbare Aufstellung (Gesamtvermögen, Gerätekredit,
+ * Gewinnspeicher) ist geschlossen auf „Konto" gewandert, wo D.3.2 sie als
+ * „zusätzlich, nur lesbar sichtbar" beschreibt.
  */
 
 $languageFile = 'LLL:EXT:casino_account/Resources/Private/Language/locallang_be.xlf:';
@@ -80,9 +89,9 @@ return [
         '1' => [
             'showitem' => '
                 --div--;' . $languageFile . 'player.tab.general,
-                    name, balance, role,
+                    name, balance_cash, role,
                 --div--;' . $languageFile . 'player.tab.account,
-                    balance_cash, balance_machine, balance_win, is_admin,
+                    balance, balance_machine, balance_win, is_admin,
                 --div--;LLL:EXT:core/Resources/Private/Language/Form/locallang_tabs.xlf:access,
                     hidden,
             ',
@@ -222,6 +231,13 @@ return [
             'config' => ['type' => 'passthrough'],
         ],
         'booking_seq' => [
+            'config' => ['type' => 'passthrough'],
+        ],
+        // Die Kennung des Browsers, der zuletzt gebucht hat. Zusammen mit
+        // booking_seq erkennt der Server eine doppelt gesendete Buchung
+        // (D.7.2) — und zwar auch dann noch richtig, wenn zwei
+        // Registerkanäle derselben Person ihre Nummern unabhängig zählen.
+        'booking_client' => [
             'config' => ['type' => 'passthrough'],
         ],
         'last_seen' => [

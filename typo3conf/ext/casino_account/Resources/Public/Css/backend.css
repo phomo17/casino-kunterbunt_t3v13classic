@@ -87,3 +87,38 @@
 		left: 0;
 	}
 }
+
+/*
+ * UMSETZUNGSSTÜCK D2a: das Modul „QR-Modus" (CONCEPT.md D.5).
+ *
+ * KEINE FARBE hier ebenfalls — .ca-qrmode__seen und .ca-qrmode__hint benutzen
+ * `opacity`, weil beide reine Textzusätze ohne eigenen Fokus sind (keine
+ * Schaltfläche, kein Verweis). Die enge Ausnahme dazu, mit Begründung, steht
+ * im Hausnachweis (verify-cabinet.mjs, A-12) und wird dort in Umsetzungsstück
+ * D2d um diese beiden Klassen ergänzt.
+ */
+.ca-qrmode__state {
+	font-weight: 600;
+}
+
+.ca-qrmode__state--on::before {
+	content: "● ";
+}
+
+.ca-qrmode__state--off::before {
+	content: "○ ";
+}
+
+.ca-qrmode__online {
+	list-style: none;
+	padding-left: 0;
+}
+
+.ca-qrmode__seen {
+	opacity: .75;
+	margin-left: .5em;
+}
+
+.ca-qrmode__hint {
+	opacity: .75;
+}

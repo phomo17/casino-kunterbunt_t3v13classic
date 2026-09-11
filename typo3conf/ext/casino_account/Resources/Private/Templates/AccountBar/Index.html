@@ -1,0 +1,156 @@
+<f:comment>
+	Die Kontenleiste (CONCEPT.md D.7, D.8).
+
+	DIE ROLLE STEHT HIER NICHT. D.6.2 sagt ausdrücklich: „Angezeigt werden
+	danach Name und Gesamtvermögen. Die Rolle wird nicht angezeigt." Sie ist
+	Teil E und kommt auch dann nicht hierher, wenn das Feld eines Tages
+	gefüllt ist.
+
+	DIE KENNUNG STEHT HIER ERST RECHT NICHT (D.9).
+
+	DIE SCHNITTSTELLE FÜR D3: die drei data-Angaben. Der Buchungsendpunkt aus
+	D.7.2 wird die Zahl im Betrieb nachführen, ohne die Seite neu zu laden —
+	er findet die Leiste über [data-ca-bar] und den Platz der Zahl über
+	[data-ca-bar-total]; der Rohwert steht zusätzlich als Zahl im Attribut,
+	damit niemand die formatierte Anzeige zurückrechnen muss. Bis dahin ist
+	der Wert das, was beim Aufbau der Seite in der Datenbank stand — und weil
+	diese Leiste NIE aus dem Zwischenspeicher kommt, stimmt er bei jedem
+	Seitenaufruf.
+
+	BEHOBENER FEHLER (D2d-Nachbesserung): hier stand bis eben <f:translate>.
+	Das geht über Extbase's LocalizationUtility, die das VOLLSTÄNDIGE
+	TypoScript-Setup braucht — bei einer aus dem Zwischenspeicher gelieferten
+	Seite baut der Kern das absichtlich nicht auf, und jede zweite Anfrage
+	endete mit HTTP 500. Die drei Beschriftungen kommen jetzt fertig
+	übersetzt aus AccountBar::beschriftungen() (PHP, LanguageServiceFactory,
+	kein Extbase, kein TypoScript nötig) als {labels.*}. Fluids
+	Auto-Maskierung gilt für {labels.*} genauso wie vorher für f:translate —
+	es wird nur die Übersetzung vorgezogen, nicht die Ausgabe-Escapierung
+	umgangen.
+
+	[data-ca-admin] (Umsetzungsstück D3a): nur bei Admins gesetzt. Verbraucht
+	wird das Merkmal erst in Umsetzungsstück D3c (frontend.css, :has()-Regel,
+	die die Aufladeteile des Leuchtschilds für Nicht-Admins ausblendet,
+	D.7.3) — das Attribut steht hier schon, weil es zur selben Stelle im
+	Markup gehört wie [data-ca-bar] selbst.
+</f:comment>
+<f:comment>
+	BEHOBENER BEFUND (Audit nach D3, K-01): das Gesamtvermögen bekommt einen
+	Namen UND einen Live-Bereich.
+
+	DER NAME: .ca-bar__total-label steht als eigener Textknoten VOR der
+	Zahl, nicht als aria-label auf dem Live-Bereich — ein aria-label würde
+	bei jeder Ansage nur „Gesamtvermögen" liefern und die eigentliche Zahl
+	verschlucken. Optisch verborgen (.ca-visually-hidden), denn die
+	Beschriftung „Ihr Konto" der ganzen Leiste (aria-label oben) plus der
+	sichtbare Name daneben machen visuell bereits klar, wessen Vermögen das
+	ist; ein Bildschirmleser braucht den Satz trotzdem.
+
+	[data-ca-bar-total-value] ist ein EIGENES <span> um die Zahl, kein
+	blosser Textknoten mehr: account-live.js griff bisher über
+	total.firstChild zu, und ein zusätzlicher Textknoten für die
+	Beschriftung hätte genau dieses firstChild verschoben. Mit einem
+	eigenen Anker ist die Stelle eindeutig, unabhängig davon, was davor im
+	Markup steht (account-live.js Zeile 51 ff. wurde entsprechend
+	angepasst).
+
+	BEHOBENER BEFUND (Audit nach D3, Teil 2, N-01): role="status" stand
+	bisher AUF .ca-bar__total selbst — derselben Stelle, an der auch die
+	SICHTBARE Zahl steht. role="status" bringt aria-atomic="true" implizit
+	mit, also sagt ein Bildschirmleser bei JEDER Änderung den vollständigen
+	Satz „Gesamtvermögen … Kredite" neu an. Auf /coin-pusher waren das
+	gemessen rund 1,5 Ansagen pro Sekunde, endlos (Audit, N-01/N-02).
+
+	DIE ZWEITEILUNG, DIE DAS BEHEBT: die sichtbare Zahl in
+	[data-ca-bar-total-value] trägt jetzt KEINEN role="status" mehr und läuft
+	weiterhin bei JEDER Buchung sofort mit — ein sehender Spielender sieht
+	den Stand immer aktuell, ohne jede Verzögerung. Ein zweites, optisch
+	verborgenes Element ([data-ca-bar-announce]) trägt den Live-Bereich und
+	wird von account-live.js GEDROSSELT nachgeführt (höchstens einmal pro
+	Takt, siehe dortiger Kommentar) — ein Bildschirmleser bekommt den
+	vollständigen Satz weiterhin bei jeder tatsächlichen Änderung zu hören,
+	nur eben gebündelt statt pro einzelner Buchung. Serverseitig schon mit
+	dem echten Anfangswert gefüllt (derselbe Aufbau wie die sichtbare Zahl),
+	damit ein Bildschirmleser beim linearen Lesen der Seite denselben Satz
+	vorfindet, den K-01 schon für die sichtbare Zahl vorschrieb.
+</f:comment>
+<div class="ca-bar" data-ca-bar="" role="complementary" id="ca-bar" tabindex="-1"
+	aria-label="{labels.label}"
+	<f:if condition="{player.admin}"> data-ca-admin=""</f:if>>
+	<span class="ca-bar__name">{player.name}</span>
+	<span class="ca-bar__total" data-ca-bar-total="" data-value="{player.total}">
+		<span class="ca-bar__total-label ca-visually-hidden">{labels.total}</span>
+		<span data-ca-bar-total-value=""><f:format.number decimals="0" thousandsSeparator=".">{player.total}</f:format.number></span>
+		<span class="ca-bar__unit">{labels.unit}</span>
+	</span>
+	<span class="ca-visually-hidden" role="status" aria-atomic="true" data-ca-bar-announce="">{labels.total} <f:format.number decimals="0" thousandsSeparator=".">{player.total}</f:format.number> {labels.unit}</span>
+	<f:comment>
+		Abmelden ist ein FORMULAR, kein Verweis. Ein Verweis wird von
+		Vorausladern, Verlaufsprüfern und Lesezeichen aufgerufen — man wäre
+		abgemeldet, ohne es angeklickt zu haben. Ein Anfragezeichen braucht
+		es nicht: der Kern prüft es beim Abmelden nicht, und ein
+		untergeschobenes Abmelden richtet keinen Schaden an, den ein zweiter
+		Klick nicht behebt.
+	</f:comment>
+	<form class="ca-bar__form" method="post" action="{action}">
+		<input type="hidden" name="logintype" value="logout" />
+		<button class="ca-bar__logout" type="submit">{labels.logout}</button>
+	</form>
+</div>
+<f:comment>
+	DIE SPERRANZEIGE (CONCEPT.md D.7.2: „Fällt der Server aus oder bricht die
+	Verbindung ab, sperrt das Gerät die Bedienung und sagt es.")
+
+	Umsetzungsstück D3a legt nur die LEERE, GESCHLOSSENE Hülle an — genau wie
+	jedes andere <dialog>-Element ohne 'open'-Attribut bleibt sie ohne jedes
+	Zutun eines Skripts unsichtbar (UA-Stylesheet, keine eigene CSS-Regel
+	nötig). Geöffnet und gefüllt wird sie erst in Umsetzungsstück D3c
+	(account-live.js, frontend.css) — bis dahin ist dieses Markup folgenlos.
+
+	EIN ECHTES <dialog>, KEIN NACHGEBAUTES: showModal() bringt vom Browser
+	aus mit, was man sonst von Hand bauen müsste — der Rest der Seite wird
+	für Maus, Tastatur UND Hilfsmittel unerreichbar, der Fokus wandert
+	hinein, die Tabulatortaste kommt nicht heraus. Ein <div> mit
+	role="dialog" müsste all das nachbilden und hätte es an einer Stelle
+	falsch.
+
+	WARUM DIE ANZEIGE SCHON LEER IM DOKUMENT STEHT: ein Bereich mit
+	role="status"/aria-live, den ein Skript ERZEUGT und im selben Zug FÜLLT,
+	wird von einem Bildschirmleser nicht angesagt — er muss vorher da
+	gewesen sein. Deshalb liefert diese Vorlage die leere Hülle mit, und
+	account-live.js (D3c) schreibt nur Text hinein.
+
+	KEINE FARBE ALS EINZIGES MERKMAL: der Zustand steht als Satz da, nicht
+	als roter Rand.
+
+	Escape schließt nicht — account-live.js (D3c) hält das cancel-Ereignis
+	auf. Eine Sperre, die man wegdrücken kann, ist keine.
+
+	BEHOBENER BEFUND (Audit nach D3, S-01): aria-describedby="ca-lock-text"
+	auf dem <dialog> selbst. Ohne das sagt ein Hilfsmittel beim Eintritt
+	des Fokus (account-live.js ruft focus() auf den Erneut-versuchen-Knopf,
+	Zeile 74) vermutlich nur die per aria-labelledby genannte Überschrift
+	an — der wichtige zweite Satz „Es wird nichts gebucht, solange diese
+	Meldung steht" hängt sonst allein vom Zeitverhalten des role="status"
+	ab, der erst NACH showModal() gefüllt wird. Der role="status" bleibt
+	zusätzlich stehen: er hilft für spätere Änderungen des Texts (etwa den
+	„wird noch einmal versucht"-Satz nach einem Klick auf „Erneut
+	versuchen", der bei bereits geöffneter Anzeige geschieht).
+</f:comment>
+<dialog class="ca-lock" data-ca-lock aria-labelledby="ca-lock-titel" aria-describedby="ca-lock-text"
+	data-ca-lock-text-offline="{labels.lockTextOffline}"
+	data-ca-lock-text-error="{labels.lockTextError}"
+	data-ca-lock-text-retrying="{labels.lockTextRetrying}">
+	<h2 class="ca-lock__title" id="ca-lock-titel">{labels.lockTitle}</h2>
+	<p class="ca-lock__text" id="ca-lock-text" data-ca-lock-text role="status"></p>
+	<div class="ca-lock__actions">
+		<button type="button" class="ca-lock__retry" data-ca-lock-retry>{labels.lockRetry}</button>
+		<button type="button" class="ca-lock__reload" data-ca-lock-reload>{labels.lockReload}</button>
+	</div>
+</dialog>
+<f:comment>
+	Umsetzungsstück D3c: die Leiste und die Sperranzeige im Betrieb. Kein
+	Import — genau wie account-live.js selbst (Dateikopf) und wie
+	gate-scan.js auf der Torseite.
+</f:comment>
+<script type="module" src="{jsUrl}"></script>

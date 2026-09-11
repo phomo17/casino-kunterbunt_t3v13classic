@@ -36,3 +36,10 @@ services:
   # des Plans) ändert genau diese eine Zeile.
   Phomo17\CasinoAccount\Qr\QrCodeFactory:
     alias: Phomo17\CasinoAccount\Qr\BaconQrCodeFactory
+
+  # Der Anmeldedienst. Der Kern holt ihn über GeneralUtility::makeInstanceService()
+  # → makeInstance(); das fragt den Container nur nach ÖFFENTLICH angemeldeten
+  # Klassen. Ohne diese Zeile bekäme der Dienst seine drei Helfer nicht.
+  # Dieselbe Lage und dieselbe Begründung wie beim PlayerDataHandlerHook.
+  Phomo17\CasinoAccount\Authentication\PlayerAuthenticationService:
+    public: true

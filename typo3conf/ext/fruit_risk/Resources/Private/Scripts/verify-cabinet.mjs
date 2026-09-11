@@ -1,3 +1,5 @@
+// @pruefstand modus=egal laufzeit=kurz
+
 /**
  * FruitRisk – Nachweis Geometrie/Gestaltung/Trennung/Negativliste (V.7)
  * ======================================================================

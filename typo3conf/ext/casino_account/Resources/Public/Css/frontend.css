@@ -1,0 +1,325 @@
+/*
+ * Casino Kunterbunt – casino_account: Frontend-Gestaltung
+ * ========================================================
+ * Torseite (D2c) und Kontenleiste (D2d) in einer Datei. Kein Bauschritt,
+ * keine Einbindung von außen, jede Klasse mit dem Hauspräfix "ca-", jede
+ * Farbe aus tokens.css (casino_startpage) — bis auf die eine benannte
+ * Ausnahme unten.
+ */
+
+/* ============================================================= Grundlagen */
+/* BEHOBENER BEFUND (Audit nach D3, T-01): die Torseite lädt bewusst nur
+ * tokens.css (reine Custom Properties) und diese Datei — die
+ * box-sizing: border-box-Regel des Hauses steht in base.css
+ * (casino_startpage), das die Torseite nicht einbindet. Ohne sie rechnet
+ * .ca-gate__room mit width: min(34rem, 92vw) ZUSÄTZLICH zu ihrem eigenen
+ * Innenabstand und wird bei 320-412 Bildpunkten breiter als das Fenster
+ * (WCAG 2.2 SC 1.4.10 Reflow) — gemessen 374 px bei 320 px Fensterbreite.
+ * Dieselbe Regel wie in base.css, Abschnitt 1, damit die Torseite dieselbe
+ * Grundlage hat wie der Rest des Hauses. Auf den anderen Seiten (Kontenleiste,
+ * Sperranzeige), wo base.css bereits geladen ist, bewirkt sie nichts Neues. */
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+}
+
+/* =========================================================== Torseite (D2c) */
+.ca-gate {
+	margin: 0;
+	min-height: 100vh;
+	display: grid;
+	place-items: center;
+	/* Derselbe Teppich wie im Saal — die Torseite steht im selben Haus. */
+	background: var(--ck-carpet-base) var(--ck-carpet-pattern);
+	color: var(--ck-print-ink);
+	font-family: var(--ck-font-ui);
+}
+.ca-gate__room {
+	width: min(34rem, 92vw);
+	padding: var(--ck-space-5);
+	border-radius: var(--ck-radius-lg);
+	background: var(--ck-paper-100);          /* Papier auf Teppich */
+	box-shadow: 0 1.5rem 3rem var(--ck-shadow-pool);
+}
+.ca-gate__sign {
+	font-family: var(--ck-font-display);
+	color: var(--ck-print-red);
+	letter-spacing: .04em;
+	margin-top: 0;
+}
+.ca-gate__input {
+	font-family: var(--ck-font-numeric);      /* eine Kennung liest sich nur in einer festen Breite */
+	width: 100%;
+	font-size: 1.05rem;
+	padding: var(--ck-space-2);
+	border: 2px solid var(--ck-chrome-500);
+	border-radius: var(--ck-radius-sm);
+	background: #fff;                          /* AUSNAHME, siehe Fußnote */
+}
+.ca-gate__submit, .ca-gate__camera {
+	/* Mindestens 24 × 24 CSS-Pixel Zielfläche (WCAG 2.2, SC 2.5.8),
+	   tatsächlich deutlich mehr: min-height 2.75rem = 44px. */
+	min-height: 2.75rem;
+	padding-inline: var(--ck-space-4);
+	background: var(--ck-brass-polish);
+	color: var(--ck-wood-500);
+	border: 1px solid var(--ck-brass-400);
+	border-radius: var(--ck-radius-md);
+	font: inherit;
+	cursor: pointer;
+}
+/* Sichtbarer Fokus, nirgends abgeschaltet — mit eigener Farbe UND Abstand,
+   damit er auch auf dem Messing zu sehen ist.
+   BEHOBENER BEFUND (Audit nach D3, T-02): --ck-neon-gold (#ffc722) lag mit
+   outline-offset: 2px auf dem Papier (--ck-paper-100), nicht auf dem
+   Messing — dort misst es nur 1,26 : 1 gegen die 3 : 1 aus SC 1.4.11. Nicht
+   die Farbe war das Problem, sondern der Untergrund (in der Sperranzeige,
+   auf dunklem Holz, trägt dasselbe Gold 12,05 : 1). --ck-print-ink ist
+   bereits die Druckfarbe der Torseite (.ca-gate__sign nimmt --ck-print-red,
+   der Fliesstext --ck-print-ink) und erreicht auf --ck-paper-100 14,47 : 1 —
+   ein vorhandener Token, kein neuer. */
+.ca-gate :is(input, button, [href]):focus-visible {
+	outline: 3px solid var(--ck-print-ink);
+	outline-offset: 2px;
+}
+.ca-gate__error {
+	border-left: 4px solid var(--ck-print-red);
+	padding-left: var(--ck-space-3);
+	font-weight: 600;
+}
+.ca-gate__handonly, .ca-gate__hint { color: var(--ck-wood-200); }
+.ca-gate__video { width: 100%; border-radius: var(--ck-radius-md); background: var(--ck-wood-500); }
+[hidden] { display: none !important; }   /* damit "hidden" auch auf grid/flex wirkt */
+
+/* ==================================================== Kontenleiste (D2d) */
+/* Diese Regeln greifen erst, sobald AccountBar.php (Umsetzungsstück D2d)
+   die Leiste tatsächlich in die Seite einspeist. Bis dahin steht hier kein
+   .ca-bar-Element im ausgelieferten HTML, und diese Regeln bewirken nichts. */
+.ca-bar {
+	position: fixed;
+	inset-block-start: 0; inset-inline-end: 0;
+	z-index: 900;
+	display: flex; gap: var(--ck-space-3); align-items: center;
+	padding: var(--ck-space-2) var(--ck-space-3);
+	background: var(--ck-brass-polish);
+	color: var(--ck-wood-500);
+	border-radius: 0 0 0 var(--ck-radius-md);
+	box-shadow: 0 .25rem .75rem var(--ck-shadow-soft);
+	font-family: var(--ck-font-ui);
+}
+.ca-bar__total { font-family: var(--ck-font-numeric); font-weight: 700; }
+.ca-bar__logout { min-height: 2.25rem; padding-inline: var(--ck-space-3); background: transparent; color: inherit; border: 1px solid currentColor; border-radius: var(--ck-radius-sm); font: inherit; cursor: pointer; }
+/* Optisch verborgen, bis der Link den Tastaturfokus bekommt — dieselbe
+ * Technik wie .ck-skiplink in casino_startpage (base.css), hier mit dem
+ * Hauspräfix "ca-", weil casino_startpage nicht angefasst wird (D.1).
+ * BEHOBENER BEFUND (Audit nach D3, K-02). */
+.ca-bar__skiplink {
+	position: absolute;
+	z-index: 950;
+	inset-block-start: var(--ck-space-2);
+	inset-inline-start: var(--ck-space-2);
+	inline-size: 1px;
+	block-size: 1px;
+	padding: 0;
+	overflow: hidden;
+	clip-path: inset(50%);
+	white-space: nowrap;
+	background-color: var(--ck-chrome-shadow);
+	color: var(--ck-text-primary);
+	font-family: var(--ck-font-ui);
+	font-size: 0.9rem;
+	text-decoration: none;
+}
+.ca-bar__skiplink:focus-visible {
+	inline-size: auto;
+	block-size: auto;
+	padding: 0.6rem 1rem;
+	overflow: visible;
+	clip-path: none;
+	/* Dieselbe Farbe wie .ck-skiplink:focus-visible (casino_startpage,
+	 * base.css) — nicht --ck-neon-gold: diese Leiste erscheint auf JEDER
+	 * Saalseite ganz oben, über wechselnden Untergründen (Teppich, Tuch,
+	 * Papier). --ck-bulb-core ist genau dort schon erprobt, wo derselbe
+	 * Sprunglink schon heute steht. */
+	outline: 0.18rem solid var(--ck-bulb-core);
+	outline-offset: 0.12rem;
+}
+/* Nur für Hilfsmittel — dieselbe Bauart wie .ca-bar__skiplink oben, nur
+ * dauerhaft statt "bis zum Fokus". BEHOBENER BEFUND (Audit nach D3, K-01):
+ * die Beschriftung des Gesamtvermögens. */
+.ca-visually-hidden {
+	position: absolute;
+	inline-size: 1px;
+	block-size: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip-path: inset(50%);
+	white-space: nowrap;
+	border: 0;
+}
+@media (max-width: 40rem) {
+	/* Auf einem Telefon nimmt eine Ecke zu viel weg — dann volle Breite unten. */
+	.ca-bar {
+		inset-block-start: auto; inset-block-end: 0; inset-inline: 0;
+		border-radius: 0; justify-content: space-between;
+		/* BEHOBENER BEFUND (Audit nach D3, K-03): der Messingverlauf
+		 * --ck-brass-polish lief bei umgebrochener Schrift (die volle
+		 * Breite unten bricht .ca-bar__total in zwei Zeilen) durch seine
+		 * dunkelste Stelle (78 %, #8c6a1f) — dort nur 3,76 : 1 gegen
+		 * --ck-wood-500, unter den 4,5 : 1 für Text. Ein flacher Ton statt
+		 * des Verlaufs, nur in dieser Ansicht: --ck-brass-200 erreicht
+		 * 10,09 : 1 gegen --ck-wood-500 (tokens.css-Kommentar „Chips",
+		 * gleiche Farbfamilie). Ab 640 Bildpunkten bleibt der Verlauf
+		 * unverändert — dort trifft die Schrift die dunkle Stelle nicht. */
+		background: var(--ck-brass-200);
+	}
+	/* BEHOBENER BEFUND (Audit nach D3, Teil 2, N-03/N-04): in genau dieser
+	 * Ansicht steht die Leiste fest am UNTEREN Rand (siehe .ca-bar oben,
+	 * inset-block-end: 0) und verdeckte bisher jeden darunterliegenden
+	 * Inhalt vollständig. Gemessen bei 360 × 740 (dieselbe Breite wie
+	 * K-03): jeder mit der Tabulatortaste angesteuerte Fokusrahmen auf
+	 * /reel-slot, /blackjack, /roulette lag zu 1,000 unter der Leiste, und
+	 * der Fusszeilen-Quellenverweis (.ck-colophon__source) blieb selbst am
+	 * Rollende (scrollY === maxScroll) vollständig verdeckt — für IHN gab es
+	 * keine Rollposition, an der er sichtbar wurde (N-04, eigener
+	 * Inhaltsverlust, nicht nur ein Fokus-Befund).
+	 *
+	 * URSACHE, AN EINER STELLE: scroll-margin-block-end stand auf keinem
+	 * Bedienteil, und body hatte kein padding-block-end — der Browser rollt
+	 * ein fokussiertes Element zwar in den sichtbaren Bereich, aber
+	 * „sichtbar" heißt für ihn nur „im Fenster", nicht „nicht unter einem
+	 * fest positionierten Element". Auf /reel-slot und /roulette blieb
+	 * scrollY deshalb sogar bei 0 (Audit, N-03).
+	 *
+	 * scroll-padding-block-end auf dem WURZELEMENT statt scroll-margin-*
+	 * auf jedem einzelnen Bedienteil: diese eine Eigenschaft wirkt auf JEDES
+	 * automatische Hinrollen — Tab-Fokus genauso wie das Anspringen eines
+	 * Sprungziels —, ohne acht Geräte-Extensions einzeln anfassen zu
+	 * müssen (D.1: casino_startpage bleibt unangetastet, und auch keine der
+	 * Geräte-Extensions wird für diesen Fund gebraucht). padding-block-end
+	 * auf body schafft zusätzlich den Platz, den es braucht, damit das
+	 * Rollende überhaupt so weit reicht, dass die Fußzeile über der Leiste
+	 * zu liegen kommt — ohne ihn bliebe maxScroll unverändert und die
+	 * Leiste deckte die Fußzeile auch am Rollende weiter ab.
+	 *
+	 * :has([data-ca-bar]) GENAU WIE BEIM LEUCHTSCHILD OBEN: diese Datei wird
+	 * auch von der Torseite geladen (GatePage::render(), 'cssUrl') — dort
+	 * steht nie eine Kontenleiste im Dokument. Ohne die Einschränkung bekäme
+	 * die Anmeldeseite unten einen Leerraum, den sie nicht braucht.
+	 *
+	 * 64px = 4rem: an der laufenden Seite gemessen (getBoundingClientRect),
+	 * nicht geschätzt — derselbe Wert wie im Audit-Beleg (d3t2-leiste.json,
+	 * 360 × 64 px). Ab 640 Bildpunkten sitzt die Leiste oben rechts und
+	 * überlappt nichts (Audit-Tabelle zu N-03) — deshalb bleibt auch diese
+	 * Gegenmaßnahme auf denselben Breitenbereich beschränkt wie die Leiste
+	 * selbst.
+	 *
+	 * html:has([data-ca-bar]), NICHT html:has(body:has([data-ca-bar])):
+	 * :has() darf laut Spezifikation kein weiteres :has() in seinem
+	 * Argument enthalten — ein verschachteltes :has(:has()) ist ein
+	 * UNGÜLTIGER Selektor, und ein Regelblock mit ungültigem Selektor wird
+	 * vom Browser vollständig verworfen, ohne Fehlermeldung in der Konsole
+	 * (erst bei der Nachmessung aufgefallen: getComputedStyle(html)
+	 * .scrollPaddingBlockEnd blieb "auto" statt "64px"). [data-ca-bar] steht
+	 * ohnehin nie außerhalb von body — html:has([data-ca-bar]) prüft
+	 * deshalb dasselbe, nur mit einer Ebene weniger und gültiger Syntax. */
+	html:has([data-ca-bar]) {
+		scroll-padding-block-end: 4rem;
+	}
+	body:has([data-ca-bar]) {
+		padding-block-end: 4rem;
+	}
+}
+@media (prefers-reduced-motion: reduce) { .ca-bar, .ca-gate * { transition: none !important; animation: none !important; } }
+
+/*
+ * Die eine bewusste Farbausnahme: background: #fff im Eingabefeld.
+ * tokens.css hat kein reines Weiß, und ein Eingabefeld in Papierfarbe ist
+ * von seiner Umgebung nicht mehr zu unterscheiden. Namentlich eingetragen
+ * und begründet, nicht stillschweigend zugelassen (verify-cabinet.mjs,
+ * A-1b-Ausnahme, wird in D2d nachgetragen).
+ *
+ * Nichts blinkt, nichts pulsiert (D.12). Die Torseite hat keine einzige
+ * Animation; die prefers-reduced-motion-Regel steht trotzdem da, weil sie
+ * später niemand nachtragen wird.
+ */
+
+/* ==================================================== Sperranzeige (D3c) */
+/* CONCEPT.md D.7.2: „Fällt der Server aus oder bricht die Verbindung ab,
+ * sperrt das Gerät die Bedienung und sagt es." Ein natives <dialog>
+ * (account-live.js ruft showModal(), Plan-Entscheidung 9.9) — Fokusfalle,
+ * Tastaturverhalten und die Unerreichbarkeit des Hintergrunds für
+ * Hilfsmittel bringt der Browser mit; diese Regeln geben ihm nur Material
+ * und Abstand.
+ */
+.ca-lock {
+	max-width: 26rem;
+	padding: var(--ck-space-4);
+	background: var(--ck-wood-500);
+	color: var(--ck-text-primary);
+	border: 1px solid var(--ck-brass-400);
+	border-radius: var(--ck-radius-lg);
+	box-shadow: 0 .5rem 1.5rem var(--ck-shadow-hard);
+	font-family: var(--ck-font-ui);
+}
+.ca-lock::backdrop {
+	background: var(--ck-shadow-hard);
+}
+.ca-lock__title {
+	margin: 0 0 var(--ck-space-2);
+	font-family: var(--ck-font-display);
+	color: var(--ck-neon-gold);
+}
+.ca-lock__text {
+	margin: 0 0 var(--ck-space-3);
+}
+.ca-lock__actions {
+	display: flex;
+	gap: var(--ck-space-2);
+	flex-wrap: wrap;
+}
+.ca-lock__retry, .ca-lock__reload {
+	/* Mindestgröße 24 × 24 Bildpunkte (WCAG 2.2, 2.5.8) — hier erreichbar,
+	 * weil die Anzeige kein Gehäusemaß einhalten muss; tatsächlich deutlich
+	 * mehr, wie schon bei der Kontenleiste (D2d): min-height 2.75rem = 44px. */
+	min-height: 2.75rem;
+	padding-inline: var(--ck-space-4);
+	background: var(--ck-brass-polish);
+	color: var(--ck-wood-500);
+	border: 1px solid var(--ck-brass-400);
+	border-radius: var(--ck-radius-md);
+	font: inherit;
+	cursor: pointer;
+}
+/* Sichtbarer Fokus, nirgends abgeschaltet — dieselbe Farbe wie auf der
+ * Torseite (.ca-gate). */
+.ca-lock button:focus-visible {
+	outline: 3px solid var(--ck-neon-gold);
+	outline-offset: 2px;
+}
+
+/* ============================================== Leuchtschild, nur Admins (D3c) */
+/* CONCEPT.md D.7.3, Plan Befund 2: bei eingeschaltetem QR-Modus verschwindet
+ * das freie Setzen für alle außer Admins „ersatzlos". Dieselbe Regel gilt
+ * für die Schnellwerte und den freien Einwurf daneben — sie erschaffen
+ * ebenso Kassenguthaben aus dem Nichts (siehe Plan, Befund 2).
+ *
+ * WARUM ALS CSS UND NICHT NUR ALS SKRIPT: ein Skript entfernt die Teile
+ * erst, wenn es läuft — der Browser hat sie dann unter Umständen schon
+ * gemalt, und der Spieler sieht eine Schaltfläche aufblitzen, die es nicht
+ * geben darf. Diese Datei wird von AccountBar in den <head> eingespeist,
+ * also VOR jedem Malen. Das Skript entfernt die Teile trotzdem zusätzlich
+ * (credit-set.js, credit-display.js) — sonst blieben sie mit der
+ * Tabulatortaste erreichbar, und „display: none" allein ist keine
+ * Rückbau-Zusage.
+ *
+ * :has() ist der Rückwärts-Selektor: „ein body, in dem eine Kontenleiste
+ * ohne Admin-Merkmal steckt". Die Leiste steht am Ende des Körpers, die
+ * Bedienteile stehen davor — ohne :has() wäre das nicht auszudrücken.
+ */
+body:has([data-ca-bar]:not([data-ca-admin])) [data-ck-credit-set],
+body:has([data-ca-bar]:not([data-ca-admin])) [data-ck-credit-form] {
+	display: none;
+}

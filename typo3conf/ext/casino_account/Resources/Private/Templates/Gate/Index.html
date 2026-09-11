@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="{lang}">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<f:comment>
+		noindex: eine Seite, die unter JEDER Adresse dieselbe Anmeldung zeigt,
+		hat in keinem Verzeichnis etwas verloren. Zusätzlich zum Kopfzeilen-
+		Eintrag X-Robots-Tag (GatePage::render()), weil manche Werkzeuge nur
+		eins von beidem lesen.
+	</f:comment>
+	<meta name="robots" content="noindex,nofollow" />
+	<title><f:translate key="LLL:EXT:casino_account/Resources/Private/Language/locallang.xlf:gate.title" /></title>
+	<f:comment>
+		Zwei Stylesheets, in dieser Reihenfolge: erst die Farb- und Maßwerte
+		des Hauses (tokens.css aus casino_startpage — reine Custom
+		Properties, keine einzige Regel), dann unsere eigene Datei, die sie
+		benutzt. Genau dieselbe Reihenfolge wie in setup.typoscript für alle
+		anderen Seiten. So ist die Torseite „gestaltet wie der Rest des
+		Hauses" (D.6.1), ohne eine einzige Farbe zu doppeln.
+	</f:comment>
+	<link rel="stylesheet" href="{tokensCssUrl}" />
+	<link rel="stylesheet" href="{cssUrl}" />
+</head>
+<body class="ca-gate">
+	<main class="ca-gate__room">
+		<f:comment>Genau eine Überschrift erster Ordnung — der Name des Hauses, wie im Saal.</f:comment>
+		<h1 class="ca-gate__sign"><f:translate key="LLL:EXT:casino_account/Resources/Private/Language/locallang.xlf:gate.heading" /></h1>
+		<p class="ca-gate__intro"><f:translate key="LLL:EXT:casino_account/Resources/Private/Language/locallang.xlf:gate.intro" /></p>
+
+		<f:comment>
+			Die Meldung. Sie steht NUR da, wenn es wirklich etwas zu melden
+			gibt. role="alert" allein sagt einen beim Laden bereits gefüllten
+			Absatz NICHT an — das gilt nur für einen Live-Bereich, der zur
+			Ladezeit leer ist und erst DANACH gefüllt wird (dieselbe Regel,
+			die diese Vorlage für die Statuszeile weiter unten selbst richtig
+			anwendet). BEHOBENER BEFUND (Audit nach D3, T-03): stattdessen
+			hängt das Eingabefeld unten die Meldung über aria-describedby ein
+			und trägt aria-invalid — deterministisch, unabhängig vom
+			Ansageverhalten eines Live-Bereichs, und genau dort, wo autofocus
+			den Fokus ohnehin hinsetzt. role="alert" bleibt zusätzlich stehen,
+			falls ein Hilfsmittel den bereits gefüllten Absatz doch als
+			Änderung erkennt. Der Text nennt NIE die eingegebene Kennung (D.9).
+		</f:comment>
+		<f:if condition="{reason} != 'none'">
+			<p class="ca-gate__error" id="ca-gate-error" role="alert">
+				<f:translate key="LLL:EXT:casino_account/Resources/Private/Language/locallang.xlf:gate.error.{reason}" />
+			</p>
+		</f:if>
+
+		<f:comment>
+			WEG 3 ZUERST — Handeingabe. D.6.1: „Weg 3 ist Pflicht und immer
+			sichtbar, nicht versteckt." Deshalb steht er nicht nur immer im
+			Dokument, sondern auch ganz oben: er ist der Weg, der überall
+			funktioniert, und der erste Tabulatorsprung führt in sein Feld.
+		</f:comment>
+		<form class="ca-gate__form" method="post" action="{action}">
+			<input type="hidden" name="{requestTokenName}" value="{requestToken}" />
+
+			<label class="ca-gate__label" for="ca-gate-token">
+				<f:translate key="LLL:EXT:casino_account/Resources/Private/Language/locallang.xlf:gate.token.label" />
+			</label>
+			<f:if condition="{reason} != 'none'">
+				<f:then>
+					<input class="ca-gate__input" id="ca-gate-token" name="{parameter}"
+						type="text" inputmode="text" autocomplete="off" autocapitalize="off"
+						spellcheck="false" maxlength="{tokenLength}" size="{tokenLength}"
+						aria-describedby="ca-gate-hint ca-gate-error" aria-invalid="true"
+						autofocus="autofocus" required="required" />
+				</f:then>
+				<f:else>
+					<input class="ca-gate__input" id="ca-gate-token" name="{parameter}"
+						type="text" inputmode="text" autocomplete="off" autocapitalize="off"
+						spellcheck="false" maxlength="{tokenLength}" size="{tokenLength}"
+						aria-describedby="ca-gate-hint" autofocus="autofocus" required="required" />
+				</f:else>
+			</f:if>
+			<p class="ca-gate__hint" id="ca-gate-hint">
+				<f:translate key="LLL:EXT:casino_account/Resources/Private/Language/locallang.xlf:gate.token.hint" />
+			</p>
+
+			<button class="ca-gate__submit" type="submit">
+				<f:translate key="LLL:EXT:casino_account/Resources/Private/Language/locallang.xlf:gate.submit" />
+			</button>
+		</form>
+
+		<f:comment>
+			WEGE 1 UND 2 — Kamera und Bild. Sie sind Zugabe (D.6.1) und ihr
+			Fehlen darf NICHT wie ein Fehler aussehen. Deshalb:
+			  - der ganze Block trägt beim Ausliefern hidden; erst
+			    gate-scan.js nimmt es weg, und nur dann, wenn der Browser die
+			    eingebaute Erkennung wirklich mitbringt;
+			  - kein disabled irgendwo (das wäre ein sichtbarer, aber toter
+			    Knopf);
+			  - der Satz „Auf diesem Gerät geht es mit der Hand" steht im
+			    Auslieferungszustand SICHTBAR da und wird von JavaScript
+			    entfernt, wenn es doch mehr gibt. Wer kein JavaScript hat,
+			    liest also eine ruhige Feststellung — keine Fehlermeldung.
+		</f:comment>
+		<p class="ca-gate__handonly" data-ca-gate-handonly="">
+			<f:translate key="LLL:EXT:casino_account/Resources/Private/Language/locallang.xlf:gate.hand.only" />
+		</p>
+
+		<section class="ca-gate__scan" data-ca-gate-scan="" hidden="hidden"
+			aria-labelledby="ca-gate-scan-heading"
+			data-message-camera-on="{f:translate(key: 'LLL:EXT:casino_account/Resources/Private/Language/locallang.xlf:gate.status.cameraOn')}"
+			data-message-camera-off="{f:translate(key: 'LLL:EXT:casino_account/Resources/Private/Language/locallang.xlf:gate.status.cameraOff')}"
+			data-message-found="{f:translate(key: 'LLL:EXT:casino_account/Resources/Private/Language/locallang.xlf:gate.status.found')}"
+			data-message-nothing="{f:translate(key: 'LLL:EXT:casino_account/Resources/Private/Language/locallang.xlf:gate.status.nothing')}"
+			data-message-denied="{f:translate(key: 'LLL:EXT:casino_account/Resources/Private/Language/locallang.xlf:gate.status.denied')}">
+			<h2 class="ca-gate__scan-heading" id="ca-gate-scan-heading">
+				<f:translate key="LLL:EXT:casino_account/Resources/Private/Language/locallang.xlf:gate.scan.heading" />
+			</h2>
+
+			<f:comment>
+				Zwei Beschriftungen für einen Kippschalter (aria-pressed trägt
+				den Zustand, der sichtbare Text wechselt mit): die Kamera-
+				Beschriftungen kommen als data-message-* mit, wie jeder
+				andere im Skript benutzte Satz auch — kein deutscher Text im
+				JavaScript-Quelltext.
+			</f:comment>
+			<button class="ca-gate__camera" type="button" data-ca-gate-camera="" aria-pressed="false"
+				data-message-camera-start="{f:translate(key: 'LLL:EXT:casino_account/Resources/Private/Language/locallang.xlf:gate.camera.start')}"
+				data-message-camera-stop="{f:translate(key: 'LLL:EXT:casino_account/Resources/Private/Language/locallang.xlf:gate.camera.stop')}">
+				<f:translate key="LLL:EXT:casino_account/Resources/Private/Language/locallang.xlf:gate.camera.start" />
+			</button>
+			<f:comment>
+				Das Videobild ist für ein Hilfsmittel bedeutungslos
+				(aria-hidden) — angesagt wird stattdessen der Satz in der
+				Statuszeile darunter. playsinline verhindert, dass iOS das
+				Bild bildschirmfüllend übernimmt; muted ist Bedingung dafür,
+				dass es überhaupt von selbst losläuft.
+			</f:comment>
+			<video class="ca-gate__video" data-ca-gate-video="" playsinline muted aria-hidden="true"></video>
+
+			<label class="ca-gate__file-label" for="ca-gate-file">
+				<f:translate key="LLL:EXT:casino_account/Resources/Private/Language/locallang.xlf:gate.file.label" />
+			</label>
+			<input class="ca-gate__file" id="ca-gate-file" type="file" accept="image/*" data-ca-gate-file="" />
+		</section>
+
+		<f:comment>
+			Die Statuszeile. Sie wird LEER ausgeliefert und nur gefüllt: ein
+			Live-Bereich, den ein Skript erst anlegt UND füllt, wird von
+			Hilfsmitteln nicht angesagt. Dieselbe Regel und dieselbe Bauart
+			wie im Guthaben-Schild von casino_startpage.
+		</f:comment>
+		<p class="ca-gate__status" data-ca-gate-status="" role="status"></p>
+	</main>
+
+	<script type="module" src="{jsUrl}"></script>
+</body>
+</html>

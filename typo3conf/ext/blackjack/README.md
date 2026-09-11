@@ -23,9 +23,9 @@ Tisch-Bausteine des Site Packages verdrahtet.
 | Composer-Name | `phomo17/blackjack` |
 | Namespace | `Phomo17\Blackjack\` |
 | TYPO3-Version | 13.4 (klassische, nicht Composer-basierte Installation) |
-| Abhängigkeit | `casino_startpage` >= 0.4.0 (Design-Tokens, Registry, Kasse) |
+| Abhängigkeit | `casino_startpage` >= 0.5.0 (Design-Tokens, Registry, Kasse) |
 | Lizenz | AGPL-3.0-or-later |
-| Zustand | 0.4.0 / alpha |
+| Zustand | 0.5.0 / alpha |
 
 ## Installation
 
@@ -297,6 +297,77 @@ dokumentfrei und macht sie unter Node unmittelbar ladbar, ohne die
 Import-Map von TYPO3 nachzubilden — die Voraussetzung dafür, dass jeder
 Nachweis mit dem **echten** Code rechnet, nicht mit einer Nachbildung davon.
 
+**Ein dritter Geberzustand seit Umsetzungsstück D5-4 (die Lobby).** Läuft
+dieser Tisch in einer QR-Lobby (CONCEPT.md D.10), tritt zur Rundenlaufzeit
+ein `createSeeded(saatZuZahl(saat))` an die Stelle von `drawUint32` — die
+Saat kommt vom Server (`casino_lobby`) und ist für jeden Sitzenden dieselbe.
+`saatZuZahl()` steht dafür wortgleich (nachgewiesen, nicht nur behauptet:
+`casino_lobby/verify-lobby-live.mjs`, V-21) in dieser `rng.js`, in
+`roulette/rng.js`, in `craps/rng.js` und in `casino_lobby/lobby-seed.js`.
+`createSeeded(` wird in `blackjack.js` genau EINMAL AUFGERUFEN — im
+`saatGeber`-Rückruf an `connectLobby()` — nirgends sonst (`verify-view.mjs`,
+V-18).
+
+**Drei offengelegte Grenzen, alle in `round-lobby-blackjack.js` und
+`lobby-blackjack.js` ausführlich begründet:**
+
+- **Jede Lobby-Runde beginnt mit einem frisch aus der Rundensaat gemischten
+  Schlitten.** Am Einzeltisch läuft ein Schlitten über viele Runden, bis die
+  Trennkarte kommt (Abschnitt „Der Schlitten"). In der Lobby geht das nicht
+  — die Saat kommt je Runde neu vom Server, und ein Schlitten, der über
+  Runden hinweg lebt, müsste seine Position an jeden Browser weitergeben,
+  auch an einen, der gerade beitritt. **Kartenzählen bringt in der Lobby
+  deshalb nichts.**
+- **Die Geberreserve.** Beim Blackjack ziehen alle Plätze aus EINEM
+  gemeinsamen Schlitten (dem einzigen, an dem eine Entscheidung eines
+  Platzes die Karten aller anderen verschiebt — die eine Stelle in
+  `CONCEPT.md` D.10, an der eine Saat allein nicht reicht; das
+  Zugprotokoll, serverseitig `tx_casinolobby_lobby.moves`, macht die Folge
+  erst vollständig deterministisch). Ein Platz, der zuerst steht, spielt
+  seinen Geber SOFORT lokal aus (`round-blackjack.js#_maybeAdvanceToDealer()`
+  kennt keine Lobby und wartet auf niemanden) — zöge der Geber dabei regulär
+  weiter aus dem Schlitten, bekäme ein früh stehender Platz einen ANDEREN
+  Geber als ein spät stehender. Die Geberkarten kommen deshalb NACH den
+  ersten beiden (die aus der regulären Austeilfolge stammen) aus einer zu
+  Rundenbeginn abgeschnittenen Reserve am Schlittenende (die letzten 16
+  Karten) — unabhängig davon, wann welcher Browser danach fragt. Der Preis:
+  diese Karten hängen nicht mehr davon ab, wie oft die Plätze vorher gezogen
+  haben; auf die Quote hat das keinen Einfluss (eine Karte vom Ende eines
+  gemischten Schlittens ist so zufällig wie eine vom Anfang), wohl aber auf
+  das Kartenzählen — dieselbe Grenze wie oben, aus einem zweiten Grund.
+- **Die Versicherung wird pro Platz gestellt, nicht allen gleichzeitig.** Am
+  echten Tisch bietet der Geber die Versicherung allen an, bevor gespielt
+  wird. In der Lobby ist sie stattdessen die erste Frage im EIGENEN Zug
+  jedes Platzes (Buchstaben `i`/`n` im Zugprotokoll) — eine zusätzliche
+  Tischphase bräuchte eine fünfte Uhr und einen fünften Zustand für einen
+  Nebenfall. Auf das Geld hat das keinen Einfluss: die Versicherung ist eine
+  Einzelwette gegen den Geber und hängt von keinem anderen Platz ab.
+
+Nachgewiesen in `verify-lobby-blackjack.mjs` (B-1 bis B-10, gerechnet mit dem
+echten `round-lobby-blackjack.js`, dem echten `shoe.js` und dem echten
+`rules-blackjack.js`) und live in `probe-lobby-blackjack.mjs`. Der Ersatz-
+Schlitten, der `round-blackjack.js` unverändert an die gemeinsame Tischfolge
+anschließt (`blackjack.js#ersatzSchlitten()`), liest den Geberzustand LIVE aus
+`game.state` statt über einen von außen gesetzten Zeitpunkt — begründet im
+Kopfkommentar dieser Funktion (`blackjack.js`).
+
+**Behebungslauf, gefunden live mit zwei echten Browsern:** `lobby-live.js`
+sendet `casino:lobby-stand` bei JEDER Abfrage IMMER VOR `casino:lobby-runde`
+(dieselbe Antwort, zwei Ereignisse nacheinander). Ausgerechnet auf der einen
+Abfrage, die eine Runde startet, lief `lobby-blackjack.js#aufStand()` deshalb
+EINEN Umlauf zu früh — mit `meinPlatz` noch auf dem Wert der vorigen Runde
+und ohne die gerade erst gebaute Tischfolge (`folge`). Die Kartenrücken der
+anderen blieben dadurch auf „0" stehen, der eigene Zug erschien fälschlich
+gesperrt, und weil eine frisch ausgeteilte Runde von sich aus nichts meldet
+(reine Client-Rechnung, keine Buchung), kam der nächste echte Umlauf oft erst
+mit der vollen 20-Sekunden-Notbremse. Behoben, indem `aufRunde()` denselben,
+gerade gesehenen Stand (`letzterStand`) ein zweites Mal verarbeitet, sobald
+`meinPlatz` und `folge` stehen — gefahrlos wiederholbar, weil
+`LobbyTableSequence.anwenden()` selbst mitzählt, wie weit es schon gekommen
+ist, und `gemeldet`/`eigenerZugGemeldet`/`letzteFelder` jede doppelte Meldung
+an den Server verhindern. Siehe außerdem den zweiten, serverseitigen Fund in
+`casino_lobby/README.md` (Abschnitt „Der Rundentakt und die Setzuhr").
+
 ## Geld am Tisch
 
 Das Guthaben dieses Casinos ist eine **ganze Zahl** — `credit.js` und
@@ -348,11 +419,20 @@ keinen Browser und brauchen keine laufende TYPO3-Instanz.
 | `verify-table.mjs` | die Runde am Tisch: Wiederholbarkeit, Bilanz auf den Cent, Nachlegeweg, Teilen, Versicherung, Mischzeitpunkt (T-1 bis T-16) | über 2000 echt gespielte Runden, mehrere Gegenproben | rund 1,5 Sekunden |
 | `verify-view.mjs` | Ansicht und Barrierefreiheit: dokumentfreie Dateien, ein Schreiber je Live-Bereich, echte Knöpfe, Zielgrößen, Fokus, Haken-Katalog, kein deutscher Text im JavaScript, Fokusführung, Abbruchpfade, XLIFF-Vollständigkeit (V-1 bis V-17) | mehrere Gegenproben | rund 1 Sekunde |
 | `verify-sound.mjs` | der Klang: kein Netzzugriff, key/minGap an jedem Aufruf, alle zwölf Klangereignisse tatsächlich ausgeführt, Ehrlichkeit, Spitzenausschlag unter 1,0, Autoplay-Sperre, Bewegungsdrosselung, der Ton-Schalter (N-1 bis N-10) | ein nachgebildeter Web-Audio-Kontext, mehrere Gegenproben | rund 1 Sekunde |
+| `verify-lobby-blackjack.mjs` | der Lobby-Anschluss aus Umsetzungsstück D5-4: `lobby-blackjack.js` kann kein Geld bewegen und keinen Server erreichen, `createSeeded(saatZuZahl(saat))` liefert dieselbe Folge wie `casino_lobby/lobby-seed.js`, die Geberreserve trennt Geberkarten zuverlässig von den regulär gezogenen (B-1 bis B-10) | 25 Zusagen, gerechnet mit dem echten `round-lobby-blackjack.js`, dem echten `shoe.js` und dem echten `rules-blackjack.js` | unter zwei Sekunden |
 
 Jede Prüfung mit Gegenprobe fertigt ihre verfälschte oder künstlich
 eingeschränkte Kopie selbst im Arbeitsspeicher an und arbeitet nie am echten
 Zustand des laufenden Nachweises — eine Prüfung, die nie fehlschlagen kann,
 ist keine.
+
+**`probe-lobby-blackjack.mjs`** (nicht in der Tabelle: keine reine
+Leseprüfung) ist die Live-Probe mit zwei echten Browsersitzungen, die
+nachweist, was `verify-lobby-blackjack.mjs` nicht sehen kann: ob zwei echte
+Browser wirklich dieselbe Geberfolge und dasselbe Rundenergebnis sehen
+(siehe „Zufall und Wiederholbarkeit"). Sie braucht eine laufende Website mit
+eingeschaltetem QR-Modus — deshalb steht sie nicht im Reihenlauf oben und
+wird gesondert gefahren.
 
 ## Klang
 
@@ -526,6 +606,43 @@ Klanggrenzen gegen die Tokens bzw. gegen einen nachgebildeten Web-Audio-
 Kontext prüfen, aber keinen echten Bedienversuch mit echten Hilfsmitteln
 ersetzen — das gehört in `test.txt`.
 
+## Grenzen, offen gelegt
+
+Dieser Tisch arbeitet seit Phase D3 gegen ein **serverseitiges Konto**, wenn
+der QR-Modus eingeschaltet ist. Daraus folgen fünf Grenzen, die hier stehen,
+damit niemand mehr hineinliest, als da ist.
+
+- **Der Schutz richtet sich gegen Versehen und Neugier, nicht gegen
+  Angriffe** (`CONCEPT.md` D.9). Wer den QR-Code einer anderen Person
+  abfotografiert, kann sich als sie anmelden. Wer den Spielverlauf im
+  eigenen Browser fälscht, kann sich Geld erschwindeln. Das ist eine
+  Spaßseite in einem Wohnzimmer, kein Wettbüro. Die vollständige Fassung
+  steht in `casino_account/README.md`, Abschnitt „Grenzen, offen gelegt".
+- **Der Tisch selbst kennt den Schalter nicht.** Er ruft ausschließlich die
+  Kassen-Schnittstelle des Site Package auf (`credit.js`, `table-buyin.js`);
+  ob dahinter der Browserspeicher oder der Server steht, entscheidet
+  `account-backend.js`. Ein Fehler in dieser einen Datei träfe deshalb alle
+  sieben Geräte und Tische gleichzeitig — genau die Fehlerklasse, die am
+  2026-09-11 an den Risiko-Leitern der Automaten aufgetreten ist.
+- **Wer mitten im Spiel die Verbindung verliert**, bekommt die Sperranzeige;
+  solange sie steht, wird nichts gebucht und nichts weitergerechnet. Was in
+  der Sekunde des Abrisses noch nicht gebucht war, ist verloren.
+- **In der Lobby kann der Server das Ergebnis nicht nachrechnen**
+  (`CONCEPT.md` D.10.4). Der Server zieht die Saat, jeder Browser rechnet
+  daraus dieselbe Runde, und das Ergebnis wird von **einem** Browser gemeldet
+  und einmal festgeschrieben. Wer der Melder ist und seinen eigenen Browser
+  fälscht, kann ein falsches Ergebnis festschreiben. Die Alternative — die
+  gesamte Physik ein zweites Mal in PHP zu schreiben — wäre ein eigenes,
+  fehleranfälliges Projekt für sich. Die vollständige Fassung steht in
+  `casino_lobby/README.md`, Abschnitt „Grenzen, offen gelegt". Beim
+  Blackjack kommt eine geräteeigene Ausprägung hinzu: die Geberreserve und
+  das Zugprotokoll, siehe „Zufall und Wiederholbarkeit" oben.
+- **In der Lobby wird vor jeder Runde neu gemischt.** Ein Schlitten, der wie
+  am Einzeltisch über viele Runden lebt, müsste seine Position an jeden
+  Browser weitergeben, auch an einen, der gerade erst beitritt — das leistet
+  die gemeinsame Saat nicht. **Kartenzählen bringt in der Lobby deshalb
+  nichts** (siehe „Zufall und Wiederholbarkeit").
+
 ## Stand
 
 Phase C4 (Blackjack, Deck und Regelwerk) ist **vollständig**: Gerüst und
@@ -553,3 +670,21 @@ Mindesteinsatz (Abschnitt „Geld am Tisch") und die gemessene Auszahlungsquote
 von rund 99,3 % (Abschnitt „Die beiden langen Messläufe"). Beide sind
 Eigenschaften der Hausregeln dieses Tisches, keine Fehler, und ausführlich in
 `DECISIONS.md` hergeleitet.
+
+**Phase D3** (serverseitiges Konto) hat an diesem Tisch **keine einzige
+Zeile geändert.** `blackjack.js` bezog Kasse und Gerätekredit schon seit
+Phase C5 über die geteilten Bausteine des Site Package (`credit.js`,
+`table-buyin.js`); ob dahinter der Browserspeicher oder der Server steht,
+entscheidet ausschließlich `account-backend.js` im Site Package (siehe
+„Grenzen, offen gelegt").
+
+Mit **Umsetzungsstück D5-4** (CONCEPT.md D.10) hängt dieser Tisch in der
+QR-Lobby: derselbe Tisch, ein dritter Geberzustand, ein neuer Adapter
+(`lobby-blackjack.js`, importiert aus `casino_lobby` NICHTS — nur vier
+DOM-Ereignisse) und eine neue, dokument- und importfreie Datei
+(`round-lobby-blackjack.js`, die gemeinsame Tischfolge aus Saat und
+Zugprotokoll). Drei offengelegte Grenzen — Kartenzählen wirkungslos, die
+Geberreserve, die pro Platz gestellte Versicherung — stehen im Abschnitt
+„Zufall und Wiederholbarkeit". Neuer Nachweis `verify-lobby-blackjack.mjs`
+(25 Zusagen, gerechnet gegen die echten drei Kartendateien, keine
+Nachbildung) und eine Live-Probe `probe-lobby-blackjack.mjs`.

@@ -15,6 +15,8 @@ import { buildSeedState } from '@phomo17/coin-pusher/seed.js';
 /** Abstand zweier Sicherungen im laufenden Betrieb, in Millisekunden. */
 export const SAVE_MS = 5000;
 
+import { konto } from '@phomo17/casino-startpage/account-backend.js';
+
 /**
  * localStorage, oder null, wenn der Zugriff verboten ist (privates Fenster,
  * abgeschaltete Speicherung). Kein Fehler, keine Konsolenausgabe.
@@ -22,6 +24,14 @@ export const SAVE_MS = 5000;
  * @returns {?Storage}
  */
 function safeStorage() {
+	// Ab Teil D gehört das Feld nicht mehr dem Browser, sondern der Person
+	// (CONCEPT.md D.8). konto.speicher ist Storage-förmig — dieselben drei
+	// Methoden, dieselbe synchrone Bauart —, sammelt die Schreibvorgänge und
+	// schickt sie gebündelt. Der 5-Sekunden-Takt aus AutoSave bleibt
+	// unverändert; es wird also NICHT bei jeder Münze gebucht.
+	if (konto.istServer) {
+		return konto.speicher;
+	}
 	try {
 		return globalThis.localStorage ?? null;
 	} catch {

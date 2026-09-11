@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Phomo17\CasinoAccount\Controller\PlayerModuleController;
+use Phomo17\CasinoAccount\Controller\QrModeModuleController;
 
 /**
  * Die Modulgruppe „Casino" und ihre Module (CONCEPT.md D.2, D.3).
@@ -63,6 +64,36 @@ return [
             ],
             'download' => [
                 'target' => PlayerModuleController::class . '::downloadAction',
+            ],
+        ],
+    ],
+
+    // --------------------------------------------------- „QR-Modus" (D.5)
+    'casino_qr_mode' => [
+        'parent' => 'casino',
+        'position' => ['after' => 'casino_players'],
+        'access' => 'user',
+        'iconIdentifier' => 'module-casino-qrmode',
+        'labels' => [
+            'title' => 'LLL:EXT:casino_account/Resources/Private/Language/locallang_be.xlf:module.qrmode.title',
+            'shortDescription' => 'LLL:EXT:casino_account/Resources/Private/Language/locallang_be.xlf:module.qrmode.tablabel',
+            'description' => 'LLL:EXT:casino_account/Resources/Private/Language/locallang_be.xlf:module.qrmode.tabdescr',
+        ],
+        'routes' => [
+            '_default' => [
+                'target' => QrModeModuleController::class . '::indexAction',
+            ],
+            // Beide ändern etwas und sind deshalb auf POST beschränkt: eine
+            // Adresse, die beim bloßen Aufrufen schaltet, wird irgendwann von
+            // einem Lesezeichen, einem Vorauslader oder einem Suchdienst
+            // ausgelöst. 'methods' ist die Zusage des Kern-Routers dafür.
+            'toggle' => [
+                'target' => QrModeModuleController::class . '::toggleAction',
+                'methods' => ['POST'],
+            ],
+            'logout_all' => [
+                'target' => QrModeModuleController::class . '::logoutAllAction',
+                'methods' => ['POST'],
             ],
         ],
     ],

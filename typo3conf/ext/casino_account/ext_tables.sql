@@ -20,6 +20,7 @@ CREATE TABLE tx_casinoaccount_player (
 	be_user int(11) unsigned DEFAULT '0' NOT NULL,
 	is_admin smallint(5) unsigned DEFAULT '0' NOT NULL,
 	booking_seq int(11) unsigned DEFAULT '0' NOT NULL,
+	booking_client varchar(32) DEFAULT '' NOT NULL,
 	last_seen int(11) unsigned DEFAULT '0' NOT NULL,
 
 	UNIQUE KEY token (token),
@@ -45,4 +46,30 @@ CREATE TABLE fe_users (
 	tx_casinoaccount_player int(11) unsigned DEFAULT '0' NOT NULL,
 
 	KEY tx_casinoaccount_player (tx_casinoaccount_player)
+);
+
+#
+# Der Gerätespeicher einer Person (CONCEPT.md D.13, Anhang I).
+#
+# D.13 nennt die Tabelle nach ihrem heute einzigen Nutzer: dem Feld des Coin
+# Pushers, das ab Teil D nicht mehr dem Browser gehört, sondern der Person
+# (D.8). Die SPALTEN sind trotzdem gerätefrei gehalten — `store_key` nimmt den
+# Speicherschlüssel auf, den das Gerät ohnehin schon führt. Grund: der
+# Adapter, der diese Tabelle im Browser vertritt, liegt in casino_startpage,
+# und dort darf laut CONCEPT.md Abschnitt 5, Grundsatz 2 kein Automat bekannt
+# sein. Stünde hier eine Spalte „coin_field", müsste der geteilte Baustein
+# den Coin Pusher kennen.
+#
+# uid/pid/tstamp/crdate ergänzt TYPO3 aus der TCA (DefaultTcaSchema::enrich),
+# genau wie bei tx_casinoaccount_player.
+#
+# Kein Geld: diese Tabelle geht in kein Gesamtvermögen ein und hat keine
+# Buchungsnummer.
+#
+CREATE TABLE tx_casinoaccount_coinfield (
+	player int(11) unsigned DEFAULT '0' NOT NULL,
+	store_key varchar(191) DEFAULT '' NOT NULL,
+	payload mediumtext,
+
+	UNIQUE KEY player_key (player, store_key)
 );

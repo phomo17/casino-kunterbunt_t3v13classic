@@ -14,12 +14,19 @@
  * Eingabefeld verschwindet ersatzlos. Es wird deshalb als eigener, klar
  * benannter Bedienteil gebaut, nicht als Beiwerk."
  *
- * Dieser Rückbau kostet deshalb genau drei Handgriffe und keine Zeile
- * Nacharbeit:
+ * Dieser Rückbau sollte einmal genau drei Handgriffe und keine Zeile
+ * Nacharbeit kosten:
  *
  *   1. diese Datei löschen
  *   2. Partials/Hall/CreditSet.html löschen
  *   3. die eine Renderzeile in Partials/Hall/Credit.html löschen
+ *
+ * NACHTRAG (Umsetzungsstück D3c, PLAN-d3-guthaben.md, Befund 2): dieser
+ * Rückbau FINDET NICHT STATT. D.7.3 verlangt „ersatzlos", aber nur für
+ * Nicht-Admins — für Admins lebt derselbe Bedienteil weiter (D.7.3, D.9: das
+ * freie Setzen bleibt ein Verwaltungswerkzeug). Was verschwindet, verschwindet
+ * deshalb ZUR LAUFZEIT und nur für die, die es nicht haben dürfen: siehe
+ * bindCreditSet() unten. Die Datei bleibt.
  *
  * Läge das Setzen in credit-display.js, müsste es dort später aus einer
  * Datei herausgetrennt werden, die zugleich das Aufladen und die Anzeige
@@ -48,6 +55,7 @@
  */
 
 import { credit } from '@phomo17/casino-startpage/credit.js';
+import { konto } from '@phomo17/casino-startpage/account-backend.js';
 
 const SELECTOR_PART = '[data-ck-credit-set]';
 const SELECTOR_FORM = '[data-ck-credit-set-form]';
@@ -160,6 +168,19 @@ function wirePart(part) {
 export function bindCreditSet(root = document) {
 	const parts = root.querySelectorAll(SELECTOR_PART);
 	for (const part of parts) {
+		// CONCEPT.md D.7.3: bei eingeschaltetem QR-Modus verschwindet das freie
+		// Setzen „ersatzlos" — außer für Admins. Ersatzlos heißt: aus dem
+		// Dokument, nicht nur unsichtbar. Ein bloß ausgeblendeter Bedienteil
+		// wäre mit der Tabulatortaste weiter erreichbar und ein Hilfsmittel
+		// läse ihn vor.
+		//
+		// Das Ausblenden per CSS in casino_account (frontend.css) passiert
+		// zusätzlich und FRÜHER — es verhindert das Aufblitzen, bevor dieses
+		// Modul läuft.
+		if (konto.istServer && !konto.darfVerwalten) {
+			part.remove();
+			continue;
+		}
 		wirePart(part);
 	}
 	return parts.length;

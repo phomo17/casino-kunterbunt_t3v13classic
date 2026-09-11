@@ -79,6 +79,8 @@
  * (CONCEPT.md B.3 Nr. 4, V.7 Nr. 5), und sie wird nicht angetastet.
  */
 
+// @pruefstand modus=egal laufzeit=kurz
+
 import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';

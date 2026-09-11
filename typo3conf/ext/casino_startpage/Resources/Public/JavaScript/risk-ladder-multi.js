@@ -144,6 +144,11 @@ import {
 	CURVE_DEFAULT, CYCLE_MIN_MS, SIDES_MIN,
 	cycleMs, normaliseSides, onMs, pauseMs, sideMs, stepTiming,
 } from '@phomo17/casino-startpage/risk-timing.js';
+// PRÄFIX, NICHT RELATIV (Plan D3c, Dateikopf-Nachtrag): verify-risk-timing.mjs
+// lädt diese Datei als data:-Modul (toModule()) — ein relativer Import
+// scheitert von dort aus. Der Modulname wird dort wie risk-timing.js selbst
+// auf die echte Datei umgeschrieben.
+import { konto } from '@phomo17/casino-startpage/account-backend.js';
 
 export const PHASE_OFF = 'off';
 export const PHASE_OFFER = 'offer';
@@ -400,6 +405,11 @@ export class MultiRiskLadder {
 		}
 
 		this.claim = claim;
+		// Der offene Gewinn ist ab jetzt Vermögen der Person (D.7: „ein Gewinn,
+		// der weder ausgezahlt noch verspielt ist"). Er wird SOFORT gebucht —
+		// D.7.1 verlangt genau diesen Schritt. Ohne diese Buchung wäre die
+		// Summe oben auf der Seite so lange falsch, wie die Leiter läuft.
+		this.syncWin(konto.istServer ? konto.angebot(claim.amount) : null);
 		this.phase = PHASE_OFFER;
 		this.level = 0;
 		this.sideMs = 0;
@@ -457,13 +467,72 @@ export class MultiRiskLadder {
 		return 'miss';
 	}
 
-	/** Treffer: mit dem Faktor vervielfachen und eine Stufe höher von vorn beginnen. */
+	/**
+	 * Treffer: mit dem Faktor vervielfachen und eine Stufe höher von vorn
+	 * beginnen.
+	 *
+	 * OPTIMISTISCH VERVIELFACHT, UNBEDINGT, IN BEIDEN ZWEIGEN (Behebungslauf
+	 * 2026-09-11, dieselbe Ursache wie in risk-ladder.js hit(), siehe dort
+	 * für die ausführliche Begründung): this.claim.amount wird jetzt IMMER
+	 * zuerst gesetzt, bevor gebucht, die Stufe erhöht oder gemalt wird.
+	 * Vorher stand im Servermodus bis zur Serverantwort noch der ALTE Betrag
+	 * in this.claim.amount — die Anzeige der neuen Stufe hinkte hinterher,
+	 * und ein zweiter, schneller hit() vor Eintreffen der ersten Antwort las
+	 * ebenfalls noch den alten current und buchte auf dessen Basis zu wenig
+	 * (aus 10 → 20 → 40 wurde 10 → 20 → 30). Ein zweiter, schneller hit()
+	 * liest current jetzt bereits als den bereits vervielfachten Betrag.
+	 */
 	hit() {
 		const current = this.win;
 		this.claim.amount = current >= MAX_WIN / this.factor ? MAX_WIN : current * this.factor;
+		if (konto.istServer) {
+			// Der Server kennt nur den Vorgang 'verdoppeln' (fest ×2, D.7.2,
+			// BookingService::rechnen()) — diese Leiter läuft aber mit JEDEM
+			// Faktor ab 2 (siehe Bauform-Anmeldung im Dateikopf, "factor"). Ein
+			// bloßer konto.verdoppeln()-Aufruf wäre nur für factor === 2
+			// richtig und würde bei größeren Faktoren dauerhaft zu wenig
+			// gutschreiben. Der additive Vorgang 'angebot' bucht
+			// stattdessen den UNTERSCHIEDSBETRAG (aktueller Gewinn ×
+			// (factor − 1), auf Basis des noch UNVERVIELFACHTEN current oben)
+			// und erreicht damit rechnerisch dasselbe Ergebnis wie eine
+			// Vervielfachung um factor — mit derselben Kappung bei MAX und
+			// ohne Admin-Beschränkung. Für factor === 2 ist das identisch zu
+			// konto.verdoppeln() (Abweichung vom wörtlichen Plantext 4.22, dort
+			// nur am Beispiel von risk-ladder.js gezeigt — siehe Umsetzungsbericht).
+			// syncWin() überschreibt this.claim.amount und malt erneut (reason
+			// 'sync'), sobald die Antwort da ist; bis dahin gilt der
+			// optimistische Wert oben.
+			this.syncWin(konto.angebot(current * (this.factor - 1)));
+		}
 		this.level += 1;
 		this.beginLevel();
 		this.report({ type: 'hit', level: this.level, win: this.win });
+	}
+
+	/**
+	 * Übernimmt den vom Server bestätigten offenen Gewinn.
+	 *
+	 * Warum nicht einfach await: offer() und hit() sind synchron und müssen es
+	 * bleiben — hit() setzt im selben Atemzug die neue Stufe und startet das
+	 * Blinkwerk, und ein await mitten darin verschöbe die Zeitmessung der
+	 * Leiter. Die Sicherheitsgrenze von 200 ms je Seite (B.6.1) hängt daran.
+	 * Deshalb läuft die Buchung nebenher, und wenn die Antwort da ist, wird der
+	 * angezeigte Betrag angeglichen und neu gemalt.
+	 *
+	 * @param {?Promise<object>} versprechen
+	 * @returns {void}
+	 */
+	syncWin(versprechen) {
+		if (versprechen === null) {
+			return;
+		}
+		void versprechen.then((antwort) => {
+			if (this.claim === null || antwort?.ok !== true) {
+				return;
+			}
+			this.claim.amount = antwort.gewinn;
+			this.render('sync');
+		});
 	}
 
 	/**
@@ -483,6 +552,11 @@ export class MultiRiskLadder {
 		// Erst aus der Hand geben, dann verwerfen: ab hier ist der offene Gewinn
 		// 0, und genau das soll das Gerät malen.
 		this.claim = null;
+		// Der Gewinnspeicher ist leer. Vierter Schreibvorgang im Beispiel aus
+		// D.7.1 (übertragen auf die Mehrtasten-Leiter).
+		if (konto.istServer) {
+			void konto.verloren();
+		}
 		claim.discard();
 
 		this.render('settled', 0);

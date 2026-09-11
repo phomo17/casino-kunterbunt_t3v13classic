@@ -31,6 +31,8 @@
  *   V-9  die Physik ist unverändert
  */
 
+// @pruefstand laufzeit=kurz abgeschrieben=Auftraggeber-Entscheidung 2026-09-11 (DECISIONS.md, 12:50): der Münzschieber ist abgeschrieben, die Extension deaktiviert (extension:deactivate), Dateien bleiben liegen. Der Altbefund vom 2026-09-04 (Prüfsumme field.js, 104 statt 110-130 Münzen, 19 Überlappungen) ist damit gegenstandslos und wird nicht mehr gefahren.
+
 import { readFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';

@@ -33,6 +33,8 @@
  * Kommawert, der geprüft wird, ist die Blitzrate – und der wird mit <= geprüft.
  */
 
+// @pruefstand modus=egal laufzeit=kurz
+
 import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 
@@ -61,6 +63,13 @@ const JS_DIR = new URL('../../Public/JavaScript/', import.meta.url);
 const RISK_LADDER_URL = new URL('risk-ladder.js', JS_DIR);
 const RISK_LADDER_MULTI_URL = new URL('risk-ladder-multi.js', JS_DIR);
 const TIMING_FILE_URL = new URL('risk-timing.js', JS_DIR).href;
+/** Umsetzungsstück D3c: beide Leitern importieren jetzt account-backend.js
+ * (Präfix, siehe Dateikopf-Nachtrag in risk-ladder.js). Node kennt die
+ * Import-Karte nicht — derselbe Umschreibe-Mechanismus wie für
+ * risk-timing.js. account-backend.js selbst hat keinen einzigen Import und
+ * lässt sich deshalb ohne weitere Umschreibung über seine echte Adresse
+ * laden. */
+const ACCOUNT_BACKEND_URL = new URL('account-backend.js', JS_DIR).href;
 
 /** Bis hierhin wird jede einzelne Stufe durchgerechnet. */
 const SWEEP = 100000;
@@ -426,9 +435,15 @@ async function toModule(url, replacements, label) {
 }
 
 const riskLadderModuleUrl = await toModule(RISK_LADDER_URL,
-	[['@phomo17/casino-startpage/risk-timing.js', TIMING_FILE_URL]], 'risk-ladder.js');
+	[
+		['@phomo17/casino-startpage/risk-timing.js', TIMING_FILE_URL],
+		['@phomo17/casino-startpage/account-backend.js', ACCOUNT_BACKEND_URL],
+	], 'risk-ladder.js');
 const riskLadderMultiModuleUrl = await toModule(RISK_LADDER_MULTI_URL,
-	[['@phomo17/casino-startpage/risk-timing.js', TIMING_FILE_URL]], 'risk-ladder-multi.js');
+	[
+		['@phomo17/casino-startpage/risk-timing.js', TIMING_FILE_URL],
+		['@phomo17/casino-startpage/account-backend.js', ACCOUNT_BACKEND_URL],
+	], 'risk-ladder-multi.js');
 
 const { RiskLadder } = await import(riskLadderModuleUrl);
 const { MultiRiskLadder, NO_SIDE, ORDER_PER_LEVEL, ORDER_PER_PASS } = await import(riskLadderMultiModuleUrl);
